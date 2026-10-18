@@ -1,0 +1,386 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>NetComposer — music performed by the open internet</title>
+<meta name="description" content="NetComposer: one Composition, performed from openly licensed audio. Every performance leaves a public record. CC BY-SA 4.0.">
+<link rel="alternate" type="application/json" href="/netcomposer.json" title="NetComposer index">
+<link rel="alternate" type="text/plain" href="/llms.txt" title="llms.txt">
+<link rel="license" href="https://creativecommons.org/licenses/by-sa/4.0/">
+<style>body{font:15px/1.55 ui-monospace,Menlo,Consolas,"DejaVu Sans Mono",monospace;color:#000;background:#fff;max-width:76rem;margin:2.5rem auto;padding:0 1.2rem}
+h1{font-size:1.4rem;margin:0}h2{font-size:1rem;font-weight:bold;margin:2.6rem 0 .6rem;border-bottom:1px solid #000}h3{font-size:1rem;margin:0 0 .5rem}
+a{color:#000}p{margin:.5rem 0;max-width:46rem}blockquote{margin:1.4rem 0;max-width:46rem}blockquote p{margin:0}blockquote footer{margin-top:.3rem}
+.perfs{display:grid;grid-template-columns:repeat(3,1fr);gap:1.4rem}article{border:1px solid #000;padding:.8rem}article p{font-size:13px}audio{width:100%}
+.m{color:#333}.chords{font-size:12px;line-height:1.9;max-width:none}.chords span{display:inline-block;margin-right:.9rem}ul{padding-left:1.2rem;max-width:46rem}li{margin:.2rem 0}
+footer.site{margin-top:3rem;font-size:12px;border-top:1px solid #000;padding-top:.6rem}
+@media(max-width:900px){.perfs{grid-template-columns:1fr}}</style>
+<script type="application/ld+json">
+{
+ "@context": "https://schema.org",
+ "@graph": [
+  {
+   "@type": "WebSite",
+   "@id": "https://netcomposer.art/#site",
+   "url": "https://netcomposer.art/",
+   "name": "NetComposer",
+   "description": "Music performed by the open internet.",
+   "license": "https://creativecommons.org/licenses/by-sa/4.0/",
+   "about": {
+    "@type": "CreativeWork",
+    "@id": "https://netcomposer.art/#project",
+    "name": "NetComposer",
+    "creator": {
+     "@type": "Person",
+     "name": "Petrus Semmelhack"
+    },
+    "genre": "art and research project",
+    "abstract": "Music’s structure can be described mathematically. There is art in the math, and there is art in the performance. NetComposer is my exploration of that duality."
+   }
+  },
+  {
+   "@type": "Quotation",
+   "@id": "https://netcomposer.art/#statement",
+   "text": "Music’s structure can be described mathematically. There is art in the math, and there is art in the performance. NetComposer is my exploration of that duality.",
+   "creator": {
+    "@type": "Person",
+    "name": "Petrus Semmelhack"
+   },
+   "isPartOf": {
+    "@id": "https://netcomposer.art/#project"
+   }
+  },
+  {
+   "@type": "MusicComposition",
+   "@id": "https://netcomposer.art/#bwv846-harmony-only",
+   "name": "The C major Prelude, harmony only (after Bach, BWV 846)",
+   "composer": {
+    "@type": "Person",
+    "name": "Petrus Semmelhack"
+   },
+   "license": "https://creativecommons.org/licenses/by-sa/4.0/",
+   "url": "https://netcomposer.art/composition/bwv846-harmony-only.md",
+   "musicalKey": "C major",
+   "isBasedOn": [
+    {
+     "@type": "MusicComposition",
+     "name": "Prelude in C major, BWV 846",
+     "composer": {
+      "@type": "Person",
+      "name": "Johann Sebastian Bach"
+     },
+     "dateCreated": "1722",
+     "license": "https://creativecommons.org/publicdomain/mark/1.0/"
+    },
+    {
+     "@type": "Dataset",
+     "name": "When in Rome (harmonic analysis corpus)",
+     "creator": {
+      "@type": "Person",
+      "name": "Mark Gotham et al."
+     },
+     "url": "https://github.com/MarkGotham/When-in-Rome",
+     "license": "https://creativecommons.org/licenses/by-sa/4.0/"
+    }
+   ]
+  },
+  {
+   "@type": "MusicRecording",
+   "@id": "https://netcomposer.art/#take5-fwd-rev-echo",
+   "name": "The C major Prelude, harmony only (after Bach, BWV 846): take 5, forward/reverse echo",
+   "recordingOf": {
+    "@id": "https://netcomposer.art/#bwv846-harmony-only"
+   },
+   "duration": "PT2M6S",
+   "audio": {
+    "@type": "AudioObject",
+    "contentUrl": "https://netcomposer.art/audio/bwv846-take5-fwd-rev-echo.mp3",
+    "encodingFormat": "audio/mpeg"
+   },
+   "license": "https://creativecommons.org/licenses/by-sa/4.0/",
+   "contributor": [
+    {
+     "@type": "Person",
+     "name": "Petrus",
+     "url": "https://musicmatter.art/"
+    }
+   ],
+   "producer": {
+    "@type": "SoftwareApplication",
+    "name": "NetComposer Algorithmic Performer"
+   },
+   "isBasedOn": [
+    {
+     "@id": "https://netcomposer.art/#bwv846-harmony-only"
+    },
+    {
+     "@type": "Dataset",
+     "name": "Performance record (JSON)",
+     "url": "https://netcomposer.art/records/bwv846-take5-fwd-rev-echo.json",
+     "encodingFormat": "application/json"
+    }
+   ],
+   "description": "Chord strikes from musicmatter.art, two per bar. Each strike also plays reversed, swelling into the next. Hall 40%, 24 dB/oct low-pass swept 500 Hz → 20 kHz → 600 Hz."
+  },
+  {
+   "@type": "MusicRecording",
+   "@id": "https://netcomposer.art/#take6-arps-delay-lp1k",
+   "name": "The C major Prelude, harmony only (after Bach, BWV 846): take 6 arps, 1/4 delay, hall 25%, LP 1 kHz",
+   "recordingOf": {
+    "@id": "https://netcomposer.art/#bwv846-harmony-only"
+   },
+   "duration": "PT2M9S",
+   "audio": {
+    "@type": "AudioObject",
+    "contentUrl": "https://netcomposer.art/audio/bwv846-take6-arps-delay-lp1k.mp3",
+    "encodingFormat": "audio/mpeg"
+   },
+   "license": "https://creativecommons.org/licenses/by-sa/4.0/",
+   "contributor": [
+    {
+     "@type": "Person",
+     "name": "Petrus",
+     "url": "https://musicmatter.art/"
+    }
+   ],
+   "producer": {
+    "@type": "SoftwareApplication",
+    "name": "NetComposer Algorithmic Performer"
+   },
+   "isBasedOn": [
+    {
+     "@id": "https://netcomposer.art/#bwv846-harmony-only"
+    },
+    {
+     "@type": "Dataset",
+     "name": "Performance record (JSON)",
+     "url": "https://netcomposer.art/records/bwv846-take6-arps-delay-lp1k.json",
+     "encodingFormat": "application/json"
+    }
+   ],
+   "description": "Up/down arpeggios from musicmatter.art, time-stretched to the half bar. 1/4 delay 40% fb, hall 25%, LP 1 kHz 24 dB/oct."
+  },
+  {
+   "@type": "MusicRecording",
+   "@id": "https://netcomposer.art/#search",
+   "name": "The C major Prelude, harmony only (after Bach, BWV 846): search-driven take",
+   "recordingOf": {
+    "@id": "https://netcomposer.art/#bwv846-harmony-only"
+   },
+   "duration": "PT2M6S",
+   "audio": {
+    "@type": "AudioObject",
+    "contentUrl": "https://netcomposer.art/audio/bwv846-search.mp3",
+    "encodingFormat": "audio/mpeg"
+   },
+   "license": "https://creativecommons.org/licenses/by-sa/4.0/",
+   "contributor": [
+    {
+     "@type": "Person",
+     "name": "blakengouda",
+     "url": "https://freesound.org/people/blakengouda/"
+    },
+    {
+     "@type": "Person",
+     "name": "cabled_mess",
+     "url": "https://freesound.org/people/cabled_mess/"
+    },
+    {
+     "@type": "Person",
+     "name": "flcellogrl",
+     "url": "https://freesound.org/people/flcellogrl/"
+    },
+    {
+     "@type": "Person",
+     "name": "jesuswaffle",
+     "url": "https://freesound.org/people/jesuswaffle/"
+    },
+    {
+     "@type": "Person",
+     "name": "Jovica",
+     "url": "https://freesound.org/people/Jovica/"
+    },
+    {
+     "@type": "Person",
+     "name": "Miles_Thompson",
+     "url": "https://freesound.org/people/Miles_Thompson/"
+    },
+    {
+     "@type": "Person",
+     "name": "NoiseCollector",
+     "url": "https://freesound.org/people/NoiseCollector/"
+    },
+    {
+     "@type": "Person",
+     "name": "Olichite",
+     "url": "https://freesound.org/people/Olichite/"
+    },
+    {
+     "@type": "Person",
+     "name": "ovvcuxs",
+     "url": "https://freesound.org/people/ovvcuxs/"
+    },
+    {
+     "@type": "Person",
+     "name": "paulnorthyorks",
+     "url": "https://freesound.org/people/paulnorthyorks/"
+    },
+    {
+     "@type": "Person",
+     "name": "Sadiquecat",
+     "url": "https://freesound.org/people/Sadiquecat/"
+    },
+    {
+     "@type": "Person",
+     "name": "spitefuloctopus",
+     "url": "https://freesound.org/people/spitefuloctopus/"
+    },
+    {
+     "@type": "Person",
+     "name": "Thisisnotmyname12354",
+     "url": "https://freesound.org/people/Thisisnotmyname12354/"
+    },
+    {
+     "@type": "Person",
+     "name": "ValentinSosnitskiy",
+     "url": "https://freesound.org/people/ValentinSosnitskiy/"
+    },
+    {
+     "@type": "Person",
+     "name": "voxlab",
+     "url": "https://freesound.org/people/voxlab/"
+    },
+    {
+     "@type": "Person",
+     "name": "djfroyd",
+     "url": "https://freesound.org/people/djfroyd/"
+    },
+    {
+     "@type": "Person",
+     "name": "xbkyboox",
+     "url": "https://freesound.org/people/xbkyboox/"
+    },
+    {
+     "@type": "Person",
+     "name": "Vassilis02",
+     "url": "https://freesound.org/people/Vassilis02/"
+    },
+    {
+     "@type": "Person",
+     "name": "eastboundkieb",
+     "url": "https://freesound.org/people/eastboundkieb/"
+    },
+    {
+     "@type": "Person",
+     "name": "frederic.font",
+     "url": "https://freesound.org/people/frederic.font/"
+    }
+   ],
+   "producer": {
+    "@type": "SoftwareApplication",
+    "name": "NetComposer Algorithmic Performer"
+   },
+   "isBasedOn": [
+    {
+     "@id": "https://netcomposer.art/#bwv846-harmony-only"
+    },
+    {
+     "@type": "Dataset",
+     "name": "Performance record (JSON)",
+     "url": "https://netcomposer.art/records/bwv846-search.json",
+     "encodingFormat": "application/json"
+    }
+   ],
+   "description": "Only the chords are fixed. Rhythm and figure contour come from the onsets of sounds the crawler found; notes, beds and bass are found sounds (no pitch-shift). Hall 30%."
+  },
+  {
+   "@type": "Organization",
+   "name": "musicmatter.art",
+   "url": "https://musicmatter.art/",
+   "founder": {
+    "@type": "Person",
+    "name": "Petrus Semmelhack"
+   },
+   "description": "First NetComposer Supplier: 1,356 lossless chord recordings, CC BY-SA 4.0. Index: https://musicmatter.art/netcomposer.json"
+  }
+ ]
+}
+</script>
+</head>
+<body>
+<header>
+<h1>NetComposer</h1>
+<p>Music performed by the open internet.</p>
+</header>
+<main>
+<blockquote id="statement" cite="https://netcomposer.art/">
+<p>“Music’s structure can be described mathematically. There is art in the math, and there is art in the performance. NetComposer is my exploration of that duality.”</p>
+<footer>— Petrus Semmelhack</footer>
+</blockquote>
+<p>A Composition sets the harmony, structure, and tempo shape. A Performer realizes it from openly licensed audio the crawlers find. Every performance leaves a public record of what was used, where it came from, and who made it.</p>
+<p>The record lists every input with its checksum, every setting and the seed, so each performance can be rebuilt exactly.</p>
+
+<section id="comparison" aria-labelledby="h-comp">
+<h2 id="h-comp">One Composition, three Performances</h2>
+<p><b>The C major Prelude, harmony only</b> (after Bach, BWV 846). Composed by Petrus from the <a href="https://github.com/MarkGotham/When-in-Rome">When in Rome</a> analysis (CC BY-SA 4.0). One chord per bar, 35 bars, 4/4, 69 BPM, broadening over bars 33–35. No notes, no timbres. <a href="composition/bwv846-harmony-only.md">Composition text</a>.</p>
+<p class="chords"><span>1&nbsp;C</span> <span>2&nbsp;Dm7/C</span> <span>3&nbsp;G7/B</span> <span>4&nbsp;C</span> <span>5&nbsp;Am/C</span> <span>6&nbsp;D7/C</span> <span>7&nbsp;G/B</span> <span>8&nbsp;Cmaj7/B</span> <span>9&nbsp;Am7</span> <span>10&nbsp;D7</span> <span>11&nbsp;G</span> <span>12&nbsp;C#dim7/G</span> <span>13&nbsp;Dm/F</span> <span>14&nbsp;Bdim7/F</span> <span>15&nbsp;C/E</span> <span>16&nbsp;Fmaj7/E</span> <span>17&nbsp;Dm7</span> <span>18&nbsp;G7</span> <span>19&nbsp;C</span> <span>20&nbsp;C7</span> <span>21&nbsp;Fmaj7</span> <span>22&nbsp;F#dim7</span> <span>23&nbsp;Bdim7/Ab</span> <span>24&nbsp;G7</span> <span>25&nbsp;C/G</span> <span>26&nbsp;G7sus4</span> <span>27&nbsp;G7</span> <span>28&nbsp;F#dim7/G</span> <span>29&nbsp;C/G</span> <span>30&nbsp;G7sus4</span> <span>31&nbsp;G7</span> <span>32&nbsp;C7</span> <span>33&nbsp;Dm7/C</span> <span>34&nbsp;G7/C</span> <span>35&nbsp;C</span></p>
+<div class="perfs">
+<article id="take5-fwd-rev-echo">
+<h3>1. Take 5 · forward/reverse echo</h3>
+<audio controls preload="none" src="audio/bwv846-take5-fwd-rev-echo.mp3"></audio>
+<p>Chord strikes from musicmatter.art, two per bar. Each strike also plays reversed, swelling into the next. Hall 40%, 24 dB/oct low-pass swept 500 Hz → 20 kHz → 600 Hz.</p>
+<p class=m>2:06 · 28 chord recordings by Petrus (musicmatter.art)<br>record: <a href="records/bwv846-take5-fwd-rev-echo.html">read</a> · <a href="records/bwv846-take5-fwd-rev-echo.json" type="application/json">json</a> · <a href="records/bwv846-take5-fwd-rev-echo.md">md</a></p>
+</article><article id="take6-arps-delay-lp1k">
+<h3>2. Take 6 · arps, 1/4 delay, LP 1 kHz</h3>
+<audio controls preload="none" src="audio/bwv846-take6-arps-delay-lp1k.mp3"></audio>
+<p>Up/down arpeggios from musicmatter.art, time-stretched to the half bar. 1/4 delay 40% fb, hall 25%, LP 1 kHz 24 dB/oct.</p>
+<p class=m>2:09 · 26 arpeggio recordings by Petrus (musicmatter.art)<br>record: <a href="records/bwv846-take6-arps-delay-lp1k.html">read</a> · <a href="records/bwv846-take6-arps-delay-lp1k.json" type="application/json">json</a> · <a href="records/bwv846-take6-arps-delay-lp1k.md">md</a></p>
+</article><article id="search">
+<h3>3. Search-driven take</h3>
+<audio controls preload="none" src="audio/bwv846-search.mp3"></audio>
+<p>Only the chords are fixed. Rhythm and figure contour come from the onsets of sounds the crawler found; notes, beds and bass are found sounds (no pitch-shift). Hall 30%.</p>
+<p class=m>2:06 · 38 sounds heard + 6 rhythm donors, from 20 Freesound contributors<br>record: <a href="records/bwv846-search.html">read</a> · <a href="records/bwv846-search.json" type="application/json">json</a> · <a href="records/bwv846-search.md">md</a> · <a href='records/bwv846-search.png'>png</a></p>
+</article>
+</div>
+</section>
+
+<section id="roles" aria-labelledby="h-roles">
+<h2 id="h-roles">Roles</h2>
+<ul>
+<li><b>Suppliers</b> share audio under open licenses and are credited in every record that uses it.</li>
+<li><b>Composers</b> write Compositions: harmony, bars, and tempo shape, with no fixed notes or timbres.</li>
+<li><b>Performers</b> realize a Composition from what the crawlers find, extended with hacks.</li>
+<li><b>Audience</b> hears the result, released CC BY-SA 4.0 to share and remix.</li>
+</ul>
+</section>
+
+<section id="status" aria-labelledby="h-status">
+<h2 id="h-status">Status</h2>
+<p>Today the Performer draws on one dedicated Supplier, musicmatter.art, plus Freesound. The wider Supplier network is the ambition. Inputs must be CC0, CC BY, CC BY-SA, or public domain; never NC, ND, Sampling+, or custom licenses. Time-stretch is allowed; pitch-shifting is not. Records are unsigned for now.</p>
+</section>
+
+<section id="supplier" aria-labelledby="h-sup">
+<h2 id="h-sup">First Supplier: musicmatter.art</h2>
+<p><a href="https://musicmatter.art/">musicmatter.art</a> by Petrus Semmelhack is the first NetComposer Supplier: 1,356 lossless sounds (FLAC, 24-bit/48 kHz), 702 chord strikes and 654 up/down arpeggios, across 12 roots and 9 qualities (maj, min, 7, maj7, m7, dim, dim7, aug, sus4), in multiple takes. License: CC BY-SA 4.0.</p>
+<p>Machine-readable: an index at <a href="https://musicmatter.art/netcomposer.json">musicmatter.art/netcomposer.json</a> lists every sound with its FLAC and a per-sound manifest (<code>/sounds/&lt;name&gt;.nc.json</code>: chord, register and bass, format, sha256, license).</p>
+<p>How the Performer uses it: it reads the manifests, picks one sound per bar whose chord matches the Composition, prefers the one whose lowest note is the written bass and whose register sits close to the previous bar, then trims, layers or time-stretches it (never pitch-shifts). Performance 1 uses 28 chord strikes; performance 2 uses 26 arpeggios. Both were read from a local copy of the site, and the audio used is sample-identical to the published FLACs. Performance 3 uses Freesound only.</p>
+</section>
+
+<section id="license" aria-labelledby="h-lic">
+<h2 id="h-lic">License and credits</h2>
+<p>All performances and the Composition are licensed <a rel="license" href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a>.</p>
+<ul>
+<li>Music: Johann Sebastian Bach, Prelude in C major, BWV 846 (1722). Public domain.</li>
+<li>Harmonic analysis: Mark Gotham et al., <a href="https://github.com/MarkGotham/When-in-Rome">When in Rome</a>, CC BY-SA 4.0.</li>
+<li>Composition: Petrus.</li>
+<li>Sounds: Petrus (<a href='https://musicmatter.art/'>musicmatter.art</a>), CC BY-SA 4.0, performances 1 and 2.</li>
+<li>Sounds, performance 3 (Freesound): <a href='https://freesound.org/people/djfroyd/'>djfroyd</a>, <a href='https://freesound.org/people/NoiseCollector/'>NoiseCollector</a> (CC BY 3.0); <a href='https://freesound.org/people/flcellogrl/'>flcellogrl</a>, <a href='https://freesound.org/people/frederic.font/'>frederic.font</a>, <a href='https://freesound.org/people/Jovica/'>Jovica</a>, <a href='https://freesound.org/people/paulnorthyorks/'>paulnorthyorks</a>, <a href='https://freesound.org/people/voxlab/'>voxlab</a> (CC BY 4.0); <a href='https://freesound.org/people/blakengouda/'>blakengouda</a>, <a href='https://freesound.org/people/cabled_mess/'>cabled_mess</a>, <a href='https://freesound.org/people/eastboundkieb/'>eastboundkieb</a>, <a href='https://freesound.org/people/jesuswaffle/'>jesuswaffle</a>, <a href='https://freesound.org/people/Miles_Thompson/'>Miles_Thompson</a>, <a href='https://freesound.org/people/Olichite/'>Olichite</a>, <a href='https://freesound.org/people/ovvcuxs/'>ovvcuxs</a>, <a href='https://freesound.org/people/Sadiquecat/'>Sadiquecat</a>, <a href='https://freesound.org/people/spitefuloctopus/'>spitefuloctopus</a>, <a href='https://freesound.org/people/Thisisnotmyname12354/'>Thisisnotmyname12354</a>, <a href='https://freesound.org/people/ValentinSosnitskiy/'>ValentinSosnitskiy</a>, <a href='https://freesound.org/people/Vassilis02/'>Vassilis02</a>, <a href='https://freesound.org/people/xbkyboox/'>xbkyboox</a> (CC0 1.0).</li>
+<li>Performer: NetComposer Algorithmic Performer.</li>
+</ul>
+</section>
+</main>
+<footer class="site">
+<p>For agents: <a href="/netcomposer.json">/netcomposer.json</a> · <a href="/llms.txt">/llms.txt</a> · every record is raw JSON under <a href="/records/">/records/</a>.</p>
+</footer>
+</body>
+</html>

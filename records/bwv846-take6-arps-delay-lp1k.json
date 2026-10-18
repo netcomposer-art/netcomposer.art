@@ -1,0 +1,4986 @@
+{
+  "record_type": "netcomposer.performance_record",
+  "record_format_version": null,
+  "record_format_note": "No record format exists in the repo/CLI yet; this follows the field lists in spec §5.7, §5.8, §5.9 and §9.4 (spec marks them a draft/sketch).",
+  "performance": {
+    "id": "perf_bwv846-take6_arps_dly_lp1k",
+    "id_note": "Local id (folder + tag). NC has no Performance id registry yet.",
+    "title": "The C major Prelude, harmony only (after Bach, BWV 846): take 6 arps, 1/4 delay, hall 25%, LP 1 kHz",
+    "performed_at": "2026-10-17T22:47:29Z",
+    "performed_at_local": "2026-10-17T15:47:29-07:00",
+    "performed_at_note": "From the mtime of the WAV master (America/Los_Angeles, UTC-7).",
+    "duration_s": 129.19,
+    "music_ends_at_s": 122.852,
+    "performer_mode": "algorithmic",
+    "performer_id": null,
+    "performer_id_note": "NC has no system Identity for the engine yet.",
+    "performer": {
+      "name": "Astrid, NetComposer Algorithmic Performer (stand-in script on the box, not the netcomposer CLI)",
+      "script": {
+        "path": "bach/render6_arps_dly_lp1k.py",
+        "sha256": "2af4b5765fe0c5012af4ee6a9045a9220e08a1fd7fc9c7daf8abbc71ff1fac08"
+      }
+    },
+    "rules_set_by": {
+      "id": null,
+      "display_name": "Petrus",
+      "note": "Effect parameters requested by Petrus in chat; chord matching and take selection are the script's rules."
+    },
+    "engine_version": "render6_arps_dly_lp1k.py@sha256:2af4b5765fe0c501",
+    "composition_ref": {
+      "composition_id": "compositions/bach_bwv846_prelude_progression.md",
+      "version": null,
+      "version_note": "Compositions are not versioned yet; the file hash pins the exact text.",
+      "sha256": "f63acadc04937a289a2f51c96386a0ae92de8f7fba00c69a16a038632b9b43d5",
+      "composer": {
+        "id": null,
+        "display_name": "Petrus"
+      },
+      "music": "Johann Sebastian Bach, Prelude in C major, BWV 846, Das Wohltemperierte Klavier I (1722). Public domain.",
+      "analysis": {
+        "credit": "Mark Gotham et al., When in Rome corpus",
+        "file": "Corpus/Keyboard_Other/Bach,_Johann_Sebastian/The_Well-Tempered_Clavier_I/01/analysis.txt",
+        "uri": "https://github.com/MarkGotham/When-in-Rome",
+        "license": "CC-BY-SA-4.0",
+        "local_copy": {
+          "path": "bach/analysis.txt",
+          "sha256": "4cec7458b5aec3e74218168f529589f3233e008d3b6dde3c3953eaca3dd23565"
+        }
+      },
+      "bass_check": "Chord anchors and slash basses as in bars_v5.py (from the analysis; take 2 onward)."
+    },
+    "rule_set": {
+      "name": "bach-arps (BWV 846 take 6)",
+      "version": null,
+      "seed": 846,
+      "selection": {
+        "pool": "type=arpeggio, near-duplicates excluded",
+        "match": "chord per bar from bars_v5.py (dim7 any enharmonic spelling)",
+        "prefer": [
+          "lowest arp note = written bass (-20)",
+          "figure starts on its lowest note (-8)",
+          "small register jump (0.6x) and near MIDI 72 (0.4x)"
+        ],
+        "no_match": "G7sus4 (bars 26, 30) built by layering Gsus4 + Csus4/G at -3 dB"
+      },
+      "figuration": "first 8 sixteenths of a 110 BPM up/down arp, time-stretched x1.5942 to a 69 BPM half bar, played on beats 1 and 3 (2nd at -0.72 dB; bar 35 2nd at -5.19 dB)",
+      "tempo_map": {
+        "bpm": 69,
+        "rit_bar_extension": {
+          "33": 0.04,
+          "34": 0.1,
+          "35": 0.18
+        }
+      },
+      "transforms_enabled": [
+        "trim",
+        "gain",
+        "fade",
+        "time_stretch"
+      ],
+      "pitch_shift": false
+    },
+    "interpretation": {
+      "disclosed": true,
+      "summary": "Effect chain requested in chat, applied to the take 6 arps performance.",
+      "turns": [
+        {
+          "n": 1,
+          "request": "Then redo the Bach using them",
+          "applied_to": "take 6 arps (dry figuration and chords)"
+        },
+        {
+          "n": 2,
+          "request": "Redo the arps bach with delay 1/4 40% feedback ,reverb 25%, LP 1000hz",
+          "applied_to": "this Performance"
+        }
+      ]
+    },
+    "crawl_snapshot": {
+      "venue": "musicmatter.art (Petrus's own site)",
+      "snapshot": "local copy /workspace/musicmatter/site_v5 (WAV); published as FLAC (site_v5_flac)",
+      "pool_size_arps": 648,
+      "pool_note": "654 arps minus 6 flagged near-duplicates (Bmaj7 takes 7-12)",
+      "crawled_at": null,
+      "crawled_at_note": "Read from the local site copy, not crawled live."
+    },
+    "audio_uri": null,
+    "audio_uri_note": "Not published yet.",
+    "credits_uri": null,
+    "credits_uri_note": "No credit page published yet.",
+    "outputs": [
+      {
+        "file": "perf_bwv846/bach_bwv846_take6_arps_dly_lp1k.wav",
+        "format": "WAV PCM 24-bit/48 kHz stereo",
+        "sha256": "96af63629d77fac7bc63db839119e626375c6277bd36d8522c9e7e4e9a61686e",
+        "size_bytes": 37206810,
+        "duration_s": 129.19,
+        "written_at": "2026-10-17T15:47:29-07:00",
+        "written_at_utc": "2026-10-17T22:47:29Z",
+        "loudness_lufs_integrated": -14.0,
+        "true_peak_dbtp": -2.4
+      },
+      {
+        "file": "perf_bwv846/bach_bwv846_take6_arps_dly_lp1k.mp3",
+        "format": "MP3 256 kbps, 48 kHz",
+        "sha256": "04491515a4aa07faf325e5b0d590bf4bf2f4c96e341702c04ae8fcf02f9eb133",
+        "size_bytes": 4135724,
+        "duration_s": 129.216,
+        "written_at": "2026-10-17T15:47:30-07:00",
+        "written_at_utc": "2026-10-17T22:47:30Z",
+        "loudness_lufs_integrated": -14.0,
+        "true_peak_dbtp": -2.4
+      }
+    ],
+    "unfilled_gaps": [],
+    "known_compromises": [
+      {
+        "bars": "26, 30",
+        "what": "Layered substitution: G7sus4 = Gsus4 + Csus4/G (no 7sus4 recording)"
+      },
+      {
+        "bars": "28",
+        "what": "G pedal under F#dim7: pedal is not a chord tone"
+      },
+      {
+        "bars": "34",
+        "what": "C pedal under G7: no G7 arp has C as its lowest note"
+      },
+      {
+        "bars": "1, 4, 19, 35",
+        "what": "C major bars sit an octave high (C5-G5): the only C-major arp with C lowest is up there"
+      }
+    ],
+    "license_out": {
+      "id": "CC-BY-SA-4.0",
+      "name": "Creative Commons Attribution-ShareAlike 4.0",
+      "uri": "https://creativecommons.org/licenses/by-sa/4.0/"
+    }
+  },
+  "hacks_chain": [
+    {
+      "n": 1,
+      "tool": "delay",
+      "sync": "1/4 note, follows the tempo map (beat-mapped fractional delay)",
+      "times_ms": {
+        "69 BPM": 869.6,
+        "bar 33": 904.3,
+        "bar 34": 956.5,
+        "bar 35+tail": 1026.1
+      },
+      "feedback": 0.4,
+      "repeats": 12,
+      "return_db": -9.0,
+      "filtering": "none"
+    },
+    {
+      "n": 2,
+      "tool": "reverb",
+      "type": "synthetic stereo hall IR, generated in the script (seeded noise, exponential decay); no external IR",
+      "rt60_s": 2.6,
+      "predelay_ms": 22,
+      "ir_lowpass_hz": 6000,
+      "ir_highpass_hz": 180,
+      "seed": 846,
+      "wet": 0.25
+    },
+    {
+      "n": 3,
+      "tool": "lowpass",
+      "cutoff_hz": 1000,
+      "slope_db_per_oct": 24,
+      "design": "4th-order Butterworth, SOS (stable)",
+      "scope": "whole mix, fixed"
+    },
+    {
+      "n": 4,
+      "tool": "tail",
+      "rule": "ring out until -60 dB below peak (+0.3 s), 2.5 s fade into that point"
+    },
+    {
+      "n": 5,
+      "tool": "loudness",
+      "method": "ffmpeg loudnorm two-pass, linear",
+      "target_lufs": -14,
+      "ceiling_dbtp": -1
+    }
+  ],
+  "sounds_used": [
+    {
+      "offering": "adim7-arp-updown-1",
+      "title": "A diminished 7th arpeggio (up/down), take 1",
+      "source_url": "https://musicmatter.art/sounds/adim7-arp-updown-1.flac",
+      "manifest_url": "https://musicmatter.art/sounds/adim7-arp-updown-1.nc.json",
+      "supplier": {
+        "id": null,
+        "display_name": "Petrus",
+        "primary_link": "https://musicmatter.art/"
+      },
+      "license": {
+        "id": "CC-BY-SA-4.0",
+        "uri": "https://creativecommons.org/licenses/by-sa/4.0/"
+      },
+      "credit_line": "“A diminished 7th arpeggio (up/down), take 1” by Petrus (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/adim7-arp-updown-1.flac",
+      "chord": "Adim7",
+      "arpeggio_cycle": [
+        "A4",
+        "C5",
+        "D#5",
+        "F#5",
+        "D#5",
+        "C5"
+      ],
+      "sha256": "6e12288e44648ba7c54e78265ecbe565012f5c1b93e201f6ee445871eb661c55",
+      "sha256_note": "sha256 of the published FLAC (manifest field, re-verified locally)",
+      "content_hash_at_use": {
+        "file": "site_v5/sounds/adim7-arp-updown-1.wav",
+        "sha256": "4af3660c62be71f93e2474629d26b260ce96f443690d5a7da9a51d6dbdf3e41c",
+        "pcm_md5": "248510261fa57242144c3788b25a1755",
+        "note": "The render read the pre-FLAC WAV of this offering. Its decoded PCM md5 equals the published FLAC's manifest pcm_md5, so the audio used is sample-identical to what musicmatter.art serves."
+      },
+      "uses": 2,
+      "uses_as_layer": 0,
+      "bars": [
+        28
+      ],
+      "time_stretch_ratios": [
+        1.5942
+      ],
+      "processing_plain": "time-stretched to 1.59× length (no pitch change), quarter-note echo, 25% hall, low-pass at 1 kHz",
+      "spans": [
+        {
+          "bar": 28,
+          "beat": 1.0,
+          "beats": 2,
+          "chord_played": "Adim7",
+          "analysis": "C: viio2/v (F#o7/G)",
+          "role": "primary",
+          "source_offset_s": 0.0,
+          "source_length_s": 1.0909,
+          "sixteenths_taken": 8,
+          "placed_at_s": 93.913,
+          "placed_at_timecode": "1:33.913",
+          "placed_length_s": 1.7391,
+          "time_stretch_ratio": 1.5942,
+          "gain_db": 0.0,
+          "transforms": [
+            {
+              "type": "trim",
+              "source_offset_s": 0.0,
+              "source_length_s": 1.0909,
+              "fade_out_ms": 6
+            },
+            {
+              "type": "time_stretch",
+              "ratio": 1.5942,
+              "engine": "rubberband (ffmpeg 7.1.5 filter)",
+              "pitch_ratio": 1.0,
+              "options": "transients=crisp:detector=compound:phase=laminar:window=standard:pitchq=quality:channels=together"
+            },
+            {
+              "type": "fade_out",
+              "ms": 12
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s (per figure)"
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored.",
+          "match_basis": {
+            "chord": "pitch-class set equals the analysis chord (from the manifest arpeggio.cycle)",
+            "register": "manifest register/arpeggio.cycle lowest note vs written bass"
+          },
+          "note": null
+        },
+        {
+          "bar": 28,
+          "beat": 3.0,
+          "beats": 2,
+          "chord_played": "Adim7",
+          "analysis": "C: viio2/v (F#o7/G)",
+          "role": "primary",
+          "source_offset_s": 0.0,
+          "source_length_s": 1.0909,
+          "sixteenths_taken": 8,
+          "placed_at_s": 95.652,
+          "placed_at_timecode": "1:35.652",
+          "placed_length_s": 1.7391,
+          "time_stretch_ratio": 1.5942,
+          "gain_db": -0.72,
+          "transforms": [
+            {
+              "type": "trim",
+              "source_offset_s": 0.0,
+              "source_length_s": 1.0909,
+              "fade_out_ms": 6
+            },
+            {
+              "type": "time_stretch",
+              "ratio": 1.5942,
+              "engine": "rubberband (ffmpeg 7.1.5 filter)",
+              "pitch_ratio": 1.0,
+              "options": "transients=crisp:detector=compound:phase=laminar:window=standard:pitchq=quality:channels=together"
+            },
+            {
+              "type": "fade_out",
+              "ms": 12
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s (per figure)"
+            },
+            {
+              "type": "gain",
+              "db": -0.72
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored.",
+          "match_basis": {
+            "chord": "pitch-class set equals the analysis chord (from the manifest arpeggio.cycle)",
+            "register": "manifest register/arpeggio.cycle lowest note vs written bass"
+          },
+          "note": null
+        }
+      ]
+    },
+    {
+      "offering": "am7-arp-updown-6",
+      "title": "A minor 7th arpeggio (up/down), take 6",
+      "source_url": "https://musicmatter.art/sounds/am7-arp-updown-6.flac",
+      "manifest_url": "https://musicmatter.art/sounds/am7-arp-updown-6.nc.json",
+      "supplier": {
+        "id": null,
+        "display_name": "Petrus",
+        "primary_link": "https://musicmatter.art/"
+      },
+      "license": {
+        "id": "CC-BY-SA-4.0",
+        "uri": "https://creativecommons.org/licenses/by-sa/4.0/"
+      },
+      "credit_line": "“A minor 7th arpeggio (up/down), take 6” by Petrus (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/am7-arp-updown-6.flac",
+      "chord": "Am7",
+      "arpeggio_cycle": [
+        "A3",
+        "C4",
+        "E4",
+        "G4",
+        "E4",
+        "C4"
+      ],
+      "sha256": "b57ce98deedd9f2e499b198ec14dc767214204994ebf9ecdada68e933986c6d2",
+      "sha256_note": "sha256 of the published FLAC (manifest field, re-verified locally)",
+      "content_hash_at_use": {
+        "file": "site_v5/sounds/am7-arp-updown-6.wav",
+        "sha256": "42b89325f333a81b41520228b9682abec4d19b63faaea42b4afce8a226954759",
+        "pcm_md5": "f68da53c65e54c452d9da0a4816db8f7",
+        "note": "The render read the pre-FLAC WAV of this offering. Its decoded PCM md5 equals the published FLAC's manifest pcm_md5, so the audio used is sample-identical to what musicmatter.art serves."
+      },
+      "uses": 2,
+      "uses_as_layer": 0,
+      "bars": [
+        9
+      ],
+      "time_stretch_ratios": [
+        1.5942
+      ],
+      "processing_plain": "time-stretched to 1.59× length (no pitch change), quarter-note echo, 25% hall, low-pass at 1 kHz",
+      "spans": [
+        {
+          "bar": 9,
+          "beat": 1.0,
+          "beats": 2,
+          "chord_played": "Am7",
+          "analysis": "C: ii7 (Am7)",
+          "role": "primary",
+          "source_offset_s": 0.0,
+          "source_length_s": 1.0909,
+          "sixteenths_taken": 8,
+          "placed_at_s": 27.826,
+          "placed_at_timecode": "0:27.826",
+          "placed_length_s": 1.7391,
+          "time_stretch_ratio": 1.5942,
+          "gain_db": 0.0,
+          "transforms": [
+            {
+              "type": "trim",
+              "source_offset_s": 0.0,
+              "source_length_s": 1.0909,
+              "fade_out_ms": 6
+            },
+            {
+              "type": "time_stretch",
+              "ratio": 1.5942,
+              "engine": "rubberband (ffmpeg 7.1.5 filter)",
+              "pitch_ratio": 1.0,
+              "options": "transients=crisp:detector=compound:phase=laminar:window=standard:pitchq=quality:channels=together"
+            },
+            {
+              "type": "fade_out",
+              "ms": 12
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s (per figure)"
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored.",
+          "match_basis": {
+            "chord": "pitch-class set equals the analysis chord (from the manifest arpeggio.cycle)",
+            "register": "manifest register/arpeggio.cycle lowest note vs written bass"
+          },
+          "note": null
+        },
+        {
+          "bar": 9,
+          "beat": 3.0,
+          "beats": 2,
+          "chord_played": "Am7",
+          "analysis": "C: ii7 (Am7)",
+          "role": "primary",
+          "source_offset_s": 0.0,
+          "source_length_s": 1.0909,
+          "sixteenths_taken": 8,
+          "placed_at_s": 29.565,
+          "placed_at_timecode": "0:29.565",
+          "placed_length_s": 1.7391,
+          "time_stretch_ratio": 1.5942,
+          "gain_db": -0.72,
+          "transforms": [
+            {
+              "type": "trim",
+              "source_offset_s": 0.0,
+              "source_length_s": 1.0909,
+              "fade_out_ms": 6
+            },
+            {
+              "type": "time_stretch",
+              "ratio": 1.5942,
+              "engine": "rubberband (ffmpeg 7.1.5 filter)",
+              "pitch_ratio": 1.0,
+              "options": "transients=crisp:detector=compound:phase=laminar:window=standard:pitchq=quality:channels=together"
+            },
+            {
+              "type": "fade_out",
+              "ms": 12
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s (per figure)"
+            },
+            {
+              "type": "gain",
+              "db": -0.72
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored.",
+          "match_basis": {
+            "chord": "pitch-class set equals the analysis chord (from the manifest arpeggio.cycle)",
+            "register": "manifest register/arpeggio.cycle lowest note vs written bass"
+          },
+          "note": null
+        }
+      ]
+    },
+    {
+      "offering": "amin-arp-updown-2",
+      "title": "A minor arpeggio (up/down), take 2",
+      "source_url": "https://musicmatter.art/sounds/amin-arp-updown-2.flac",
+      "manifest_url": "https://musicmatter.art/sounds/amin-arp-updown-2.nc.json",
+      "supplier": {
+        "id": null,
+        "display_name": "Petrus",
+        "primary_link": "https://musicmatter.art/"
+      },
+      "license": {
+        "id": "CC-BY-SA-4.0",
+        "uri": "https://creativecommons.org/licenses/by-sa/4.0/"
+      },
+      "credit_line": "“A minor arpeggio (up/down), take 2” by Petrus (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/amin-arp-updown-2.flac",
+      "chord": "Amin",
+      "arpeggio_cycle": [
+        "C4",
+        "E4",
+        "A4",
+        "E4"
+      ],
+      "sha256": "73ae686f1799ced94e2aa2f94c2a54a6d57cd5cb27177629c0b4297ae4dec26e",
+      "sha256_note": "sha256 of the published FLAC (manifest field, re-verified locally)",
+      "content_hash_at_use": {
+        "file": "site_v5/sounds/amin-arp-updown-2.wav",
+        "sha256": "923a2340f920615b650c1333781ad8ccd176be361beabea2899c2af729db3ea3",
+        "pcm_md5": "003fae445f213b9a36bd94e2d9da3db8",
+        "note": "The render read the pre-FLAC WAV of this offering. Its decoded PCM md5 equals the published FLAC's manifest pcm_md5, so the audio used is sample-identical to what musicmatter.art serves."
+      },
+      "uses": 2,
+      "uses_as_layer": 0,
+      "bars": [
+        5
+      ],
+      "time_stretch_ratios": [
+        1.5942
+      ],
+      "processing_plain": "time-stretched to 1.59× length (no pitch change), quarter-note echo, 25% hall, low-pass at 1 kHz",
+      "spans": [
+        {
+          "bar": 5,
+          "beat": 1.0,
+          "beats": 2,
+          "chord_played": "Amin",
+          "analysis": "C: vi6 (Am/C)",
+          "role": "primary",
+          "source_offset_s": 0.0,
+          "source_length_s": 1.0909,
+          "sixteenths_taken": 8,
+          "placed_at_s": 13.913,
+          "placed_at_timecode": "0:13.913",
+          "placed_length_s": 1.7391,
+          "time_stretch_ratio": 1.5942,
+          "gain_db": 0.0,
+          "transforms": [
+            {
+              "type": "trim",
+              "source_offset_s": 0.0,
+              "source_length_s": 1.0909,
+              "fade_out_ms": 6
+            },
+            {
+              "type": "time_stretch",
+              "ratio": 1.5942,
+              "engine": "rubberband (ffmpeg 7.1.5 filter)",
+              "pitch_ratio": 1.0,
+              "options": "transients=crisp:detector=compound:phase=laminar:window=standard:pitchq=quality:channels=together"
+            },
+            {
+              "type": "fade_out",
+              "ms": 12
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s (per figure)"
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored.",
+          "match_basis": {
+            "chord": "pitch-class set equals the analysis chord (from the manifest arpeggio.cycle)",
+            "register": "manifest register/arpeggio.cycle lowest note vs written bass"
+          },
+          "note": null
+        },
+        {
+          "bar": 5,
+          "beat": 3.0,
+          "beats": 2,
+          "chord_played": "Amin",
+          "analysis": "C: vi6 (Am/C)",
+          "role": "primary",
+          "source_offset_s": 0.0,
+          "source_length_s": 1.0909,
+          "sixteenths_taken": 8,
+          "placed_at_s": 15.652,
+          "placed_at_timecode": "0:15.652",
+          "placed_length_s": 1.7391,
+          "time_stretch_ratio": 1.5942,
+          "gain_db": -0.72,
+          "transforms": [
+            {
+              "type": "trim",
+              "source_offset_s": 0.0,
+              "source_length_s": 1.0909,
+              "fade_out_ms": 6
+            },
+            {
+              "type": "time_stretch",
+              "ratio": 1.5942,
+              "engine": "rubberband (ffmpeg 7.1.5 filter)",
+              "pitch_ratio": 1.0,
+              "options": "transients=crisp:detector=compound:phase=laminar:window=standard:pitchq=quality:channels=together"
+            },
+            {
+              "type": "fade_out",
+              "ms": 12
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s (per figure)"
+            },
+            {
+              "type": "gain",
+              "db": -0.72
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored.",
+          "match_basis": {
+            "chord": "pitch-class set equals the analysis chord (from the manifest arpeggio.cycle)",
+            "register": "manifest register/arpeggio.cycle lowest note vs written bass"
+          },
+          "note": null
+        }
+      ]
+    },
+    {
+      "offering": "bdim7-arp-updown-1",
+      "title": "B diminished 7th arpeggio (up/down), take 1",
+      "source_url": "https://musicmatter.art/sounds/bdim7-arp-updown-1.flac",
+      "manifest_url": "https://musicmatter.art/sounds/bdim7-arp-updown-1.nc.json",
+      "supplier": {
+        "id": null,
+        "display_name": "Petrus",
+        "primary_link": "https://musicmatter.art/"
+      },
+      "license": {
+        "id": "CC-BY-SA-4.0",
+        "uri": "https://creativecommons.org/licenses/by-sa/4.0/"
+      },
+      "credit_line": "“B diminished 7th arpeggio (up/down), take 1” by Petrus (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/bdim7-arp-updown-1.flac",
+      "chord": "Bdim7",
+      "arpeggio_cycle": [
+        "F4",
+        "G#4",
+        "B4",
+        "D5",
+        "B4",
+        "G#4"
+      ],
+      "sha256": "5f15b7efc4c91359e7f5950ecd109144cbcd3f916ebcb174100003b38a26efc2",
+      "sha256_note": "sha256 of the published FLAC (manifest field, re-verified locally)",
+      "content_hash_at_use": {
+        "file": "site_v5/sounds/bdim7-arp-updown-1.wav",
+        "sha256": "61c8cd9f83f755dcde6c5df7504227290387f1b1a955b5409e4b5a1b59ae03d9",
+        "pcm_md5": "f1771c119c1bc4b87f2dd2c1e9b573e0",
+        "note": "The render read the pre-FLAC WAV of this offering. Its decoded PCM md5 equals the published FLAC's manifest pcm_md5, so the audio used is sample-identical to what musicmatter.art serves."
+      },
+      "uses": 2,
+      "uses_as_layer": 0,
+      "bars": [
+        14
+      ],
+      "time_stretch_ratios": [
+        1.5942
+      ],
+      "processing_plain": "time-stretched to 1.59× length (no pitch change), quarter-note echo, 25% hall, low-pass at 1 kHz",
+      "spans": [
+        {
+          "bar": 14,
+          "beat": 1.0,
+          "beats": 2,
+          "chord_played": "Bdim7",
+          "analysis": "C: C: viio64b3 (Bo7/F)",
+          "role": "primary",
+          "source_offset_s": 0.0,
+          "source_length_s": 1.0909,
+          "sixteenths_taken": 8,
+          "placed_at_s": 45.217,
+          "placed_at_timecode": "0:45.217",
+          "placed_length_s": 1.7391,
+          "time_stretch_ratio": 1.5942,
+          "gain_db": 0.0,
+          "transforms": [
+            {
+              "type": "trim",
+              "source_offset_s": 0.0,
+              "source_length_s": 1.0909,
+              "fade_out_ms": 6
+            },
+            {
+              "type": "time_stretch",
+              "ratio": 1.5942,
+              "engine": "rubberband (ffmpeg 7.1.5 filter)",
+              "pitch_ratio": 1.0,
+              "options": "transients=crisp:detector=compound:phase=laminar:window=standard:pitchq=quality:channels=together"
+            },
+            {
+              "type": "fade_out",
+              "ms": 12
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s (per figure)"
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored.",
+          "match_basis": {
+            "chord": "pitch-class set equals the analysis chord (from the manifest arpeggio.cycle)",
+            "register": "manifest register/arpeggio.cycle lowest note vs written bass"
+          },
+          "note": null
+        },
+        {
+          "bar": 14,
+          "beat": 3.0,
+          "beats": 2,
+          "chord_played": "Bdim7",
+          "analysis": "C: C: viio64b3 (Bo7/F)",
+          "role": "primary",
+          "source_offset_s": 0.0,
+          "source_length_s": 1.0909,
+          "sixteenths_taken": 8,
+          "placed_at_s": 46.957,
+          "placed_at_timecode": "0:46.957",
+          "placed_length_s": 1.7391,
+          "time_stretch_ratio": 1.5942,
+          "gain_db": -0.72,
+          "transforms": [
+            {
+              "type": "trim",
+              "source_offset_s": 0.0,
+              "source_length_s": 1.0909,
+              "fade_out_ms": 6
+            },
+            {
+              "type": "time_stretch",
+              "ratio": 1.5942,
+              "engine": "rubberband (ffmpeg 7.1.5 filter)",
+              "pitch_ratio": 1.0,
+              "options": "transients=crisp:detector=compound:phase=laminar:window=standard:pitchq=quality:channels=together"
+            },
+            {
+              "type": "fade_out",
+              "ms": 12
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s (per figure)"
+            },
+            {
+              "type": "gain",
+              "db": -0.72
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored.",
+          "match_basis": {
+            "chord": "pitch-class set equals the analysis chord (from the manifest arpeggio.cycle)",
+            "register": "manifest register/arpeggio.cycle lowest note vs written bass"
+          },
+          "note": null
+        }
+      ]
+    },
+    {
+      "offering": "bdim7-arp-updown-4",
+      "title": "B diminished 7th arpeggio (up/down), take 4",
+      "source_url": "https://musicmatter.art/sounds/bdim7-arp-updown-4.flac",
+      "manifest_url": "https://musicmatter.art/sounds/bdim7-arp-updown-4.nc.json",
+      "supplier": {
+        "id": null,
+        "display_name": "Petrus",
+        "primary_link": "https://musicmatter.art/"
+      },
+      "license": {
+        "id": "CC-BY-SA-4.0",
+        "uri": "https://creativecommons.org/licenses/by-sa/4.0/"
+      },
+      "credit_line": "“B diminished 7th arpeggio (up/down), take 4” by Petrus (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/bdim7-arp-updown-4.flac",
+      "chord": "Bdim7",
+      "arpeggio_cycle": [
+        "G#4",
+        "B4",
+        "D5",
+        "F5",
+        "D5",
+        "B4"
+      ],
+      "sha256": "95155cfe010f26228917aab788bc495cc844e832fe7c5576e34c1de4d4f8afc5",
+      "sha256_note": "sha256 of the published FLAC (manifest field, re-verified locally)",
+      "content_hash_at_use": {
+        "file": "site_v5/sounds/bdim7-arp-updown-4.wav",
+        "sha256": "d0a0ad6ce77574f6cf61629c31dc86b914928c5c5e4dff563b296beee49ec9d7",
+        "pcm_md5": "04fccbb5e8188fd4066595caabe8b246",
+        "note": "The render read the pre-FLAC WAV of this offering. Its decoded PCM md5 equals the published FLAC's manifest pcm_md5, so the audio used is sample-identical to what musicmatter.art serves."
+      },
+      "uses": 2,
+      "uses_as_layer": 0,
+      "bars": [
+        23
+      ],
+      "time_stretch_ratios": [
+        1.5942
+      ],
+      "processing_plain": "time-stretched to 1.59× length (no pitch change), quarter-note echo, 25% hall, low-pass at 1 kHz",
+      "spans": [
+        {
+          "bar": 23,
+          "beat": 1.0,
+          "beats": 2,
+          "chord_played": "Bdim7",
+          "analysis": "C: viio2 (Bo7/Ab)",
+          "role": "primary",
+          "source_offset_s": 0.0,
+          "source_length_s": 1.0909,
+          "sixteenths_taken": 8,
+          "placed_at_s": 76.522,
+          "placed_at_timecode": "1:16.522",
+          "placed_length_s": 1.7391,
+          "time_stretch_ratio": 1.5942,
+          "gain_db": 0.0,
+          "transforms": [
+            {
+              "type": "trim",
+              "source_offset_s": 0.0,
+              "source_length_s": 1.0909,
+              "fade_out_ms": 6
+            },
+            {
+              "type": "time_stretch",
+              "ratio": 1.5942,
+              "engine": "rubberband (ffmpeg 7.1.5 filter)",
+              "pitch_ratio": 1.0,
+              "options": "transients=crisp:detector=compound:phase=laminar:window=standard:pitchq=quality:channels=together"
+            },
+            {
+              "type": "fade_out",
+              "ms": 12
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s (per figure)"
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored.",
+          "match_basis": {
+            "chord": "pitch-class set equals the analysis chord (from the manifest arpeggio.cycle)",
+            "register": "manifest register/arpeggio.cycle lowest note vs written bass"
+          },
+          "note": null
+        },
+        {
+          "bar": 23,
+          "beat": 3.0,
+          "beats": 2,
+          "chord_played": "Bdim7",
+          "analysis": "C: viio2 (Bo7/Ab)",
+          "role": "primary",
+          "source_offset_s": 0.0,
+          "source_length_s": 1.0909,
+          "sixteenths_taken": 8,
+          "placed_at_s": 78.261,
+          "placed_at_timecode": "1:18.261",
+          "placed_length_s": 1.7391,
+          "time_stretch_ratio": 1.5942,
+          "gain_db": -0.72,
+          "transforms": [
+            {
+              "type": "trim",
+              "source_offset_s": 0.0,
+              "source_length_s": 1.0909,
+              "fade_out_ms": 6
+            },
+            {
+              "type": "time_stretch",
+              "ratio": 1.5942,
+              "engine": "rubberband (ffmpeg 7.1.5 filter)",
+              "pitch_ratio": 1.0,
+              "options": "transients=crisp:detector=compound:phase=laminar:window=standard:pitchq=quality:channels=together"
+            },
+            {
+              "type": "fade_out",
+              "ms": 12
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s (per figure)"
+            },
+            {
+              "type": "gain",
+              "db": -0.72
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored.",
+          "match_basis": {
+            "chord": "pitch-class set equals the analysis chord (from the manifest arpeggio.cycle)",
+            "register": "manifest register/arpeggio.cycle lowest note vs written bass"
+          },
+          "note": null
+        }
+      ]
+    },
+    {
+      "offering": "c7-arp-updown-2",
+      "title": "C dominant 7th arpeggio (up/down), take 2",
+      "source_url": "https://musicmatter.art/sounds/c7-arp-updown-2.flac",
+      "manifest_url": "https://musicmatter.art/sounds/c7-arp-updown-2.nc.json",
+      "supplier": {
+        "id": null,
+        "display_name": "Petrus",
+        "primary_link": "https://musicmatter.art/"
+      },
+      "license": {
+        "id": "CC-BY-SA-4.0",
+        "uri": "https://creativecommons.org/licenses/by-sa/4.0/"
+      },
+      "credit_line": "“C dominant 7th arpeggio (up/down), take 2” by Petrus (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/c7-arp-updown-2.flac",
+      "chord": "C7",
+      "arpeggio_cycle": [
+        "C4",
+        "E4",
+        "G4",
+        "A#4",
+        "G4",
+        "E4"
+      ],
+      "sha256": "9ed7c8f773218a2b57a1c6ca78924b32c30c59c468f48a45cfdc7ed95168d8f8",
+      "sha256_note": "sha256 of the published FLAC (manifest field, re-verified locally)",
+      "content_hash_at_use": {
+        "file": "site_v5/sounds/c7-arp-updown-2.wav",
+        "sha256": "b309ec76eb4db9707aa9a67a12401703b77f9b472226cd9b74ea27f6b9a96044",
+        "pcm_md5": "ba48c994b476d400422eaf30eb943bb0",
+        "note": "The render read the pre-FLAC WAV of this offering. Its decoded PCM md5 equals the published FLAC's manifest pcm_md5, so the audio used is sample-identical to what musicmatter.art serves."
+      },
+      "uses": 4,
+      "uses_as_layer": 0,
+      "bars": [
+        20,
+        32
+      ],
+      "time_stretch_ratios": [
+        1.5942
+      ],
+      "processing_plain": "time-stretched to 1.59× length (no pitch change), quarter-note echo, 25% hall, low-pass at 1 kHz",
+      "spans": [
+        {
+          "bar": 20,
+          "beat": 1.0,
+          "beats": 2,
+          "chord_played": "C7",
+          "analysis": "C: V7/IV (C7)",
+          "role": "primary",
+          "source_offset_s": 0.0,
+          "source_length_s": 1.0909,
+          "sixteenths_taken": 8,
+          "placed_at_s": 66.087,
+          "placed_at_timecode": "1:06.087",
+          "placed_length_s": 1.7391,
+          "time_stretch_ratio": 1.5942,
+          "gain_db": 0.0,
+          "transforms": [
+            {
+              "type": "trim",
+              "source_offset_s": 0.0,
+              "source_length_s": 1.0909,
+              "fade_out_ms": 6
+            },
+            {
+              "type": "time_stretch",
+              "ratio": 1.5942,
+              "engine": "rubberband (ffmpeg 7.1.5 filter)",
+              "pitch_ratio": 1.0,
+              "options": "transients=crisp:detector=compound:phase=laminar:window=standard:pitchq=quality:channels=together"
+            },
+            {
+              "type": "fade_out",
+              "ms": 12
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s (per figure)"
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored.",
+          "match_basis": {
+            "chord": "pitch-class set equals the analysis chord (from the manifest arpeggio.cycle)",
+            "register": "manifest register/arpeggio.cycle lowest note vs written bass"
+          },
+          "note": null
+        },
+        {
+          "bar": 20,
+          "beat": 3.0,
+          "beats": 2,
+          "chord_played": "C7",
+          "analysis": "C: V7/IV (C7)",
+          "role": "primary",
+          "source_offset_s": 0.0,
+          "source_length_s": 1.0909,
+          "sixteenths_taken": 8,
+          "placed_at_s": 67.826,
+          "placed_at_timecode": "1:07.826",
+          "placed_length_s": 1.7391,
+          "time_stretch_ratio": 1.5942,
+          "gain_db": -0.72,
+          "transforms": [
+            {
+              "type": "trim",
+              "source_offset_s": 0.0,
+              "source_length_s": 1.0909,
+              "fade_out_ms": 6
+            },
+            {
+              "type": "time_stretch",
+              "ratio": 1.5942,
+              "engine": "rubberband (ffmpeg 7.1.5 filter)",
+              "pitch_ratio": 1.0,
+              "options": "transients=crisp:detector=compound:phase=laminar:window=standard:pitchq=quality:channels=together"
+            },
+            {
+              "type": "fade_out",
+              "ms": 12
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s (per figure)"
+            },
+            {
+              "type": "gain",
+              "db": -0.72
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored.",
+          "match_basis": {
+            "chord": "pitch-class set equals the analysis chord (from the manifest arpeggio.cycle)",
+            "register": "manifest register/arpeggio.cycle lowest note vs written bass"
+          },
+          "note": null
+        },
+        {
+          "bar": 32,
+          "beat": 1.0,
+          "beats": 2,
+          "chord_played": "C7",
+          "analysis": "C: V7/IV (C pedal) (C7)",
+          "role": "primary",
+          "source_offset_s": 0.0,
+          "source_length_s": 1.0909,
+          "sixteenths_taken": 8,
+          "placed_at_s": 107.826,
+          "placed_at_timecode": "1:47.826",
+          "placed_length_s": 1.7391,
+          "time_stretch_ratio": 1.5942,
+          "gain_db": 0.0,
+          "transforms": [
+            {
+              "type": "trim",
+              "source_offset_s": 0.0,
+              "source_length_s": 1.0909,
+              "fade_out_ms": 6
+            },
+            {
+              "type": "time_stretch",
+              "ratio": 1.5942,
+              "engine": "rubberband (ffmpeg 7.1.5 filter)",
+              "pitch_ratio": 1.0,
+              "options": "transients=crisp:detector=compound:phase=laminar:window=standard:pitchq=quality:channels=together"
+            },
+            {
+              "type": "fade_out",
+              "ms": 12
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s (per figure)"
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored.",
+          "match_basis": {
+            "chord": "pitch-class set equals the analysis chord (from the manifest arpeggio.cycle)",
+            "register": "manifest register/arpeggio.cycle lowest note vs written bass"
+          },
+          "note": null
+        },
+        {
+          "bar": 32,
+          "beat": 3.0,
+          "beats": 2,
+          "chord_played": "C7",
+          "analysis": "C: V7/IV (C pedal) (C7)",
+          "role": "primary",
+          "source_offset_s": 0.0,
+          "source_length_s": 1.0909,
+          "sixteenths_taken": 8,
+          "placed_at_s": 109.565,
+          "placed_at_timecode": "1:49.565",
+          "placed_length_s": 1.7391,
+          "time_stretch_ratio": 1.5942,
+          "gain_db": -0.72,
+          "transforms": [
+            {
+              "type": "trim",
+              "source_offset_s": 0.0,
+              "source_length_s": 1.0909,
+              "fade_out_ms": 6
+            },
+            {
+              "type": "time_stretch",
+              "ratio": 1.5942,
+              "engine": "rubberband (ffmpeg 7.1.5 filter)",
+              "pitch_ratio": 1.0,
+              "options": "transients=crisp:detector=compound:phase=laminar:window=standard:pitchq=quality:channels=together"
+            },
+            {
+              "type": "fade_out",
+              "ms": 12
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s (per figure)"
+            },
+            {
+              "type": "gain",
+              "db": -0.72
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored.",
+          "match_basis": {
+            "chord": "pitch-class set equals the analysis chord (from the manifest arpeggio.cycle)",
+            "register": "manifest register/arpeggio.cycle lowest note vs written bass"
+          },
+          "note": null
+        }
+      ]
+    },
+    {
+      "offering": "cmaj-arp-updown-2",
+      "title": "C major arpeggio (up/down), take 2",
+      "source_url": "https://musicmatter.art/sounds/cmaj-arp-updown-2.flac",
+      "manifest_url": "https://musicmatter.art/sounds/cmaj-arp-updown-2.nc.json",
+      "supplier": {
+        "id": null,
+        "display_name": "Petrus",
+        "primary_link": "https://musicmatter.art/"
+      },
+      "license": {
+        "id": "CC-BY-SA-4.0",
+        "uri": "https://creativecommons.org/licenses/by-sa/4.0/"
+      },
+      "credit_line": "“C major arpeggio (up/down), take 2” by Petrus (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/cmaj-arp-updown-2.flac",
+      "chord": "Cmaj",
+      "arpeggio_cycle": [
+        "G4",
+        "C5",
+        "E5",
+        "C5"
+      ],
+      "sha256": "8405d5edd499870f8d9798e44fa9cf64fb21edd7244a99f9efcdc3e2c9d1fb2a",
+      "sha256_note": "sha256 of the published FLAC (manifest field, re-verified locally)",
+      "content_hash_at_use": {
+        "file": "site_v5/sounds/cmaj-arp-updown-2.wav",
+        "sha256": "02d39c75f24245aa9535165aa81ba34da7d64c54aab17937970fdc06f798d476",
+        "pcm_md5": "1b065aeec281d74d9596498401636575",
+        "note": "The render read the pre-FLAC WAV of this offering. Its decoded PCM md5 equals the published FLAC's manifest pcm_md5, so the audio used is sample-identical to what musicmatter.art serves."
+      },
+      "uses": 4,
+      "uses_as_layer": 0,
+      "bars": [
+        25,
+        29
+      ],
+      "time_stretch_ratios": [
+        1.5942
+      ],
+      "processing_plain": "time-stretched to 1.59× length (no pitch change), quarter-note echo, 25% hall, low-pass at 1 kHz",
+      "spans": [
+        {
+          "bar": 25,
+          "beat": 1.0,
+          "beats": 2,
+          "chord_played": "Cmaj",
+          "analysis": "C: I64 (C/G)",
+          "role": "primary",
+          "source_offset_s": 0.0,
+          "source_length_s": 1.0909,
+          "sixteenths_taken": 8,
+          "placed_at_s": 83.478,
+          "placed_at_timecode": "1:23.478",
+          "placed_length_s": 1.7391,
+          "time_stretch_ratio": 1.5942,
+          "gain_db": 0.0,
+          "transforms": [
+            {
+              "type": "trim",
+              "source_offset_s": 0.0,
+              "source_length_s": 1.0909,
+              "fade_out_ms": 6
+            },
+            {
+              "type": "time_stretch",
+              "ratio": 1.5942,
+              "engine": "rubberband (ffmpeg 7.1.5 filter)",
+              "pitch_ratio": 1.0,
+              "options": "transients=crisp:detector=compound:phase=laminar:window=standard:pitchq=quality:channels=together"
+            },
+            {
+              "type": "fade_out",
+              "ms": 12
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s (per figure)"
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored.",
+          "match_basis": {
+            "chord": "pitch-class set equals the analysis chord (from the manifest arpeggio.cycle)",
+            "register": "manifest register/arpeggio.cycle lowest note vs written bass"
+          },
+          "note": null
+        },
+        {
+          "bar": 25,
+          "beat": 3.0,
+          "beats": 2,
+          "chord_played": "Cmaj",
+          "analysis": "C: I64 (C/G)",
+          "role": "primary",
+          "source_offset_s": 0.0,
+          "source_length_s": 1.0909,
+          "sixteenths_taken": 8,
+          "placed_at_s": 85.217,
+          "placed_at_timecode": "1:25.217",
+          "placed_length_s": 1.7391,
+          "time_stretch_ratio": 1.5942,
+          "gain_db": -0.72,
+          "transforms": [
+            {
+              "type": "trim",
+              "source_offset_s": 0.0,
+              "source_length_s": 1.0909,
+              "fade_out_ms": 6
+            },
+            {
+              "type": "time_stretch",
+              "ratio": 1.5942,
+              "engine": "rubberband (ffmpeg 7.1.5 filter)",
+              "pitch_ratio": 1.0,
+              "options": "transients=crisp:detector=compound:phase=laminar:window=standard:pitchq=quality:channels=together"
+            },
+            {
+              "type": "fade_out",
+              "ms": 12
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s (per figure)"
+            },
+            {
+              "type": "gain",
+              "db": -0.72
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored.",
+          "match_basis": {
+            "chord": "pitch-class set equals the analysis chord (from the manifest arpeggio.cycle)",
+            "register": "manifest register/arpeggio.cycle lowest note vs written bass"
+          },
+          "note": null
+        },
+        {
+          "bar": 29,
+          "beat": 1.0,
+          "beats": 2,
+          "chord_played": "Cmaj",
+          "analysis": "C: I64 (C/G)",
+          "role": "primary",
+          "source_offset_s": 0.0,
+          "source_length_s": 1.0909,
+          "sixteenths_taken": 8,
+          "placed_at_s": 97.391,
+          "placed_at_timecode": "1:37.391",
+          "placed_length_s": 1.7391,
+          "time_stretch_ratio": 1.5942,
+          "gain_db": 0.0,
+          "transforms": [
+            {
+              "type": "trim",
+              "source_offset_s": 0.0,
+              "source_length_s": 1.0909,
+              "fade_out_ms": 6
+            },
+            {
+              "type": "time_stretch",
+              "ratio": 1.5942,
+              "engine": "rubberband (ffmpeg 7.1.5 filter)",
+              "pitch_ratio": 1.0,
+              "options": "transients=crisp:detector=compound:phase=laminar:window=standard:pitchq=quality:channels=together"
+            },
+            {
+              "type": "fade_out",
+              "ms": 12
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s (per figure)"
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored.",
+          "match_basis": {
+            "chord": "pitch-class set equals the analysis chord (from the manifest arpeggio.cycle)",
+            "register": "manifest register/arpeggio.cycle lowest note vs written bass"
+          },
+          "note": null
+        },
+        {
+          "bar": 29,
+          "beat": 3.0,
+          "beats": 2,
+          "chord_played": "Cmaj",
+          "analysis": "C: I64 (C/G)",
+          "role": "primary",
+          "source_offset_s": 0.0,
+          "source_length_s": 1.0909,
+          "sixteenths_taken": 8,
+          "placed_at_s": 99.13,
+          "placed_at_timecode": "1:39.130",
+          "placed_length_s": 1.7391,
+          "time_stretch_ratio": 1.5942,
+          "gain_db": -0.72,
+          "transforms": [
+            {
+              "type": "trim",
+              "source_offset_s": 0.0,
+              "source_length_s": 1.0909,
+              "fade_out_ms": 6
+            },
+            {
+              "type": "time_stretch",
+              "ratio": 1.5942,
+              "engine": "rubberband (ffmpeg 7.1.5 filter)",
+              "pitch_ratio": 1.0,
+              "options": "transients=crisp:detector=compound:phase=laminar:window=standard:pitchq=quality:channels=together"
+            },
+            {
+              "type": "fade_out",
+              "ms": 12
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s (per figure)"
+            },
+            {
+              "type": "gain",
+              "db": -0.72
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored.",
+          "match_basis": {
+            "chord": "pitch-class set equals the analysis chord (from the manifest arpeggio.cycle)",
+            "register": "manifest register/arpeggio.cycle lowest note vs written bass"
+          },
+          "note": null
+        }
+      ]
+    },
+    {
+      "offering": "cmaj-arp-updown-4",
+      "title": "C major arpeggio (up/down), take 4",
+      "source_url": "https://musicmatter.art/sounds/cmaj-arp-updown-4.flac",
+      "manifest_url": "https://musicmatter.art/sounds/cmaj-arp-updown-4.nc.json",
+      "supplier": {
+        "id": null,
+        "display_name": "Petrus",
+        "primary_link": "https://musicmatter.art/"
+      },
+      "license": {
+        "id": "CC-BY-SA-4.0",
+        "uri": "https://creativecommons.org/licenses/by-sa/4.0/"
+      },
+      "credit_line": "“C major arpeggio (up/down), take 4” by Petrus (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/cmaj-arp-updown-4.flac",
+      "chord": "Cmaj",
+      "arpeggio_cycle": [
+        "C5",
+        "E5",
+        "G5",
+        "E5"
+      ],
+      "sha256": "c365e5c3e5dc664106084a21ef735a1a26d00fcf1d97f141eba1a1127e06af8a",
+      "sha256_note": "sha256 of the published FLAC (manifest field, re-verified locally)",
+      "content_hash_at_use": {
+        "file": "site_v5/sounds/cmaj-arp-updown-4.wav",
+        "sha256": "e108ed7cbf3ab726d1316bc275caf1a652a90f270d3b13026d7aa09ff6b63b75",
+        "pcm_md5": "8b2f54ea229d59287aa3011e82c74be9",
+        "note": "The render read the pre-FLAC WAV of this offering. Its decoded PCM md5 equals the published FLAC's manifest pcm_md5, so the audio used is sample-identical to what musicmatter.art serves."
+      },
+      "uses": 8,
+      "uses_as_layer": 0,
+      "bars": [
+        1,
+        4,
+        19,
+        35
+      ],
+      "time_stretch_ratios": [
+        1.5942,
+        1.8812
+      ],
+      "processing_plain": "time-stretched to 1.59×/1.88× length (no pitch change), quarter-note echo, 25% hall, low-pass at 1 kHz",
+      "spans": [
+        {
+          "bar": 1,
+          "beat": 1.0,
+          "beats": 2,
+          "chord_played": "Cmaj",
+          "analysis": "C: C: I (C)",
+          "role": "primary",
+          "source_offset_s": 0.0,
+          "source_length_s": 1.0909,
+          "sixteenths_taken": 8,
+          "placed_at_s": 0.0,
+          "placed_at_timecode": "0:00.000",
+          "placed_length_s": 1.7391,
+          "time_stretch_ratio": 1.5942,
+          "gain_db": 0.0,
+          "transforms": [
+            {
+              "type": "trim",
+              "source_offset_s": 0.0,
+              "source_length_s": 1.0909,
+              "fade_out_ms": 6
+            },
+            {
+              "type": "time_stretch",
+              "ratio": 1.5942,
+              "engine": "rubberband (ffmpeg 7.1.5 filter)",
+              "pitch_ratio": 1.0,
+              "options": "transients=crisp:detector=compound:phase=laminar:window=standard:pitchq=quality:channels=together"
+            },
+            {
+              "type": "fade_out",
+              "ms": 12
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s (per figure)"
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored.",
+          "match_basis": {
+            "chord": "pitch-class set equals the analysis chord (from the manifest arpeggio.cycle)",
+            "register": "manifest register/arpeggio.cycle lowest note vs written bass"
+          },
+          "note": null
+        },
+        {
+          "bar": 1,
+          "beat": 3.0,
+          "beats": 2,
+          "chord_played": "Cmaj",
+          "analysis": "C: C: I (C)",
+          "role": "primary",
+          "source_offset_s": 0.0,
+          "source_length_s": 1.0909,
+          "sixteenths_taken": 8,
+          "placed_at_s": 1.739,
+          "placed_at_timecode": "0:01.739",
+          "placed_length_s": 1.7391,
+          "time_stretch_ratio": 1.5942,
+          "gain_db": -0.72,
+          "transforms": [
+            {
+              "type": "trim",
+              "source_offset_s": 0.0,
+              "source_length_s": 1.0909,
+              "fade_out_ms": 6
+            },
+            {
+              "type": "time_stretch",
+              "ratio": 1.5942,
+              "engine": "rubberband (ffmpeg 7.1.5 filter)",
+              "pitch_ratio": 1.0,
+              "options": "transients=crisp:detector=compound:phase=laminar:window=standard:pitchq=quality:channels=together"
+            },
+            {
+              "type": "fade_out",
+              "ms": 12
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s (per figure)"
+            },
+            {
+              "type": "gain",
+              "db": -0.72
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored.",
+          "match_basis": {
+            "chord": "pitch-class set equals the analysis chord (from the manifest arpeggio.cycle)",
+            "register": "manifest register/arpeggio.cycle lowest note vs written bass"
+          },
+          "note": null
+        },
+        {
+          "bar": 4,
+          "beat": 1.0,
+          "beats": 2,
+          "chord_played": "Cmaj",
+          "analysis": "C: I (C)",
+          "role": "primary",
+          "source_offset_s": 0.0,
+          "source_length_s": 1.0909,
+          "sixteenths_taken": 8,
+          "placed_at_s": 10.435,
+          "placed_at_timecode": "0:10.435",
+          "placed_length_s": 1.7391,
+          "time_stretch_ratio": 1.5942,
+          "gain_db": 0.0,
+          "transforms": [
+            {
+              "type": "trim",
+              "source_offset_s": 0.0,
+              "source_length_s": 1.0909,
+              "fade_out_ms": 6
+            },
+            {
+              "type": "time_stretch",
+              "ratio": 1.5942,
+              "engine": "rubberband (ffmpeg 7.1.5 filter)",
+              "pitch_ratio": 1.0,
+              "options": "transients=crisp:detector=compound:phase=laminar:window=standard:pitchq=quality:channels=together"
+            },
+            {
+              "type": "fade_out",
+              "ms": 12
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s (per figure)"
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored.",
+          "match_basis": {
+            "chord": "pitch-class set equals the analysis chord (from the manifest arpeggio.cycle)",
+            "register": "manifest register/arpeggio.cycle lowest note vs written bass"
+          },
+          "note": null
+        },
+        {
+          "bar": 4,
+          "beat": 3.0,
+          "beats": 2,
+          "chord_played": "Cmaj",
+          "analysis": "C: I (C)",
+          "role": "primary",
+          "source_offset_s": 0.0,
+          "source_length_s": 1.0909,
+          "sixteenths_taken": 8,
+          "placed_at_s": 12.174,
+          "placed_at_timecode": "0:12.174",
+          "placed_length_s": 1.7391,
+          "time_stretch_ratio": 1.5942,
+          "gain_db": -0.72,
+          "transforms": [
+            {
+              "type": "trim",
+              "source_offset_s": 0.0,
+              "source_length_s": 1.0909,
+              "fade_out_ms": 6
+            },
+            {
+              "type": "time_stretch",
+              "ratio": 1.5942,
+              "engine": "rubberband (ffmpeg 7.1.5 filter)",
+              "pitch_ratio": 1.0,
+              "options": "transients=crisp:detector=compound:phase=laminar:window=standard:pitchq=quality:channels=together"
+            },
+            {
+              "type": "fade_out",
+              "ms": 12
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s (per figure)"
+            },
+            {
+              "type": "gain",
+              "db": -0.72
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored.",
+          "match_basis": {
+            "chord": "pitch-class set equals the analysis chord (from the manifest arpeggio.cycle)",
+            "register": "manifest register/arpeggio.cycle lowest note vs written bass"
+          },
+          "note": null
+        },
+        {
+          "bar": 19,
+          "beat": 1.0,
+          "beats": 2,
+          "chord_played": "Cmaj",
+          "analysis": "C: I (C)",
+          "role": "primary",
+          "source_offset_s": 0.0,
+          "source_length_s": 1.0909,
+          "sixteenths_taken": 8,
+          "placed_at_s": 62.609,
+          "placed_at_timecode": "1:02.609",
+          "placed_length_s": 1.7391,
+          "time_stretch_ratio": 1.5942,
+          "gain_db": 0.0,
+          "transforms": [
+            {
+              "type": "trim",
+              "source_offset_s": 0.0,
+              "source_length_s": 1.0909,
+              "fade_out_ms": 6
+            },
+            {
+              "type": "time_stretch",
+              "ratio": 1.5942,
+              "engine": "rubberband (ffmpeg 7.1.5 filter)",
+              "pitch_ratio": 1.0,
+              "options": "transients=crisp:detector=compound:phase=laminar:window=standard:pitchq=quality:channels=together"
+            },
+            {
+              "type": "fade_out",
+              "ms": 12
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s (per figure)"
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored.",
+          "match_basis": {
+            "chord": "pitch-class set equals the analysis chord (from the manifest arpeggio.cycle)",
+            "register": "manifest register/arpeggio.cycle lowest note vs written bass"
+          },
+          "note": null
+        },
+        {
+          "bar": 19,
+          "beat": 3.0,
+          "beats": 2,
+          "chord_played": "Cmaj",
+          "analysis": "C: I (C)",
+          "role": "primary",
+          "source_offset_s": 0.0,
+          "source_length_s": 1.0909,
+          "sixteenths_taken": 8,
+          "placed_at_s": 64.348,
+          "placed_at_timecode": "1:04.348",
+          "placed_length_s": 1.7391,
+          "time_stretch_ratio": 1.5942,
+          "gain_db": -0.72,
+          "transforms": [
+            {
+              "type": "trim",
+              "source_offset_s": 0.0,
+              "source_length_s": 1.0909,
+              "fade_out_ms": 6
+            },
+            {
+              "type": "time_stretch",
+              "ratio": 1.5942,
+              "engine": "rubberband (ffmpeg 7.1.5 filter)",
+              "pitch_ratio": 1.0,
+              "options": "transients=crisp:detector=compound:phase=laminar:window=standard:pitchq=quality:channels=together"
+            },
+            {
+              "type": "fade_out",
+              "ms": 12
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s (per figure)"
+            },
+            {
+              "type": "gain",
+              "db": -0.72
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored.",
+          "match_basis": {
+            "chord": "pitch-class set equals the analysis chord (from the manifest arpeggio.cycle)",
+            "register": "manifest register/arpeggio.cycle lowest note vs written bass"
+          },
+          "note": null
+        },
+        {
+          "bar": 35,
+          "beat": 1.0,
+          "beats": 2,
+          "chord_played": "Cmaj",
+          "analysis": "C: I (C)",
+          "role": "primary",
+          "source_offset_s": 0.0,
+          "source_length_s": 1.0909,
+          "sixteenths_taken": 8,
+          "placed_at_s": 118.748,
+          "placed_at_timecode": "1:58.748",
+          "placed_length_s": 2.0522,
+          "time_stretch_ratio": 1.8812,
+          "gain_db": 0.0,
+          "transforms": [
+            {
+              "type": "trim",
+              "source_offset_s": 0.0,
+              "source_length_s": 1.0909,
+              "fade_out_ms": 6
+            },
+            {
+              "type": "time_stretch",
+              "ratio": 1.8812,
+              "engine": "rubberband (ffmpeg 7.1.5 filter)",
+              "pitch_ratio": 1.0,
+              "options": "transients=crisp:detector=compound:phase=laminar:window=standard:pitchq=quality:channels=together"
+            },
+            {
+              "type": "fade_out",
+              "ms": 12
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s (per figure)"
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored.",
+          "match_basis": {
+            "chord": "pitch-class set equals the analysis chord (from the manifest arpeggio.cycle)",
+            "register": "manifest register/arpeggio.cycle lowest note vs written bass"
+          },
+          "note": null
+        },
+        {
+          "bar": 35,
+          "beat": 3.0,
+          "beats": 2,
+          "chord_played": "Cmaj",
+          "analysis": "C: I (C)",
+          "role": "primary",
+          "source_offset_s": 0.0,
+          "source_length_s": 1.0909,
+          "sixteenths_taken": 8,
+          "placed_at_s": 120.8,
+          "placed_at_timecode": "2:00.800",
+          "placed_length_s": 2.0522,
+          "time_stretch_ratio": 1.8812,
+          "gain_db": -5.19,
+          "transforms": [
+            {
+              "type": "trim",
+              "source_offset_s": 0.0,
+              "source_length_s": 1.0909,
+              "fade_out_ms": 6
+            },
+            {
+              "type": "time_stretch",
+              "ratio": 1.8812,
+              "engine": "rubberband (ffmpeg 7.1.5 filter)",
+              "pitch_ratio": 1.0,
+              "options": "transients=crisp:detector=compound:phase=laminar:window=standard:pitchq=quality:channels=together"
+            },
+            {
+              "type": "fade_out",
+              "ms": 12
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s (per figure)"
+            },
+            {
+              "type": "gain",
+              "db": -5.19
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored.",
+          "match_basis": {
+            "chord": "pitch-class set equals the analysis chord (from the manifest arpeggio.cycle)",
+            "register": "manifest register/arpeggio.cycle lowest note vs written bass"
+          },
+          "note": "bar-35 soft echo"
+        }
+      ]
+    },
+    {
+      "offering": "cmaj-arp-updown-5",
+      "title": "C major arpeggio (up/down), take 5",
+      "source_url": "https://musicmatter.art/sounds/cmaj-arp-updown-5.flac",
+      "manifest_url": "https://musicmatter.art/sounds/cmaj-arp-updown-5.nc.json",
+      "supplier": {
+        "id": null,
+        "display_name": "Petrus",
+        "primary_link": "https://musicmatter.art/"
+      },
+      "license": {
+        "id": "CC-BY-SA-4.0",
+        "uri": "https://creativecommons.org/licenses/by-sa/4.0/"
+      },
+      "credit_line": "“C major arpeggio (up/down), take 5” by Petrus (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/cmaj-arp-updown-5.flac",
+      "chord": "Cmaj",
+      "arpeggio_cycle": [
+        "E4",
+        "G4",
+        "C5",
+        "G4"
+      ],
+      "sha256": "f7b68d1060bd457a29273ee1bfdde9410ab860675012bc38eea0e549947f4372",
+      "sha256_note": "sha256 of the published FLAC (manifest field, re-verified locally)",
+      "content_hash_at_use": {
+        "file": "site_v5/sounds/cmaj-arp-updown-5.wav",
+        "sha256": "a47d550920d86ddc5d0aeead3b0a4cee1172933af8c8f48f4d19759e4a2a95b9",
+        "pcm_md5": "55e8ff3b50a7addd8802255ad0a2b265",
+        "note": "The render read the pre-FLAC WAV of this offering. Its decoded PCM md5 equals the published FLAC's manifest pcm_md5, so the audio used is sample-identical to what musicmatter.art serves."
+      },
+      "uses": 2,
+      "uses_as_layer": 0,
+      "bars": [
+        15
+      ],
+      "time_stretch_ratios": [
+        1.5942
+      ],
+      "processing_plain": "time-stretched to 1.59× length (no pitch change), quarter-note echo, 25% hall, low-pass at 1 kHz",
+      "spans": [
+        {
+          "bar": 15,
+          "beat": 1.0,
+          "beats": 2,
+          "chord_played": "Cmaj",
+          "analysis": "C: I6 (C/E)",
+          "role": "primary",
+          "source_offset_s": 0.0,
+          "source_length_s": 1.0909,
+          "sixteenths_taken": 8,
+          "placed_at_s": 48.696,
+          "placed_at_timecode": "0:48.696",
+          "placed_length_s": 1.7391,
+          "time_stretch_ratio": 1.5942,
+          "gain_db": 0.0,
+          "transforms": [
+            {
+              "type": "trim",
+              "source_offset_s": 0.0,
+              "source_length_s": 1.0909,
+              "fade_out_ms": 6
+            },
+            {
+              "type": "time_stretch",
+              "ratio": 1.5942,
+              "engine": "rubberband (ffmpeg 7.1.5 filter)",
+              "pitch_ratio": 1.0,
+              "options": "transients=crisp:detector=compound:phase=laminar:window=standard:pitchq=quality:channels=together"
+            },
+            {
+              "type": "fade_out",
+              "ms": 12
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s (per figure)"
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored.",
+          "match_basis": {
+            "chord": "pitch-class set equals the analysis chord (from the manifest arpeggio.cycle)",
+            "register": "manifest register/arpeggio.cycle lowest note vs written bass"
+          },
+          "note": null
+        },
+        {
+          "bar": 15,
+          "beat": 3.0,
+          "beats": 2,
+          "chord_played": "Cmaj",
+          "analysis": "C: I6 (C/E)",
+          "role": "primary",
+          "source_offset_s": 0.0,
+          "source_length_s": 1.0909,
+          "sixteenths_taken": 8,
+          "placed_at_s": 50.435,
+          "placed_at_timecode": "0:50.435",
+          "placed_length_s": 1.7391,
+          "time_stretch_ratio": 1.5942,
+          "gain_db": -0.72,
+          "transforms": [
+            {
+              "type": "trim",
+              "source_offset_s": 0.0,
+              "source_length_s": 1.0909,
+              "fade_out_ms": 6
+            },
+            {
+              "type": "time_stretch",
+              "ratio": 1.5942,
+              "engine": "rubberband (ffmpeg 7.1.5 filter)",
+              "pitch_ratio": 1.0,
+              "options": "transients=crisp:detector=compound:phase=laminar:window=standard:pitchq=quality:channels=together"
+            },
+            {
+              "type": "fade_out",
+              "ms": 12
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s (per figure)"
+            },
+            {
+              "type": "gain",
+              "db": -0.72
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored.",
+          "match_basis": {
+            "chord": "pitch-class set equals the analysis chord (from the manifest arpeggio.cycle)",
+            "register": "manifest register/arpeggio.cycle lowest note vs written bass"
+          },
+          "note": null
+        }
+      ]
+    },
+    {
+      "offering": "cmaj7-arp-updown-6",
+      "title": "C major 7th arpeggio (up/down), take 6",
+      "source_url": "https://musicmatter.art/sounds/cmaj7-arp-updown-6.flac",
+      "manifest_url": "https://musicmatter.art/sounds/cmaj7-arp-updown-6.nc.json",
+      "supplier": {
+        "id": null,
+        "display_name": "Petrus",
+        "primary_link": "https://musicmatter.art/"
+      },
+      "license": {
+        "id": "CC-BY-SA-4.0",
+        "uri": "https://creativecommons.org/licenses/by-sa/4.0/"
+      },
+      "credit_line": "“C major 7th arpeggio (up/down), take 6” by Petrus (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/cmaj7-arp-updown-6.flac",
+      "chord": "Cmaj7",
+      "arpeggio_cycle": [
+        "B3",
+        "C4",
+        "E4",
+        "G4",
+        "E4",
+        "C4"
+      ],
+      "sha256": "68e8a55175227dc0f47baac557a5f3f7206f037caa03df4c999ea0c8af241ece",
+      "sha256_note": "sha256 of the published FLAC (manifest field, re-verified locally)",
+      "content_hash_at_use": {
+        "file": "site_v5/sounds/cmaj7-arp-updown-6.wav",
+        "sha256": "ff61d4e7efdd0d433e00750f5c71cf50bd7ca219a6b0abc7ddbd430f23c019e4",
+        "pcm_md5": "696a193802f5bd9527a7f2627582bb1b",
+        "note": "The render read the pre-FLAC WAV of this offering. Its decoded PCM md5 equals the published FLAC's manifest pcm_md5, so the audio used is sample-identical to what musicmatter.art serves."
+      },
+      "uses": 2,
+      "uses_as_layer": 0,
+      "bars": [
+        8
+      ],
+      "time_stretch_ratios": [
+        1.5942
+      ],
+      "processing_plain": "time-stretched to 1.59× length (no pitch change), quarter-note echo, 25% hall, low-pass at 1 kHz",
+      "spans": [
+        {
+          "bar": 8,
+          "beat": 1.0,
+          "beats": 2,
+          "chord_played": "Cmaj7",
+          "analysis": "C: IV2 (Cmaj7/B)",
+          "role": "primary",
+          "source_offset_s": 0.0,
+          "source_length_s": 1.0909,
+          "sixteenths_taken": 8,
+          "placed_at_s": 24.348,
+          "placed_at_timecode": "0:24.348",
+          "placed_length_s": 1.7391,
+          "time_stretch_ratio": 1.5942,
+          "gain_db": 0.0,
+          "transforms": [
+            {
+              "type": "trim",
+              "source_offset_s": 0.0,
+              "source_length_s": 1.0909,
+              "fade_out_ms": 6
+            },
+            {
+              "type": "time_stretch",
+              "ratio": 1.5942,
+              "engine": "rubberband (ffmpeg 7.1.5 filter)",
+              "pitch_ratio": 1.0,
+              "options": "transients=crisp:detector=compound:phase=laminar:window=standard:pitchq=quality:channels=together"
+            },
+            {
+              "type": "fade_out",
+              "ms": 12
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s (per figure)"
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored.",
+          "match_basis": {
+            "chord": "pitch-class set equals the analysis chord (from the manifest arpeggio.cycle)",
+            "register": "manifest register/arpeggio.cycle lowest note vs written bass"
+          },
+          "note": null
+        },
+        {
+          "bar": 8,
+          "beat": 3.0,
+          "beats": 2,
+          "chord_played": "Cmaj7",
+          "analysis": "C: IV2 (Cmaj7/B)",
+          "role": "primary",
+          "source_offset_s": 0.0,
+          "source_length_s": 1.0909,
+          "sixteenths_taken": 8,
+          "placed_at_s": 26.087,
+          "placed_at_timecode": "0:26.087",
+          "placed_length_s": 1.7391,
+          "time_stretch_ratio": 1.5942,
+          "gain_db": -0.72,
+          "transforms": [
+            {
+              "type": "trim",
+              "source_offset_s": 0.0,
+              "source_length_s": 1.0909,
+              "fade_out_ms": 6
+            },
+            {
+              "type": "time_stretch",
+              "ratio": 1.5942,
+              "engine": "rubberband (ffmpeg 7.1.5 filter)",
+              "pitch_ratio": 1.0,
+              "options": "transients=crisp:detector=compound:phase=laminar:window=standard:pitchq=quality:channels=together"
+            },
+            {
+              "type": "fade_out",
+              "ms": 12
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s (per figure)"
+            },
+            {
+              "type": "gain",
+              "db": -0.72
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored.",
+          "match_basis": {
+            "chord": "pitch-class set equals the analysis chord (from the manifest arpeggio.cycle)",
+            "register": "manifest register/arpeggio.cycle lowest note vs written bass"
+          },
+          "note": null
+        }
+      ]
+    },
+    {
+      "offering": "csus4-arp-updown-4",
+      "title": "C suspended 4th arpeggio (up/down), take 4",
+      "source_url": "https://musicmatter.art/sounds/csus4-arp-updown-4.flac",
+      "manifest_url": "https://musicmatter.art/sounds/csus4-arp-updown-4.nc.json",
+      "supplier": {
+        "id": null,
+        "display_name": "Petrus",
+        "primary_link": "https://musicmatter.art/"
+      },
+      "license": {
+        "id": "CC-BY-SA-4.0",
+        "uri": "https://creativecommons.org/licenses/by-sa/4.0/"
+      },
+      "credit_line": "“C suspended 4th arpeggio (up/down), take 4” by Petrus (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/csus4-arp-updown-4.flac",
+      "chord": "Csus4",
+      "arpeggio_cycle": [
+        "G4",
+        "C5",
+        "F5",
+        "C5"
+      ],
+      "sha256": "e09fcd8148cdbdbcd9cf7647a8f5d2523dd6486e2503f0e5214425882481eee8",
+      "sha256_note": "sha256 of the published FLAC (manifest field, re-verified locally)",
+      "content_hash_at_use": {
+        "file": "site_v5/sounds/csus4-arp-updown-4.wav",
+        "sha256": "4bae254b7b88762c3f7cc7e4d21c0724f7c577287aaca0d06fc7275baad6ad84",
+        "pcm_md5": "ae9574ebb8fcc1d95925547b9500a378",
+        "note": "The render read the pre-FLAC WAV of this offering. Its decoded PCM md5 equals the published FLAC's manifest pcm_md5, so the audio used is sample-identical to what musicmatter.art serves."
+      },
+      "uses": 4,
+      "uses_as_layer": 4,
+      "bars": [
+        26,
+        30
+      ],
+      "time_stretch_ratios": [
+        1.5942
+      ],
+      "processing_plain": "time-stretched to 1.59× length (no pitch change), layered at −3 dB under another take, quarter-note echo, 25% hall, low-pass at 1 kHz",
+      "spans": [
+        {
+          "bar": 26,
+          "beat": 1.0,
+          "beats": 2,
+          "chord_played": "Gsus4 + Csus4 (G7sus4)",
+          "analysis": "C: V7 (G7(sus4))",
+          "role": "layer",
+          "source_offset_s": 0.0,
+          "source_length_s": 1.0909,
+          "sixteenths_taken": 8,
+          "placed_at_s": 86.957,
+          "placed_at_timecode": "1:26.957",
+          "placed_length_s": 1.7391,
+          "time_stretch_ratio": 1.5942,
+          "gain_db": -3.0,
+          "transforms": [
+            {
+              "type": "trim",
+              "source_offset_s": 0.0,
+              "source_length_s": 1.0909,
+              "fade_out_ms": 6
+            },
+            {
+              "type": "time_stretch",
+              "ratio": 1.5942,
+              "engine": "rubberband (ffmpeg 7.1.5 filter)",
+              "pitch_ratio": 1.0,
+              "options": "transients=crisp:detector=compound:phase=laminar:window=standard:pitchq=quality:channels=together"
+            },
+            {
+              "type": "fade_out",
+              "ms": 12
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s (per figure)"
+            },
+            {
+              "type": "gain",
+              "db": -3.0
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored.",
+          "match_basis": {
+            "chord": "pitch-class set equals the analysis chord (from the manifest arpeggio.cycle)",
+            "register": "manifest register/arpeggio.cycle lowest note vs written bass"
+          },
+          "note": "layered under Gsus4 to complete G7sus4 (G-C-D-F)"
+        },
+        {
+          "bar": 26,
+          "beat": 3.0,
+          "beats": 2,
+          "chord_played": "Gsus4 + Csus4 (G7sus4)",
+          "analysis": "C: V7 (G7(sus4))",
+          "role": "layer",
+          "source_offset_s": 0.0,
+          "source_length_s": 1.0909,
+          "sixteenths_taken": 8,
+          "placed_at_s": 88.696,
+          "placed_at_timecode": "1:28.696",
+          "placed_length_s": 1.7391,
+          "time_stretch_ratio": 1.5942,
+          "gain_db": -3.72,
+          "transforms": [
+            {
+              "type": "trim",
+              "source_offset_s": 0.0,
+              "source_length_s": 1.0909,
+              "fade_out_ms": 6
+            },
+            {
+              "type": "time_stretch",
+              "ratio": 1.5942,
+              "engine": "rubberband (ffmpeg 7.1.5 filter)",
+              "pitch_ratio": 1.0,
+              "options": "transients=crisp:detector=compound:phase=laminar:window=standard:pitchq=quality:channels=together"
+            },
+            {
+              "type": "fade_out",
+              "ms": 12
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s (per figure)"
+            },
+            {
+              "type": "gain",
+              "db": -3.72
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored.",
+          "match_basis": {
+            "chord": "pitch-class set equals the analysis chord (from the manifest arpeggio.cycle)",
+            "register": "manifest register/arpeggio.cycle lowest note vs written bass"
+          },
+          "note": "layered under Gsus4 to complete G7sus4 (G-C-D-F)"
+        },
+        {
+          "bar": 30,
+          "beat": 1.0,
+          "beats": 2,
+          "chord_played": "Gsus4 + Csus4 (G7sus4)",
+          "analysis": "C: V7 (alt ii754) (G7(sus4))",
+          "role": "layer",
+          "source_offset_s": 0.0,
+          "source_length_s": 1.0909,
+          "sixteenths_taken": 8,
+          "placed_at_s": 100.87,
+          "placed_at_timecode": "1:40.870",
+          "placed_length_s": 1.7391,
+          "time_stretch_ratio": 1.5942,
+          "gain_db": -3.0,
+          "transforms": [
+            {
+              "type": "trim",
+              "source_offset_s": 0.0,
+              "source_length_s": 1.0909,
+              "fade_out_ms": 6
+            },
+            {
+              "type": "time_stretch",
+              "ratio": 1.5942,
+              "engine": "rubberband (ffmpeg 7.1.5 filter)",
+              "pitch_ratio": 1.0,
+              "options": "transients=crisp:detector=compound:phase=laminar:window=standard:pitchq=quality:channels=together"
+            },
+            {
+              "type": "fade_out",
+              "ms": 12
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s (per figure)"
+            },
+            {
+              "type": "gain",
+              "db": -3.0
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored.",
+          "match_basis": {
+            "chord": "pitch-class set equals the analysis chord (from the manifest arpeggio.cycle)",
+            "register": "manifest register/arpeggio.cycle lowest note vs written bass"
+          },
+          "note": "layered under Gsus4 to complete G7sus4 (G-C-D-F)"
+        },
+        {
+          "bar": 30,
+          "beat": 3.0,
+          "beats": 2,
+          "chord_played": "Gsus4 + Csus4 (G7sus4)",
+          "analysis": "C: V7 (alt ii754) (G7(sus4))",
+          "role": "layer",
+          "source_offset_s": 0.0,
+          "source_length_s": 1.0909,
+          "sixteenths_taken": 8,
+          "placed_at_s": 102.609,
+          "placed_at_timecode": "1:42.609",
+          "placed_length_s": 1.7391,
+          "time_stretch_ratio": 1.5942,
+          "gain_db": -3.72,
+          "transforms": [
+            {
+              "type": "trim",
+              "source_offset_s": 0.0,
+              "source_length_s": 1.0909,
+              "fade_out_ms": 6
+            },
+            {
+              "type": "time_stretch",
+              "ratio": 1.5942,
+              "engine": "rubberband (ffmpeg 7.1.5 filter)",
+              "pitch_ratio": 1.0,
+              "options": "transients=crisp:detector=compound:phase=laminar:window=standard:pitchq=quality:channels=together"
+            },
+            {
+              "type": "fade_out",
+              "ms": 12
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s (per figure)"
+            },
+            {
+              "type": "gain",
+              "db": -3.72
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored.",
+          "match_basis": {
+            "chord": "pitch-class set equals the analysis chord (from the manifest arpeggio.cycle)",
+            "register": "manifest register/arpeggio.cycle lowest note vs written bass"
+          },
+          "note": "layered under Gsus4 to complete G7sus4 (G-C-D-F)"
+        }
+      ]
+    },
+    {
+      "offering": "d7-arp-updown-3",
+      "title": "D dominant 7th arpeggio (up/down), take 3",
+      "source_url": "https://musicmatter.art/sounds/d7-arp-updown-3.flac",
+      "manifest_url": "https://musicmatter.art/sounds/d7-arp-updown-3.nc.json",
+      "supplier": {
+        "id": null,
+        "display_name": "Petrus",
+        "primary_link": "https://musicmatter.art/"
+      },
+      "license": {
+        "id": "CC-BY-SA-4.0",
+        "uri": "https://creativecommons.org/licenses/by-sa/4.0/"
+      },
+      "credit_line": "“D dominant 7th arpeggio (up/down), take 3” by Petrus (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/d7-arp-updown-3.flac",
+      "chord": "D7",
+      "arpeggio_cycle": [
+        "C4",
+        "D4",
+        "F#4",
+        "A4",
+        "F#4",
+        "D4"
+      ],
+      "sha256": "efaf300cc71a6188205d5c1d312b7023ba1df6ded0dfb9c2851b1345837f0884",
+      "sha256_note": "sha256 of the published FLAC (manifest field, re-verified locally)",
+      "content_hash_at_use": {
+        "file": "site_v5/sounds/d7-arp-updown-3.wav",
+        "sha256": "d018fb23bdd6909014e82c7440ad92144bfddd733d3e5917b810504dd39902a9",
+        "pcm_md5": "dd415ee5c3a2933fe0d72c480250bee3",
+        "note": "The render read the pre-FLAC WAV of this offering. Its decoded PCM md5 equals the published FLAC's manifest pcm_md5, so the audio used is sample-identical to what musicmatter.art serves."
+      },
+      "uses": 2,
+      "uses_as_layer": 0,
+      "bars": [
+        6
+      ],
+      "time_stretch_ratios": [
+        1.5942
+      ],
+      "processing_plain": "time-stretched to 1.59× length (no pitch change), quarter-note echo, 25% hall, low-pass at 1 kHz",
+      "spans": [
+        {
+          "bar": 6,
+          "beat": 1.0,
+          "beats": 2,
+          "chord_played": "D7",
+          "analysis": "C: G: V2 (D7/C)",
+          "role": "primary",
+          "source_offset_s": 0.0,
+          "source_length_s": 1.0909,
+          "sixteenths_taken": 8,
+          "placed_at_s": 17.391,
+          "placed_at_timecode": "0:17.391",
+          "placed_length_s": 1.7391,
+          "time_stretch_ratio": 1.5942,
+          "gain_db": 0.0,
+          "transforms": [
+            {
+              "type": "trim",
+              "source_offset_s": 0.0,
+              "source_length_s": 1.0909,
+              "fade_out_ms": 6
+            },
+            {
+              "type": "time_stretch",
+              "ratio": 1.5942,
+              "engine": "rubberband (ffmpeg 7.1.5 filter)",
+              "pitch_ratio": 1.0,
+              "options": "transients=crisp:detector=compound:phase=laminar:window=standard:pitchq=quality:channels=together"
+            },
+            {
+              "type": "fade_out",
+              "ms": 12
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s (per figure)"
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored.",
+          "match_basis": {
+            "chord": "pitch-class set equals the analysis chord (from the manifest arpeggio.cycle)",
+            "register": "manifest register/arpeggio.cycle lowest note vs written bass"
+          },
+          "note": null
+        },
+        {
+          "bar": 6,
+          "beat": 3.0,
+          "beats": 2,
+          "chord_played": "D7",
+          "analysis": "C: G: V2 (D7/C)",
+          "role": "primary",
+          "source_offset_s": 0.0,
+          "source_length_s": 1.0909,
+          "sixteenths_taken": 8,
+          "placed_at_s": 19.13,
+          "placed_at_timecode": "0:19.130",
+          "placed_length_s": 1.7391,
+          "time_stretch_ratio": 1.5942,
+          "gain_db": -0.72,
+          "transforms": [
+            {
+              "type": "trim",
+              "source_offset_s": 0.0,
+              "source_length_s": 1.0909,
+              "fade_out_ms": 6
+            },
+            {
+              "type": "time_stretch",
+              "ratio": 1.5942,
+              "engine": "rubberband (ffmpeg 7.1.5 filter)",
+              "pitch_ratio": 1.0,
+              "options": "transients=crisp:detector=compound:phase=laminar:window=standard:pitchq=quality:channels=together"
+            },
+            {
+              "type": "fade_out",
+              "ms": 12
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s (per figure)"
+            },
+            {
+              "type": "gain",
+              "db": -0.72
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored.",
+          "match_basis": {
+            "chord": "pitch-class set equals the analysis chord (from the manifest arpeggio.cycle)",
+            "register": "manifest register/arpeggio.cycle lowest note vs written bass"
+          },
+          "note": null
+        }
+      ]
+    },
+    {
+      "offering": "d7-arp-updown-5",
+      "title": "D dominant 7th arpeggio (up/down), take 5",
+      "source_url": "https://musicmatter.art/sounds/d7-arp-updown-5.flac",
+      "manifest_url": "https://musicmatter.art/sounds/d7-arp-updown-5.nc.json",
+      "supplier": {
+        "id": null,
+        "display_name": "Petrus",
+        "primary_link": "https://musicmatter.art/"
+      },
+      "license": {
+        "id": "CC-BY-SA-4.0",
+        "uri": "https://creativecommons.org/licenses/by-sa/4.0/"
+      },
+      "credit_line": "“D dominant 7th arpeggio (up/down), take 5” by Petrus (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/d7-arp-updown-5.flac",
+      "chord": "D7",
+      "arpeggio_cycle": [
+        "D3",
+        "F#3",
+        "A4",
+        "C5",
+        "A4",
+        "F#3"
+      ],
+      "sha256": "a6d30288bece4870621fa945104dd991c15d586c022a25a5bdb412687cc50784",
+      "sha256_note": "sha256 of the published FLAC (manifest field, re-verified locally)",
+      "content_hash_at_use": {
+        "file": "site_v5/sounds/d7-arp-updown-5.wav",
+        "sha256": "7aed8bc4f84d9069373587d4e62285bd7c48eae98f15cfa7be3b87f97137e3e4",
+        "pcm_md5": "11e67eba0339ff7368a30a26c8896b67",
+        "note": "The render read the pre-FLAC WAV of this offering. Its decoded PCM md5 equals the published FLAC's manifest pcm_md5, so the audio used is sample-identical to what musicmatter.art serves."
+      },
+      "uses": 2,
+      "uses_as_layer": 0,
+      "bars": [
+        10
+      ],
+      "time_stretch_ratios": [
+        1.5942
+      ],
+      "processing_plain": "time-stretched to 1.59× length (no pitch change), quarter-note echo, 25% hall, low-pass at 1 kHz",
+      "spans": [
+        {
+          "bar": 10,
+          "beat": 1.0,
+          "beats": 2,
+          "chord_played": "D7",
+          "analysis": "C: V7 (D7)",
+          "role": "primary",
+          "source_offset_s": 0.0,
+          "source_length_s": 1.0909,
+          "sixteenths_taken": 8,
+          "placed_at_s": 31.304,
+          "placed_at_timecode": "0:31.304",
+          "placed_length_s": 1.7391,
+          "time_stretch_ratio": 1.5942,
+          "gain_db": 0.0,
+          "transforms": [
+            {
+              "type": "trim",
+              "source_offset_s": 0.0,
+              "source_length_s": 1.0909,
+              "fade_out_ms": 6
+            },
+            {
+              "type": "time_stretch",
+              "ratio": 1.5942,
+              "engine": "rubberband (ffmpeg 7.1.5 filter)",
+              "pitch_ratio": 1.0,
+              "options": "transients=crisp:detector=compound:phase=laminar:window=standard:pitchq=quality:channels=together"
+            },
+            {
+              "type": "fade_out",
+              "ms": 12
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s (per figure)"
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored.",
+          "match_basis": {
+            "chord": "pitch-class set equals the analysis chord (from the manifest arpeggio.cycle)",
+            "register": "manifest register/arpeggio.cycle lowest note vs written bass"
+          },
+          "note": null
+        },
+        {
+          "bar": 10,
+          "beat": 3.0,
+          "beats": 2,
+          "chord_played": "D7",
+          "analysis": "C: V7 (D7)",
+          "role": "primary",
+          "source_offset_s": 0.0,
+          "source_length_s": 1.0909,
+          "sixteenths_taken": 8,
+          "placed_at_s": 33.043,
+          "placed_at_timecode": "0:33.043",
+          "placed_length_s": 1.7391,
+          "time_stretch_ratio": 1.5942,
+          "gain_db": -0.72,
+          "transforms": [
+            {
+              "type": "trim",
+              "source_offset_s": 0.0,
+              "source_length_s": 1.0909,
+              "fade_out_ms": 6
+            },
+            {
+              "type": "time_stretch",
+              "ratio": 1.5942,
+              "engine": "rubberband (ffmpeg 7.1.5 filter)",
+              "pitch_ratio": 1.0,
+              "options": "transients=crisp:detector=compound:phase=laminar:window=standard:pitchq=quality:channels=together"
+            },
+            {
+              "type": "fade_out",
+              "ms": 12
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s (per figure)"
+            },
+            {
+              "type": "gain",
+              "db": -0.72
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored.",
+          "match_basis": {
+            "chord": "pitch-class set equals the analysis chord (from the manifest arpeggio.cycle)",
+            "register": "manifest register/arpeggio.cycle lowest note vs written bass"
+          },
+          "note": null
+        }
+      ]
+    },
+    {
+      "offering": "dm7-arp-updown-1",
+      "title": "D minor 7th arpeggio (up/down), take 1",
+      "source_url": "https://musicmatter.art/sounds/dm7-arp-updown-1.flac",
+      "manifest_url": "https://musicmatter.art/sounds/dm7-arp-updown-1.nc.json",
+      "supplier": {
+        "id": null,
+        "display_name": "Petrus",
+        "primary_link": "https://musicmatter.art/"
+      },
+      "license": {
+        "id": "CC-BY-SA-4.0",
+        "uri": "https://creativecommons.org/licenses/by-sa/4.0/"
+      },
+      "credit_line": "“D minor 7th arpeggio (up/down), take 1” by Petrus (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/dm7-arp-updown-1.flac",
+      "chord": "Dm7",
+      "arpeggio_cycle": [
+        "D4",
+        "F4",
+        "A4",
+        "C5",
+        "A4",
+        "F4"
+      ],
+      "sha256": "099203bccee5841148696b0fe0d61a536a51e4c1ca2a7960e0f23d9ad91ecdc3",
+      "sha256_note": "sha256 of the published FLAC (manifest field, re-verified locally)",
+      "content_hash_at_use": {
+        "file": "site_v5/sounds/dm7-arp-updown-1.wav",
+        "sha256": "53dd76a798475e8765f2251693cc4e11503f3d390872b25c6cd39b409d7faba5",
+        "pcm_md5": "c828c1382e63848ff2daaae664a1e195",
+        "note": "The render read the pre-FLAC WAV of this offering. Its decoded PCM md5 equals the published FLAC's manifest pcm_md5, so the audio used is sample-identical to what musicmatter.art serves."
+      },
+      "uses": 2,
+      "uses_as_layer": 0,
+      "bars": [
+        17
+      ],
+      "time_stretch_ratios": [
+        1.5942
+      ],
+      "processing_plain": "time-stretched to 1.59× length (no pitch change), quarter-note echo, 25% hall, low-pass at 1 kHz",
+      "spans": [
+        {
+          "bar": 17,
+          "beat": 1.0,
+          "beats": 2,
+          "chord_played": "Dm7",
+          "analysis": "C: ii7 (Dm7)",
+          "role": "primary",
+          "source_offset_s": 0.0,
+          "source_length_s": 1.0909,
+          "sixteenths_taken": 8,
+          "placed_at_s": 55.652,
+          "placed_at_timecode": "0:55.652",
+          "placed_length_s": 1.7391,
+          "time_stretch_ratio": 1.5942,
+          "gain_db": 0.0,
+          "transforms": [
+            {
+              "type": "trim",
+              "source_offset_s": 0.0,
+              "source_length_s": 1.0909,
+              "fade_out_ms": 6
+            },
+            {
+              "type": "time_stretch",
+              "ratio": 1.5942,
+              "engine": "rubberband (ffmpeg 7.1.5 filter)",
+              "pitch_ratio": 1.0,
+              "options": "transients=crisp:detector=compound:phase=laminar:window=standard:pitchq=quality:channels=together"
+            },
+            {
+              "type": "fade_out",
+              "ms": 12
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s (per figure)"
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored.",
+          "match_basis": {
+            "chord": "pitch-class set equals the analysis chord (from the manifest arpeggio.cycle)",
+            "register": "manifest register/arpeggio.cycle lowest note vs written bass"
+          },
+          "note": null
+        },
+        {
+          "bar": 17,
+          "beat": 3.0,
+          "beats": 2,
+          "chord_played": "Dm7",
+          "analysis": "C: ii7 (Dm7)",
+          "role": "primary",
+          "source_offset_s": 0.0,
+          "source_length_s": 1.0909,
+          "sixteenths_taken": 8,
+          "placed_at_s": 57.391,
+          "placed_at_timecode": "0:57.391",
+          "placed_length_s": 1.7391,
+          "time_stretch_ratio": 1.5942,
+          "gain_db": -0.72,
+          "transforms": [
+            {
+              "type": "trim",
+              "source_offset_s": 0.0,
+              "source_length_s": 1.0909,
+              "fade_out_ms": 6
+            },
+            {
+              "type": "time_stretch",
+              "ratio": 1.5942,
+              "engine": "rubberband (ffmpeg 7.1.5 filter)",
+              "pitch_ratio": 1.0,
+              "options": "transients=crisp:detector=compound:phase=laminar:window=standard:pitchq=quality:channels=together"
+            },
+            {
+              "type": "fade_out",
+              "ms": 12
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s (per figure)"
+            },
+            {
+              "type": "gain",
+              "db": -0.72
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored.",
+          "match_basis": {
+            "chord": "pitch-class set equals the analysis chord (from the manifest arpeggio.cycle)",
+            "register": "manifest register/arpeggio.cycle lowest note vs written bass"
+          },
+          "note": null
+        }
+      ]
+    },
+    {
+      "offering": "dm7-arp-updown-6",
+      "title": "D minor 7th arpeggio (up/down), take 6",
+      "source_url": "https://musicmatter.art/sounds/dm7-arp-updown-6.flac",
+      "manifest_url": "https://musicmatter.art/sounds/dm7-arp-updown-6.nc.json",
+      "supplier": {
+        "id": null,
+        "display_name": "Petrus",
+        "primary_link": "https://musicmatter.art/"
+      },
+      "license": {
+        "id": "CC-BY-SA-4.0",
+        "uri": "https://creativecommons.org/licenses/by-sa/4.0/"
+      },
+      "credit_line": "“D minor 7th arpeggio (up/down), take 6” by Petrus (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/dm7-arp-updown-6.flac",
+      "chord": "Dm7",
+      "arpeggio_cycle": [
+        "C4",
+        "D4",
+        "F4",
+        "A4",
+        "F4",
+        "D4"
+      ],
+      "sha256": "107cc076fa59629da9a2d68325c611d156d12056786dadb3bc2dcf390129e64a",
+      "sha256_note": "sha256 of the published FLAC (manifest field, re-verified locally)",
+      "content_hash_at_use": {
+        "file": "site_v5/sounds/dm7-arp-updown-6.wav",
+        "sha256": "8c4017c8dc95414aa72755c0307fd02d57c94431cfc825bfa47fbefce77d82bd",
+        "pcm_md5": "49476f83efd01381d27497820d196079",
+        "note": "The render read the pre-FLAC WAV of this offering. Its decoded PCM md5 equals the published FLAC's manifest pcm_md5, so the audio used is sample-identical to what musicmatter.art serves."
+      },
+      "uses": 4,
+      "uses_as_layer": 0,
+      "bars": [
+        2,
+        33
+      ],
+      "time_stretch_ratios": [
+        1.5942,
+        1.658
+      ],
+      "processing_plain": "time-stretched to 1.59×/1.66× length (no pitch change), quarter-note echo, 25% hall, low-pass at 1 kHz",
+      "spans": [
+        {
+          "bar": 2,
+          "beat": 1.0,
+          "beats": 2,
+          "chord_played": "Dm7",
+          "analysis": "C: ii2 (Dm7/C)",
+          "role": "primary",
+          "source_offset_s": 0.0,
+          "source_length_s": 1.0909,
+          "sixteenths_taken": 8,
+          "placed_at_s": 3.478,
+          "placed_at_timecode": "0:03.478",
+          "placed_length_s": 1.7391,
+          "time_stretch_ratio": 1.5942,
+          "gain_db": 0.0,
+          "transforms": [
+            {
+              "type": "trim",
+              "source_offset_s": 0.0,
+              "source_length_s": 1.0909,
+              "fade_out_ms": 6
+            },
+            {
+              "type": "time_stretch",
+              "ratio": 1.5942,
+              "engine": "rubberband (ffmpeg 7.1.5 filter)",
+              "pitch_ratio": 1.0,
+              "options": "transients=crisp:detector=compound:phase=laminar:window=standard:pitchq=quality:channels=together"
+            },
+            {
+              "type": "fade_out",
+              "ms": 12
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s (per figure)"
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored.",
+          "match_basis": {
+            "chord": "pitch-class set equals the analysis chord (from the manifest arpeggio.cycle)",
+            "register": "manifest register/arpeggio.cycle lowest note vs written bass"
+          },
+          "note": null
+        },
+        {
+          "bar": 2,
+          "beat": 3.0,
+          "beats": 2,
+          "chord_played": "Dm7",
+          "analysis": "C: ii2 (Dm7/C)",
+          "role": "primary",
+          "source_offset_s": 0.0,
+          "source_length_s": 1.0909,
+          "sixteenths_taken": 8,
+          "placed_at_s": 5.217,
+          "placed_at_timecode": "0:05.217",
+          "placed_length_s": 1.7391,
+          "time_stretch_ratio": 1.5942,
+          "gain_db": -0.72,
+          "transforms": [
+            {
+              "type": "trim",
+              "source_offset_s": 0.0,
+              "source_length_s": 1.0909,
+              "fade_out_ms": 6
+            },
+            {
+              "type": "time_stretch",
+              "ratio": 1.5942,
+              "engine": "rubberband (ffmpeg 7.1.5 filter)",
+              "pitch_ratio": 1.0,
+              "options": "transients=crisp:detector=compound:phase=laminar:window=standard:pitchq=quality:channels=together"
+            },
+            {
+              "type": "fade_out",
+              "ms": 12
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s (per figure)"
+            },
+            {
+              "type": "gain",
+              "db": -0.72
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored.",
+          "match_basis": {
+            "chord": "pitch-class set equals the analysis chord (from the manifest arpeggio.cycle)",
+            "register": "manifest register/arpeggio.cycle lowest note vs written bass"
+          },
+          "note": null
+        },
+        {
+          "bar": 33,
+          "beat": 1.0,
+          "beats": 2,
+          "chord_played": "Dm7",
+          "analysis": "C: ii2 (Dm7/C)",
+          "role": "primary",
+          "source_offset_s": 0.0,
+          "source_length_s": 1.0909,
+          "sixteenths_taken": 8,
+          "placed_at_s": 111.304,
+          "placed_at_timecode": "1:51.304",
+          "placed_length_s": 1.8087,
+          "time_stretch_ratio": 1.658,
+          "gain_db": 0.0,
+          "transforms": [
+            {
+              "type": "trim",
+              "source_offset_s": 0.0,
+              "source_length_s": 1.0909,
+              "fade_out_ms": 6
+            },
+            {
+              "type": "time_stretch",
+              "ratio": 1.658,
+              "engine": "rubberband (ffmpeg 7.1.5 filter)",
+              "pitch_ratio": 1.0,
+              "options": "transients=crisp:detector=compound:phase=laminar:window=standard:pitchq=quality:channels=together"
+            },
+            {
+              "type": "fade_out",
+              "ms": 12
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s (per figure)"
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored.",
+          "match_basis": {
+            "chord": "pitch-class set equals the analysis chord (from the manifest arpeggio.cycle)",
+            "register": "manifest register/arpeggio.cycle lowest note vs written bass"
+          },
+          "note": null
+        },
+        {
+          "bar": 33,
+          "beat": 3.0,
+          "beats": 2,
+          "chord_played": "Dm7",
+          "analysis": "C: ii2 (Dm7/C)",
+          "role": "primary",
+          "source_offset_s": 0.0,
+          "source_length_s": 1.0909,
+          "sixteenths_taken": 8,
+          "placed_at_s": 113.113,
+          "placed_at_timecode": "1:53.113",
+          "placed_length_s": 1.8087,
+          "time_stretch_ratio": 1.658,
+          "gain_db": -0.72,
+          "transforms": [
+            {
+              "type": "trim",
+              "source_offset_s": 0.0,
+              "source_length_s": 1.0909,
+              "fade_out_ms": 6
+            },
+            {
+              "type": "time_stretch",
+              "ratio": 1.658,
+              "engine": "rubberband (ffmpeg 7.1.5 filter)",
+              "pitch_ratio": 1.0,
+              "options": "transients=crisp:detector=compound:phase=laminar:window=standard:pitchq=quality:channels=together"
+            },
+            {
+              "type": "fade_out",
+              "ms": 12
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s (per figure)"
+            },
+            {
+              "type": "gain",
+              "db": -0.72
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored.",
+          "match_basis": {
+            "chord": "pitch-class set equals the analysis chord (from the manifest arpeggio.cycle)",
+            "register": "manifest register/arpeggio.cycle lowest note vs written bass"
+          },
+          "note": null
+        }
+      ]
+    },
+    {
+      "offering": "dmin-arp-updown-6",
+      "title": "D minor arpeggio (up/down), take 6",
+      "source_url": "https://musicmatter.art/sounds/dmin-arp-updown-6.flac",
+      "manifest_url": "https://musicmatter.art/sounds/dmin-arp-updown-6.nc.json",
+      "supplier": {
+        "id": null,
+        "display_name": "Petrus",
+        "primary_link": "https://musicmatter.art/"
+      },
+      "license": {
+        "id": "CC-BY-SA-4.0",
+        "uri": "https://creativecommons.org/licenses/by-sa/4.0/"
+      },
+      "credit_line": "“D minor arpeggio (up/down), take 6” by Petrus (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/dmin-arp-updown-6.flac",
+      "chord": "Dmin",
+      "arpeggio_cycle": [
+        "F4",
+        "A4",
+        "D5",
+        "A4"
+      ],
+      "sha256": "24f13867f90df37473a7399b79e5491535347198f8a9a87dd032e709aa301849",
+      "sha256_note": "sha256 of the published FLAC (manifest field, re-verified locally)",
+      "content_hash_at_use": {
+        "file": "site_v5/sounds/dmin-arp-updown-6.wav",
+        "sha256": "0c166a1ea55b7ad7a63cce1036b03ae19def77bf2ba11de26ba0e7fb02a9c7ed",
+        "pcm_md5": "fc833ef335e353d94e1aec8f30db2613",
+        "note": "The render read the pre-FLAC WAV of this offering. Its decoded PCM md5 equals the published FLAC's manifest pcm_md5, so the audio used is sample-identical to what musicmatter.art serves."
+      },
+      "uses": 2,
+      "uses_as_layer": 0,
+      "bars": [
+        13
+      ],
+      "time_stretch_ratios": [
+        1.5942
+      ],
+      "processing_plain": "time-stretched to 1.59× length (no pitch change), quarter-note echo, 25% hall, low-pass at 1 kHz",
+      "spans": [
+        {
+          "bar": 13,
+          "beat": 1.0,
+          "beats": 2,
+          "chord_played": "Dmin",
+          "analysis": "C: i6 (Dm/F)",
+          "role": "primary",
+          "source_offset_s": 0.0,
+          "source_length_s": 1.0909,
+          "sixteenths_taken": 8,
+          "placed_at_s": 41.739,
+          "placed_at_timecode": "0:41.739",
+          "placed_length_s": 1.7391,
+          "time_stretch_ratio": 1.5942,
+          "gain_db": 0.0,
+          "transforms": [
+            {
+              "type": "trim",
+              "source_offset_s": 0.0,
+              "source_length_s": 1.0909,
+              "fade_out_ms": 6
+            },
+            {
+              "type": "time_stretch",
+              "ratio": 1.5942,
+              "engine": "rubberband (ffmpeg 7.1.5 filter)",
+              "pitch_ratio": 1.0,
+              "options": "transients=crisp:detector=compound:phase=laminar:window=standard:pitchq=quality:channels=together"
+            },
+            {
+              "type": "fade_out",
+              "ms": 12
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s (per figure)"
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored.",
+          "match_basis": {
+            "chord": "pitch-class set equals the analysis chord (from the manifest arpeggio.cycle)",
+            "register": "manifest register/arpeggio.cycle lowest note vs written bass"
+          },
+          "note": null
+        },
+        {
+          "bar": 13,
+          "beat": 3.0,
+          "beats": 2,
+          "chord_played": "Dmin",
+          "analysis": "C: i6 (Dm/F)",
+          "role": "primary",
+          "source_offset_s": 0.0,
+          "source_length_s": 1.0909,
+          "sixteenths_taken": 8,
+          "placed_at_s": 43.478,
+          "placed_at_timecode": "0:43.478",
+          "placed_length_s": 1.7391,
+          "time_stretch_ratio": 1.5942,
+          "gain_db": -0.72,
+          "transforms": [
+            {
+              "type": "trim",
+              "source_offset_s": 0.0,
+              "source_length_s": 1.0909,
+              "fade_out_ms": 6
+            },
+            {
+              "type": "time_stretch",
+              "ratio": 1.5942,
+              "engine": "rubberband (ffmpeg 7.1.5 filter)",
+              "pitch_ratio": 1.0,
+              "options": "transients=crisp:detector=compound:phase=laminar:window=standard:pitchq=quality:channels=together"
+            },
+            {
+              "type": "fade_out",
+              "ms": 12
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s (per figure)"
+            },
+            {
+              "type": "gain",
+              "db": -0.72
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored.",
+          "match_basis": {
+            "chord": "pitch-class set equals the analysis chord (from the manifest arpeggio.cycle)",
+            "register": "manifest register/arpeggio.cycle lowest note vs written bass"
+          },
+          "note": null
+        }
+      ]
+    },
+    {
+      "offering": "dsharpdim7-arp-updown-4",
+      "title": "D♯ diminished 7th arpeggio (up/down), take 4",
+      "source_url": "https://musicmatter.art/sounds/dsharpdim7-arp-updown-4.flac",
+      "manifest_url": "https://musicmatter.art/sounds/dsharpdim7-arp-updown-4.nc.json",
+      "supplier": {
+        "id": null,
+        "display_name": "Petrus",
+        "primary_link": "https://musicmatter.art/"
+      },
+      "license": {
+        "id": "CC-BY-SA-4.0",
+        "uri": "https://creativecommons.org/licenses/by-sa/4.0/"
+      },
+      "credit_line": "“D♯ diminished 7th arpeggio (up/down), take 4” by Petrus (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/dsharpdim7-arp-updown-4.flac",
+      "chord": "D#dim7",
+      "arpeggio_cycle": [
+        "F#4",
+        "A4",
+        "C5",
+        "D#5",
+        "C5",
+        "A4"
+      ],
+      "sha256": "71d3089ac462640a03776dac2350072b4026dadf635a30740fc8eb862c320098",
+      "sha256_note": "sha256 of the published FLAC (manifest field, re-verified locally)",
+      "content_hash_at_use": {
+        "file": "site_v5/sounds/dsharpdim7-arp-updown-4.wav",
+        "sha256": "2c88c2d4c81641cbcb4af22002e98befda9ad81b5fccec36170fd9c2ba79307a",
+        "pcm_md5": "2f611e9c2a4f975a573eb23baebc926b",
+        "note": "The render read the pre-FLAC WAV of this offering. Its decoded PCM md5 equals the published FLAC's manifest pcm_md5, so the audio used is sample-identical to what musicmatter.art serves."
+      },
+      "uses": 2,
+      "uses_as_layer": 0,
+      "bars": [
+        22
+      ],
+      "time_stretch_ratios": [
+        1.5942
+      ],
+      "processing_plain": "time-stretched to 1.59× length (no pitch change), quarter-note echo, 25% hall, low-pass at 1 kHz",
+      "spans": [
+        {
+          "bar": 22,
+          "beat": 1.0,
+          "beats": 2,
+          "chord_played": "D#dim7",
+          "analysis": "C: viio7/v (F#o7)",
+          "role": "primary",
+          "source_offset_s": 0.0,
+          "source_length_s": 1.0909,
+          "sixteenths_taken": 8,
+          "placed_at_s": 73.043,
+          "placed_at_timecode": "1:13.043",
+          "placed_length_s": 1.7391,
+          "time_stretch_ratio": 1.5942,
+          "gain_db": 0.0,
+          "transforms": [
+            {
+              "type": "trim",
+              "source_offset_s": 0.0,
+              "source_length_s": 1.0909,
+              "fade_out_ms": 6
+            },
+            {
+              "type": "time_stretch",
+              "ratio": 1.5942,
+              "engine": "rubberband (ffmpeg 7.1.5 filter)",
+              "pitch_ratio": 1.0,
+              "options": "transients=crisp:detector=compound:phase=laminar:window=standard:pitchq=quality:channels=together"
+            },
+            {
+              "type": "fade_out",
+              "ms": 12
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s (per figure)"
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored.",
+          "match_basis": {
+            "chord": "pitch-class set equals the analysis chord (from the manifest arpeggio.cycle)",
+            "register": "manifest register/arpeggio.cycle lowest note vs written bass"
+          },
+          "note": null
+        },
+        {
+          "bar": 22,
+          "beat": 3.0,
+          "beats": 2,
+          "chord_played": "D#dim7",
+          "analysis": "C: viio7/v (F#o7)",
+          "role": "primary",
+          "source_offset_s": 0.0,
+          "source_length_s": 1.0909,
+          "sixteenths_taken": 8,
+          "placed_at_s": 74.783,
+          "placed_at_timecode": "1:14.783",
+          "placed_length_s": 1.7391,
+          "time_stretch_ratio": 1.5942,
+          "gain_db": -0.72,
+          "transforms": [
+            {
+              "type": "trim",
+              "source_offset_s": 0.0,
+              "source_length_s": 1.0909,
+              "fade_out_ms": 6
+            },
+            {
+              "type": "time_stretch",
+              "ratio": 1.5942,
+              "engine": "rubberband (ffmpeg 7.1.5 filter)",
+              "pitch_ratio": 1.0,
+              "options": "transients=crisp:detector=compound:phase=laminar:window=standard:pitchq=quality:channels=together"
+            },
+            {
+              "type": "fade_out",
+              "ms": 12
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s (per figure)"
+            },
+            {
+              "type": "gain",
+              "db": -0.72
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored.",
+          "match_basis": {
+            "chord": "pitch-class set equals the analysis chord (from the manifest arpeggio.cycle)",
+            "register": "manifest register/arpeggio.cycle lowest note vs written bass"
+          },
+          "note": null
+        }
+      ]
+    },
+    {
+      "offering": "fmaj7-arp-updown-3",
+      "title": "F major 7th arpeggio (up/down), take 3",
+      "source_url": "https://musicmatter.art/sounds/fmaj7-arp-updown-3.flac",
+      "manifest_url": "https://musicmatter.art/sounds/fmaj7-arp-updown-3.nc.json",
+      "supplier": {
+        "id": null,
+        "display_name": "Petrus",
+        "primary_link": "https://musicmatter.art/"
+      },
+      "license": {
+        "id": "CC-BY-SA-4.0",
+        "uri": "https://creativecommons.org/licenses/by-sa/4.0/"
+      },
+      "credit_line": "“F major 7th arpeggio (up/down), take 3” by Petrus (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/fmaj7-arp-updown-3.flac",
+      "chord": "Fmaj7",
+      "arpeggio_cycle": [
+        "E4",
+        "F4",
+        "A4",
+        "C5",
+        "A4",
+        "F4"
+      ],
+      "sha256": "26877c02a08115c52a157bf8e592c2d4b62fe0c7563be8e1c1f81c939fd7b80d",
+      "sha256_note": "sha256 of the published FLAC (manifest field, re-verified locally)",
+      "content_hash_at_use": {
+        "file": "site_v5/sounds/fmaj7-arp-updown-3.wav",
+        "sha256": "68188cb6664bc704b80ba27bd69fb8c02b71d2fd3bc77ed2bc90c80990fac0df",
+        "pcm_md5": "3ea96b753b5f6ee19618cdbbceebacf2",
+        "note": "The render read the pre-FLAC WAV of this offering. Its decoded PCM md5 equals the published FLAC's manifest pcm_md5, so the audio used is sample-identical to what musicmatter.art serves."
+      },
+      "uses": 2,
+      "uses_as_layer": 0,
+      "bars": [
+        16
+      ],
+      "time_stretch_ratios": [
+        1.5942
+      ],
+      "processing_plain": "time-stretched to 1.59× length (no pitch change), quarter-note echo, 25% hall, low-pass at 1 kHz",
+      "spans": [
+        {
+          "bar": 16,
+          "beat": 1.0,
+          "beats": 2,
+          "chord_played": "Fmaj7",
+          "analysis": "C: IV2 (Fmaj7/E)",
+          "role": "primary",
+          "source_offset_s": 0.0,
+          "source_length_s": 1.0909,
+          "sixteenths_taken": 8,
+          "placed_at_s": 52.174,
+          "placed_at_timecode": "0:52.174",
+          "placed_length_s": 1.7391,
+          "time_stretch_ratio": 1.5942,
+          "gain_db": 0.0,
+          "transforms": [
+            {
+              "type": "trim",
+              "source_offset_s": 0.0,
+              "source_length_s": 1.0909,
+              "fade_out_ms": 6
+            },
+            {
+              "type": "time_stretch",
+              "ratio": 1.5942,
+              "engine": "rubberband (ffmpeg 7.1.5 filter)",
+              "pitch_ratio": 1.0,
+              "options": "transients=crisp:detector=compound:phase=laminar:window=standard:pitchq=quality:channels=together"
+            },
+            {
+              "type": "fade_out",
+              "ms": 12
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s (per figure)"
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored.",
+          "match_basis": {
+            "chord": "pitch-class set equals the analysis chord (from the manifest arpeggio.cycle)",
+            "register": "manifest register/arpeggio.cycle lowest note vs written bass"
+          },
+          "note": null
+        },
+        {
+          "bar": 16,
+          "beat": 3.0,
+          "beats": 2,
+          "chord_played": "Fmaj7",
+          "analysis": "C: IV2 (Fmaj7/E)",
+          "role": "primary",
+          "source_offset_s": 0.0,
+          "source_length_s": 1.0909,
+          "sixteenths_taken": 8,
+          "placed_at_s": 53.913,
+          "placed_at_timecode": "0:53.913",
+          "placed_length_s": 1.7391,
+          "time_stretch_ratio": 1.5942,
+          "gain_db": -0.72,
+          "transforms": [
+            {
+              "type": "trim",
+              "source_offset_s": 0.0,
+              "source_length_s": 1.0909,
+              "fade_out_ms": 6
+            },
+            {
+              "type": "time_stretch",
+              "ratio": 1.5942,
+              "engine": "rubberband (ffmpeg 7.1.5 filter)",
+              "pitch_ratio": 1.0,
+              "options": "transients=crisp:detector=compound:phase=laminar:window=standard:pitchq=quality:channels=together"
+            },
+            {
+              "type": "fade_out",
+              "ms": 12
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s (per figure)"
+            },
+            {
+              "type": "gain",
+              "db": -0.72
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored.",
+          "match_basis": {
+            "chord": "pitch-class set equals the analysis chord (from the manifest arpeggio.cycle)",
+            "register": "manifest register/arpeggio.cycle lowest note vs written bass"
+          },
+          "note": null
+        }
+      ]
+    },
+    {
+      "offering": "fmaj7-arp-updown-4",
+      "title": "F major 7th arpeggio (up/down), take 4",
+      "source_url": "https://musicmatter.art/sounds/fmaj7-arp-updown-4.flac",
+      "manifest_url": "https://musicmatter.art/sounds/fmaj7-arp-updown-4.nc.json",
+      "supplier": {
+        "id": null,
+        "display_name": "Petrus",
+        "primary_link": "https://musicmatter.art/"
+      },
+      "license": {
+        "id": "CC-BY-SA-4.0",
+        "uri": "https://creativecommons.org/licenses/by-sa/4.0/"
+      },
+      "credit_line": "“F major 7th arpeggio (up/down), take 4” by Petrus (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/fmaj7-arp-updown-4.flac",
+      "chord": "Fmaj7",
+      "arpeggio_cycle": [
+        "F4",
+        "A4",
+        "C5",
+        "E5",
+        "C5",
+        "A4"
+      ],
+      "sha256": "3db5e32af35563c04afff1d766d51fd851c17142f8340525eb6ba4f0961c481c",
+      "sha256_note": "sha256 of the published FLAC (manifest field, re-verified locally)",
+      "content_hash_at_use": {
+        "file": "site_v5/sounds/fmaj7-arp-updown-4.wav",
+        "sha256": "be9cad9d8977c2c0e3301adcba3597af607432d0c7cf668247f336db3bcb34de",
+        "pcm_md5": "011d540cc96637cad2098e502501d0e1",
+        "note": "The render read the pre-FLAC WAV of this offering. Its decoded PCM md5 equals the published FLAC's manifest pcm_md5, so the audio used is sample-identical to what musicmatter.art serves."
+      },
+      "uses": 2,
+      "uses_as_layer": 0,
+      "bars": [
+        21
+      ],
+      "time_stretch_ratios": [
+        1.5942
+      ],
+      "processing_plain": "time-stretched to 1.59× length (no pitch change), quarter-note echo, 25% hall, low-pass at 1 kHz",
+      "spans": [
+        {
+          "bar": 21,
+          "beat": 1.0,
+          "beats": 2,
+          "chord_played": "Fmaj7",
+          "analysis": "C: IV7 (Fmaj7)",
+          "role": "primary",
+          "source_offset_s": 0.0,
+          "source_length_s": 1.0909,
+          "sixteenths_taken": 8,
+          "placed_at_s": 69.565,
+          "placed_at_timecode": "1:09.565",
+          "placed_length_s": 1.7391,
+          "time_stretch_ratio": 1.5942,
+          "gain_db": 0.0,
+          "transforms": [
+            {
+              "type": "trim",
+              "source_offset_s": 0.0,
+              "source_length_s": 1.0909,
+              "fade_out_ms": 6
+            },
+            {
+              "type": "time_stretch",
+              "ratio": 1.5942,
+              "engine": "rubberband (ffmpeg 7.1.5 filter)",
+              "pitch_ratio": 1.0,
+              "options": "transients=crisp:detector=compound:phase=laminar:window=standard:pitchq=quality:channels=together"
+            },
+            {
+              "type": "fade_out",
+              "ms": 12
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s (per figure)"
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored.",
+          "match_basis": {
+            "chord": "pitch-class set equals the analysis chord (from the manifest arpeggio.cycle)",
+            "register": "manifest register/arpeggio.cycle lowest note vs written bass"
+          },
+          "note": null
+        },
+        {
+          "bar": 21,
+          "beat": 3.0,
+          "beats": 2,
+          "chord_played": "Fmaj7",
+          "analysis": "C: IV7 (Fmaj7)",
+          "role": "primary",
+          "source_offset_s": 0.0,
+          "source_length_s": 1.0909,
+          "sixteenths_taken": 8,
+          "placed_at_s": 71.304,
+          "placed_at_timecode": "1:11.304",
+          "placed_length_s": 1.7391,
+          "time_stretch_ratio": 1.5942,
+          "gain_db": -0.72,
+          "transforms": [
+            {
+              "type": "trim",
+              "source_offset_s": 0.0,
+              "source_length_s": 1.0909,
+              "fade_out_ms": 6
+            },
+            {
+              "type": "time_stretch",
+              "ratio": 1.5942,
+              "engine": "rubberband (ffmpeg 7.1.5 filter)",
+              "pitch_ratio": 1.0,
+              "options": "transients=crisp:detector=compound:phase=laminar:window=standard:pitchq=quality:channels=together"
+            },
+            {
+              "type": "fade_out",
+              "ms": 12
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s (per figure)"
+            },
+            {
+              "type": "gain",
+              "db": -0.72
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored.",
+          "match_basis": {
+            "chord": "pitch-class set equals the analysis chord (from the manifest arpeggio.cycle)",
+            "register": "manifest register/arpeggio.cycle lowest note vs written bass"
+          },
+          "note": null
+        }
+      ]
+    },
+    {
+      "offering": "g7-arp-updown-1",
+      "title": "G dominant 7th arpeggio (up/down), take 1",
+      "source_url": "https://musicmatter.art/sounds/g7-arp-updown-1.flac",
+      "manifest_url": "https://musicmatter.art/sounds/g7-arp-updown-1.nc.json",
+      "supplier": {
+        "id": null,
+        "display_name": "Petrus",
+        "primary_link": "https://musicmatter.art/"
+      },
+      "license": {
+        "id": "CC-BY-SA-4.0",
+        "uri": "https://creativecommons.org/licenses/by-sa/4.0/"
+      },
+      "credit_line": "“G dominant 7th arpeggio (up/down), take 1” by Petrus (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/g7-arp-updown-1.flac",
+      "chord": "G7",
+      "arpeggio_cycle": [
+        "B3",
+        "D4",
+        "F4",
+        "G4",
+        "F4",
+        "D4"
+      ],
+      "sha256": "9a269cda3a4ae5a0e417fb0a421879ab4dc979a832a68d8c313154bba5e0b44f",
+      "sha256_note": "sha256 of the published FLAC (manifest field, re-verified locally)",
+      "content_hash_at_use": {
+        "file": "site_v5/sounds/g7-arp-updown-1.wav",
+        "sha256": "59788c1baaf6d6f1b5650b33d8f7d0966ac3eb5866bedb75cb10fc3934bbbb12",
+        "pcm_md5": "d3202105bbf48af7212b7fc70547104b",
+        "note": "The render read the pre-FLAC WAV of this offering. Its decoded PCM md5 equals the published FLAC's manifest pcm_md5, so the audio used is sample-identical to what musicmatter.art serves."
+      },
+      "uses": 2,
+      "uses_as_layer": 0,
+      "bars": [
+        3
+      ],
+      "time_stretch_ratios": [
+        1.5942
+      ],
+      "processing_plain": "time-stretched to 1.59× length (no pitch change), quarter-note echo, 25% hall, low-pass at 1 kHz",
+      "spans": [
+        {
+          "bar": 3,
+          "beat": 1.0,
+          "beats": 2,
+          "chord_played": "G7",
+          "analysis": "C: V65 (G7/B)",
+          "role": "primary",
+          "source_offset_s": 0.0,
+          "source_length_s": 1.0909,
+          "sixteenths_taken": 8,
+          "placed_at_s": 6.957,
+          "placed_at_timecode": "0:06.957",
+          "placed_length_s": 1.7391,
+          "time_stretch_ratio": 1.5942,
+          "gain_db": 0.0,
+          "transforms": [
+            {
+              "type": "trim",
+              "source_offset_s": 0.0,
+              "source_length_s": 1.0909,
+              "fade_out_ms": 6
+            },
+            {
+              "type": "time_stretch",
+              "ratio": 1.5942,
+              "engine": "rubberband (ffmpeg 7.1.5 filter)",
+              "pitch_ratio": 1.0,
+              "options": "transients=crisp:detector=compound:phase=laminar:window=standard:pitchq=quality:channels=together"
+            },
+            {
+              "type": "fade_out",
+              "ms": 12
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s (per figure)"
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored.",
+          "match_basis": {
+            "chord": "pitch-class set equals the analysis chord (from the manifest arpeggio.cycle)",
+            "register": "manifest register/arpeggio.cycle lowest note vs written bass"
+          },
+          "note": null
+        },
+        {
+          "bar": 3,
+          "beat": 3.0,
+          "beats": 2,
+          "chord_played": "G7",
+          "analysis": "C: V65 (G7/B)",
+          "role": "primary",
+          "source_offset_s": 0.0,
+          "source_length_s": 1.0909,
+          "sixteenths_taken": 8,
+          "placed_at_s": 8.696,
+          "placed_at_timecode": "0:08.696",
+          "placed_length_s": 1.7391,
+          "time_stretch_ratio": 1.5942,
+          "gain_db": -0.72,
+          "transforms": [
+            {
+              "type": "trim",
+              "source_offset_s": 0.0,
+              "source_length_s": 1.0909,
+              "fade_out_ms": 6
+            },
+            {
+              "type": "time_stretch",
+              "ratio": 1.5942,
+              "engine": "rubberband (ffmpeg 7.1.5 filter)",
+              "pitch_ratio": 1.0,
+              "options": "transients=crisp:detector=compound:phase=laminar:window=standard:pitchq=quality:channels=together"
+            },
+            {
+              "type": "fade_out",
+              "ms": 12
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s (per figure)"
+            },
+            {
+              "type": "gain",
+              "db": -0.72
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored.",
+          "match_basis": {
+            "chord": "pitch-class set equals the analysis chord (from the manifest arpeggio.cycle)",
+            "register": "manifest register/arpeggio.cycle lowest note vs written bass"
+          },
+          "note": null
+        }
+      ]
+    },
+    {
+      "offering": "g7-arp-updown-2",
+      "title": "G dominant 7th arpeggio (up/down), take 2",
+      "source_url": "https://musicmatter.art/sounds/g7-arp-updown-2.flac",
+      "manifest_url": "https://musicmatter.art/sounds/g7-arp-updown-2.nc.json",
+      "supplier": {
+        "id": null,
+        "display_name": "Petrus",
+        "primary_link": "https://musicmatter.art/"
+      },
+      "license": {
+        "id": "CC-BY-SA-4.0",
+        "uri": "https://creativecommons.org/licenses/by-sa/4.0/"
+      },
+      "credit_line": "“G dominant 7th arpeggio (up/down), take 2” by Petrus (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/g7-arp-updown-2.flac",
+      "chord": "G7",
+      "arpeggio_cycle": [
+        "G4",
+        "B4",
+        "D5",
+        "F5",
+        "D5",
+        "B4"
+      ],
+      "sha256": "b3378f12859ef9b34aa6e774b7295325875f7551f7bf5ff57ecfbd53ee6ce8c9",
+      "sha256_note": "sha256 of the published FLAC (manifest field, re-verified locally)",
+      "content_hash_at_use": {
+        "file": "site_v5/sounds/g7-arp-updown-2.wav",
+        "sha256": "17c2dbfc7b8c88e1212ee9fcf7407ed2c2d3f44b124f8d93d139c0a32010b2a2",
+        "pcm_md5": "d664859667cab4761304bc65c0ea6a5f",
+        "note": "The render read the pre-FLAC WAV of this offering. Its decoded PCM md5 equals the published FLAC's manifest pcm_md5, so the audio used is sample-identical to what musicmatter.art serves."
+      },
+      "uses": 8,
+      "uses_as_layer": 0,
+      "bars": [
+        18,
+        24,
+        27,
+        31
+      ],
+      "time_stretch_ratios": [
+        1.5942
+      ],
+      "processing_plain": "time-stretched to 1.59× length (no pitch change), quarter-note echo, 25% hall, low-pass at 1 kHz",
+      "spans": [
+        {
+          "bar": 18,
+          "beat": 1.0,
+          "beats": 2,
+          "chord_played": "G7",
+          "analysis": "C: V7 (G7)",
+          "role": "primary",
+          "source_offset_s": 0.0,
+          "source_length_s": 1.0909,
+          "sixteenths_taken": 8,
+          "placed_at_s": 59.13,
+          "placed_at_timecode": "0:59.130",
+          "placed_length_s": 1.7391,
+          "time_stretch_ratio": 1.5942,
+          "gain_db": 0.0,
+          "transforms": [
+            {
+              "type": "trim",
+              "source_offset_s": 0.0,
+              "source_length_s": 1.0909,
+              "fade_out_ms": 6
+            },
+            {
+              "type": "time_stretch",
+              "ratio": 1.5942,
+              "engine": "rubberband (ffmpeg 7.1.5 filter)",
+              "pitch_ratio": 1.0,
+              "options": "transients=crisp:detector=compound:phase=laminar:window=standard:pitchq=quality:channels=together"
+            },
+            {
+              "type": "fade_out",
+              "ms": 12
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s (per figure)"
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored.",
+          "match_basis": {
+            "chord": "pitch-class set equals the analysis chord (from the manifest arpeggio.cycle)",
+            "register": "manifest register/arpeggio.cycle lowest note vs written bass"
+          },
+          "note": null
+        },
+        {
+          "bar": 18,
+          "beat": 3.0,
+          "beats": 2,
+          "chord_played": "G7",
+          "analysis": "C: V7 (G7)",
+          "role": "primary",
+          "source_offset_s": 0.0,
+          "source_length_s": 1.0909,
+          "sixteenths_taken": 8,
+          "placed_at_s": 60.87,
+          "placed_at_timecode": "1:00.870",
+          "placed_length_s": 1.7391,
+          "time_stretch_ratio": 1.5942,
+          "gain_db": -0.72,
+          "transforms": [
+            {
+              "type": "trim",
+              "source_offset_s": 0.0,
+              "source_length_s": 1.0909,
+              "fade_out_ms": 6
+            },
+            {
+              "type": "time_stretch",
+              "ratio": 1.5942,
+              "engine": "rubberband (ffmpeg 7.1.5 filter)",
+              "pitch_ratio": 1.0,
+              "options": "transients=crisp:detector=compound:phase=laminar:window=standard:pitchq=quality:channels=together"
+            },
+            {
+              "type": "fade_out",
+              "ms": 12
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s (per figure)"
+            },
+            {
+              "type": "gain",
+              "db": -0.72
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored.",
+          "match_basis": {
+            "chord": "pitch-class set equals the analysis chord (from the manifest arpeggio.cycle)",
+            "register": "manifest register/arpeggio.cycle lowest note vs written bass"
+          },
+          "note": null
+        },
+        {
+          "bar": 24,
+          "beat": 1.0,
+          "beats": 2,
+          "chord_played": "G7",
+          "analysis": "C: V7 (G pedal) (G7)",
+          "role": "primary",
+          "source_offset_s": 0.0,
+          "source_length_s": 1.0909,
+          "sixteenths_taken": 8,
+          "placed_at_s": 80.0,
+          "placed_at_timecode": "1:20.000",
+          "placed_length_s": 1.7391,
+          "time_stretch_ratio": 1.5942,
+          "gain_db": 0.0,
+          "transforms": [
+            {
+              "type": "trim",
+              "source_offset_s": 0.0,
+              "source_length_s": 1.0909,
+              "fade_out_ms": 6
+            },
+            {
+              "type": "time_stretch",
+              "ratio": 1.5942,
+              "engine": "rubberband (ffmpeg 7.1.5 filter)",
+              "pitch_ratio": 1.0,
+              "options": "transients=crisp:detector=compound:phase=laminar:window=standard:pitchq=quality:channels=together"
+            },
+            {
+              "type": "fade_out",
+              "ms": 12
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s (per figure)"
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored.",
+          "match_basis": {
+            "chord": "pitch-class set equals the analysis chord (from the manifest arpeggio.cycle)",
+            "register": "manifest register/arpeggio.cycle lowest note vs written bass"
+          },
+          "note": null
+        },
+        {
+          "bar": 24,
+          "beat": 3.0,
+          "beats": 2,
+          "chord_played": "G7",
+          "analysis": "C: V7 (G pedal) (G7)",
+          "role": "primary",
+          "source_offset_s": 0.0,
+          "source_length_s": 1.0909,
+          "sixteenths_taken": 8,
+          "placed_at_s": 81.739,
+          "placed_at_timecode": "1:21.739",
+          "placed_length_s": 1.7391,
+          "time_stretch_ratio": 1.5942,
+          "gain_db": -0.72,
+          "transforms": [
+            {
+              "type": "trim",
+              "source_offset_s": 0.0,
+              "source_length_s": 1.0909,
+              "fade_out_ms": 6
+            },
+            {
+              "type": "time_stretch",
+              "ratio": 1.5942,
+              "engine": "rubberband (ffmpeg 7.1.5 filter)",
+              "pitch_ratio": 1.0,
+              "options": "transients=crisp:detector=compound:phase=laminar:window=standard:pitchq=quality:channels=together"
+            },
+            {
+              "type": "fade_out",
+              "ms": 12
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s (per figure)"
+            },
+            {
+              "type": "gain",
+              "db": -0.72
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored.",
+          "match_basis": {
+            "chord": "pitch-class set equals the analysis chord (from the manifest arpeggio.cycle)",
+            "register": "manifest register/arpeggio.cycle lowest note vs written bass"
+          },
+          "note": null
+        },
+        {
+          "bar": 27,
+          "beat": 1.0,
+          "beats": 2,
+          "chord_played": "G7",
+          "analysis": "C: V7 (G7)",
+          "role": "primary",
+          "source_offset_s": 0.0,
+          "source_length_s": 1.0909,
+          "sixteenths_taken": 8,
+          "placed_at_s": 90.435,
+          "placed_at_timecode": "1:30.435",
+          "placed_length_s": 1.7391,
+          "time_stretch_ratio": 1.5942,
+          "gain_db": 0.0,
+          "transforms": [
+            {
+              "type": "trim",
+              "source_offset_s": 0.0,
+              "source_length_s": 1.0909,
+              "fade_out_ms": 6
+            },
+            {
+              "type": "time_stretch",
+              "ratio": 1.5942,
+              "engine": "rubberband (ffmpeg 7.1.5 filter)",
+              "pitch_ratio": 1.0,
+              "options": "transients=crisp:detector=compound:phase=laminar:window=standard:pitchq=quality:channels=together"
+            },
+            {
+              "type": "fade_out",
+              "ms": 12
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s (per figure)"
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored.",
+          "match_basis": {
+            "chord": "pitch-class set equals the analysis chord (from the manifest arpeggio.cycle)",
+            "register": "manifest register/arpeggio.cycle lowest note vs written bass"
+          },
+          "note": null
+        },
+        {
+          "bar": 27,
+          "beat": 3.0,
+          "beats": 2,
+          "chord_played": "G7",
+          "analysis": "C: V7 (G7)",
+          "role": "primary",
+          "source_offset_s": 0.0,
+          "source_length_s": 1.0909,
+          "sixteenths_taken": 8,
+          "placed_at_s": 92.174,
+          "placed_at_timecode": "1:32.174",
+          "placed_length_s": 1.7391,
+          "time_stretch_ratio": 1.5942,
+          "gain_db": -0.72,
+          "transforms": [
+            {
+              "type": "trim",
+              "source_offset_s": 0.0,
+              "source_length_s": 1.0909,
+              "fade_out_ms": 6
+            },
+            {
+              "type": "time_stretch",
+              "ratio": 1.5942,
+              "engine": "rubberband (ffmpeg 7.1.5 filter)",
+              "pitch_ratio": 1.0,
+              "options": "transients=crisp:detector=compound:phase=laminar:window=standard:pitchq=quality:channels=together"
+            },
+            {
+              "type": "fade_out",
+              "ms": 12
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s (per figure)"
+            },
+            {
+              "type": "gain",
+              "db": -0.72
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored.",
+          "match_basis": {
+            "chord": "pitch-class set equals the analysis chord (from the manifest arpeggio.cycle)",
+            "register": "manifest register/arpeggio.cycle lowest note vs written bass"
+          },
+          "note": null
+        },
+        {
+          "bar": 31,
+          "beat": 1.0,
+          "beats": 2,
+          "chord_played": "G7",
+          "analysis": "C: V7 (G7)",
+          "role": "primary",
+          "source_offset_s": 0.0,
+          "source_length_s": 1.0909,
+          "sixteenths_taken": 8,
+          "placed_at_s": 104.348,
+          "placed_at_timecode": "1:44.348",
+          "placed_length_s": 1.7391,
+          "time_stretch_ratio": 1.5942,
+          "gain_db": 0.0,
+          "transforms": [
+            {
+              "type": "trim",
+              "source_offset_s": 0.0,
+              "source_length_s": 1.0909,
+              "fade_out_ms": 6
+            },
+            {
+              "type": "time_stretch",
+              "ratio": 1.5942,
+              "engine": "rubberband (ffmpeg 7.1.5 filter)",
+              "pitch_ratio": 1.0,
+              "options": "transients=crisp:detector=compound:phase=laminar:window=standard:pitchq=quality:channels=together"
+            },
+            {
+              "type": "fade_out",
+              "ms": 12
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s (per figure)"
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored.",
+          "match_basis": {
+            "chord": "pitch-class set equals the analysis chord (from the manifest arpeggio.cycle)",
+            "register": "manifest register/arpeggio.cycle lowest note vs written bass"
+          },
+          "note": null
+        },
+        {
+          "bar": 31,
+          "beat": 3.0,
+          "beats": 2,
+          "chord_played": "G7",
+          "analysis": "C: V7 (G7)",
+          "role": "primary",
+          "source_offset_s": 0.0,
+          "source_length_s": 1.0909,
+          "sixteenths_taken": 8,
+          "placed_at_s": 106.087,
+          "placed_at_timecode": "1:46.087",
+          "placed_length_s": 1.7391,
+          "time_stretch_ratio": 1.5942,
+          "gain_db": -0.72,
+          "transforms": [
+            {
+              "type": "trim",
+              "source_offset_s": 0.0,
+              "source_length_s": 1.0909,
+              "fade_out_ms": 6
+            },
+            {
+              "type": "time_stretch",
+              "ratio": 1.5942,
+              "engine": "rubberband (ffmpeg 7.1.5 filter)",
+              "pitch_ratio": 1.0,
+              "options": "transients=crisp:detector=compound:phase=laminar:window=standard:pitchq=quality:channels=together"
+            },
+            {
+              "type": "fade_out",
+              "ms": 12
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s (per figure)"
+            },
+            {
+              "type": "gain",
+              "db": -0.72
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored.",
+          "match_basis": {
+            "chord": "pitch-class set equals the analysis chord (from the manifest arpeggio.cycle)",
+            "register": "manifest register/arpeggio.cycle lowest note vs written bass"
+          },
+          "note": null
+        }
+      ]
+    },
+    {
+      "offering": "g7-arp-updown-3",
+      "title": "G dominant 7th arpeggio (up/down), take 3",
+      "source_url": "https://musicmatter.art/sounds/g7-arp-updown-3.flac",
+      "manifest_url": "https://musicmatter.art/sounds/g7-arp-updown-3.nc.json",
+      "supplier": {
+        "id": null,
+        "display_name": "Petrus",
+        "primary_link": "https://musicmatter.art/"
+      },
+      "license": {
+        "id": "CC-BY-SA-4.0",
+        "uri": "https://creativecommons.org/licenses/by-sa/4.0/"
+      },
+      "credit_line": "“G dominant 7th arpeggio (up/down), take 3” by Petrus (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/g7-arp-updown-3.flac",
+      "chord": "G7",
+      "arpeggio_cycle": [
+        "D4",
+        "F4",
+        "G4",
+        "B4",
+        "G4",
+        "F4"
+      ],
+      "sha256": "956505b17ea8a0153f07f33e1d67e3b06bc9c389ce350663025644f21cc4c922",
+      "sha256_note": "sha256 of the published FLAC (manifest field, re-verified locally)",
+      "content_hash_at_use": {
+        "file": "site_v5/sounds/g7-arp-updown-3.wav",
+        "sha256": "dd035e7c723139ded194f2d532c7b685cf27324bc764abb1744ad80161b5bc2e",
+        "pcm_md5": "3c6b5b0d2bf4fccc051cbbe875a0f9e2",
+        "note": "The render read the pre-FLAC WAV of this offering. Its decoded PCM md5 equals the published FLAC's manifest pcm_md5, so the audio used is sample-identical to what musicmatter.art serves."
+      },
+      "uses": 2,
+      "uses_as_layer": 0,
+      "bars": [
+        34
+      ],
+      "time_stretch_ratios": [
+        1.7536
+      ],
+      "processing_plain": "time-stretched to 1.75× length (no pitch change), quarter-note echo, 25% hall, low-pass at 1 kHz",
+      "spans": [
+        {
+          "bar": 34,
+          "beat": 1.0,
+          "beats": 2,
+          "chord_played": "G7",
+          "analysis": "C: V65 (G7/C)",
+          "role": "primary",
+          "source_offset_s": 0.0,
+          "source_length_s": 1.0909,
+          "sixteenths_taken": 8,
+          "placed_at_s": 114.922,
+          "placed_at_timecode": "1:54.922",
+          "placed_length_s": 1.913,
+          "time_stretch_ratio": 1.7536,
+          "gain_db": 0.0,
+          "transforms": [
+            {
+              "type": "trim",
+              "source_offset_s": 0.0,
+              "source_length_s": 1.0909,
+              "fade_out_ms": 6
+            },
+            {
+              "type": "time_stretch",
+              "ratio": 1.7536,
+              "engine": "rubberband (ffmpeg 7.1.5 filter)",
+              "pitch_ratio": 1.0,
+              "options": "transients=crisp:detector=compound:phase=laminar:window=standard:pitchq=quality:channels=together"
+            },
+            {
+              "type": "fade_out",
+              "ms": 12
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s (per figure)"
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored.",
+          "match_basis": {
+            "chord": "pitch-class set equals the analysis chord (from the manifest arpeggio.cycle)",
+            "register": "manifest register/arpeggio.cycle lowest note vs written bass"
+          },
+          "note": null
+        },
+        {
+          "bar": 34,
+          "beat": 3.0,
+          "beats": 2,
+          "chord_played": "G7",
+          "analysis": "C: V65 (G7/C)",
+          "role": "primary",
+          "source_offset_s": 0.0,
+          "source_length_s": 1.0909,
+          "sixteenths_taken": 8,
+          "placed_at_s": 116.835,
+          "placed_at_timecode": "1:56.835",
+          "placed_length_s": 1.913,
+          "time_stretch_ratio": 1.7536,
+          "gain_db": -0.72,
+          "transforms": [
+            {
+              "type": "trim",
+              "source_offset_s": 0.0,
+              "source_length_s": 1.0909,
+              "fade_out_ms": 6
+            },
+            {
+              "type": "time_stretch",
+              "ratio": 1.7536,
+              "engine": "rubberband (ffmpeg 7.1.5 filter)",
+              "pitch_ratio": 1.0,
+              "options": "transients=crisp:detector=compound:phase=laminar:window=standard:pitchq=quality:channels=together"
+            },
+            {
+              "type": "fade_out",
+              "ms": 12
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s (per figure)"
+            },
+            {
+              "type": "gain",
+              "db": -0.72
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored.",
+          "match_basis": {
+            "chord": "pitch-class set equals the analysis chord (from the manifest arpeggio.cycle)",
+            "register": "manifest register/arpeggio.cycle lowest note vs written bass"
+          },
+          "note": null
+        }
+      ]
+    },
+    {
+      "offering": "gdim7-arp-updown-6",
+      "title": "G diminished 7th arpeggio (up/down), take 6",
+      "source_url": "https://musicmatter.art/sounds/gdim7-arp-updown-6.flac",
+      "manifest_url": "https://musicmatter.art/sounds/gdim7-arp-updown-6.nc.json",
+      "supplier": {
+        "id": null,
+        "display_name": "Petrus",
+        "primary_link": "https://musicmatter.art/"
+      },
+      "license": {
+        "id": "CC-BY-SA-4.0",
+        "uri": "https://creativecommons.org/licenses/by-sa/4.0/"
+      },
+      "credit_line": "“G diminished 7th arpeggio (up/down), take 6” by Petrus (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/gdim7-arp-updown-6.flac",
+      "chord": "Gdim7",
+      "arpeggio_cycle": [
+        "G4",
+        "A#4",
+        "C#5",
+        "E5",
+        "C#5",
+        "A#4"
+      ],
+      "sha256": "bd72289784c133f822c88da8f1376cb4a83014700e46284c6a547e0e5052757e",
+      "sha256_note": "sha256 of the published FLAC (manifest field, re-verified locally)",
+      "content_hash_at_use": {
+        "file": "site_v5/sounds/gdim7-arp-updown-6.wav",
+        "sha256": "c845d32da32793fa3fa5ba889bd66152757a54e3b44d1de6cfcb44e0dede80a2",
+        "pcm_md5": "101218a8b7218b9f86cffcb5acbb26e0",
+        "note": "The render read the pre-FLAC WAV of this offering. Its decoded PCM md5 equals the published FLAC's manifest pcm_md5, so the audio used is sample-identical to what musicmatter.art serves."
+      },
+      "uses": 2,
+      "uses_as_layer": 0,
+      "bars": [
+        12
+      ],
+      "time_stretch_ratios": [
+        1.5942
+      ],
+      "processing_plain": "time-stretched to 1.59× length (no pitch change), quarter-note echo, 25% hall, low-pass at 1 kHz",
+      "spans": [
+        {
+          "bar": 12,
+          "beat": 1.0,
+          "beats": 2,
+          "chord_played": "Gdim7",
+          "analysis": "C: d: viio43 (C#o7/G)",
+          "role": "primary",
+          "source_offset_s": 0.0,
+          "source_length_s": 1.0909,
+          "sixteenths_taken": 8,
+          "placed_at_s": 38.261,
+          "placed_at_timecode": "0:38.261",
+          "placed_length_s": 1.7391,
+          "time_stretch_ratio": 1.5942,
+          "gain_db": 0.0,
+          "transforms": [
+            {
+              "type": "trim",
+              "source_offset_s": 0.0,
+              "source_length_s": 1.0909,
+              "fade_out_ms": 6
+            },
+            {
+              "type": "time_stretch",
+              "ratio": 1.5942,
+              "engine": "rubberband (ffmpeg 7.1.5 filter)",
+              "pitch_ratio": 1.0,
+              "options": "transients=crisp:detector=compound:phase=laminar:window=standard:pitchq=quality:channels=together"
+            },
+            {
+              "type": "fade_out",
+              "ms": 12
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s (per figure)"
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored.",
+          "match_basis": {
+            "chord": "pitch-class set equals the analysis chord (from the manifest arpeggio.cycle)",
+            "register": "manifest register/arpeggio.cycle lowest note vs written bass"
+          },
+          "note": null
+        },
+        {
+          "bar": 12,
+          "beat": 3.0,
+          "beats": 2,
+          "chord_played": "Gdim7",
+          "analysis": "C: d: viio43 (C#o7/G)",
+          "role": "primary",
+          "source_offset_s": 0.0,
+          "source_length_s": 1.0909,
+          "sixteenths_taken": 8,
+          "placed_at_s": 40.0,
+          "placed_at_timecode": "0:40.000",
+          "placed_length_s": 1.7391,
+          "time_stretch_ratio": 1.5942,
+          "gain_db": -0.72,
+          "transforms": [
+            {
+              "type": "trim",
+              "source_offset_s": 0.0,
+              "source_length_s": 1.0909,
+              "fade_out_ms": 6
+            },
+            {
+              "type": "time_stretch",
+              "ratio": 1.5942,
+              "engine": "rubberband (ffmpeg 7.1.5 filter)",
+              "pitch_ratio": 1.0,
+              "options": "transients=crisp:detector=compound:phase=laminar:window=standard:pitchq=quality:channels=together"
+            },
+            {
+              "type": "fade_out",
+              "ms": 12
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s (per figure)"
+            },
+            {
+              "type": "gain",
+              "db": -0.72
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored.",
+          "match_basis": {
+            "chord": "pitch-class set equals the analysis chord (from the manifest arpeggio.cycle)",
+            "register": "manifest register/arpeggio.cycle lowest note vs written bass"
+          },
+          "note": null
+        }
+      ]
+    },
+    {
+      "offering": "gmaj-arp-updown-5",
+      "title": "G major arpeggio (up/down), take 5",
+      "source_url": "https://musicmatter.art/sounds/gmaj-arp-updown-5.flac",
+      "manifest_url": "https://musicmatter.art/sounds/gmaj-arp-updown-5.nc.json",
+      "supplier": {
+        "id": null,
+        "display_name": "Petrus",
+        "primary_link": "https://musicmatter.art/"
+      },
+      "license": {
+        "id": "CC-BY-SA-4.0",
+        "uri": "https://creativecommons.org/licenses/by-sa/4.0/"
+      },
+      "credit_line": "“G major arpeggio (up/down), take 5” by Petrus (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/gmaj-arp-updown-5.flac",
+      "chord": "Gmaj",
+      "arpeggio_cycle": [
+        "B3",
+        "D4",
+        "G4",
+        "D4"
+      ],
+      "sha256": "1bdf7994723da64961ea123049c7892161c878a7c2fbc18d4799374abce57776",
+      "sha256_note": "sha256 of the published FLAC (manifest field, re-verified locally)",
+      "content_hash_at_use": {
+        "file": "site_v5/sounds/gmaj-arp-updown-5.wav",
+        "sha256": "b849fc18ba2b28bd2e6700afd207e4c31d0a87a7bc3196dd8180742101d38730",
+        "pcm_md5": "caeda80c68c3e9ec1f59d3c1779cb629",
+        "note": "The render read the pre-FLAC WAV of this offering. Its decoded PCM md5 equals the published FLAC's manifest pcm_md5, so the audio used is sample-identical to what musicmatter.art serves."
+      },
+      "uses": 2,
+      "uses_as_layer": 0,
+      "bars": [
+        7
+      ],
+      "time_stretch_ratios": [
+        1.5942
+      ],
+      "processing_plain": "time-stretched to 1.59× length (no pitch change), quarter-note echo, 25% hall, low-pass at 1 kHz",
+      "spans": [
+        {
+          "bar": 7,
+          "beat": 1.0,
+          "beats": 2,
+          "chord_played": "Gmaj",
+          "analysis": "C: I6 (G/B)",
+          "role": "primary",
+          "source_offset_s": 0.0,
+          "source_length_s": 1.0909,
+          "sixteenths_taken": 8,
+          "placed_at_s": 20.87,
+          "placed_at_timecode": "0:20.870",
+          "placed_length_s": 1.7391,
+          "time_stretch_ratio": 1.5942,
+          "gain_db": 0.0,
+          "transforms": [
+            {
+              "type": "trim",
+              "source_offset_s": 0.0,
+              "source_length_s": 1.0909,
+              "fade_out_ms": 6
+            },
+            {
+              "type": "time_stretch",
+              "ratio": 1.5942,
+              "engine": "rubberband (ffmpeg 7.1.5 filter)",
+              "pitch_ratio": 1.0,
+              "options": "transients=crisp:detector=compound:phase=laminar:window=standard:pitchq=quality:channels=together"
+            },
+            {
+              "type": "fade_out",
+              "ms": 12
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s (per figure)"
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored.",
+          "match_basis": {
+            "chord": "pitch-class set equals the analysis chord (from the manifest arpeggio.cycle)",
+            "register": "manifest register/arpeggio.cycle lowest note vs written bass"
+          },
+          "note": null
+        },
+        {
+          "bar": 7,
+          "beat": 3.0,
+          "beats": 2,
+          "chord_played": "Gmaj",
+          "analysis": "C: I6 (G/B)",
+          "role": "primary",
+          "source_offset_s": 0.0,
+          "source_length_s": 1.0909,
+          "sixteenths_taken": 8,
+          "placed_at_s": 22.609,
+          "placed_at_timecode": "0:22.609",
+          "placed_length_s": 1.7391,
+          "time_stretch_ratio": 1.5942,
+          "gain_db": -0.72,
+          "transforms": [
+            {
+              "type": "trim",
+              "source_offset_s": 0.0,
+              "source_length_s": 1.0909,
+              "fade_out_ms": 6
+            },
+            {
+              "type": "time_stretch",
+              "ratio": 1.5942,
+              "engine": "rubberband (ffmpeg 7.1.5 filter)",
+              "pitch_ratio": 1.0,
+              "options": "transients=crisp:detector=compound:phase=laminar:window=standard:pitchq=quality:channels=together"
+            },
+            {
+              "type": "fade_out",
+              "ms": 12
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s (per figure)"
+            },
+            {
+              "type": "gain",
+              "db": -0.72
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored.",
+          "match_basis": {
+            "chord": "pitch-class set equals the analysis chord (from the manifest arpeggio.cycle)",
+            "register": "manifest register/arpeggio.cycle lowest note vs written bass"
+          },
+          "note": null
+        }
+      ]
+    },
+    {
+      "offering": "gmaj-arp-updown-6",
+      "title": "G major arpeggio (up/down), take 6",
+      "source_url": "https://musicmatter.art/sounds/gmaj-arp-updown-6.flac",
+      "manifest_url": "https://musicmatter.art/sounds/gmaj-arp-updown-6.nc.json",
+      "supplier": {
+        "id": null,
+        "display_name": "Petrus",
+        "primary_link": "https://musicmatter.art/"
+      },
+      "license": {
+        "id": "CC-BY-SA-4.0",
+        "uri": "https://creativecommons.org/licenses/by-sa/4.0/"
+      },
+      "credit_line": "“G major arpeggio (up/down), take 6” by Petrus (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/gmaj-arp-updown-6.flac",
+      "chord": "Gmaj",
+      "arpeggio_cycle": [
+        "G4",
+        "B4",
+        "D5",
+        "B4"
+      ],
+      "sha256": "f7351d8933980c3c5c649d4a57be081d2b28d2ee6120f47ab32dcd3e2616dd1a",
+      "sha256_note": "sha256 of the published FLAC (manifest field, re-verified locally)",
+      "content_hash_at_use": {
+        "file": "site_v5/sounds/gmaj-arp-updown-6.wav",
+        "sha256": "1e946cb69008ad4147d56111b2dca8d62c7a48d854b923fb18f2ec88c56c48c2",
+        "pcm_md5": "9375415cd2a48d8b936759b1bf33fa5b",
+        "note": "The render read the pre-FLAC WAV of this offering. Its decoded PCM md5 equals the published FLAC's manifest pcm_md5, so the audio used is sample-identical to what musicmatter.art serves."
+      },
+      "uses": 2,
+      "uses_as_layer": 0,
+      "bars": [
+        11
+      ],
+      "time_stretch_ratios": [
+        1.5942
+      ],
+      "processing_plain": "time-stretched to 1.59× length (no pitch change), quarter-note echo, 25% hall, low-pass at 1 kHz",
+      "spans": [
+        {
+          "bar": 11,
+          "beat": 1.0,
+          "beats": 2,
+          "chord_played": "Gmaj",
+          "analysis": "C: I (G)",
+          "role": "primary",
+          "source_offset_s": 0.0,
+          "source_length_s": 1.0909,
+          "sixteenths_taken": 8,
+          "placed_at_s": 34.783,
+          "placed_at_timecode": "0:34.783",
+          "placed_length_s": 1.7391,
+          "time_stretch_ratio": 1.5942,
+          "gain_db": 0.0,
+          "transforms": [
+            {
+              "type": "trim",
+              "source_offset_s": 0.0,
+              "source_length_s": 1.0909,
+              "fade_out_ms": 6
+            },
+            {
+              "type": "time_stretch",
+              "ratio": 1.5942,
+              "engine": "rubberband (ffmpeg 7.1.5 filter)",
+              "pitch_ratio": 1.0,
+              "options": "transients=crisp:detector=compound:phase=laminar:window=standard:pitchq=quality:channels=together"
+            },
+            {
+              "type": "fade_out",
+              "ms": 12
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s (per figure)"
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored.",
+          "match_basis": {
+            "chord": "pitch-class set equals the analysis chord (from the manifest arpeggio.cycle)",
+            "register": "manifest register/arpeggio.cycle lowest note vs written bass"
+          },
+          "note": null
+        },
+        {
+          "bar": 11,
+          "beat": 3.0,
+          "beats": 2,
+          "chord_played": "Gmaj",
+          "analysis": "C: I (G)",
+          "role": "primary",
+          "source_offset_s": 0.0,
+          "source_length_s": 1.0909,
+          "sixteenths_taken": 8,
+          "placed_at_s": 36.522,
+          "placed_at_timecode": "0:36.522",
+          "placed_length_s": 1.7391,
+          "time_stretch_ratio": 1.5942,
+          "gain_db": -0.72,
+          "transforms": [
+            {
+              "type": "trim",
+              "source_offset_s": 0.0,
+              "source_length_s": 1.0909,
+              "fade_out_ms": 6
+            },
+            {
+              "type": "time_stretch",
+              "ratio": 1.5942,
+              "engine": "rubberband (ffmpeg 7.1.5 filter)",
+              "pitch_ratio": 1.0,
+              "options": "transients=crisp:detector=compound:phase=laminar:window=standard:pitchq=quality:channels=together"
+            },
+            {
+              "type": "fade_out",
+              "ms": 12
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s (per figure)"
+            },
+            {
+              "type": "gain",
+              "db": -0.72
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored.",
+          "match_basis": {
+            "chord": "pitch-class set equals the analysis chord (from the manifest arpeggio.cycle)",
+            "register": "manifest register/arpeggio.cycle lowest note vs written bass"
+          },
+          "note": null
+        }
+      ]
+    },
+    {
+      "offering": "gsus4-arp-updown-2",
+      "title": "G suspended 4th arpeggio (up/down), take 2",
+      "source_url": "https://musicmatter.art/sounds/gsus4-arp-updown-2.flac",
+      "manifest_url": "https://musicmatter.art/sounds/gsus4-arp-updown-2.nc.json",
+      "supplier": {
+        "id": null,
+        "display_name": "Petrus",
+        "primary_link": "https://musicmatter.art/"
+      },
+      "license": {
+        "id": "CC-BY-SA-4.0",
+        "uri": "https://creativecommons.org/licenses/by-sa/4.0/"
+      },
+      "credit_line": "“G suspended 4th arpeggio (up/down), take 2” by Petrus (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/gsus4-arp-updown-2.flac",
+      "chord": "Gsus4",
+      "arpeggio_cycle": [
+        "G4",
+        "C5",
+        "D5",
+        "C5"
+      ],
+      "sha256": "e3c5f27ee0f7acbdcd25410dac9ed9d8e37fd30c1142617560d92ce20a8c412d",
+      "sha256_note": "sha256 of the published FLAC (manifest field, re-verified locally)",
+      "content_hash_at_use": {
+        "file": "site_v5/sounds/gsus4-arp-updown-2.wav",
+        "sha256": "4f1dcd86a27d371e4e419f1836b7aeb4c00a8a02bdbe15e0e3eed79ff49bb097",
+        "pcm_md5": "605ad4ccff9a4f0d5345fe4dbce45bf5",
+        "note": "The render read the pre-FLAC WAV of this offering. Its decoded PCM md5 equals the published FLAC's manifest pcm_md5, so the audio used is sample-identical to what musicmatter.art serves."
+      },
+      "uses": 4,
+      "uses_as_layer": 0,
+      "bars": [
+        26,
+        30
+      ],
+      "time_stretch_ratios": [
+        1.5942
+      ],
+      "processing_plain": "time-stretched to 1.59× length (no pitch change), quarter-note echo, 25% hall, low-pass at 1 kHz",
+      "spans": [
+        {
+          "bar": 26,
+          "beat": 1.0,
+          "beats": 2,
+          "chord_played": "Gsus4 + Csus4 (G7sus4)",
+          "analysis": "C: V7 (G7(sus4))",
+          "role": "primary",
+          "source_offset_s": 0.0,
+          "source_length_s": 1.0909,
+          "sixteenths_taken": 8,
+          "placed_at_s": 86.957,
+          "placed_at_timecode": "1:26.957",
+          "placed_length_s": 1.7391,
+          "time_stretch_ratio": 1.5942,
+          "gain_db": 0.0,
+          "transforms": [
+            {
+              "type": "trim",
+              "source_offset_s": 0.0,
+              "source_length_s": 1.0909,
+              "fade_out_ms": 6
+            },
+            {
+              "type": "time_stretch",
+              "ratio": 1.5942,
+              "engine": "rubberband (ffmpeg 7.1.5 filter)",
+              "pitch_ratio": 1.0,
+              "options": "transients=crisp:detector=compound:phase=laminar:window=standard:pitchq=quality:channels=together"
+            },
+            {
+              "type": "fade_out",
+              "ms": 12
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s (per figure)"
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored.",
+          "match_basis": {
+            "chord": "pitch-class set equals the analysis chord (from the manifest arpeggio.cycle)",
+            "register": "manifest register/arpeggio.cycle lowest note vs written bass"
+          },
+          "note": null
+        },
+        {
+          "bar": 26,
+          "beat": 3.0,
+          "beats": 2,
+          "chord_played": "Gsus4 + Csus4 (G7sus4)",
+          "analysis": "C: V7 (G7(sus4))",
+          "role": "primary",
+          "source_offset_s": 0.0,
+          "source_length_s": 1.0909,
+          "sixteenths_taken": 8,
+          "placed_at_s": 88.696,
+          "placed_at_timecode": "1:28.696",
+          "placed_length_s": 1.7391,
+          "time_stretch_ratio": 1.5942,
+          "gain_db": -0.72,
+          "transforms": [
+            {
+              "type": "trim",
+              "source_offset_s": 0.0,
+              "source_length_s": 1.0909,
+              "fade_out_ms": 6
+            },
+            {
+              "type": "time_stretch",
+              "ratio": 1.5942,
+              "engine": "rubberband (ffmpeg 7.1.5 filter)",
+              "pitch_ratio": 1.0,
+              "options": "transients=crisp:detector=compound:phase=laminar:window=standard:pitchq=quality:channels=together"
+            },
+            {
+              "type": "fade_out",
+              "ms": 12
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s (per figure)"
+            },
+            {
+              "type": "gain",
+              "db": -0.72
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored.",
+          "match_basis": {
+            "chord": "pitch-class set equals the analysis chord (from the manifest arpeggio.cycle)",
+            "register": "manifest register/arpeggio.cycle lowest note vs written bass"
+          },
+          "note": null
+        },
+        {
+          "bar": 30,
+          "beat": 1.0,
+          "beats": 2,
+          "chord_played": "Gsus4 + Csus4 (G7sus4)",
+          "analysis": "C: V7 (alt ii754) (G7(sus4))",
+          "role": "primary",
+          "source_offset_s": 0.0,
+          "source_length_s": 1.0909,
+          "sixteenths_taken": 8,
+          "placed_at_s": 100.87,
+          "placed_at_timecode": "1:40.870",
+          "placed_length_s": 1.7391,
+          "time_stretch_ratio": 1.5942,
+          "gain_db": 0.0,
+          "transforms": [
+            {
+              "type": "trim",
+              "source_offset_s": 0.0,
+              "source_length_s": 1.0909,
+              "fade_out_ms": 6
+            },
+            {
+              "type": "time_stretch",
+              "ratio": 1.5942,
+              "engine": "rubberband (ffmpeg 7.1.5 filter)",
+              "pitch_ratio": 1.0,
+              "options": "transients=crisp:detector=compound:phase=laminar:window=standard:pitchq=quality:channels=together"
+            },
+            {
+              "type": "fade_out",
+              "ms": 12
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s (per figure)"
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored.",
+          "match_basis": {
+            "chord": "pitch-class set equals the analysis chord (from the manifest arpeggio.cycle)",
+            "register": "manifest register/arpeggio.cycle lowest note vs written bass"
+          },
+          "note": null
+        },
+        {
+          "bar": 30,
+          "beat": 3.0,
+          "beats": 2,
+          "chord_played": "Gsus4 + Csus4 (G7sus4)",
+          "analysis": "C: V7 (alt ii754) (G7(sus4))",
+          "role": "primary",
+          "source_offset_s": 0.0,
+          "source_length_s": 1.0909,
+          "sixteenths_taken": 8,
+          "placed_at_s": 102.609,
+          "placed_at_timecode": "1:42.609",
+          "placed_length_s": 1.7391,
+          "time_stretch_ratio": 1.5942,
+          "gain_db": -0.72,
+          "transforms": [
+            {
+              "type": "trim",
+              "source_offset_s": 0.0,
+              "source_length_s": 1.0909,
+              "fade_out_ms": 6
+            },
+            {
+              "type": "time_stretch",
+              "ratio": 1.5942,
+              "engine": "rubberband (ffmpeg 7.1.5 filter)",
+              "pitch_ratio": 1.0,
+              "options": "transients=crisp:detector=compound:phase=laminar:window=standard:pitchq=quality:channels=together"
+            },
+            {
+              "type": "fade_out",
+              "ms": 12
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s (per figure)"
+            },
+            {
+              "type": "gain",
+              "db": -0.72
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored.",
+          "match_basis": {
+            "chord": "pitch-class set equals the analysis chord (from the manifest arpeggio.cycle)",
+            "register": "manifest register/arpeggio.cycle lowest note vs written bass"
+          },
+          "note": null
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "distinct_sounds": 26,
+    "total_uses": 74,
+    "suppliers": [
+      "Petrus"
+    ]
+  },
+  "derived_inputs": {
+    "inputs": [
+      {
+        "what": "Bach, BWV 846 (the music)",
+        "license": "Public domain"
+      },
+      {
+        "what": "When in Rome analysis (Gotham et al.), BWV 846",
+        "license": "CC-BY-SA-4.0",
+        "attribution": "required, given in the credits"
+      },
+      {
+        "what": "26 arpeggio offerings by Petrus (musicmatter.art)",
+        "license": "CC-BY-SA-4.0",
+        "attribution": "required, given per sound"
+      },
+      {
+        "what": "Synthetic hall IR",
+        "license": "generated in the script; no third-party input"
+      }
+    ],
+    "accepted_input_licenses": [
+      "CC0-1.0",
+      "CC-BY-4.0",
+      "CC-BY-SA-4.0"
+    ],
+    "rejected_present": [],
+    "check": "OK: every input is public domain or CC BY-SA 4.0, none NC/ND, so the output can be CC BY-SA 4.0 (share-alike satisfied, attribution given)."
+  },
+  "attribution": "“The C major Prelude, harmony only (after Bach, BWV 846)”, NetComposer Performance perf_bwv846-take6_arps_dly_lp1k, composed by Petrus after J.S. Bach (public domain), with harmonic analysis from When in Rome by Mark Gotham et al. (CC BY-SA 4.0, github.com/MarkGotham/When-in-Rome). Performed by the NetComposer Algorithmic Performer (Astrid) from 26 arpeggio recordings by Petrus (musicmatter.art, CC BY-SA 4.0). Licensed CC BY-SA 4.0, https://creativecommons.org/licenses/by-sa/4.0/",
+  "provenance_files": {
+    "render_script": {
+      "path": "bach/render6_arps_dly_lp1k.py",
+      "sha256": "2af4b5765fe0c5012af4ee6a9045a9220e08a1fd7fc9c7daf8abbc71ff1fac08"
+    },
+    "figuration_script": {
+      "path": "bach/render6_arps.py",
+      "sha256": "bf62bfb90bdc9c4960b25ea15ae6dae3770f78a38a55347f077d70cef49c2fa5"
+    },
+    "bar_table": {
+      "path": "bach/bars_v5.py",
+      "sha256": "e3f95ff9c2e235b242b4672cd6aab0dca7f5867bd428fcfc0a4a0274ef3c79b7"
+    },
+    "analysis_file": {
+      "path": "bach/analysis.txt",
+      "sha256": "4cec7458b5aec3e74218168f529589f3233e008d3b6dde3c3953eaca3dd23565"
+    },
+    "plan": {
+      "path": "perf_bwv846/plan_take6_arps.txt",
+      "sha256": "9ad99636fc40390f891b4fed8ecb968e0f5e5bfe22e714bdd112f247ad4a7313"
+    },
+    "record_builder": {
+      "path": "tools/build_record_846.py",
+      "sha256": "8408c224bf9f91478b1e10658f852329a183a421f12fbe776091d13902ff1370"
+    }
+  },
+  "created_at": "2026-10-17T16:44:54-07:00",
+  "signature": {
+    "status": "UNSIGNED",
+    "signed_by": null,
+    "algorithm": null,
+    "key_id": null,
+    "value": null,
+    "note": "Placeholder. Open decision #33 (signed usage records) is not decided: no key, signer or format exists. record_hash gives integrity, not authorship."
+  },
+  "record_hash": {
+    "algorithm": "sha256",
+    "over": "canonical JSON (sorted keys, no whitespace) of the record without record_hash and signature",
+    "value": "06c7022509c4c760263f3ab68ee264f83c055129c095fb609cc08a9acbe941b2"
+  }
+}

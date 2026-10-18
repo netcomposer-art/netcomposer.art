@@ -1,0 +1,4167 @@
+{
+  "record_type": "netcomposer.performance_record",
+  "record_format_version": null,
+  "record_format_note": "No record format exists in the repo/CLI yet; this follows the field lists in spec §5.7, §5.8, §5.9 and §9.4 (spec marks them a draft/sketch). Same layout as the take 6 record.",
+  "performance": {
+    "id": "perf_bwv846-take5_fwd_rev_echo",
+    "id_note": "Local id (folder + tag). NC has no Performance id registry yet.",
+    "title": "The C major Prelude, harmony only (after Bach, BWV 846): take 5, forward/reverse echo",
+    "performed_at": "2026-10-17T21:18:18Z",
+    "performed_at_local": "2026-10-17T14:18:18-07:00",
+    "performed_at_note": "From the mtime of the WAV master (America/Los_Angeles, UTC-7). Record built afterwards.",
+    "duration_s": 126.384,
+    "music_ends_at_s": 122.852,
+    "performer_mode": "algorithmic",
+    "performer_id": null,
+    "performer_id_note": "NC has no system Identity for the engine yet.",
+    "performer": {
+      "name": "Astrid, NetComposer Algorithmic Performer (stand-in script on the box, not the netcomposer CLI)",
+      "script": {
+        "path": "bach/render5_fwd_rev_echo.py",
+        "sha256": "66b4fabc2a2bf1523cbce9125f1d767f8d257ad9b935b111b6038ad245b72fbd"
+      }
+    },
+    "rules_set_by": {
+      "id": null,
+      "display_name": "Petrus",
+      "note": "Forward/reverse echo idea and LP sweep requested by Petrus in chat; chord matching and take selection are the script's rules."
+    },
+    "engine_version": "render5_fwd_rev_echo.py@sha256:66b4fabc2a2bf152",
+    "composition_ref": {
+      "composition_id": "compositions/bach_bwv846_prelude_progression.md",
+      "version": null,
+      "version_note": "Compositions are not versioned yet; the file hash pins the exact text.",
+      "sha256": "f63acadc04937a289a2f51c96386a0ae92de8f7fba00c69a16a038632b9b43d5",
+      "composer": {
+        "id": null,
+        "display_name": "Petrus"
+      },
+      "music": "Johann Sebastian Bach, Prelude in C major, BWV 846, Das Wohltemperierte Klavier I (1722). Public domain.",
+      "analysis": {
+        "credit": "Mark Gotham et al., When in Rome corpus",
+        "file": "Corpus/Keyboard_Other/Bach,_Johann_Sebastian/The_Well-Tempered_Clavier_I/01/analysis.txt",
+        "uri": "https://github.com/MarkGotham/When-in-Rome",
+        "license": "CC-BY-SA-4.0",
+        "local_copy": {
+          "path": "bach/analysis.txt",
+          "sha256": "4cec7458b5aec3e74218168f529589f3233e008d3b6dde3c3953eaca3dd23565"
+        }
+      }
+    },
+    "rule_set": {
+      "name": "bach-strikes fwd/rev echo (BWV 846 take 5)",
+      "version": null,
+      "seed": 846,
+      "selection": {
+        "pool": "type=chord strike (musicmatter.art v4 local copy, 702 strikes)",
+        "match": "chord per bar from bars_v5.py (dim7 any enharmonic spelling)",
+        "prefer": [
+          "lowest note = written bass (-20)",
+          "small register jump (0.6x) and near MIDI 72 (0.4x)",
+          "wide spreads penalised above 26 semitones (0.3x)"
+        ],
+        "no_match": "G7sus4 (bars 26, 30) built by layering Gsus4 + Csus4/G at -3 dB"
+      },
+      "figuration": "two strikes per bar (beats 1 and 3; 2nd at -0.72 dB, bar 35 2nd at -5.19 dB). Voice B plays each strike reversed, starting 0.10 s after it and peaking 80 ms before the next strike, 6 dB under voice A, ducked where it would mask the next attack.",
+      "tempo_map": {
+        "bpm": 69,
+        "rit_bar_extension": {
+          "33": 0.04,
+          "34": 0.1,
+          "35": 0.18
+        }
+      },
+      "transforms_enabled": [
+        "trim",
+        "gain",
+        "fade",
+        "reverse"
+      ],
+      "pitch_shift": false,
+      "time_stretch": false
+    },
+    "crawl_snapshot": {
+      "venue": "musicmatter.art (Petrus's own site)",
+      "snapshot": "local copy /workspace/musicmatter/site_v4 (WAV)",
+      "crawled_at": null,
+      "crawled_at_note": "Read from the local site copy, not crawled live."
+    },
+    "audio_uri": null,
+    "audio_uri_note": "Preview site only (netcomposer.art not deployed).",
+    "outputs": [
+      {
+        "file": "perf_bwv846/take5_fwd_rev_echo.wav",
+        "format": "WAV PCM 24-bit/48 kHz stereo (pre-loudness master)",
+        "sha256": "056951cdceb3b70309d20fb8587ed80c12c8fc82a5a31b76e6ecae32a7b95c51",
+        "size_bytes": 36389468,
+        "duration_s": 126.352,
+        "written_at": "2026-10-17T14:18:18-07:00",
+        "written_at_utc": "2026-10-17T21:18:18Z",
+        "loudness_lufs_integrated": -15.4,
+        "true_peak_dbtp": -0.4
+      },
+      {
+        "file": "perf_bwv846/bach_bwv846_take5_fwd_rev_echo.mp3",
+        "format": "MP3 256 kbps, 48 kHz (loudness-normalized)",
+        "sha256": "9ecc6f9e1a6e2a244a252560008df6d0c882cfee077c4bf61ad10a5b233b988e",
+        "size_bytes": 4045100,
+        "duration_s": 126.384,
+        "written_at": "2026-10-17T14:18:23-07:00",
+        "written_at_utc": "2026-10-17T21:18:23Z",
+        "loudness_lufs_integrated": -13.9,
+        "true_peak_dbtp": -1.0
+      }
+    ],
+    "unfilled_gaps": [],
+    "known_compromises": [
+      {
+        "bars": "26, 30",
+        "what": "Layered substitution: G7sus4 = Gsus4 + Csus4/G (no 7sus4 recording)"
+      },
+      {
+        "bars": "28",
+        "what": "G pedal under F#dim7 not carried (G is not a chord tone of any dim7 take)"
+      },
+      {
+        "bars": "34",
+        "what": "C pedal under G7 not available"
+      }
+    ],
+    "license_out": {
+      "id": "CC-BY-SA-4.0",
+      "name": "Creative Commons Attribution-ShareAlike 4.0",
+      "uri": "https://creativecommons.org/licenses/by-sa/4.0/"
+    }
+  },
+  "hacks_chain": [
+    {
+      "n": 1,
+      "tool": "reverse_echo",
+      "what": "voice B = each strike reversed, swelling into the next strike",
+      "start_after_s": 0.1,
+      "peak_lead_s": 0.08,
+      "level": "B bus 6 dB under A bus (RMS)",
+      "high_shelf": "-3 dB above ~4 kHz on B",
+      "masking_guard": "B swell kept >= 3 dB under the next attack"
+    },
+    {
+      "n": 2,
+      "tool": "reverb",
+      "type": "synthetic hall, generated in the script (no external IR)",
+      "rt60_s": 2.6,
+      "predelay_ms": 22,
+      "seed": 846,
+      "wet": 0.4,
+      "wet_voice_b": 0.5
+    },
+    {
+      "n": 3,
+      "tool": "lowpass_sweep",
+      "slope_db_per_oct": 24,
+      "design": "two cascaded TPT state-variable filters (Butterworth Qs), per-sample coefficients",
+      "sweep": "500 Hz -> 20 kHz exponential over 0-60 s, then 20 kHz -> 600 Hz exponential to the end"
+    },
+    {
+      "n": 4,
+      "tool": "tail",
+      "rule": "3.0 s fade (power 1.5) at the end"
+    },
+    {
+      "n": 5,
+      "tool": "loudness",
+      "method": "ffmpeg loudnorm two-pass, linear (applied when encoding the mp3)",
+      "target_lufs": -14,
+      "ceiling_dbtp": -1
+    }
+  ],
+  "sounds_used": [
+    {
+      "offering": "am7-bounce-2",
+      "title": "A minor 7th chord, bounce 2",
+      "source_url": "https://musicmatter.art/sounds/am7-bounce-2.flac",
+      "manifest_url": "https://musicmatter.art/sounds/am7-bounce-2.nc.json",
+      "supplier": {
+        "id": null,
+        "display_name": "Petrus",
+        "primary_link": "https://musicmatter.art/"
+      },
+      "license": {
+        "id": "CC-BY-SA-4.0",
+        "uri": "https://creativecommons.org/licenses/by-sa/4.0/"
+      },
+      "credit_line": "“A minor 7th chord, bounce 2” by Petrus (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/am7-bounce-2.flac",
+      "chord": "Am7",
+      "register": {
+        "low": "A3",
+        "high": "C6",
+        "root": "A3",
+        "bass": "A3",
+        "inversion": "root"
+      },
+      "sha256": "f7753ba4034e1df6625ca99f560b297ec40a6e764146d09d473623259480955e",
+      "sha256_note": "sha256 of the published FLAC (manifest field)",
+      "content_hash_at_use": {
+        "file": "site_v4/sounds/am7-bounce-2.wav",
+        "sha256": "2873ec1790d87ac30b9b8893061d13aa3383064678295b7a151aebdad1d51423",
+        "pcm_md5": "a63f7dede8d8e024fab3303d5a11d399",
+        "pcm_identical_to_published_flac": true,
+        "note": "Decoded PCM md5 equals the published FLAC's manifest pcm_md5: the audio used is sample-identical to what musicmatter.art serves."
+      },
+      "uses": 2,
+      "uses_as_layer": 0,
+      "bars": [
+        9
+      ],
+      "time_stretch_ratios": [
+        1.0
+      ],
+      "processing_plain": "strike sliced from the clip, played forward and reversed (echo swell), 40% hall (B voice 50%), swept 24 dB/oct low-pass",
+      "spans": [
+        {
+          "bar": 9,
+          "beat": 1.0,
+          "beats": 2,
+          "chord_played": "Am7",
+          "analysis": "C: ii7 (Am7)",
+          "role": "primary",
+          "source_offset_s": 0.0,
+          "source_strike": 1,
+          "placed_at_s": 27.826,
+          "placed_at_timecode": "0:27.826",
+          "voices": [
+            "A: forward strike",
+            "B: reversed echo of the same strike, swelling into the next strike"
+          ],
+          "time_stretch_ratio": 1.0,
+          "gain_db": 0.0,
+          "transforms": [
+            {
+              "type": "trim",
+              "what": "one of the clip's two strikes (cut at 2.18 s, 20 ms overlap, 30 ms fade-out)"
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s"
+            },
+            {
+              "type": "reverse",
+              "voice": "B"
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored."
+        },
+        {
+          "bar": 9,
+          "beat": 3.0,
+          "beats": 2,
+          "chord_played": "Am7",
+          "analysis": "C: ii7 (Am7)",
+          "role": "primary",
+          "source_offset_s": 2.16,
+          "source_strike": 2,
+          "placed_at_s": 29.565,
+          "placed_at_timecode": "0:29.565",
+          "voices": [
+            "A: forward strike",
+            "B: reversed echo of the same strike, swelling into the next strike"
+          ],
+          "time_stretch_ratio": 1.0,
+          "gain_db": -0.72,
+          "transforms": [
+            {
+              "type": "trim",
+              "what": "one of the clip's two strikes (cut at 2.18 s, 20 ms overlap, 30 ms fade-out)"
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s"
+            },
+            {
+              "type": "reverse",
+              "voice": "B"
+            },
+            {
+              "type": "gain",
+              "db": -0.72
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored."
+        }
+      ]
+    },
+    {
+      "offering": "amin-bounce-5",
+      "title": "A minor chord, bounce 5",
+      "source_url": "https://musicmatter.art/sounds/amin-bounce-5.flac",
+      "manifest_url": "https://musicmatter.art/sounds/amin-bounce-5.nc.json",
+      "supplier": {
+        "id": null,
+        "display_name": "Petrus",
+        "primary_link": "https://musicmatter.art/"
+      },
+      "license": {
+        "id": "CC-BY-SA-4.0",
+        "uri": "https://creativecommons.org/licenses/by-sa/4.0/"
+      },
+      "credit_line": "“A minor chord, bounce 5” by Petrus (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/amin-bounce-5.flac",
+      "chord": "Amin",
+      "register": {
+        "low": "C4",
+        "high": "C6",
+        "root": "A4",
+        "bass": "C4",
+        "inversion": "first"
+      },
+      "sha256": "5d1287180ae97a8c86e800f39a545d279c24131466fb7277a731726668165aab",
+      "sha256_note": "sha256 of the published FLAC (manifest field)",
+      "content_hash_at_use": {
+        "file": "site_v4/sounds/amin-bounce-5.wav",
+        "sha256": "d52ba45d0db4b7309d440c3b311d842258a062c68c9e5335db2d27a108aa3e23",
+        "pcm_md5": "0043ae60626b182f05952422fab7972f",
+        "pcm_identical_to_published_flac": true,
+        "note": "Decoded PCM md5 equals the published FLAC's manifest pcm_md5: the audio used is sample-identical to what musicmatter.art serves."
+      },
+      "uses": 2,
+      "uses_as_layer": 0,
+      "bars": [
+        5
+      ],
+      "time_stretch_ratios": [
+        1.0
+      ],
+      "processing_plain": "strike sliced from the clip, played forward and reversed (echo swell), 40% hall (B voice 50%), swept 24 dB/oct low-pass",
+      "spans": [
+        {
+          "bar": 5,
+          "beat": 1.0,
+          "beats": 2,
+          "chord_played": "Amin",
+          "analysis": "C: vi6 (Am/C)",
+          "role": "primary",
+          "source_offset_s": 0.0,
+          "source_strike": 1,
+          "placed_at_s": 13.913,
+          "placed_at_timecode": "0:13.913",
+          "voices": [
+            "A: forward strike",
+            "B: reversed echo of the same strike, swelling into the next strike"
+          ],
+          "time_stretch_ratio": 1.0,
+          "gain_db": 0.0,
+          "transforms": [
+            {
+              "type": "trim",
+              "what": "one of the clip's two strikes (cut at 2.18 s, 20 ms overlap, 30 ms fade-out)"
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s"
+            },
+            {
+              "type": "reverse",
+              "voice": "B"
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored."
+        },
+        {
+          "bar": 5,
+          "beat": 3.0,
+          "beats": 2,
+          "chord_played": "Amin",
+          "analysis": "C: vi6 (Am/C)",
+          "role": "primary",
+          "source_offset_s": 2.16,
+          "source_strike": 2,
+          "placed_at_s": 15.652,
+          "placed_at_timecode": "0:15.652",
+          "voices": [
+            "A: forward strike",
+            "B: reversed echo of the same strike, swelling into the next strike"
+          ],
+          "time_stretch_ratio": 1.0,
+          "gain_db": -0.72,
+          "transforms": [
+            {
+              "type": "trim",
+              "what": "one of the clip's two strikes (cut at 2.18 s, 20 ms overlap, 30 ms fade-out)"
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s"
+            },
+            {
+              "type": "reverse",
+              "voice": "B"
+            },
+            {
+              "type": "gain",
+              "db": -0.72
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored."
+        }
+      ]
+    },
+    {
+      "offering": "bdim7-bounce-3",
+      "title": "B diminished 7th chord, bounce 3",
+      "source_url": "https://musicmatter.art/sounds/bdim7-bounce-3.flac",
+      "manifest_url": "https://musicmatter.art/sounds/bdim7-bounce-3.nc.json",
+      "supplier": {
+        "id": null,
+        "display_name": "Petrus",
+        "primary_link": "https://musicmatter.art/"
+      },
+      "license": {
+        "id": "CC-BY-SA-4.0",
+        "uri": "https://creativecommons.org/licenses/by-sa/4.0/"
+      },
+      "credit_line": "“B diminished 7th chord, bounce 3” by Petrus (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/bdim7-bounce-3.flac",
+      "chord": "Bdim7",
+      "register": {
+        "low": "F4",
+        "high": "G#5",
+        "root": "B4",
+        "bass": "F4",
+        "inversion": "second"
+      },
+      "sha256": "d22f9c8cc5d8ba68ceafc1947139274cd15eac050a2ad03a7db1a8b07274227e",
+      "sha256_note": "sha256 of the published FLAC (manifest field)",
+      "content_hash_at_use": {
+        "file": "site_v4/sounds/bdim7-bounce-3.wav",
+        "sha256": "7bd31488551250a89a3de81cc0e23cf223e671c6b72bc3f9716ebe1949727f0d",
+        "pcm_md5": "357126020b34571bd58451093040f54a",
+        "pcm_identical_to_published_flac": true,
+        "note": "Decoded PCM md5 equals the published FLAC's manifest pcm_md5: the audio used is sample-identical to what musicmatter.art serves."
+      },
+      "uses": 2,
+      "uses_as_layer": 0,
+      "bars": [
+        14
+      ],
+      "time_stretch_ratios": [
+        1.0
+      ],
+      "processing_plain": "strike sliced from the clip, played forward and reversed (echo swell), 40% hall (B voice 50%), swept 24 dB/oct low-pass",
+      "spans": [
+        {
+          "bar": 14,
+          "beat": 1.0,
+          "beats": 2,
+          "chord_played": "Bdim7",
+          "analysis": "C: C: viio64b3 (Bo7/F)",
+          "role": "primary",
+          "source_offset_s": 0.0,
+          "source_strike": 1,
+          "placed_at_s": 45.217,
+          "placed_at_timecode": "0:45.217",
+          "voices": [
+            "A: forward strike",
+            "B: reversed echo of the same strike, swelling into the next strike"
+          ],
+          "time_stretch_ratio": 1.0,
+          "gain_db": 0.0,
+          "transforms": [
+            {
+              "type": "trim",
+              "what": "one of the clip's two strikes (cut at 2.18 s, 20 ms overlap, 30 ms fade-out)"
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s"
+            },
+            {
+              "type": "reverse",
+              "voice": "B"
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored."
+        },
+        {
+          "bar": 14,
+          "beat": 3.0,
+          "beats": 2,
+          "chord_played": "Bdim7",
+          "analysis": "C: C: viio64b3 (Bo7/F)",
+          "role": "primary",
+          "source_offset_s": 2.16,
+          "source_strike": 2,
+          "placed_at_s": 46.957,
+          "placed_at_timecode": "0:46.957",
+          "voices": [
+            "A: forward strike",
+            "B: reversed echo of the same strike, swelling into the next strike"
+          ],
+          "time_stretch_ratio": 1.0,
+          "gain_db": -0.72,
+          "transforms": [
+            {
+              "type": "trim",
+              "what": "one of the clip's two strikes (cut at 2.18 s, 20 ms overlap, 30 ms fade-out)"
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s"
+            },
+            {
+              "type": "reverse",
+              "voice": "B"
+            },
+            {
+              "type": "gain",
+              "db": -0.72
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored."
+        }
+      ]
+    },
+    {
+      "offering": "c7-bounce-4",
+      "title": "C dominant 7th chord, bounce 4",
+      "source_url": "https://musicmatter.art/sounds/c7-bounce-4.flac",
+      "manifest_url": "https://musicmatter.art/sounds/c7-bounce-4.nc.json",
+      "supplier": {
+        "id": null,
+        "display_name": "Petrus",
+        "primary_link": "https://musicmatter.art/"
+      },
+      "license": {
+        "id": "CC-BY-SA-4.0",
+        "uri": "https://creativecommons.org/licenses/by-sa/4.0/"
+      },
+      "credit_line": "“C dominant 7th chord, bounce 4” by Petrus (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/c7-bounce-4.flac",
+      "chord": "C7",
+      "register": {
+        "low": "C4",
+        "high": "C6",
+        "root": "C4",
+        "bass": "C4",
+        "inversion": "root"
+      },
+      "sha256": "05d19133de8a871578e19294f78d2192c841dec9a2f745ae71681daaeaacf8d6",
+      "sha256_note": "sha256 of the published FLAC (manifest field)",
+      "content_hash_at_use": {
+        "file": "site_v4/sounds/c7-bounce-4.wav",
+        "sha256": "098dfbd735f973b65ae396dd75d9478cdec7ffd500b31e8ed0c4c86809134685",
+        "pcm_md5": "093bcc967e9fbcd2ad47fc2f84d1f6fa",
+        "pcm_identical_to_published_flac": true,
+        "note": "Decoded PCM md5 equals the published FLAC's manifest pcm_md5: the audio used is sample-identical to what musicmatter.art serves."
+      },
+      "uses": 2,
+      "uses_as_layer": 0,
+      "bars": [
+        20
+      ],
+      "time_stretch_ratios": [
+        1.0
+      ],
+      "processing_plain": "strike sliced from the clip, played forward and reversed (echo swell), 40% hall (B voice 50%), swept 24 dB/oct low-pass",
+      "spans": [
+        {
+          "bar": 20,
+          "beat": 1.0,
+          "beats": 2,
+          "chord_played": "C7",
+          "analysis": "C: V7/IV (C7)",
+          "role": "primary",
+          "source_offset_s": 0.0,
+          "source_strike": 1,
+          "placed_at_s": 66.087,
+          "placed_at_timecode": "1:06.087",
+          "voices": [
+            "A: forward strike",
+            "B: reversed echo of the same strike, swelling into the next strike"
+          ],
+          "time_stretch_ratio": 1.0,
+          "gain_db": 0.0,
+          "transforms": [
+            {
+              "type": "trim",
+              "what": "one of the clip's two strikes (cut at 2.18 s, 20 ms overlap, 30 ms fade-out)"
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s"
+            },
+            {
+              "type": "reverse",
+              "voice": "B"
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored."
+        },
+        {
+          "bar": 20,
+          "beat": 3.0,
+          "beats": 2,
+          "chord_played": "C7",
+          "analysis": "C: V7/IV (C7)",
+          "role": "primary",
+          "source_offset_s": 2.16,
+          "source_strike": 2,
+          "placed_at_s": 67.826,
+          "placed_at_timecode": "1:07.826",
+          "voices": [
+            "A: forward strike",
+            "B: reversed echo of the same strike, swelling into the next strike"
+          ],
+          "time_stretch_ratio": 1.0,
+          "gain_db": -0.72,
+          "transforms": [
+            {
+              "type": "trim",
+              "what": "one of the clip's two strikes (cut at 2.18 s, 20 ms overlap, 30 ms fade-out)"
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s"
+            },
+            {
+              "type": "reverse",
+              "voice": "B"
+            },
+            {
+              "type": "gain",
+              "db": -0.72
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored."
+        }
+      ]
+    },
+    {
+      "offering": "c7-bounce-6",
+      "title": "C dominant 7th chord, bounce 6",
+      "source_url": "https://musicmatter.art/sounds/c7-bounce-6.flac",
+      "manifest_url": "https://musicmatter.art/sounds/c7-bounce-6.nc.json",
+      "supplier": {
+        "id": null,
+        "display_name": "Petrus",
+        "primary_link": "https://musicmatter.art/"
+      },
+      "license": {
+        "id": "CC-BY-SA-4.0",
+        "uri": "https://creativecommons.org/licenses/by-sa/4.0/"
+      },
+      "credit_line": "“C dominant 7th chord, bounce 6” by Petrus (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/c7-bounce-6.flac",
+      "chord": "C7",
+      "register": {
+        "low": "C4",
+        "high": "C6",
+        "root": "C4",
+        "bass": "C4",
+        "inversion": "root"
+      },
+      "sha256": "9df07794a552904ebe1bd8e9239ac4569cbed1ad8bd5d3bfbf4366b4859a3198",
+      "sha256_note": "sha256 of the published FLAC (manifest field)",
+      "content_hash_at_use": {
+        "file": "site_v4/sounds/c7-bounce-6.wav",
+        "sha256": "33e082fc4bdc6ac7414478e8e75df5368c126eba14bc375ecc80f5bbad2b78c8",
+        "pcm_md5": "f4c4a166557ba67f3038cae69691f253",
+        "pcm_identical_to_published_flac": true,
+        "note": "Decoded PCM md5 equals the published FLAC's manifest pcm_md5: the audio used is sample-identical to what musicmatter.art serves."
+      },
+      "uses": 2,
+      "uses_as_layer": 0,
+      "bars": [
+        32
+      ],
+      "time_stretch_ratios": [
+        1.0
+      ],
+      "processing_plain": "strike sliced from the clip, played forward and reversed (echo swell), 40% hall (B voice 50%), swept 24 dB/oct low-pass",
+      "spans": [
+        {
+          "bar": 32,
+          "beat": 1.0,
+          "beats": 2,
+          "chord_played": "C7",
+          "analysis": "C: V7/IV (C pedal) (C7)",
+          "role": "primary",
+          "source_offset_s": 0.0,
+          "source_strike": 1,
+          "placed_at_s": 107.826,
+          "placed_at_timecode": "1:47.826",
+          "voices": [
+            "A: forward strike",
+            "B: reversed echo of the same strike, swelling into the next strike"
+          ],
+          "time_stretch_ratio": 1.0,
+          "gain_db": 0.0,
+          "transforms": [
+            {
+              "type": "trim",
+              "what": "one of the clip's two strikes (cut at 2.18 s, 20 ms overlap, 30 ms fade-out)"
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s"
+            },
+            {
+              "type": "reverse",
+              "voice": "B"
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored."
+        },
+        {
+          "bar": 32,
+          "beat": 3.0,
+          "beats": 2,
+          "chord_played": "C7",
+          "analysis": "C: V7/IV (C pedal) (C7)",
+          "role": "primary",
+          "source_offset_s": 2.16,
+          "source_strike": 2,
+          "placed_at_s": 109.565,
+          "placed_at_timecode": "1:49.565",
+          "voices": [
+            "A: forward strike",
+            "B: reversed echo of the same strike, swelling into the next strike"
+          ],
+          "time_stretch_ratio": 1.0,
+          "gain_db": -0.72,
+          "transforms": [
+            {
+              "type": "trim",
+              "what": "one of the clip's two strikes (cut at 2.18 s, 20 ms overlap, 30 ms fade-out)"
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s"
+            },
+            {
+              "type": "reverse",
+              "voice": "B"
+            },
+            {
+              "type": "gain",
+              "db": -0.72
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored."
+        }
+      ]
+    },
+    {
+      "offering": "cdim7-bounce-3",
+      "title": "C diminished 7th chord, bounce 3",
+      "source_url": "https://musicmatter.art/sounds/cdim7-bounce-3.flac",
+      "manifest_url": "https://musicmatter.art/sounds/cdim7-bounce-3.nc.json",
+      "supplier": {
+        "id": null,
+        "display_name": "Petrus",
+        "primary_link": "https://musicmatter.art/"
+      },
+      "license": {
+        "id": "CC-BY-SA-4.0",
+        "uri": "https://creativecommons.org/licenses/by-sa/4.0/"
+      },
+      "credit_line": "“C diminished 7th chord, bounce 3” by Petrus (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/cdim7-bounce-3.flac",
+      "chord": "Cdim7",
+      "register": {
+        "low": "C4",
+        "high": "C6",
+        "root": "C4",
+        "bass": "C4",
+        "inversion": "root"
+      },
+      "sha256": "5aa1262eb2cd0dae5cc6b802cd951947562cc32ab8c112e66d3092f2c097ddcf",
+      "sha256_note": "sha256 of the published FLAC (manifest field)",
+      "content_hash_at_use": {
+        "file": "site_v4/sounds/cdim7-bounce-3.wav",
+        "sha256": "1a2ff9c52a9f63a88382f893257c9e5dba93d51f513ef9bce7bee373e0433583",
+        "pcm_md5": "11a5e07e499292730f3a5beb4cf3cfdd",
+        "pcm_identical_to_published_flac": true,
+        "note": "Decoded PCM md5 equals the published FLAC's manifest pcm_md5: the audio used is sample-identical to what musicmatter.art serves."
+      },
+      "uses": 2,
+      "uses_as_layer": 0,
+      "bars": [
+        28
+      ],
+      "time_stretch_ratios": [
+        1.0
+      ],
+      "processing_plain": "strike sliced from the clip, played forward and reversed (echo swell), 40% hall (B voice 50%), swept 24 dB/oct low-pass",
+      "spans": [
+        {
+          "bar": 28,
+          "beat": 1.0,
+          "beats": 2,
+          "chord_played": "Cdim7",
+          "analysis": "C: viio2/v (F#o7/G)",
+          "role": "primary",
+          "source_offset_s": 0.0,
+          "source_strike": 1,
+          "placed_at_s": 93.913,
+          "placed_at_timecode": "1:33.913",
+          "voices": [
+            "A: forward strike",
+            "B: reversed echo of the same strike, swelling into the next strike"
+          ],
+          "time_stretch_ratio": 1.0,
+          "gain_db": 0.0,
+          "transforms": [
+            {
+              "type": "trim",
+              "what": "one of the clip's two strikes (cut at 2.18 s, 20 ms overlap, 30 ms fade-out)"
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s"
+            },
+            {
+              "type": "reverse",
+              "voice": "B"
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored."
+        },
+        {
+          "bar": 28,
+          "beat": 3.0,
+          "beats": 2,
+          "chord_played": "Cdim7",
+          "analysis": "C: viio2/v (F#o7/G)",
+          "role": "primary",
+          "source_offset_s": 2.16,
+          "source_strike": 2,
+          "placed_at_s": 95.652,
+          "placed_at_timecode": "1:35.652",
+          "voices": [
+            "A: forward strike",
+            "B: reversed echo of the same strike, swelling into the next strike"
+          ],
+          "time_stretch_ratio": 1.0,
+          "gain_db": -0.72,
+          "transforms": [
+            {
+              "type": "trim",
+              "what": "one of the clip's two strikes (cut at 2.18 s, 20 ms overlap, 30 ms fade-out)"
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s"
+            },
+            {
+              "type": "reverse",
+              "voice": "B"
+            },
+            {
+              "type": "gain",
+              "db": -0.72
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored."
+        }
+      ]
+    },
+    {
+      "offering": "cmaj-bounce-26",
+      "title": "C major chord, bounce 26",
+      "source_url": "https://musicmatter.art/sounds/cmaj-bounce-26.flac",
+      "manifest_url": "https://musicmatter.art/sounds/cmaj-bounce-26.nc.json",
+      "supplier": {
+        "id": null,
+        "display_name": "Petrus",
+        "primary_link": "https://musicmatter.art/"
+      },
+      "license": {
+        "id": "CC-BY-SA-4.0",
+        "uri": "https://creativecommons.org/licenses/by-sa/4.0/"
+      },
+      "credit_line": "“C major chord, bounce 26” by Petrus (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/cmaj-bounce-26.flac",
+      "chord": "Cmaj",
+      "register": {
+        "low": "C5",
+        "high": "G5",
+        "root": "C5",
+        "bass": "C5",
+        "inversion": "root"
+      },
+      "sha256": "5819257fb14a7782d8cebf53af05f3d668b36876ace4a50822e22fdd1fdd7a84",
+      "sha256_note": "sha256 of the published FLAC (manifest field)",
+      "content_hash_at_use": {
+        "file": "site_v4/sounds/cmaj-bounce-26.wav",
+        "sha256": "f17d1536ade0a3a60adbd398f2135aa1bd760027aecda40064eda70f6be4ba74",
+        "pcm_md5": "aa9f75beedef1d74cd6a609b08b5e195",
+        "pcm_identical_to_published_flac": true,
+        "note": "Decoded PCM md5 equals the published FLAC's manifest pcm_md5: the audio used is sample-identical to what musicmatter.art serves."
+      },
+      "uses": 6,
+      "uses_as_layer": 0,
+      "bars": [
+        1,
+        4,
+        35
+      ],
+      "time_stretch_ratios": [
+        1.0
+      ],
+      "processing_plain": "strike sliced from the clip, played forward and reversed (echo swell), 40% hall (B voice 50%), swept 24 dB/oct low-pass",
+      "spans": [
+        {
+          "bar": 1,
+          "beat": 1.0,
+          "beats": 2,
+          "chord_played": "Cmaj",
+          "analysis": "C: C: I (C)",
+          "role": "primary",
+          "source_offset_s": 0.0,
+          "source_strike": 1,
+          "placed_at_s": 0.0,
+          "placed_at_timecode": "0:00.000",
+          "voices": [
+            "A: forward strike",
+            "B: reversed echo of the same strike, swelling into the next strike"
+          ],
+          "time_stretch_ratio": 1.0,
+          "gain_db": 0.0,
+          "transforms": [
+            {
+              "type": "trim",
+              "what": "one of the clip's two strikes (cut at 2.18 s, 20 ms overlap, 30 ms fade-out)"
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s"
+            },
+            {
+              "type": "reverse",
+              "voice": "B"
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored."
+        },
+        {
+          "bar": 1,
+          "beat": 3.0,
+          "beats": 2,
+          "chord_played": "Cmaj",
+          "analysis": "C: C: I (C)",
+          "role": "primary",
+          "source_offset_s": 2.16,
+          "source_strike": 2,
+          "placed_at_s": 1.739,
+          "placed_at_timecode": "0:01.739",
+          "voices": [
+            "A: forward strike",
+            "B: reversed echo of the same strike, swelling into the next strike"
+          ],
+          "time_stretch_ratio": 1.0,
+          "gain_db": -0.72,
+          "transforms": [
+            {
+              "type": "trim",
+              "what": "one of the clip's two strikes (cut at 2.18 s, 20 ms overlap, 30 ms fade-out)"
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s"
+            },
+            {
+              "type": "reverse",
+              "voice": "B"
+            },
+            {
+              "type": "gain",
+              "db": -0.72
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored."
+        },
+        {
+          "bar": 4,
+          "beat": 1.0,
+          "beats": 2,
+          "chord_played": "Cmaj",
+          "analysis": "C: I (C)",
+          "role": "primary",
+          "source_offset_s": 0.0,
+          "source_strike": 1,
+          "placed_at_s": 10.435,
+          "placed_at_timecode": "0:10.435",
+          "voices": [
+            "A: forward strike",
+            "B: reversed echo of the same strike, swelling into the next strike"
+          ],
+          "time_stretch_ratio": 1.0,
+          "gain_db": 0.0,
+          "transforms": [
+            {
+              "type": "trim",
+              "what": "one of the clip's two strikes (cut at 2.18 s, 20 ms overlap, 30 ms fade-out)"
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s"
+            },
+            {
+              "type": "reverse",
+              "voice": "B"
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored."
+        },
+        {
+          "bar": 4,
+          "beat": 3.0,
+          "beats": 2,
+          "chord_played": "Cmaj",
+          "analysis": "C: I (C)",
+          "role": "primary",
+          "source_offset_s": 2.16,
+          "source_strike": 2,
+          "placed_at_s": 12.174,
+          "placed_at_timecode": "0:12.174",
+          "voices": [
+            "A: forward strike",
+            "B: reversed echo of the same strike, swelling into the next strike"
+          ],
+          "time_stretch_ratio": 1.0,
+          "gain_db": -0.72,
+          "transforms": [
+            {
+              "type": "trim",
+              "what": "one of the clip's two strikes (cut at 2.18 s, 20 ms overlap, 30 ms fade-out)"
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s"
+            },
+            {
+              "type": "reverse",
+              "voice": "B"
+            },
+            {
+              "type": "gain",
+              "db": -0.72
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored."
+        },
+        {
+          "bar": 35,
+          "beat": 1.0,
+          "beats": 2,
+          "chord_played": "Cmaj",
+          "analysis": "C: I (C)",
+          "role": "primary",
+          "source_offset_s": 0.0,
+          "source_strike": 1,
+          "placed_at_s": 118.748,
+          "placed_at_timecode": "1:58.748",
+          "voices": [
+            "A: forward strike",
+            "B: reversed echo of the same strike, swelling into the next strike"
+          ],
+          "time_stretch_ratio": 1.0,
+          "gain_db": 0.0,
+          "transforms": [
+            {
+              "type": "trim",
+              "what": "one of the clip's two strikes (cut at 2.18 s, 20 ms overlap, 30 ms fade-out)"
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s"
+            },
+            {
+              "type": "reverse",
+              "voice": "B"
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored."
+        },
+        {
+          "bar": 35,
+          "beat": 3.0,
+          "beats": 2,
+          "chord_played": "Cmaj",
+          "analysis": "C: I (C)",
+          "role": "primary",
+          "source_offset_s": 2.16,
+          "source_strike": 2,
+          "placed_at_s": 120.8,
+          "placed_at_timecode": "2:00.800",
+          "voices": [
+            "A: forward strike",
+            "B: reversed echo of the same strike, swelling into the next strike"
+          ],
+          "time_stretch_ratio": 1.0,
+          "gain_db": -5.19,
+          "transforms": [
+            {
+              "type": "trim",
+              "what": "one of the clip's two strikes (cut at 2.18 s, 20 ms overlap, 30 ms fade-out)"
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s"
+            },
+            {
+              "type": "reverse",
+              "voice": "B"
+            },
+            {
+              "type": "gain",
+              "db": -5.19
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored."
+        }
+      ]
+    },
+    {
+      "offering": "cmaj-bounce-28",
+      "title": "C major chord, bounce 28",
+      "source_url": "https://musicmatter.art/sounds/cmaj-bounce-28.flac",
+      "manifest_url": "https://musicmatter.art/sounds/cmaj-bounce-28.nc.json",
+      "supplier": {
+        "id": null,
+        "display_name": "Petrus",
+        "primary_link": "https://musicmatter.art/"
+      },
+      "license": {
+        "id": "CC-BY-SA-4.0",
+        "uri": "https://creativecommons.org/licenses/by-sa/4.0/"
+      },
+      "credit_line": "“C major chord, bounce 28” by Petrus (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/cmaj-bounce-28.flac",
+      "chord": "Cmaj",
+      "register": {
+        "low": "G4",
+        "high": "E5",
+        "root": "C5",
+        "bass": "G4",
+        "inversion": "second"
+      },
+      "sha256": "ac770bd018eb032295349cc033b5d2bc460af290191669ba622508cab634b37c",
+      "sha256_note": "sha256 of the published FLAC (manifest field)",
+      "content_hash_at_use": {
+        "file": "site_v4/sounds/cmaj-bounce-28.wav",
+        "sha256": "bc57ef5c92ec1c86b4368de064fb9b4a2b8b5db29db366b262e1cd0a4e299d71",
+        "pcm_md5": "c3b4eb47f745f5cd72838aa954fabff3",
+        "pcm_identical_to_published_flac": true,
+        "note": "Decoded PCM md5 equals the published FLAC's manifest pcm_md5: the audio used is sample-identical to what musicmatter.art serves."
+      },
+      "uses": 4,
+      "uses_as_layer": 0,
+      "bars": [
+        25,
+        29
+      ],
+      "time_stretch_ratios": [
+        1.0
+      ],
+      "processing_plain": "strike sliced from the clip, played forward and reversed (echo swell), 40% hall (B voice 50%), swept 24 dB/oct low-pass",
+      "spans": [
+        {
+          "bar": 25,
+          "beat": 1.0,
+          "beats": 2,
+          "chord_played": "Cmaj",
+          "analysis": "C: I64 (C/G)",
+          "role": "primary",
+          "source_offset_s": 0.0,
+          "source_strike": 1,
+          "placed_at_s": 83.478,
+          "placed_at_timecode": "1:23.478",
+          "voices": [
+            "A: forward strike",
+            "B: reversed echo of the same strike, swelling into the next strike"
+          ],
+          "time_stretch_ratio": 1.0,
+          "gain_db": 0.0,
+          "transforms": [
+            {
+              "type": "trim",
+              "what": "one of the clip's two strikes (cut at 2.18 s, 20 ms overlap, 30 ms fade-out)"
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s"
+            },
+            {
+              "type": "reverse",
+              "voice": "B"
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored."
+        },
+        {
+          "bar": 25,
+          "beat": 3.0,
+          "beats": 2,
+          "chord_played": "Cmaj",
+          "analysis": "C: I64 (C/G)",
+          "role": "primary",
+          "source_offset_s": 2.16,
+          "source_strike": 2,
+          "placed_at_s": 85.217,
+          "placed_at_timecode": "1:25.217",
+          "voices": [
+            "A: forward strike",
+            "B: reversed echo of the same strike, swelling into the next strike"
+          ],
+          "time_stretch_ratio": 1.0,
+          "gain_db": -0.72,
+          "transforms": [
+            {
+              "type": "trim",
+              "what": "one of the clip's two strikes (cut at 2.18 s, 20 ms overlap, 30 ms fade-out)"
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s"
+            },
+            {
+              "type": "reverse",
+              "voice": "B"
+            },
+            {
+              "type": "gain",
+              "db": -0.72
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored."
+        },
+        {
+          "bar": 29,
+          "beat": 1.0,
+          "beats": 2,
+          "chord_played": "Cmaj",
+          "analysis": "C: I64 (C/G)",
+          "role": "primary",
+          "source_offset_s": 0.0,
+          "source_strike": 1,
+          "placed_at_s": 97.391,
+          "placed_at_timecode": "1:37.391",
+          "voices": [
+            "A: forward strike",
+            "B: reversed echo of the same strike, swelling into the next strike"
+          ],
+          "time_stretch_ratio": 1.0,
+          "gain_db": 0.0,
+          "transforms": [
+            {
+              "type": "trim",
+              "what": "one of the clip's two strikes (cut at 2.18 s, 20 ms overlap, 30 ms fade-out)"
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s"
+            },
+            {
+              "type": "reverse",
+              "voice": "B"
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored."
+        },
+        {
+          "bar": 29,
+          "beat": 3.0,
+          "beats": 2,
+          "chord_played": "Cmaj",
+          "analysis": "C: I64 (C/G)",
+          "role": "primary",
+          "source_offset_s": 2.16,
+          "source_strike": 2,
+          "placed_at_s": 99.13,
+          "placed_at_timecode": "1:39.130",
+          "voices": [
+            "A: forward strike",
+            "B: reversed echo of the same strike, swelling into the next strike"
+          ],
+          "time_stretch_ratio": 1.0,
+          "gain_db": -0.72,
+          "transforms": [
+            {
+              "type": "trim",
+              "what": "one of the clip's two strikes (cut at 2.18 s, 20 ms overlap, 30 ms fade-out)"
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s"
+            },
+            {
+              "type": "reverse",
+              "voice": "B"
+            },
+            {
+              "type": "gain",
+              "db": -0.72
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored."
+        }
+      ]
+    },
+    {
+      "offering": "cmaj-bounce-32",
+      "title": "C major chord, bounce 32",
+      "source_url": "https://musicmatter.art/sounds/cmaj-bounce-32.flac",
+      "manifest_url": "https://musicmatter.art/sounds/cmaj-bounce-32.nc.json",
+      "supplier": {
+        "id": null,
+        "display_name": "Petrus",
+        "primary_link": "https://musicmatter.art/"
+      },
+      "license": {
+        "id": "CC-BY-SA-4.0",
+        "uri": "https://creativecommons.org/licenses/by-sa/4.0/"
+      },
+      "credit_line": "“C major chord, bounce 32” by Petrus (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/cmaj-bounce-32.flac",
+      "chord": "Cmaj",
+      "register": {
+        "low": "C5",
+        "high": "G5",
+        "root": "C5",
+        "bass": "C5",
+        "inversion": "root"
+      },
+      "sha256": "1fc38133f71ede971d0b0af2cd3e4c9e4b7cc70525adfe1b5837dd5cd3297810",
+      "sha256_note": "sha256 of the published FLAC (manifest field)",
+      "content_hash_at_use": {
+        "file": "site_v4/sounds/cmaj-bounce-32.wav",
+        "sha256": "c5938a2e5238efd87ad7659aa82cebc9ad95c13bfead5ee9cc97770d70df9d3e",
+        "pcm_md5": "ac99eb9de9d6248cc21995842027794b",
+        "pcm_identical_to_published_flac": true,
+        "note": "Decoded PCM md5 equals the published FLAC's manifest pcm_md5: the audio used is sample-identical to what musicmatter.art serves."
+      },
+      "uses": 2,
+      "uses_as_layer": 0,
+      "bars": [
+        19
+      ],
+      "time_stretch_ratios": [
+        1.0
+      ],
+      "processing_plain": "strike sliced from the clip, played forward and reversed (echo swell), 40% hall (B voice 50%), swept 24 dB/oct low-pass",
+      "spans": [
+        {
+          "bar": 19,
+          "beat": 1.0,
+          "beats": 2,
+          "chord_played": "Cmaj",
+          "analysis": "C: I (C)",
+          "role": "primary",
+          "source_offset_s": 0.0,
+          "source_strike": 1,
+          "placed_at_s": 62.609,
+          "placed_at_timecode": "1:02.609",
+          "voices": [
+            "A: forward strike",
+            "B: reversed echo of the same strike, swelling into the next strike"
+          ],
+          "time_stretch_ratio": 1.0,
+          "gain_db": 0.0,
+          "transforms": [
+            {
+              "type": "trim",
+              "what": "one of the clip's two strikes (cut at 2.18 s, 20 ms overlap, 30 ms fade-out)"
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s"
+            },
+            {
+              "type": "reverse",
+              "voice": "B"
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored."
+        },
+        {
+          "bar": 19,
+          "beat": 3.0,
+          "beats": 2,
+          "chord_played": "Cmaj",
+          "analysis": "C: I (C)",
+          "role": "primary",
+          "source_offset_s": 2.16,
+          "source_strike": 2,
+          "placed_at_s": 64.348,
+          "placed_at_timecode": "1:04.348",
+          "voices": [
+            "A: forward strike",
+            "B: reversed echo of the same strike, swelling into the next strike"
+          ],
+          "time_stretch_ratio": 1.0,
+          "gain_db": -0.72,
+          "transforms": [
+            {
+              "type": "trim",
+              "what": "one of the clip's two strikes (cut at 2.18 s, 20 ms overlap, 30 ms fade-out)"
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s"
+            },
+            {
+              "type": "reverse",
+              "voice": "B"
+            },
+            {
+              "type": "gain",
+              "db": -0.72
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored."
+        }
+      ]
+    },
+    {
+      "offering": "cmaj-bounce-34",
+      "title": "C major chord, bounce 34",
+      "source_url": "https://musicmatter.art/sounds/cmaj-bounce-34.flac",
+      "manifest_url": "https://musicmatter.art/sounds/cmaj-bounce-34.nc.json",
+      "supplier": {
+        "id": null,
+        "display_name": "Petrus",
+        "primary_link": "https://musicmatter.art/"
+      },
+      "license": {
+        "id": "CC-BY-SA-4.0",
+        "uri": "https://creativecommons.org/licenses/by-sa/4.0/"
+      },
+      "credit_line": "“C major chord, bounce 34” by Petrus (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/cmaj-bounce-34.flac",
+      "chord": "Cmaj",
+      "register": {
+        "low": "E4",
+        "high": "E5",
+        "root": "C5",
+        "bass": "E4",
+        "inversion": "first"
+      },
+      "sha256": "770fbde5ec4f20dc93596a034991ad310b2b23dffff132a19c33ac1ec72bcb20",
+      "sha256_note": "sha256 of the published FLAC (manifest field)",
+      "content_hash_at_use": {
+        "file": "site_v4/sounds/cmaj-bounce-34.wav",
+        "sha256": "bf0f8511bb53db5c5189da5cd1353d804dd203d3739ec169713541aab346ffc1",
+        "pcm_md5": "52d13e1c77fc3646c02490c6c1a37092",
+        "pcm_identical_to_published_flac": true,
+        "note": "Decoded PCM md5 equals the published FLAC's manifest pcm_md5: the audio used is sample-identical to what musicmatter.art serves."
+      },
+      "uses": 2,
+      "uses_as_layer": 0,
+      "bars": [
+        15
+      ],
+      "time_stretch_ratios": [
+        1.0
+      ],
+      "processing_plain": "strike sliced from the clip, played forward and reversed (echo swell), 40% hall (B voice 50%), swept 24 dB/oct low-pass",
+      "spans": [
+        {
+          "bar": 15,
+          "beat": 1.0,
+          "beats": 2,
+          "chord_played": "Cmaj",
+          "analysis": "C: I6 (C/E)",
+          "role": "primary",
+          "source_offset_s": 0.0,
+          "source_strike": 1,
+          "placed_at_s": 48.696,
+          "placed_at_timecode": "0:48.696",
+          "voices": [
+            "A: forward strike",
+            "B: reversed echo of the same strike, swelling into the next strike"
+          ],
+          "time_stretch_ratio": 1.0,
+          "gain_db": 0.0,
+          "transforms": [
+            {
+              "type": "trim",
+              "what": "one of the clip's two strikes (cut at 2.18 s, 20 ms overlap, 30 ms fade-out)"
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s"
+            },
+            {
+              "type": "reverse",
+              "voice": "B"
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored."
+        },
+        {
+          "bar": 15,
+          "beat": 3.0,
+          "beats": 2,
+          "chord_played": "Cmaj",
+          "analysis": "C: I6 (C/E)",
+          "role": "primary",
+          "source_offset_s": 2.16,
+          "source_strike": 2,
+          "placed_at_s": 50.435,
+          "placed_at_timecode": "0:50.435",
+          "voices": [
+            "A: forward strike",
+            "B: reversed echo of the same strike, swelling into the next strike"
+          ],
+          "time_stretch_ratio": 1.0,
+          "gain_db": -0.72,
+          "transforms": [
+            {
+              "type": "trim",
+              "what": "one of the clip's two strikes (cut at 2.18 s, 20 ms overlap, 30 ms fade-out)"
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s"
+            },
+            {
+              "type": "reverse",
+              "voice": "B"
+            },
+            {
+              "type": "gain",
+              "db": -0.72
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored."
+        }
+      ]
+    },
+    {
+      "offering": "cmaj7-bounce-6",
+      "title": "C major 7th chord, bounce 6",
+      "source_url": "https://musicmatter.art/sounds/cmaj7-bounce-6.flac",
+      "manifest_url": "https://musicmatter.art/sounds/cmaj7-bounce-6.nc.json",
+      "supplier": {
+        "id": null,
+        "display_name": "Petrus",
+        "primary_link": "https://musicmatter.art/"
+      },
+      "license": {
+        "id": "CC-BY-SA-4.0",
+        "uri": "https://creativecommons.org/licenses/by-sa/4.0/"
+      },
+      "credit_line": "“C major 7th chord, bounce 6” by Petrus (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/cmaj7-bounce-6.flac",
+      "chord": "Cmaj7",
+      "register": {
+        "low": "B3",
+        "high": "C6",
+        "root": "C4",
+        "bass": "B3",
+        "inversion": "third"
+      },
+      "sha256": "d66ddda5cfb034a5f05cfcd149e3a6ab269fc57f6537dbaadde6f683151f9f26",
+      "sha256_note": "sha256 of the published FLAC (manifest field)",
+      "content_hash_at_use": {
+        "file": "site_v4/sounds/cmaj7-bounce-6.wav",
+        "sha256": "e4421e889f8acb0a125f43a80e69fa87bd3a58738067e57ced949f64ed2d0ceb",
+        "pcm_md5": "13455517c4f58919c6fbe25fa817804b",
+        "pcm_identical_to_published_flac": true,
+        "note": "Decoded PCM md5 equals the published FLAC's manifest pcm_md5: the audio used is sample-identical to what musicmatter.art serves."
+      },
+      "uses": 2,
+      "uses_as_layer": 0,
+      "bars": [
+        8
+      ],
+      "time_stretch_ratios": [
+        1.0
+      ],
+      "processing_plain": "strike sliced from the clip, played forward and reversed (echo swell), 40% hall (B voice 50%), swept 24 dB/oct low-pass",
+      "spans": [
+        {
+          "bar": 8,
+          "beat": 1.0,
+          "beats": 2,
+          "chord_played": "Cmaj7",
+          "analysis": "C: IV2 (Cmaj7/B)",
+          "role": "primary",
+          "source_offset_s": 0.0,
+          "source_strike": 1,
+          "placed_at_s": 24.348,
+          "placed_at_timecode": "0:24.348",
+          "voices": [
+            "A: forward strike",
+            "B: reversed echo of the same strike, swelling into the next strike"
+          ],
+          "time_stretch_ratio": 1.0,
+          "gain_db": 0.0,
+          "transforms": [
+            {
+              "type": "trim",
+              "what": "one of the clip's two strikes (cut at 2.18 s, 20 ms overlap, 30 ms fade-out)"
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s"
+            },
+            {
+              "type": "reverse",
+              "voice": "B"
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored."
+        },
+        {
+          "bar": 8,
+          "beat": 3.0,
+          "beats": 2,
+          "chord_played": "Cmaj7",
+          "analysis": "C: IV2 (Cmaj7/B)",
+          "role": "primary",
+          "source_offset_s": 2.16,
+          "source_strike": 2,
+          "placed_at_s": 26.087,
+          "placed_at_timecode": "0:26.087",
+          "voices": [
+            "A: forward strike",
+            "B: reversed echo of the same strike, swelling into the next strike"
+          ],
+          "time_stretch_ratio": 1.0,
+          "gain_db": -0.72,
+          "transforms": [
+            {
+              "type": "trim",
+              "what": "one of the clip's two strikes (cut at 2.18 s, 20 ms overlap, 30 ms fade-out)"
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s"
+            },
+            {
+              "type": "reverse",
+              "voice": "B"
+            },
+            {
+              "type": "gain",
+              "db": -0.72
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored."
+        }
+      ]
+    },
+    {
+      "offering": "csus4-bounce-4",
+      "title": "C suspended 4th chord, bounce 4",
+      "source_url": "https://musicmatter.art/sounds/csus4-bounce-4.flac",
+      "manifest_url": "https://musicmatter.art/sounds/csus4-bounce-4.nc.json",
+      "supplier": {
+        "id": null,
+        "display_name": "Petrus",
+        "primary_link": "https://musicmatter.art/"
+      },
+      "license": {
+        "id": "CC-BY-SA-4.0",
+        "uri": "https://creativecommons.org/licenses/by-sa/4.0/"
+      },
+      "credit_line": "“C suspended 4th chord, bounce 4” by Petrus (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/csus4-bounce-4.flac",
+      "chord": "Csus4",
+      "register": {
+        "low": "G3",
+        "high": "C5",
+        "root": "C4",
+        "bass": "G3",
+        "inversion": "second"
+      },
+      "sha256": "de9e18d7a28952b5a007896d3cc9a3a82af657bd89f5d8f31f6ae77be432a85f",
+      "sha256_note": "sha256 of the published FLAC (manifest field)",
+      "content_hash_at_use": {
+        "file": "site_v4/sounds/csus4-bounce-4.wav",
+        "sha256": "cd9407643164e9723e0ee93f84f33419ccee44cdf63e8ee22a0cb41e3ade177f",
+        "pcm_md5": "ff4e055e154c2bc1f151df86085a0c03",
+        "pcm_identical_to_published_flac": true,
+        "note": "Decoded PCM md5 equals the published FLAC's manifest pcm_md5: the audio used is sample-identical to what musicmatter.art serves."
+      },
+      "uses": 4,
+      "uses_as_layer": 4,
+      "bars": [
+        26,
+        30
+      ],
+      "time_stretch_ratios": [
+        1.0
+      ],
+      "processing_plain": "strike sliced from the clip, played forward and reversed (echo swell), 40% hall (B voice 50%), swept 24 dB/oct low-pass",
+      "spans": [
+        {
+          "bar": 26,
+          "beat": 1.0,
+          "beats": 2,
+          "chord_played": "Gsus4 + Csus4 (G7sus4)",
+          "analysis": "C: V7 (G7(sus4))",
+          "role": "layer",
+          "source_offset_s": 0.0,
+          "source_strike": 1,
+          "placed_at_s": 86.957,
+          "placed_at_timecode": "1:26.957",
+          "voices": [
+            "A: forward strike",
+            "B: reversed echo of the same strike, swelling into the next strike"
+          ],
+          "time_stretch_ratio": 1.0,
+          "gain_db": -3.0,
+          "transforms": [
+            {
+              "type": "trim",
+              "what": "one of the clip's two strikes (cut at 2.18 s, 20 ms overlap, 30 ms fade-out)"
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s"
+            },
+            {
+              "type": "reverse",
+              "voice": "B"
+            },
+            {
+              "type": "gain",
+              "db": -3.0
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored."
+        },
+        {
+          "bar": 26,
+          "beat": 3.0,
+          "beats": 2,
+          "chord_played": "Gsus4 + Csus4 (G7sus4)",
+          "analysis": "C: V7 (G7(sus4))",
+          "role": "layer",
+          "source_offset_s": 2.16,
+          "source_strike": 2,
+          "placed_at_s": 88.696,
+          "placed_at_timecode": "1:28.696",
+          "voices": [
+            "A: forward strike",
+            "B: reversed echo of the same strike, swelling into the next strike"
+          ],
+          "time_stretch_ratio": 1.0,
+          "gain_db": -3.72,
+          "transforms": [
+            {
+              "type": "trim",
+              "what": "one of the clip's two strikes (cut at 2.18 s, 20 ms overlap, 30 ms fade-out)"
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s"
+            },
+            {
+              "type": "reverse",
+              "voice": "B"
+            },
+            {
+              "type": "gain",
+              "db": -3.72
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored."
+        },
+        {
+          "bar": 30,
+          "beat": 1.0,
+          "beats": 2,
+          "chord_played": "Gsus4 + Csus4 (G7sus4)",
+          "analysis": "C: V7 (alt ii754) (G7(sus4))",
+          "role": "layer",
+          "source_offset_s": 0.0,
+          "source_strike": 1,
+          "placed_at_s": 100.87,
+          "placed_at_timecode": "1:40.870",
+          "voices": [
+            "A: forward strike",
+            "B: reversed echo of the same strike, swelling into the next strike"
+          ],
+          "time_stretch_ratio": 1.0,
+          "gain_db": -3.0,
+          "transforms": [
+            {
+              "type": "trim",
+              "what": "one of the clip's two strikes (cut at 2.18 s, 20 ms overlap, 30 ms fade-out)"
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s"
+            },
+            {
+              "type": "reverse",
+              "voice": "B"
+            },
+            {
+              "type": "gain",
+              "db": -3.0
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored."
+        },
+        {
+          "bar": 30,
+          "beat": 3.0,
+          "beats": 2,
+          "chord_played": "Gsus4 + Csus4 (G7sus4)",
+          "analysis": "C: V7 (alt ii754) (G7(sus4))",
+          "role": "layer",
+          "source_offset_s": 2.16,
+          "source_strike": 2,
+          "placed_at_s": 102.609,
+          "placed_at_timecode": "1:42.609",
+          "voices": [
+            "A: forward strike",
+            "B: reversed echo of the same strike, swelling into the next strike"
+          ],
+          "time_stretch_ratio": 1.0,
+          "gain_db": -3.72,
+          "transforms": [
+            {
+              "type": "trim",
+              "what": "one of the clip's two strikes (cut at 2.18 s, 20 ms overlap, 30 ms fade-out)"
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s"
+            },
+            {
+              "type": "reverse",
+              "voice": "B"
+            },
+            {
+              "type": "gain",
+              "db": -3.72
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored."
+        }
+      ]
+    },
+    {
+      "offering": "d7-bounce-4",
+      "title": "D dominant 7th chord, bounce 4",
+      "source_url": "https://musicmatter.art/sounds/d7-bounce-4.flac",
+      "manifest_url": "https://musicmatter.art/sounds/d7-bounce-4.nc.json",
+      "supplier": {
+        "id": null,
+        "display_name": "Petrus",
+        "primary_link": "https://musicmatter.art/"
+      },
+      "license": {
+        "id": "CC-BY-SA-4.0",
+        "uri": "https://creativecommons.org/licenses/by-sa/4.0/"
+      },
+      "credit_line": "“D dominant 7th chord, bounce 4” by Petrus (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/d7-bounce-4.flac",
+      "chord": "D7",
+      "register": {
+        "low": "D4",
+        "high": "A6",
+        "root": "D4",
+        "bass": "D4",
+        "inversion": "root"
+      },
+      "sha256": "0b2f8e6e0a40c05dd9678219c53159184cc20e07f262f71ad4f3480f7d5809e7",
+      "sha256_note": "sha256 of the published FLAC (manifest field)",
+      "content_hash_at_use": {
+        "file": "site_v4/sounds/d7-bounce-4.wav",
+        "sha256": "32742631fb1e65327d51bb8f2777528e1315d4cfd9f06ea92c84bc89dfec853d",
+        "pcm_md5": "098eef2aa4091f1006099c654dc08d20",
+        "pcm_identical_to_published_flac": true,
+        "note": "Decoded PCM md5 equals the published FLAC's manifest pcm_md5: the audio used is sample-identical to what musicmatter.art serves."
+      },
+      "uses": 2,
+      "uses_as_layer": 0,
+      "bars": [
+        10
+      ],
+      "time_stretch_ratios": [
+        1.0
+      ],
+      "processing_plain": "strike sliced from the clip, played forward and reversed (echo swell), 40% hall (B voice 50%), swept 24 dB/oct low-pass",
+      "spans": [
+        {
+          "bar": 10,
+          "beat": 1.0,
+          "beats": 2,
+          "chord_played": "D7",
+          "analysis": "C: V7 (D7)",
+          "role": "primary",
+          "source_offset_s": 0.0,
+          "source_strike": 1,
+          "placed_at_s": 31.304,
+          "placed_at_timecode": "0:31.304",
+          "voices": [
+            "A: forward strike",
+            "B: reversed echo of the same strike, swelling into the next strike"
+          ],
+          "time_stretch_ratio": 1.0,
+          "gain_db": 0.0,
+          "transforms": [
+            {
+              "type": "trim",
+              "what": "one of the clip's two strikes (cut at 2.18 s, 20 ms overlap, 30 ms fade-out)"
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s"
+            },
+            {
+              "type": "reverse",
+              "voice": "B"
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored."
+        },
+        {
+          "bar": 10,
+          "beat": 3.0,
+          "beats": 2,
+          "chord_played": "D7",
+          "analysis": "C: V7 (D7)",
+          "role": "primary",
+          "source_offset_s": 2.16,
+          "source_strike": 2,
+          "placed_at_s": 33.043,
+          "placed_at_timecode": "0:33.043",
+          "voices": [
+            "A: forward strike",
+            "B: reversed echo of the same strike, swelling into the next strike"
+          ],
+          "time_stretch_ratio": 1.0,
+          "gain_db": -0.72,
+          "transforms": [
+            {
+              "type": "trim",
+              "what": "one of the clip's two strikes (cut at 2.18 s, 20 ms overlap, 30 ms fade-out)"
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s"
+            },
+            {
+              "type": "reverse",
+              "voice": "B"
+            },
+            {
+              "type": "gain",
+              "db": -0.72
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored."
+        }
+      ]
+    },
+    {
+      "offering": "d7-bounce-6",
+      "title": "D dominant 7th chord, bounce 6",
+      "source_url": "https://musicmatter.art/sounds/d7-bounce-6.flac",
+      "manifest_url": "https://musicmatter.art/sounds/d7-bounce-6.nc.json",
+      "supplier": {
+        "id": null,
+        "display_name": "Petrus",
+        "primary_link": "https://musicmatter.art/"
+      },
+      "license": {
+        "id": "CC-BY-SA-4.0",
+        "uri": "https://creativecommons.org/licenses/by-sa/4.0/"
+      },
+      "credit_line": "“D dominant 7th chord, bounce 6” by Petrus (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/d7-bounce-6.flac",
+      "chord": "D7",
+      "register": {
+        "low": "C4",
+        "high": "C6",
+        "root": "D4",
+        "bass": "C4",
+        "inversion": "third"
+      },
+      "sha256": "fc70bcf97d1bde48696c2c852a226e99129bc9ef92e949725140ff35060b881b",
+      "sha256_note": "sha256 of the published FLAC (manifest field)",
+      "content_hash_at_use": {
+        "file": "site_v4/sounds/d7-bounce-6.wav",
+        "sha256": "a0d461eccad8e1b570b505f31c76759b0e5f73429c0ce223a992d0197967cb95",
+        "pcm_md5": "fec7cb3e3e100531e0efb7f04be288a5",
+        "pcm_identical_to_published_flac": true,
+        "note": "Decoded PCM md5 equals the published FLAC's manifest pcm_md5: the audio used is sample-identical to what musicmatter.art serves."
+      },
+      "uses": 2,
+      "uses_as_layer": 0,
+      "bars": [
+        6
+      ],
+      "time_stretch_ratios": [
+        1.0
+      ],
+      "processing_plain": "strike sliced from the clip, played forward and reversed (echo swell), 40% hall (B voice 50%), swept 24 dB/oct low-pass",
+      "spans": [
+        {
+          "bar": 6,
+          "beat": 1.0,
+          "beats": 2,
+          "chord_played": "D7",
+          "analysis": "C: G: V2 (D7/C)",
+          "role": "primary",
+          "source_offset_s": 0.0,
+          "source_strike": 1,
+          "placed_at_s": 17.391,
+          "placed_at_timecode": "0:17.391",
+          "voices": [
+            "A: forward strike",
+            "B: reversed echo of the same strike, swelling into the next strike"
+          ],
+          "time_stretch_ratio": 1.0,
+          "gain_db": 0.0,
+          "transforms": [
+            {
+              "type": "trim",
+              "what": "one of the clip's two strikes (cut at 2.18 s, 20 ms overlap, 30 ms fade-out)"
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s"
+            },
+            {
+              "type": "reverse",
+              "voice": "B"
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored."
+        },
+        {
+          "bar": 6,
+          "beat": 3.0,
+          "beats": 2,
+          "chord_played": "D7",
+          "analysis": "C: G: V2 (D7/C)",
+          "role": "primary",
+          "source_offset_s": 2.16,
+          "source_strike": 2,
+          "placed_at_s": 19.13,
+          "placed_at_timecode": "0:19.130",
+          "voices": [
+            "A: forward strike",
+            "B: reversed echo of the same strike, swelling into the next strike"
+          ],
+          "time_stretch_ratio": 1.0,
+          "gain_db": -0.72,
+          "transforms": [
+            {
+              "type": "trim",
+              "what": "one of the clip's two strikes (cut at 2.18 s, 20 ms overlap, 30 ms fade-out)"
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s"
+            },
+            {
+              "type": "reverse",
+              "voice": "B"
+            },
+            {
+              "type": "gain",
+              "db": -0.72
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored."
+        }
+      ]
+    },
+    {
+      "offering": "dm7-bounce-1",
+      "title": "D minor 7th chord, bounce 1",
+      "source_url": "https://musicmatter.art/sounds/dm7-bounce-1.flac",
+      "manifest_url": "https://musicmatter.art/sounds/dm7-bounce-1.nc.json",
+      "supplier": {
+        "id": null,
+        "display_name": "Petrus",
+        "primary_link": "https://musicmatter.art/"
+      },
+      "license": {
+        "id": "CC-BY-SA-4.0",
+        "uri": "https://creativecommons.org/licenses/by-sa/4.0/"
+      },
+      "credit_line": "“D minor 7th chord, bounce 1” by Petrus (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/dm7-bounce-1.flac",
+      "chord": "Dm7",
+      "register": {
+        "low": "D4",
+        "high": "F5",
+        "root": "D4",
+        "bass": "D4",
+        "inversion": "root"
+      },
+      "sha256": "a5184df1788f6352c8cb2c050d1b837e3a6b9d453b8b052cb801b3ec754bed99",
+      "sha256_note": "sha256 of the published FLAC (manifest field)",
+      "content_hash_at_use": {
+        "file": "site_v4/sounds/dm7-bounce-1.wav",
+        "sha256": "763dfe7ced3759c1a6f4b569fa47b91d4eb1937df43aa1c5eba4f7abfe16c4e3",
+        "pcm_md5": "e6c1c6c107cd8eacf83076e9be638619",
+        "pcm_identical_to_published_flac": true,
+        "note": "Decoded PCM md5 equals the published FLAC's manifest pcm_md5: the audio used is sample-identical to what musicmatter.art serves."
+      },
+      "uses": 2,
+      "uses_as_layer": 0,
+      "bars": [
+        17
+      ],
+      "time_stretch_ratios": [
+        1.0
+      ],
+      "processing_plain": "strike sliced from the clip, played forward and reversed (echo swell), 40% hall (B voice 50%), swept 24 dB/oct low-pass",
+      "spans": [
+        {
+          "bar": 17,
+          "beat": 1.0,
+          "beats": 2,
+          "chord_played": "Dm7",
+          "analysis": "C: ii7 (Dm7)",
+          "role": "primary",
+          "source_offset_s": 0.0,
+          "source_strike": 1,
+          "placed_at_s": 55.652,
+          "placed_at_timecode": "0:55.652",
+          "voices": [
+            "A: forward strike",
+            "B: reversed echo of the same strike, swelling into the next strike"
+          ],
+          "time_stretch_ratio": 1.0,
+          "gain_db": 0.0,
+          "transforms": [
+            {
+              "type": "trim",
+              "what": "one of the clip's two strikes (cut at 2.18 s, 20 ms overlap, 30 ms fade-out)"
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s"
+            },
+            {
+              "type": "reverse",
+              "voice": "B"
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored."
+        },
+        {
+          "bar": 17,
+          "beat": 3.0,
+          "beats": 2,
+          "chord_played": "Dm7",
+          "analysis": "C: ii7 (Dm7)",
+          "role": "primary",
+          "source_offset_s": 2.16,
+          "source_strike": 2,
+          "placed_at_s": 57.391,
+          "placed_at_timecode": "0:57.391",
+          "voices": [
+            "A: forward strike",
+            "B: reversed echo of the same strike, swelling into the next strike"
+          ],
+          "time_stretch_ratio": 1.0,
+          "gain_db": -0.72,
+          "transforms": [
+            {
+              "type": "trim",
+              "what": "one of the clip's two strikes (cut at 2.18 s, 20 ms overlap, 30 ms fade-out)"
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s"
+            },
+            {
+              "type": "reverse",
+              "voice": "B"
+            },
+            {
+              "type": "gain",
+              "db": -0.72
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored."
+        }
+      ]
+    },
+    {
+      "offering": "dm7-bounce-3",
+      "title": "D minor 7th chord, bounce 3",
+      "source_url": "https://musicmatter.art/sounds/dm7-bounce-3.flac",
+      "manifest_url": "https://musicmatter.art/sounds/dm7-bounce-3.nc.json",
+      "supplier": {
+        "id": null,
+        "display_name": "Petrus",
+        "primary_link": "https://musicmatter.art/"
+      },
+      "license": {
+        "id": "CC-BY-SA-4.0",
+        "uri": "https://creativecommons.org/licenses/by-sa/4.0/"
+      },
+      "credit_line": "“D minor 7th chord, bounce 3” by Petrus (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/dm7-bounce-3.flac",
+      "chord": "Dm7",
+      "register": {
+        "low": "C4",
+        "high": "D5",
+        "root": "D4",
+        "bass": "C4",
+        "inversion": "third"
+      },
+      "sha256": "b07f4a5dce3f6c147ce1b16e11d63185e613858aadb576035b6ca4d5cc466416",
+      "sha256_note": "sha256 of the published FLAC (manifest field)",
+      "content_hash_at_use": {
+        "file": "site_v4/sounds/dm7-bounce-3.wav",
+        "sha256": "fc2c6e05e6fce83c076e06f6bd1887a2fcc1cf119bc851afb8be452bae778194",
+        "pcm_md5": "5ebe62dbffc586a6df8504a02c34013c",
+        "pcm_identical_to_published_flac": true,
+        "note": "Decoded PCM md5 equals the published FLAC's manifest pcm_md5: the audio used is sample-identical to what musicmatter.art serves."
+      },
+      "uses": 4,
+      "uses_as_layer": 0,
+      "bars": [
+        2,
+        33
+      ],
+      "time_stretch_ratios": [
+        1.0
+      ],
+      "processing_plain": "strike sliced from the clip, played forward and reversed (echo swell), 40% hall (B voice 50%), swept 24 dB/oct low-pass",
+      "spans": [
+        {
+          "bar": 2,
+          "beat": 1.0,
+          "beats": 2,
+          "chord_played": "Dm7",
+          "analysis": "C: ii2 (Dm7/C)",
+          "role": "primary",
+          "source_offset_s": 0.0,
+          "source_strike": 1,
+          "placed_at_s": 3.478,
+          "placed_at_timecode": "0:03.478",
+          "voices": [
+            "A: forward strike",
+            "B: reversed echo of the same strike, swelling into the next strike"
+          ],
+          "time_stretch_ratio": 1.0,
+          "gain_db": 0.0,
+          "transforms": [
+            {
+              "type": "trim",
+              "what": "one of the clip's two strikes (cut at 2.18 s, 20 ms overlap, 30 ms fade-out)"
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s"
+            },
+            {
+              "type": "reverse",
+              "voice": "B"
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored."
+        },
+        {
+          "bar": 2,
+          "beat": 3.0,
+          "beats": 2,
+          "chord_played": "Dm7",
+          "analysis": "C: ii2 (Dm7/C)",
+          "role": "primary",
+          "source_offset_s": 2.16,
+          "source_strike": 2,
+          "placed_at_s": 5.217,
+          "placed_at_timecode": "0:05.217",
+          "voices": [
+            "A: forward strike",
+            "B: reversed echo of the same strike, swelling into the next strike"
+          ],
+          "time_stretch_ratio": 1.0,
+          "gain_db": -0.72,
+          "transforms": [
+            {
+              "type": "trim",
+              "what": "one of the clip's two strikes (cut at 2.18 s, 20 ms overlap, 30 ms fade-out)"
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s"
+            },
+            {
+              "type": "reverse",
+              "voice": "B"
+            },
+            {
+              "type": "gain",
+              "db": -0.72
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored."
+        },
+        {
+          "bar": 33,
+          "beat": 1.0,
+          "beats": 2,
+          "chord_played": "Dm7",
+          "analysis": "C: ii2 (Dm7/C)",
+          "role": "primary",
+          "source_offset_s": 0.0,
+          "source_strike": 1,
+          "placed_at_s": 111.304,
+          "placed_at_timecode": "1:51.304",
+          "voices": [
+            "A: forward strike",
+            "B: reversed echo of the same strike, swelling into the next strike"
+          ],
+          "time_stretch_ratio": 1.0,
+          "gain_db": 0.0,
+          "transforms": [
+            {
+              "type": "trim",
+              "what": "one of the clip's two strikes (cut at 2.18 s, 20 ms overlap, 30 ms fade-out)"
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s"
+            },
+            {
+              "type": "reverse",
+              "voice": "B"
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored."
+        },
+        {
+          "bar": 33,
+          "beat": 3.0,
+          "beats": 2,
+          "chord_played": "Dm7",
+          "analysis": "C: ii2 (Dm7/C)",
+          "role": "primary",
+          "source_offset_s": 2.16,
+          "source_strike": 2,
+          "placed_at_s": 113.113,
+          "placed_at_timecode": "1:53.113",
+          "voices": [
+            "A: forward strike",
+            "B: reversed echo of the same strike, swelling into the next strike"
+          ],
+          "time_stretch_ratio": 1.0,
+          "gain_db": -0.72,
+          "transforms": [
+            {
+              "type": "trim",
+              "what": "one of the clip's two strikes (cut at 2.18 s, 20 ms overlap, 30 ms fade-out)"
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s"
+            },
+            {
+              "type": "reverse",
+              "voice": "B"
+            },
+            {
+              "type": "gain",
+              "db": -0.72
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored."
+        }
+      ]
+    },
+    {
+      "offering": "dmin-bounce-4",
+      "title": "D minor chord, bounce 4",
+      "source_url": "https://musicmatter.art/sounds/dmin-bounce-4.flac",
+      "manifest_url": "https://musicmatter.art/sounds/dmin-bounce-4.nc.json",
+      "supplier": {
+        "id": null,
+        "display_name": "Petrus",
+        "primary_link": "https://musicmatter.art/"
+      },
+      "license": {
+        "id": "CC-BY-SA-4.0",
+        "uri": "https://creativecommons.org/licenses/by-sa/4.0/"
+      },
+      "credit_line": "“D minor chord, bounce 4” by Petrus (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/dmin-bounce-4.flac",
+      "chord": "Dmin",
+      "register": {
+        "low": "F4",
+        "high": "A5",
+        "root": "D5",
+        "bass": "F4",
+        "inversion": "first"
+      },
+      "sha256": "0a7ea9d0e5b9e5329f6f5c00e641f5f744ef3fb65fc34e6e9927f5da4dd4bd92",
+      "sha256_note": "sha256 of the published FLAC (manifest field)",
+      "content_hash_at_use": {
+        "file": "site_v4/sounds/dmin-bounce-4.wav",
+        "sha256": "035f9c5744b5326e2039dd26bd4aa944e8eab090fd2dd87d73287d976359e1e7",
+        "pcm_md5": "21c7cda65c32d8570738edf38b1bf07d",
+        "pcm_identical_to_published_flac": true,
+        "note": "Decoded PCM md5 equals the published FLAC's manifest pcm_md5: the audio used is sample-identical to what musicmatter.art serves."
+      },
+      "uses": 2,
+      "uses_as_layer": 0,
+      "bars": [
+        13
+      ],
+      "time_stretch_ratios": [
+        1.0
+      ],
+      "processing_plain": "strike sliced from the clip, played forward and reversed (echo swell), 40% hall (B voice 50%), swept 24 dB/oct low-pass",
+      "spans": [
+        {
+          "bar": 13,
+          "beat": 1.0,
+          "beats": 2,
+          "chord_played": "Dmin",
+          "analysis": "C: i6 (Dm/F)",
+          "role": "primary",
+          "source_offset_s": 0.0,
+          "source_strike": 1,
+          "placed_at_s": 41.739,
+          "placed_at_timecode": "0:41.739",
+          "voices": [
+            "A: forward strike",
+            "B: reversed echo of the same strike, swelling into the next strike"
+          ],
+          "time_stretch_ratio": 1.0,
+          "gain_db": 0.0,
+          "transforms": [
+            {
+              "type": "trim",
+              "what": "one of the clip's two strikes (cut at 2.18 s, 20 ms overlap, 30 ms fade-out)"
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s"
+            },
+            {
+              "type": "reverse",
+              "voice": "B"
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored."
+        },
+        {
+          "bar": 13,
+          "beat": 3.0,
+          "beats": 2,
+          "chord_played": "Dmin",
+          "analysis": "C: i6 (Dm/F)",
+          "role": "primary",
+          "source_offset_s": 2.16,
+          "source_strike": 2,
+          "placed_at_s": 43.478,
+          "placed_at_timecode": "0:43.478",
+          "voices": [
+            "A: forward strike",
+            "B: reversed echo of the same strike, swelling into the next strike"
+          ],
+          "time_stretch_ratio": 1.0,
+          "gain_db": -0.72,
+          "transforms": [
+            {
+              "type": "trim",
+              "what": "one of the clip's two strikes (cut at 2.18 s, 20 ms overlap, 30 ms fade-out)"
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s"
+            },
+            {
+              "type": "reverse",
+              "voice": "B"
+            },
+            {
+              "type": "gain",
+              "db": -0.72
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored."
+        }
+      ]
+    },
+    {
+      "offering": "dsharpdim7-bounce-4",
+      "title": "D♯ diminished 7th chord, bounce 4",
+      "source_url": "https://musicmatter.art/sounds/dsharpdim7-bounce-4.flac",
+      "manifest_url": "https://musicmatter.art/sounds/dsharpdim7-bounce-4.nc.json",
+      "supplier": {
+        "id": null,
+        "display_name": "Petrus",
+        "primary_link": "https://musicmatter.art/"
+      },
+      "license": {
+        "id": "CC-BY-SA-4.0",
+        "uri": "https://creativecommons.org/licenses/by-sa/4.0/"
+      },
+      "credit_line": "“D♯ diminished 7th chord, bounce 4” by Petrus (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/dsharpdim7-bounce-4.flac",
+      "chord": "D#dim7",
+      "register": {
+        "low": "F#4",
+        "high": "A5",
+        "root": "D#5",
+        "bass": "F#4",
+        "inversion": "first"
+      },
+      "sha256": "77b6b94cd52d4ef244901a09905479c89e00b31705234a266882aad6e94b3880",
+      "sha256_note": "sha256 of the published FLAC (manifest field)",
+      "content_hash_at_use": {
+        "file": "site_v4/sounds/dsharpdim7-bounce-4.wav",
+        "sha256": "68b548dbb7d6758e3dd8710f268507d502c636f4ad6c0aa9e1a5766af5d777e9",
+        "pcm_md5": "224bce1f2d616383d674add1586916df",
+        "pcm_identical_to_published_flac": true,
+        "note": "Decoded PCM md5 equals the published FLAC's manifest pcm_md5: the audio used is sample-identical to what musicmatter.art serves."
+      },
+      "uses": 2,
+      "uses_as_layer": 0,
+      "bars": [
+        22
+      ],
+      "time_stretch_ratios": [
+        1.0
+      ],
+      "processing_plain": "strike sliced from the clip, played forward and reversed (echo swell), 40% hall (B voice 50%), swept 24 dB/oct low-pass",
+      "spans": [
+        {
+          "bar": 22,
+          "beat": 1.0,
+          "beats": 2,
+          "chord_played": "D#dim7",
+          "analysis": "C: viio7/v (F#o7)",
+          "role": "primary",
+          "source_offset_s": 0.0,
+          "source_strike": 1,
+          "placed_at_s": 73.043,
+          "placed_at_timecode": "1:13.043",
+          "voices": [
+            "A: forward strike",
+            "B: reversed echo of the same strike, swelling into the next strike"
+          ],
+          "time_stretch_ratio": 1.0,
+          "gain_db": 0.0,
+          "transforms": [
+            {
+              "type": "trim",
+              "what": "one of the clip's two strikes (cut at 2.18 s, 20 ms overlap, 30 ms fade-out)"
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s"
+            },
+            {
+              "type": "reverse",
+              "voice": "B"
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored."
+        },
+        {
+          "bar": 22,
+          "beat": 3.0,
+          "beats": 2,
+          "chord_played": "D#dim7",
+          "analysis": "C: viio7/v (F#o7)",
+          "role": "primary",
+          "source_offset_s": 2.16,
+          "source_strike": 2,
+          "placed_at_s": 74.783,
+          "placed_at_timecode": "1:14.783",
+          "voices": [
+            "A: forward strike",
+            "B: reversed echo of the same strike, swelling into the next strike"
+          ],
+          "time_stretch_ratio": 1.0,
+          "gain_db": -0.72,
+          "transforms": [
+            {
+              "type": "trim",
+              "what": "one of the clip's two strikes (cut at 2.18 s, 20 ms overlap, 30 ms fade-out)"
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s"
+            },
+            {
+              "type": "reverse",
+              "voice": "B"
+            },
+            {
+              "type": "gain",
+              "db": -0.72
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored."
+        }
+      ]
+    },
+    {
+      "offering": "edim7-bounce-5",
+      "title": "E diminished 7th chord, bounce 5",
+      "source_url": "https://musicmatter.art/sounds/edim7-bounce-5.flac",
+      "manifest_url": "https://musicmatter.art/sounds/edim7-bounce-5.nc.json",
+      "supplier": {
+        "id": null,
+        "display_name": "Petrus",
+        "primary_link": "https://musicmatter.art/"
+      },
+      "license": {
+        "id": "CC-BY-SA-4.0",
+        "uri": "https://creativecommons.org/licenses/by-sa/4.0/"
+      },
+      "credit_line": "“E diminished 7th chord, bounce 5” by Petrus (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/edim7-bounce-5.flac",
+      "chord": "Edim7",
+      "register": {
+        "low": "G4",
+        "high": "E5",
+        "root": "E5",
+        "bass": "G4",
+        "inversion": "first"
+      },
+      "sha256": "479cbe89d86b99c6d1e6dc343c71546eb6796a65f5bc60ccc509ed97195e0ca8",
+      "sha256_note": "sha256 of the published FLAC (manifest field)",
+      "content_hash_at_use": {
+        "file": "site_v4/sounds/edim7-bounce-5.wav",
+        "sha256": "363722d6f46a9220bff3b06da92d7f55b150558785fceaae7fcc72d103369e44",
+        "pcm_md5": "8b2b6dc15bfcb7c63e2bb129429e89c7",
+        "pcm_identical_to_published_flac": true,
+        "note": "Decoded PCM md5 equals the published FLAC's manifest pcm_md5: the audio used is sample-identical to what musicmatter.art serves."
+      },
+      "uses": 2,
+      "uses_as_layer": 0,
+      "bars": [
+        12
+      ],
+      "time_stretch_ratios": [
+        1.0
+      ],
+      "processing_plain": "strike sliced from the clip, played forward and reversed (echo swell), 40% hall (B voice 50%), swept 24 dB/oct low-pass",
+      "spans": [
+        {
+          "bar": 12,
+          "beat": 1.0,
+          "beats": 2,
+          "chord_played": "Edim7",
+          "analysis": "C: d: viio43 (C#o7/G)",
+          "role": "primary",
+          "source_offset_s": 0.0,
+          "source_strike": 1,
+          "placed_at_s": 38.261,
+          "placed_at_timecode": "0:38.261",
+          "voices": [
+            "A: forward strike",
+            "B: reversed echo of the same strike, swelling into the next strike"
+          ],
+          "time_stretch_ratio": 1.0,
+          "gain_db": 0.0,
+          "transforms": [
+            {
+              "type": "trim",
+              "what": "one of the clip's two strikes (cut at 2.18 s, 20 ms overlap, 30 ms fade-out)"
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s"
+            },
+            {
+              "type": "reverse",
+              "voice": "B"
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored."
+        },
+        {
+          "bar": 12,
+          "beat": 3.0,
+          "beats": 2,
+          "chord_played": "Edim7",
+          "analysis": "C: d: viio43 (C#o7/G)",
+          "role": "primary",
+          "source_offset_s": 2.16,
+          "source_strike": 2,
+          "placed_at_s": 40.0,
+          "placed_at_timecode": "0:40.000",
+          "voices": [
+            "A: forward strike",
+            "B: reversed echo of the same strike, swelling into the next strike"
+          ],
+          "time_stretch_ratio": 1.0,
+          "gain_db": -0.72,
+          "transforms": [
+            {
+              "type": "trim",
+              "what": "one of the clip's two strikes (cut at 2.18 s, 20 ms overlap, 30 ms fade-out)"
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s"
+            },
+            {
+              "type": "reverse",
+              "voice": "B"
+            },
+            {
+              "type": "gain",
+              "db": -0.72
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored."
+        }
+      ]
+    },
+    {
+      "offering": "fmaj7-bounce-1",
+      "title": "F major 7th chord, bounce 1",
+      "source_url": "https://musicmatter.art/sounds/fmaj7-bounce-1.flac",
+      "manifest_url": "https://musicmatter.art/sounds/fmaj7-bounce-1.nc.json",
+      "supplier": {
+        "id": null,
+        "display_name": "Petrus",
+        "primary_link": "https://musicmatter.art/"
+      },
+      "license": {
+        "id": "CC-BY-SA-4.0",
+        "uri": "https://creativecommons.org/licenses/by-sa/4.0/"
+      },
+      "credit_line": "“F major 7th chord, bounce 1” by Petrus (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/fmaj7-bounce-1.flac",
+      "chord": "Fmaj7",
+      "register": {
+        "low": "F4",
+        "high": "F6",
+        "root": "F4",
+        "bass": "F4",
+        "inversion": "root"
+      },
+      "sha256": "fe0e02b21a1b89a3910fb163dd4c8f38afea119dcfcfa026b1d28f7a8af3d2b1",
+      "sha256_note": "sha256 of the published FLAC (manifest field)",
+      "content_hash_at_use": {
+        "file": "site_v4/sounds/fmaj7-bounce-1.wav",
+        "sha256": "c4a9fb261a68bfee3def4c40c80c3214ac2f969f7f3fc6952c42d31c376f3840",
+        "pcm_md5": "8728b92fd54fe89b82e52a2be9f7c614",
+        "pcm_identical_to_published_flac": true,
+        "note": "Decoded PCM md5 equals the published FLAC's manifest pcm_md5: the audio used is sample-identical to what musicmatter.art serves."
+      },
+      "uses": 2,
+      "uses_as_layer": 0,
+      "bars": [
+        21
+      ],
+      "time_stretch_ratios": [
+        1.0
+      ],
+      "processing_plain": "strike sliced from the clip, played forward and reversed (echo swell), 40% hall (B voice 50%), swept 24 dB/oct low-pass",
+      "spans": [
+        {
+          "bar": 21,
+          "beat": 1.0,
+          "beats": 2,
+          "chord_played": "Fmaj7",
+          "analysis": "C: IV7 (Fmaj7)",
+          "role": "primary",
+          "source_offset_s": 0.0,
+          "source_strike": 1,
+          "placed_at_s": 69.565,
+          "placed_at_timecode": "1:09.565",
+          "voices": [
+            "A: forward strike",
+            "B: reversed echo of the same strike, swelling into the next strike"
+          ],
+          "time_stretch_ratio": 1.0,
+          "gain_db": 0.0,
+          "transforms": [
+            {
+              "type": "trim",
+              "what": "one of the clip's two strikes (cut at 2.18 s, 20 ms overlap, 30 ms fade-out)"
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s"
+            },
+            {
+              "type": "reverse",
+              "voice": "B"
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored."
+        },
+        {
+          "bar": 21,
+          "beat": 3.0,
+          "beats": 2,
+          "chord_played": "Fmaj7",
+          "analysis": "C: IV7 (Fmaj7)",
+          "role": "primary",
+          "source_offset_s": 2.16,
+          "source_strike": 2,
+          "placed_at_s": 71.304,
+          "placed_at_timecode": "1:11.304",
+          "voices": [
+            "A: forward strike",
+            "B: reversed echo of the same strike, swelling into the next strike"
+          ],
+          "time_stretch_ratio": 1.0,
+          "gain_db": -0.72,
+          "transforms": [
+            {
+              "type": "trim",
+              "what": "one of the clip's two strikes (cut at 2.18 s, 20 ms overlap, 30 ms fade-out)"
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s"
+            },
+            {
+              "type": "reverse",
+              "voice": "B"
+            },
+            {
+              "type": "gain",
+              "db": -0.72
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored."
+        }
+      ]
+    },
+    {
+      "offering": "fmaj7-bounce-4",
+      "title": "F major 7th chord, bounce 4",
+      "source_url": "https://musicmatter.art/sounds/fmaj7-bounce-4.flac",
+      "manifest_url": "https://musicmatter.art/sounds/fmaj7-bounce-4.nc.json",
+      "supplier": {
+        "id": null,
+        "display_name": "Petrus",
+        "primary_link": "https://musicmatter.art/"
+      },
+      "license": {
+        "id": "CC-BY-SA-4.0",
+        "uri": "https://creativecommons.org/licenses/by-sa/4.0/"
+      },
+      "credit_line": "“F major 7th chord, bounce 4” by Petrus (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/fmaj7-bounce-4.flac",
+      "chord": "Fmaj7",
+      "register": {
+        "low": "E4",
+        "high": "A5",
+        "root": "F4",
+        "bass": "E4",
+        "inversion": "third"
+      },
+      "sha256": "2e7f7e8f351fa28130b693c8a6c00ec30af64e1a7e637a007af96867e90a3df1",
+      "sha256_note": "sha256 of the published FLAC (manifest field)",
+      "content_hash_at_use": {
+        "file": "site_v4/sounds/fmaj7-bounce-4.wav",
+        "sha256": "b423130e1e98ebb3b222864c1e4e13613be86b977e8b818c9f856a8ea720339f",
+        "pcm_md5": "d1bf6398bb596702f0296b5c1a8cd0cd",
+        "pcm_identical_to_published_flac": true,
+        "note": "Decoded PCM md5 equals the published FLAC's manifest pcm_md5: the audio used is sample-identical to what musicmatter.art serves."
+      },
+      "uses": 2,
+      "uses_as_layer": 0,
+      "bars": [
+        16
+      ],
+      "time_stretch_ratios": [
+        1.0
+      ],
+      "processing_plain": "strike sliced from the clip, played forward and reversed (echo swell), 40% hall (B voice 50%), swept 24 dB/oct low-pass",
+      "spans": [
+        {
+          "bar": 16,
+          "beat": 1.0,
+          "beats": 2,
+          "chord_played": "Fmaj7",
+          "analysis": "C: IV2 (Fmaj7/E)",
+          "role": "primary",
+          "source_offset_s": 0.0,
+          "source_strike": 1,
+          "placed_at_s": 52.174,
+          "placed_at_timecode": "0:52.174",
+          "voices": [
+            "A: forward strike",
+            "B: reversed echo of the same strike, swelling into the next strike"
+          ],
+          "time_stretch_ratio": 1.0,
+          "gain_db": 0.0,
+          "transforms": [
+            {
+              "type": "trim",
+              "what": "one of the clip's two strikes (cut at 2.18 s, 20 ms overlap, 30 ms fade-out)"
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s"
+            },
+            {
+              "type": "reverse",
+              "voice": "B"
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored."
+        },
+        {
+          "bar": 16,
+          "beat": 3.0,
+          "beats": 2,
+          "chord_played": "Fmaj7",
+          "analysis": "C: IV2 (Fmaj7/E)",
+          "role": "primary",
+          "source_offset_s": 2.16,
+          "source_strike": 2,
+          "placed_at_s": 53.913,
+          "placed_at_timecode": "0:53.913",
+          "voices": [
+            "A: forward strike",
+            "B: reversed echo of the same strike, swelling into the next strike"
+          ],
+          "time_stretch_ratio": 1.0,
+          "gain_db": -0.72,
+          "transforms": [
+            {
+              "type": "trim",
+              "what": "one of the clip's two strikes (cut at 2.18 s, 20 ms overlap, 30 ms fade-out)"
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s"
+            },
+            {
+              "type": "reverse",
+              "voice": "B"
+            },
+            {
+              "type": "gain",
+              "db": -0.72
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored."
+        }
+      ]
+    },
+    {
+      "offering": "g7-bounce-2",
+      "title": "G dominant 7th chord, bounce 2",
+      "source_url": "https://musicmatter.art/sounds/g7-bounce-2.flac",
+      "manifest_url": "https://musicmatter.art/sounds/g7-bounce-2.nc.json",
+      "supplier": {
+        "id": null,
+        "display_name": "Petrus",
+        "primary_link": "https://musicmatter.art/"
+      },
+      "license": {
+        "id": "CC-BY-SA-4.0",
+        "uri": "https://creativecommons.org/licenses/by-sa/4.0/"
+      },
+      "credit_line": "“G dominant 7th chord, bounce 2” by Petrus (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/g7-bounce-2.flac",
+      "chord": "G7",
+      "register": {
+        "low": "G4",
+        "high": "F5",
+        "root": "G4",
+        "bass": "G4",
+        "inversion": "root"
+      },
+      "sha256": "63a56eaf15b4605addf3f450955f82dbe1472eb5746e831f140cc0ff8716f759",
+      "sha256_note": "sha256 of the published FLAC (manifest field)",
+      "content_hash_at_use": {
+        "file": "site_v4/sounds/g7-bounce-2.wav",
+        "sha256": "3aa60bc3608f3eed0d312d1b1a2952b9d10d4d6b4209f92e1d8a2b30fc35f657",
+        "pcm_md5": "d8082f2fb80d82c3b200c700486ac34c",
+        "pcm_identical_to_published_flac": true,
+        "note": "Decoded PCM md5 equals the published FLAC's manifest pcm_md5: the audio used is sample-identical to what musicmatter.art serves."
+      },
+      "uses": 8,
+      "uses_as_layer": 0,
+      "bars": [
+        18,
+        24,
+        27,
+        31
+      ],
+      "time_stretch_ratios": [
+        1.0
+      ],
+      "processing_plain": "strike sliced from the clip, played forward and reversed (echo swell), 40% hall (B voice 50%), swept 24 dB/oct low-pass",
+      "spans": [
+        {
+          "bar": 18,
+          "beat": 1.0,
+          "beats": 2,
+          "chord_played": "G7",
+          "analysis": "C: V7 (G7)",
+          "role": "primary",
+          "source_offset_s": 0.0,
+          "source_strike": 1,
+          "placed_at_s": 59.13,
+          "placed_at_timecode": "0:59.130",
+          "voices": [
+            "A: forward strike",
+            "B: reversed echo of the same strike, swelling into the next strike"
+          ],
+          "time_stretch_ratio": 1.0,
+          "gain_db": 0.0,
+          "transforms": [
+            {
+              "type": "trim",
+              "what": "one of the clip's two strikes (cut at 2.18 s, 20 ms overlap, 30 ms fade-out)"
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s"
+            },
+            {
+              "type": "reverse",
+              "voice": "B"
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored."
+        },
+        {
+          "bar": 18,
+          "beat": 3.0,
+          "beats": 2,
+          "chord_played": "G7",
+          "analysis": "C: V7 (G7)",
+          "role": "primary",
+          "source_offset_s": 2.16,
+          "source_strike": 2,
+          "placed_at_s": 60.87,
+          "placed_at_timecode": "1:00.870",
+          "voices": [
+            "A: forward strike",
+            "B: reversed echo of the same strike, swelling into the next strike"
+          ],
+          "time_stretch_ratio": 1.0,
+          "gain_db": -0.72,
+          "transforms": [
+            {
+              "type": "trim",
+              "what": "one of the clip's two strikes (cut at 2.18 s, 20 ms overlap, 30 ms fade-out)"
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s"
+            },
+            {
+              "type": "reverse",
+              "voice": "B"
+            },
+            {
+              "type": "gain",
+              "db": -0.72
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored."
+        },
+        {
+          "bar": 24,
+          "beat": 1.0,
+          "beats": 2,
+          "chord_played": "G7",
+          "analysis": "C: V7 (G pedal) (G7)",
+          "role": "primary",
+          "source_offset_s": 0.0,
+          "source_strike": 1,
+          "placed_at_s": 80.0,
+          "placed_at_timecode": "1:20.000",
+          "voices": [
+            "A: forward strike",
+            "B: reversed echo of the same strike, swelling into the next strike"
+          ],
+          "time_stretch_ratio": 1.0,
+          "gain_db": 0.0,
+          "transforms": [
+            {
+              "type": "trim",
+              "what": "one of the clip's two strikes (cut at 2.18 s, 20 ms overlap, 30 ms fade-out)"
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s"
+            },
+            {
+              "type": "reverse",
+              "voice": "B"
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored."
+        },
+        {
+          "bar": 24,
+          "beat": 3.0,
+          "beats": 2,
+          "chord_played": "G7",
+          "analysis": "C: V7 (G pedal) (G7)",
+          "role": "primary",
+          "source_offset_s": 2.16,
+          "source_strike": 2,
+          "placed_at_s": 81.739,
+          "placed_at_timecode": "1:21.739",
+          "voices": [
+            "A: forward strike",
+            "B: reversed echo of the same strike, swelling into the next strike"
+          ],
+          "time_stretch_ratio": 1.0,
+          "gain_db": -0.72,
+          "transforms": [
+            {
+              "type": "trim",
+              "what": "one of the clip's two strikes (cut at 2.18 s, 20 ms overlap, 30 ms fade-out)"
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s"
+            },
+            {
+              "type": "reverse",
+              "voice": "B"
+            },
+            {
+              "type": "gain",
+              "db": -0.72
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored."
+        },
+        {
+          "bar": 27,
+          "beat": 1.0,
+          "beats": 2,
+          "chord_played": "G7",
+          "analysis": "C: V7 (G7)",
+          "role": "primary",
+          "source_offset_s": 0.0,
+          "source_strike": 1,
+          "placed_at_s": 90.435,
+          "placed_at_timecode": "1:30.435",
+          "voices": [
+            "A: forward strike",
+            "B: reversed echo of the same strike, swelling into the next strike"
+          ],
+          "time_stretch_ratio": 1.0,
+          "gain_db": 0.0,
+          "transforms": [
+            {
+              "type": "trim",
+              "what": "one of the clip's two strikes (cut at 2.18 s, 20 ms overlap, 30 ms fade-out)"
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s"
+            },
+            {
+              "type": "reverse",
+              "voice": "B"
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored."
+        },
+        {
+          "bar": 27,
+          "beat": 3.0,
+          "beats": 2,
+          "chord_played": "G7",
+          "analysis": "C: V7 (G7)",
+          "role": "primary",
+          "source_offset_s": 2.16,
+          "source_strike": 2,
+          "placed_at_s": 92.174,
+          "placed_at_timecode": "1:32.174",
+          "voices": [
+            "A: forward strike",
+            "B: reversed echo of the same strike, swelling into the next strike"
+          ],
+          "time_stretch_ratio": 1.0,
+          "gain_db": -0.72,
+          "transforms": [
+            {
+              "type": "trim",
+              "what": "one of the clip's two strikes (cut at 2.18 s, 20 ms overlap, 30 ms fade-out)"
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s"
+            },
+            {
+              "type": "reverse",
+              "voice": "B"
+            },
+            {
+              "type": "gain",
+              "db": -0.72
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored."
+        },
+        {
+          "bar": 31,
+          "beat": 1.0,
+          "beats": 2,
+          "chord_played": "G7",
+          "analysis": "C: V7 (G7)",
+          "role": "primary",
+          "source_offset_s": 0.0,
+          "source_strike": 1,
+          "placed_at_s": 104.348,
+          "placed_at_timecode": "1:44.348",
+          "voices": [
+            "A: forward strike",
+            "B: reversed echo of the same strike, swelling into the next strike"
+          ],
+          "time_stretch_ratio": 1.0,
+          "gain_db": 0.0,
+          "transforms": [
+            {
+              "type": "trim",
+              "what": "one of the clip's two strikes (cut at 2.18 s, 20 ms overlap, 30 ms fade-out)"
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s"
+            },
+            {
+              "type": "reverse",
+              "voice": "B"
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored."
+        },
+        {
+          "bar": 31,
+          "beat": 3.0,
+          "beats": 2,
+          "chord_played": "G7",
+          "analysis": "C: V7 (G7)",
+          "role": "primary",
+          "source_offset_s": 2.16,
+          "source_strike": 2,
+          "placed_at_s": 106.087,
+          "placed_at_timecode": "1:46.087",
+          "voices": [
+            "A: forward strike",
+            "B: reversed echo of the same strike, swelling into the next strike"
+          ],
+          "time_stretch_ratio": 1.0,
+          "gain_db": -0.72,
+          "transforms": [
+            {
+              "type": "trim",
+              "what": "one of the clip's two strikes (cut at 2.18 s, 20 ms overlap, 30 ms fade-out)"
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s"
+            },
+            {
+              "type": "reverse",
+              "voice": "B"
+            },
+            {
+              "type": "gain",
+              "db": -0.72
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored."
+        }
+      ]
+    },
+    {
+      "offering": "g7-bounce-3",
+      "title": "G dominant 7th chord, bounce 3",
+      "source_url": "https://musicmatter.art/sounds/g7-bounce-3.flac",
+      "manifest_url": "https://musicmatter.art/sounds/g7-bounce-3.nc.json",
+      "supplier": {
+        "id": null,
+        "display_name": "Petrus",
+        "primary_link": "https://musicmatter.art/"
+      },
+      "license": {
+        "id": "CC-BY-SA-4.0",
+        "uri": "https://creativecommons.org/licenses/by-sa/4.0/"
+      },
+      "credit_line": "“G dominant 7th chord, bounce 3” by Petrus (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/g7-bounce-3.flac",
+      "chord": "G7",
+      "register": {
+        "low": "D4",
+        "high": "D5",
+        "root": "G4",
+        "bass": "D4",
+        "inversion": "second"
+      },
+      "sha256": "258e782395970979da7f1d951fd54677920193869ed292793cb4e174d75509da",
+      "sha256_note": "sha256 of the published FLAC (manifest field)",
+      "content_hash_at_use": {
+        "file": "site_v4/sounds/g7-bounce-3.wav",
+        "sha256": "e29a04296eedf874bf2a79490ce348e964324fbeaf9d398f49f32a0024b69212",
+        "pcm_md5": "4e79d98f17c62121cc800a7eac691bb2",
+        "pcm_identical_to_published_flac": true,
+        "note": "Decoded PCM md5 equals the published FLAC's manifest pcm_md5: the audio used is sample-identical to what musicmatter.art serves."
+      },
+      "uses": 2,
+      "uses_as_layer": 0,
+      "bars": [
+        34
+      ],
+      "time_stretch_ratios": [
+        1.0
+      ],
+      "processing_plain": "strike sliced from the clip, played forward and reversed (echo swell), 40% hall (B voice 50%), swept 24 dB/oct low-pass",
+      "spans": [
+        {
+          "bar": 34,
+          "beat": 1.0,
+          "beats": 2,
+          "chord_played": "G7",
+          "analysis": "C: V65 (G7/C)",
+          "role": "primary",
+          "source_offset_s": 0.0,
+          "source_strike": 1,
+          "placed_at_s": 114.922,
+          "placed_at_timecode": "1:54.922",
+          "voices": [
+            "A: forward strike",
+            "B: reversed echo of the same strike, swelling into the next strike"
+          ],
+          "time_stretch_ratio": 1.0,
+          "gain_db": 0.0,
+          "transforms": [
+            {
+              "type": "trim",
+              "what": "one of the clip's two strikes (cut at 2.18 s, 20 ms overlap, 30 ms fade-out)"
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s"
+            },
+            {
+              "type": "reverse",
+              "voice": "B"
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored."
+        },
+        {
+          "bar": 34,
+          "beat": 3.0,
+          "beats": 2,
+          "chord_played": "G7",
+          "analysis": "C: V65 (G7/C)",
+          "role": "primary",
+          "source_offset_s": 2.16,
+          "source_strike": 2,
+          "placed_at_s": 116.835,
+          "placed_at_timecode": "1:56.835",
+          "voices": [
+            "A: forward strike",
+            "B: reversed echo of the same strike, swelling into the next strike"
+          ],
+          "time_stretch_ratio": 1.0,
+          "gain_db": -0.72,
+          "transforms": [
+            {
+              "type": "trim",
+              "what": "one of the clip's two strikes (cut at 2.18 s, 20 ms overlap, 30 ms fade-out)"
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s"
+            },
+            {
+              "type": "reverse",
+              "voice": "B"
+            },
+            {
+              "type": "gain",
+              "db": -0.72
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored."
+        }
+      ]
+    },
+    {
+      "offering": "g7-bounce-6",
+      "title": "G dominant 7th chord, bounce 6",
+      "source_url": "https://musicmatter.art/sounds/g7-bounce-6.flac",
+      "manifest_url": "https://musicmatter.art/sounds/g7-bounce-6.nc.json",
+      "supplier": {
+        "id": null,
+        "display_name": "Petrus",
+        "primary_link": "https://musicmatter.art/"
+      },
+      "license": {
+        "id": "CC-BY-SA-4.0",
+        "uri": "https://creativecommons.org/licenses/by-sa/4.0/"
+      },
+      "credit_line": "“G dominant 7th chord, bounce 6” by Petrus (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/g7-bounce-6.flac",
+      "chord": "G7",
+      "register": {
+        "low": "B3",
+        "high": "F6",
+        "root": "G4",
+        "bass": "B3",
+        "inversion": "first"
+      },
+      "sha256": "f3909027e397a9c6b9441d59adf59e566a6429ff3393058f031dd59e2f263c88",
+      "sha256_note": "sha256 of the published FLAC (manifest field)",
+      "content_hash_at_use": {
+        "file": "site_v4/sounds/g7-bounce-6.wav",
+        "sha256": "727710ef00f987359c3fcb0949936a607bc7c910c0d8d36d579b022089945d19",
+        "pcm_md5": "e94cc66683b1f6490d8c8007c13ace79",
+        "pcm_identical_to_published_flac": true,
+        "note": "Decoded PCM md5 equals the published FLAC's manifest pcm_md5: the audio used is sample-identical to what musicmatter.art serves."
+      },
+      "uses": 2,
+      "uses_as_layer": 0,
+      "bars": [
+        3
+      ],
+      "time_stretch_ratios": [
+        1.0
+      ],
+      "processing_plain": "strike sliced from the clip, played forward and reversed (echo swell), 40% hall (B voice 50%), swept 24 dB/oct low-pass",
+      "spans": [
+        {
+          "bar": 3,
+          "beat": 1.0,
+          "beats": 2,
+          "chord_played": "G7",
+          "analysis": "C: V65 (G7/B)",
+          "role": "primary",
+          "source_offset_s": 0.0,
+          "source_strike": 1,
+          "placed_at_s": 6.957,
+          "placed_at_timecode": "0:06.957",
+          "voices": [
+            "A: forward strike",
+            "B: reversed echo of the same strike, swelling into the next strike"
+          ],
+          "time_stretch_ratio": 1.0,
+          "gain_db": 0.0,
+          "transforms": [
+            {
+              "type": "trim",
+              "what": "one of the clip's two strikes (cut at 2.18 s, 20 ms overlap, 30 ms fade-out)"
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s"
+            },
+            {
+              "type": "reverse",
+              "voice": "B"
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored."
+        },
+        {
+          "bar": 3,
+          "beat": 3.0,
+          "beats": 2,
+          "chord_played": "G7",
+          "analysis": "C: V65 (G7/B)",
+          "role": "primary",
+          "source_offset_s": 2.16,
+          "source_strike": 2,
+          "placed_at_s": 8.696,
+          "placed_at_timecode": "0:08.696",
+          "voices": [
+            "A: forward strike",
+            "B: reversed echo of the same strike, swelling into the next strike"
+          ],
+          "time_stretch_ratio": 1.0,
+          "gain_db": -0.72,
+          "transforms": [
+            {
+              "type": "trim",
+              "what": "one of the clip's two strikes (cut at 2.18 s, 20 ms overlap, 30 ms fade-out)"
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s"
+            },
+            {
+              "type": "reverse",
+              "voice": "B"
+            },
+            {
+              "type": "gain",
+              "db": -0.72
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored."
+        }
+      ]
+    },
+    {
+      "offering": "gmaj-bounce-30",
+      "title": "G major chord, bounce 30",
+      "source_url": "https://musicmatter.art/sounds/gmaj-bounce-30.flac",
+      "manifest_url": "https://musicmatter.art/sounds/gmaj-bounce-30.nc.json",
+      "supplier": {
+        "id": null,
+        "display_name": "Petrus",
+        "primary_link": "https://musicmatter.art/"
+      },
+      "license": {
+        "id": "CC-BY-SA-4.0",
+        "uri": "https://creativecommons.org/licenses/by-sa/4.0/"
+      },
+      "credit_line": "“G major chord, bounce 30” by Petrus (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/gmaj-bounce-30.flac",
+      "chord": "Gmaj",
+      "register": {
+        "low": "B3",
+        "high": "B5",
+        "root": "G4",
+        "bass": "B3",
+        "inversion": "first"
+      },
+      "sha256": "cb798dc22b1719eb535d9e425b9dab3dc8b6d150d8110d01d5a55e5bff879a7e",
+      "sha256_note": "sha256 of the published FLAC (manifest field)",
+      "content_hash_at_use": {
+        "file": "site_v4/sounds/gmaj-bounce-30.wav",
+        "sha256": "d997ad8cb542df132831631201a51a66fb075458dcc181cb7d0805e9161fac01",
+        "pcm_md5": "a8d290fab572a1eca01be1c1a66f863f",
+        "pcm_identical_to_published_flac": true,
+        "note": "Decoded PCM md5 equals the published FLAC's manifest pcm_md5: the audio used is sample-identical to what musicmatter.art serves."
+      },
+      "uses": 2,
+      "uses_as_layer": 0,
+      "bars": [
+        7
+      ],
+      "time_stretch_ratios": [
+        1.0
+      ],
+      "processing_plain": "strike sliced from the clip, played forward and reversed (echo swell), 40% hall (B voice 50%), swept 24 dB/oct low-pass",
+      "spans": [
+        {
+          "bar": 7,
+          "beat": 1.0,
+          "beats": 2,
+          "chord_played": "Gmaj",
+          "analysis": "C: I6 (G/B)",
+          "role": "primary",
+          "source_offset_s": 0.0,
+          "source_strike": 1,
+          "placed_at_s": 20.87,
+          "placed_at_timecode": "0:20.870",
+          "voices": [
+            "A: forward strike",
+            "B: reversed echo of the same strike, swelling into the next strike"
+          ],
+          "time_stretch_ratio": 1.0,
+          "gain_db": 0.0,
+          "transforms": [
+            {
+              "type": "trim",
+              "what": "one of the clip's two strikes (cut at 2.18 s, 20 ms overlap, 30 ms fade-out)"
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s"
+            },
+            {
+              "type": "reverse",
+              "voice": "B"
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored."
+        },
+        {
+          "bar": 7,
+          "beat": 3.0,
+          "beats": 2,
+          "chord_played": "Gmaj",
+          "analysis": "C: I6 (G/B)",
+          "role": "primary",
+          "source_offset_s": 2.16,
+          "source_strike": 2,
+          "placed_at_s": 22.609,
+          "placed_at_timecode": "0:22.609",
+          "voices": [
+            "A: forward strike",
+            "B: reversed echo of the same strike, swelling into the next strike"
+          ],
+          "time_stretch_ratio": 1.0,
+          "gain_db": -0.72,
+          "transforms": [
+            {
+              "type": "trim",
+              "what": "one of the clip's two strikes (cut at 2.18 s, 20 ms overlap, 30 ms fade-out)"
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s"
+            },
+            {
+              "type": "reverse",
+              "voice": "B"
+            },
+            {
+              "type": "gain",
+              "db": -0.72
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored."
+        }
+      ]
+    },
+    {
+      "offering": "gmaj-bounce-32",
+      "title": "G major chord, bounce 32",
+      "source_url": "https://musicmatter.art/sounds/gmaj-bounce-32.flac",
+      "manifest_url": "https://musicmatter.art/sounds/gmaj-bounce-32.nc.json",
+      "supplier": {
+        "id": null,
+        "display_name": "Petrus",
+        "primary_link": "https://musicmatter.art/"
+      },
+      "license": {
+        "id": "CC-BY-SA-4.0",
+        "uri": "https://creativecommons.org/licenses/by-sa/4.0/"
+      },
+      "credit_line": "“G major chord, bounce 32” by Petrus (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/gmaj-bounce-32.flac",
+      "chord": "Gmaj",
+      "register": {
+        "low": "G4",
+        "high": "D5",
+        "root": "G4",
+        "bass": "G4",
+        "inversion": "root"
+      },
+      "sha256": "2171f6df9714b89198919320125e0bf451ae47d01967c9afb2fa2fffb2f9ad22",
+      "sha256_note": "sha256 of the published FLAC (manifest field)",
+      "content_hash_at_use": {
+        "file": "site_v4/sounds/gmaj-bounce-32.wav",
+        "sha256": "fe84d5de62498b5ba27ffeb6bf0e0d36a9d199bb5a58162ac94a0646219d9341",
+        "pcm_md5": "06e3ac0271b8b29c71bfc17a6f748e48",
+        "pcm_identical_to_published_flac": true,
+        "note": "Decoded PCM md5 equals the published FLAC's manifest pcm_md5: the audio used is sample-identical to what musicmatter.art serves."
+      },
+      "uses": 2,
+      "uses_as_layer": 0,
+      "bars": [
+        11
+      ],
+      "time_stretch_ratios": [
+        1.0
+      ],
+      "processing_plain": "strike sliced from the clip, played forward and reversed (echo swell), 40% hall (B voice 50%), swept 24 dB/oct low-pass",
+      "spans": [
+        {
+          "bar": 11,
+          "beat": 1.0,
+          "beats": 2,
+          "chord_played": "Gmaj",
+          "analysis": "C: I (G)",
+          "role": "primary",
+          "source_offset_s": 0.0,
+          "source_strike": 1,
+          "placed_at_s": 34.783,
+          "placed_at_timecode": "0:34.783",
+          "voices": [
+            "A: forward strike",
+            "B: reversed echo of the same strike, swelling into the next strike"
+          ],
+          "time_stretch_ratio": 1.0,
+          "gain_db": 0.0,
+          "transforms": [
+            {
+              "type": "trim",
+              "what": "one of the clip's two strikes (cut at 2.18 s, 20 ms overlap, 30 ms fade-out)"
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s"
+            },
+            {
+              "type": "reverse",
+              "voice": "B"
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored."
+        },
+        {
+          "bar": 11,
+          "beat": 3.0,
+          "beats": 2,
+          "chord_played": "Gmaj",
+          "analysis": "C: I (G)",
+          "role": "primary",
+          "source_offset_s": 2.16,
+          "source_strike": 2,
+          "placed_at_s": 36.522,
+          "placed_at_timecode": "0:36.522",
+          "voices": [
+            "A: forward strike",
+            "B: reversed echo of the same strike, swelling into the next strike"
+          ],
+          "time_stretch_ratio": 1.0,
+          "gain_db": -0.72,
+          "transforms": [
+            {
+              "type": "trim",
+              "what": "one of the clip's two strikes (cut at 2.18 s, 20 ms overlap, 30 ms fade-out)"
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s"
+            },
+            {
+              "type": "reverse",
+              "voice": "B"
+            },
+            {
+              "type": "gain",
+              "db": -0.72
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored."
+        }
+      ]
+    },
+    {
+      "offering": "gsharpdim7-bounce-4",
+      "title": "G♯ diminished 7th chord, bounce 4",
+      "source_url": "https://musicmatter.art/sounds/gsharpdim7-bounce-4.flac",
+      "manifest_url": "https://musicmatter.art/sounds/gsharpdim7-bounce-4.nc.json",
+      "supplier": {
+        "id": null,
+        "display_name": "Petrus",
+        "primary_link": "https://musicmatter.art/"
+      },
+      "license": {
+        "id": "CC-BY-SA-4.0",
+        "uri": "https://creativecommons.org/licenses/by-sa/4.0/"
+      },
+      "credit_line": "“G♯ diminished 7th chord, bounce 4” by Petrus (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/gsharpdim7-bounce-4.flac",
+      "chord": "G#dim7",
+      "register": {
+        "low": "G#4",
+        "high": "G#5",
+        "root": "G#4",
+        "bass": "G#4",
+        "inversion": "root"
+      },
+      "sha256": "788eb7f72d7c5c51c7796a59972385bf3cc3643b582c7d80b5611a3a10a0474d",
+      "sha256_note": "sha256 of the published FLAC (manifest field)",
+      "content_hash_at_use": {
+        "file": "site_v4/sounds/gsharpdim7-bounce-4.wav",
+        "sha256": "160b059b5398233559ea7a355599eca60b6447a720ee2a65f2ef2897193209f3",
+        "pcm_md5": "79701c3db66aa5613b3727f29c4f7d66",
+        "pcm_identical_to_published_flac": true,
+        "note": "Decoded PCM md5 equals the published FLAC's manifest pcm_md5: the audio used is sample-identical to what musicmatter.art serves."
+      },
+      "uses": 2,
+      "uses_as_layer": 0,
+      "bars": [
+        23
+      ],
+      "time_stretch_ratios": [
+        1.0
+      ],
+      "processing_plain": "strike sliced from the clip, played forward and reversed (echo swell), 40% hall (B voice 50%), swept 24 dB/oct low-pass",
+      "spans": [
+        {
+          "bar": 23,
+          "beat": 1.0,
+          "beats": 2,
+          "chord_played": "G#dim7",
+          "analysis": "C: viio2 (Bo7/Ab)",
+          "role": "primary",
+          "source_offset_s": 0.0,
+          "source_strike": 1,
+          "placed_at_s": 76.522,
+          "placed_at_timecode": "1:16.522",
+          "voices": [
+            "A: forward strike",
+            "B: reversed echo of the same strike, swelling into the next strike"
+          ],
+          "time_stretch_ratio": 1.0,
+          "gain_db": 0.0,
+          "transforms": [
+            {
+              "type": "trim",
+              "what": "one of the clip's two strikes (cut at 2.18 s, 20 ms overlap, 30 ms fade-out)"
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s"
+            },
+            {
+              "type": "reverse",
+              "voice": "B"
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored."
+        },
+        {
+          "bar": 23,
+          "beat": 3.0,
+          "beats": 2,
+          "chord_played": "G#dim7",
+          "analysis": "C: viio2 (Bo7/Ab)",
+          "role": "primary",
+          "source_offset_s": 2.16,
+          "source_strike": 2,
+          "placed_at_s": 78.261,
+          "placed_at_timecode": "1:18.261",
+          "voices": [
+            "A: forward strike",
+            "B: reversed echo of the same strike, swelling into the next strike"
+          ],
+          "time_stretch_ratio": 1.0,
+          "gain_db": -0.72,
+          "transforms": [
+            {
+              "type": "trim",
+              "what": "one of the clip's two strikes (cut at 2.18 s, 20 ms overlap, 30 ms fade-out)"
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s"
+            },
+            {
+              "type": "reverse",
+              "voice": "B"
+            },
+            {
+              "type": "gain",
+              "db": -0.72
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored."
+        }
+      ]
+    },
+    {
+      "offering": "gsus4-bounce-3",
+      "title": "G suspended 4th chord, bounce 3",
+      "source_url": "https://musicmatter.art/sounds/gsus4-bounce-3.flac",
+      "manifest_url": "https://musicmatter.art/sounds/gsus4-bounce-3.nc.json",
+      "supplier": {
+        "id": null,
+        "display_name": "Petrus",
+        "primary_link": "https://musicmatter.art/"
+      },
+      "license": {
+        "id": "CC-BY-SA-4.0",
+        "uri": "https://creativecommons.org/licenses/by-sa/4.0/"
+      },
+      "credit_line": "“G suspended 4th chord, bounce 3” by Petrus (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/gsus4-bounce-3.flac",
+      "chord": "Gsus4",
+      "register": {
+        "low": "G4",
+        "high": "D5",
+        "root": "G4",
+        "bass": "G4",
+        "inversion": "root"
+      },
+      "sha256": "0b1ef225911b744471f407ec423447aefa3040705d30024126eeef5cd01875b5",
+      "sha256_note": "sha256 of the published FLAC (manifest field)",
+      "content_hash_at_use": {
+        "file": "site_v4/sounds/gsus4-bounce-3.wav",
+        "sha256": "34c71b2fa446b1d116213a4dc67fb2de2efca6264031a7104abdad70a04d708e",
+        "pcm_md5": "677347bc2b2331a802c29ffc3babd638",
+        "pcm_identical_to_published_flac": true,
+        "note": "Decoded PCM md5 equals the published FLAC's manifest pcm_md5: the audio used is sample-identical to what musicmatter.art serves."
+      },
+      "uses": 4,
+      "uses_as_layer": 0,
+      "bars": [
+        26,
+        30
+      ],
+      "time_stretch_ratios": [
+        1.0
+      ],
+      "processing_plain": "strike sliced from the clip, played forward and reversed (echo swell), 40% hall (B voice 50%), swept 24 dB/oct low-pass",
+      "spans": [
+        {
+          "bar": 26,
+          "beat": 1.0,
+          "beats": 2,
+          "chord_played": "Gsus4 + Csus4 (G7sus4)",
+          "analysis": "C: V7 (G7(sus4))",
+          "role": "primary",
+          "source_offset_s": 0.0,
+          "source_strike": 1,
+          "placed_at_s": 86.957,
+          "placed_at_timecode": "1:26.957",
+          "voices": [
+            "A: forward strike",
+            "B: reversed echo of the same strike, swelling into the next strike"
+          ],
+          "time_stretch_ratio": 1.0,
+          "gain_db": 0.0,
+          "transforms": [
+            {
+              "type": "trim",
+              "what": "one of the clip's two strikes (cut at 2.18 s, 20 ms overlap, 30 ms fade-out)"
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s"
+            },
+            {
+              "type": "reverse",
+              "voice": "B"
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored."
+        },
+        {
+          "bar": 26,
+          "beat": 3.0,
+          "beats": 2,
+          "chord_played": "Gsus4 + Csus4 (G7sus4)",
+          "analysis": "C: V7 (G7(sus4))",
+          "role": "primary",
+          "source_offset_s": 2.16,
+          "source_strike": 2,
+          "placed_at_s": 88.696,
+          "placed_at_timecode": "1:28.696",
+          "voices": [
+            "A: forward strike",
+            "B: reversed echo of the same strike, swelling into the next strike"
+          ],
+          "time_stretch_ratio": 1.0,
+          "gain_db": -0.72,
+          "transforms": [
+            {
+              "type": "trim",
+              "what": "one of the clip's two strikes (cut at 2.18 s, 20 ms overlap, 30 ms fade-out)"
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s"
+            },
+            {
+              "type": "reverse",
+              "voice": "B"
+            },
+            {
+              "type": "gain",
+              "db": -0.72
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored."
+        },
+        {
+          "bar": 30,
+          "beat": 1.0,
+          "beats": 2,
+          "chord_played": "Gsus4 + Csus4 (G7sus4)",
+          "analysis": "C: V7 (alt ii754) (G7(sus4))",
+          "role": "primary",
+          "source_offset_s": 0.0,
+          "source_strike": 1,
+          "placed_at_s": 100.87,
+          "placed_at_timecode": "1:40.870",
+          "voices": [
+            "A: forward strike",
+            "B: reversed echo of the same strike, swelling into the next strike"
+          ],
+          "time_stretch_ratio": 1.0,
+          "gain_db": 0.0,
+          "transforms": [
+            {
+              "type": "trim",
+              "what": "one of the clip's two strikes (cut at 2.18 s, 20 ms overlap, 30 ms fade-out)"
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s"
+            },
+            {
+              "type": "reverse",
+              "voice": "B"
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored."
+        },
+        {
+          "bar": 30,
+          "beat": 3.0,
+          "beats": 2,
+          "chord_played": "Gsus4 + Csus4 (G7sus4)",
+          "analysis": "C: V7 (alt ii754) (G7(sus4))",
+          "role": "primary",
+          "source_offset_s": 2.16,
+          "source_strike": 2,
+          "placed_at_s": 102.609,
+          "placed_at_timecode": "1:42.609",
+          "voices": [
+            "A: forward strike",
+            "B: reversed echo of the same strike, swelling into the next strike"
+          ],
+          "time_stretch_ratio": 1.0,
+          "gain_db": -0.72,
+          "transforms": [
+            {
+              "type": "trim",
+              "what": "one of the clip's two strikes (cut at 2.18 s, 20 ms overlap, 30 ms fade-out)"
+            },
+            {
+              "type": "level_match",
+              "target": "unit RMS over first 1 s"
+            },
+            {
+              "type": "reverse",
+              "voice": "B"
+            },
+            {
+              "type": "gain",
+              "db": -0.72
+            }
+          ],
+          "match_score": null,
+          "match_score_note": "The script ranks takes by a cost (lower is better), not a confidence; no score was stored."
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "distinct_sounds": 28,
+    "total_uses": 74,
+    "suppliers": [
+      "Petrus"
+    ]
+  },
+  "derived_inputs": {
+    "inputs": [
+      {
+        "what": "Bach, BWV 846 (the music)",
+        "license": "Public domain"
+      },
+      {
+        "what": "When in Rome analysis (Gotham et al.), BWV 846",
+        "license": "CC-BY-SA-4.0",
+        "attribution": "required, given in the credits"
+      },
+      {
+        "what": "28 chord strike offerings by Petrus (musicmatter.art)",
+        "license": "CC-BY-SA-4.0",
+        "attribution": "required, given per sound"
+      },
+      {
+        "what": "Synthetic hall IR",
+        "license": "generated in the script; no third-party input"
+      }
+    ],
+    "accepted_input_licenses": [
+      "CC0-1.0",
+      "CC-BY-4.0",
+      "CC-BY-SA-4.0",
+      "Public domain"
+    ],
+    "rejected_present": [],
+    "check": "OK: every input is public domain or CC BY-SA 4.0, none NC/ND, so the output can be CC BY-SA 4.0."
+  },
+  "attribution": "“The C major Prelude, harmony only (after Bach, BWV 846)”, NetComposer Performance perf_bwv846-take5_fwd_rev_echo, composed by Petrus after J.S. Bach (public domain), with harmonic analysis from When in Rome by Mark Gotham et al. (CC BY-SA 4.0, github.com/MarkGotham/When-in-Rome). Performed by the NetComposer Algorithmic Performer (Astrid) from 28 chord recordings by Petrus (musicmatter.art, CC BY-SA 4.0). Licensed CC BY-SA 4.0, https://creativecommons.org/licenses/by-sa/4.0/",
+  "provenance_files": {
+    "render_script": {
+      "path": "bach/render5_fwd_rev_echo.py",
+      "sha256": "66b4fabc2a2bf1523cbce9125f1d767f8d257ad9b935b111b6038ad245b72fbd"
+    },
+    "bar_table": {
+      "path": "bach/bars_v5.py",
+      "sha256": "e3f95ff9c2e235b242b4672cd6aab0dca7f5867bd428fcfc0a4a0274ef3c79b7"
+    },
+    "analysis_file": {
+      "path": "bach/analysis.txt",
+      "sha256": "4cec7458b5aec3e74218168f529589f3233e008d3b6dde3c3953eaca3dd23565"
+    },
+    "plan": {
+      "path": "perf_bwv846/plan_take5_fwd_rev_echo.txt",
+      "sha256": "38969c30338c97f05583933bf3e8086604813d00a8a9729a06857fb3cd0e2f8e"
+    },
+    "record_builder": {
+      "path": "tools/build_record_846_take5.py",
+      "sha256": "038a4665a9fe07fd1984129952a1bd72ceca52e8beebd755d9600fc8f870c954"
+    }
+  },
+  "provenance_note": "The render script and bar table carry the same mtime as the master (14:18), so the hashed files are the versions that rendered it.",
+  "created_at": "2026-10-17T18:27:28-07:00",
+  "signature": {
+    "status": "UNSIGNED",
+    "signed_by": null,
+    "algorithm": null,
+    "key_id": null,
+    "value": null,
+    "note": "Placeholder. Open decision #33 (signed usage records) is not decided: no key, signer or format exists. record_hash gives integrity, not authorship."
+  },
+  "record_hash": {
+    "algorithm": "sha256",
+    "over": "canonical JSON (sorted keys, no whitespace) of the record without record_hash and signature",
+    "value": "d17c38ba79ba9451cb58ef993201693289aaf2122ec80933764d345826e11340"
+  }
+}
