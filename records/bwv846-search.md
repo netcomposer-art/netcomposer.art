@@ -1,7 +1,7 @@
 # Performance record: The C major Prelude, harmony only (after Bach, BWV 846): search-driven take
 
 **Performance** `perf_bwv846-search` · performed 2026-10-17 18:41:42-07:00 (PDT, UTC−7) · 125.9 s · Algorithmic Performer · seed 846  
-**Status:** preview only · record **UNSIGNED** (open decision #33) · record hash `c8d51fe5c92c1ce5…`
+**Status:** preview only · record **UNSIGNED** (open decision #33) · record hash `bf1e0e63fc871706…`
 
 ## What was fixed, what was found
 
@@ -11,7 +11,7 @@
 ## Credits
 
 - **Music:** Johann Sebastian Bach, Prelude in C major, BWV 846, Das Wohltemperierte Klavier I (1722). Public domain.
-- **Composition:** *The C major Prelude, harmony only*, by **Petrus**. Harmonic analysis: Mark Gotham et al., *When in Rome*, CC BY-SA 4.0.
+- **Composition:** *The C major Prelude, harmony only*, by **Peter**. Harmonic analysis: Mark Gotham et al., *When in Rome*, CC BY-SA 4.0.
 - **Sounds:** 38 sounds heard (552 uses) plus 5 rhythm donors not heard, from 20 Freesound contributors: blakengouda, cabled_mess, djfroyd, eastboundkieb, flcellogrl, frederic.font, jesuswaffle, Jovica, Miles_Thompson, NoiseCollector, Olichite, ovvcuxs, paulnorthyorks, Sadiquecat, spitefuloctopus, Thisisnotmyname12354, ValentinSosnitskiy, Vassilis02, voxlab, xbkyboox.
 - **Performer:** Astrid, NetComposer Algorithmic Performer (`render846_search.py`).
 
@@ -135,6 +135,10 @@ No pitch-shifting. Time-stretch only on chord beds shorter than a bar and on the
 
 Ready to paste:
 
-> “The C major Prelude, harmony only (after Bach, BWV 846)”, NetComposer Performance perf_bwv846-search, composed by Petrus after J.S. Bach (public domain), with harmonic analysis from When in Rome by Mark Gotham et al. (CC BY-SA 4.0). Performed by the NetComposer Algorithmic Performer (Astrid) from sounds found on Freesound by blakengouda, cabled_mess, djfroyd, eastboundkieb, flcellogrl, frederic.font, jesuswaffle, Jovica, Miles_Thompson, NoiseCollector, Olichite, ovvcuxs, paulnorthyorks, Sadiquecat, spitefuloctopus, Thisisnotmyname12354, ValentinSosnitskiy, Vassilis02, voxlab, xbkyboox (CC0 / CC BY; full list in this record). Licensed CC BY-SA 4.0, https://creativecommons.org/licenses/by-sa/4.0/
+> “The C major Prelude, harmony only (after Bach, BWV 846)”, NetComposer Performance perf_bwv846-search, composed by Peter after J.S. Bach (public domain), with harmonic analysis from When in Rome by Mark Gotham et al. (CC BY-SA 4.0). Performed by the NetComposer Algorithmic Performer (Astrid) from sounds found on Freesound by blakengouda, cabled_mess, djfroyd, eastboundkieb, flcellogrl, frederic.font, jesuswaffle, Jovica, Miles_Thompson, NoiseCollector, Olichite, ovvcuxs, paulnorthyorks, Sadiquecat, spitefuloctopus, Thisisnotmyname12354, ValentinSosnitskiy, Vassilis02, voxlab, xbkyboox (CC0 / CC BY; full list in this record). Licensed CC BY-SA 4.0, https://creativecommons.org/licenses/by-sa/4.0/
 
 Files: `bach_bwv846_search.wav` sha256 `de78c2d413b78e18…` · `.mp3` sha256 `32c3f406c22c2995…`
+
+## Amendment
+
+2026-10-17T19:29:52-07:00: contributor display name changed from Petrus to Peter (Peter Semmelhack) for netcomposer.art, at his request. Nothing else changed. Previous record hash `c8d51fe5c92c1ce5…`, new `bf1e0e63fc871706…`.

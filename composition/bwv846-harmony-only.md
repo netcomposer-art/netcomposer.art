@@ -1,6 +1,6 @@
 # The C major Prelude, harmony only (after Bach, BWV 846)
 
-**Composer of this Composition:** Petrus · **License out:** CC BY-SA 4.0
+**Composer of this Composition:** Peter · **License out:** CC BY-SA 4.0
 **Meter:** 4/4 · **Tempo:** quarter note ≈ 69 BPM (tolerance ±3) · **Length:** 35 bars, about 2 minutes
 **Directionality:** 0.3 (stay close to the chords; textures are welcome if the harmony is right)
 **Allowed transforms:** trim, gain, fade, time_stretch
@@ -50,3 +50,6 @@ match a bass note may let it go, but it should keep the chord.
   https://github.com/MarkGotham/When-in-Rome. License: **CC BY-SA 4.0**. The Roman numerals were converted
   to absolute chord symbols for this Composition, so the anchors above are an adaptation and are shared
   under the same license.
+
+
+*Amended 2026-10-17T19:29:52-07:00 for netcomposer.art: composer display name shown as Peter (Peter Semmelhack). The harmony is unchanged.*

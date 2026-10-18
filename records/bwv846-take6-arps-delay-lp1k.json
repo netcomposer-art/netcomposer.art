@@ -23,8 +23,8 @@
     },
     "rules_set_by": {
       "id": null,
-      "display_name": "Petrus",
-      "note": "Effect parameters requested by Petrus in chat; chord matching and take selection are the script's rules."
+      "display_name": "Peter",
+      "note": "Effect parameters requested by Peter in chat; chord matching and take selection are the script's rules."
     },
     "engine_version": "render6_arps_dly_lp1k.py@sha256:2af4b5765fe0c501",
     "composition_ref": {
@@ -34,7 +34,7 @@
       "sha256": "f63acadc04937a289a2f51c96386a0ae92de8f7fba00c69a16a038632b9b43d5",
       "composer": {
         "id": null,
-        "display_name": "Petrus"
+        "display_name": "Peter"
       },
       "music": "Johann Sebastian Bach, Prelude in C major, BWV 846, Das Wohltemperierte Klavier I (1722). Public domain.",
       "analysis": {
@@ -97,7 +97,7 @@
       ]
     },
     "crawl_snapshot": {
-      "venue": "musicmatter.art (Petrus's own site)",
+      "venue": "musicmatter.art (Peter's own site)",
       "snapshot": "local copy /workspace/musicmatter/site_v5 (WAV); published as FLAC (site_v5_flac)",
       "pool_size_arps": 648,
       "pool_note": "654 arps minus 6 flagged near-duplicates (Bmaj7 takes 7-12)",
@@ -213,14 +213,14 @@
       "manifest_url": "https://musicmatter.art/sounds/adim7-arp-updown-1.nc.json",
       "supplier": {
         "id": null,
-        "display_name": "Petrus",
+        "display_name": "Peter",
         "primary_link": "https://musicmatter.art/"
       },
       "license": {
         "id": "CC-BY-SA-4.0",
         "uri": "https://creativecommons.org/licenses/by-sa/4.0/"
       },
-      "credit_line": "“A diminished 7th arpeggio (up/down), take 1” by Petrus (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/adim7-arp-updown-1.flac",
+      "credit_line": "“A diminished 7th arpeggio (up/down), take 1” by Peter (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/adim7-arp-updown-1.flac",
       "chord": "Adim7",
       "arpeggio_cycle": [
         "A4",
@@ -353,14 +353,14 @@
       "manifest_url": "https://musicmatter.art/sounds/am7-arp-updown-6.nc.json",
       "supplier": {
         "id": null,
-        "display_name": "Petrus",
+        "display_name": "Peter",
         "primary_link": "https://musicmatter.art/"
       },
       "license": {
         "id": "CC-BY-SA-4.0",
         "uri": "https://creativecommons.org/licenses/by-sa/4.0/"
       },
-      "credit_line": "“A minor 7th arpeggio (up/down), take 6” by Petrus (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/am7-arp-updown-6.flac",
+      "credit_line": "“A minor 7th arpeggio (up/down), take 6” by Peter (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/am7-arp-updown-6.flac",
       "chord": "Am7",
       "arpeggio_cycle": [
         "A3",
@@ -493,14 +493,14 @@
       "manifest_url": "https://musicmatter.art/sounds/amin-arp-updown-2.nc.json",
       "supplier": {
         "id": null,
-        "display_name": "Petrus",
+        "display_name": "Peter",
         "primary_link": "https://musicmatter.art/"
       },
       "license": {
         "id": "CC-BY-SA-4.0",
         "uri": "https://creativecommons.org/licenses/by-sa/4.0/"
       },
-      "credit_line": "“A minor arpeggio (up/down), take 2” by Petrus (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/amin-arp-updown-2.flac",
+      "credit_line": "“A minor arpeggio (up/down), take 2” by Peter (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/amin-arp-updown-2.flac",
       "chord": "Amin",
       "arpeggio_cycle": [
         "C4",
@@ -631,14 +631,14 @@
       "manifest_url": "https://musicmatter.art/sounds/bdim7-arp-updown-1.nc.json",
       "supplier": {
         "id": null,
-        "display_name": "Petrus",
+        "display_name": "Peter",
         "primary_link": "https://musicmatter.art/"
       },
       "license": {
         "id": "CC-BY-SA-4.0",
         "uri": "https://creativecommons.org/licenses/by-sa/4.0/"
       },
-      "credit_line": "“B diminished 7th arpeggio (up/down), take 1” by Petrus (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/bdim7-arp-updown-1.flac",
+      "credit_line": "“B diminished 7th arpeggio (up/down), take 1” by Peter (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/bdim7-arp-updown-1.flac",
       "chord": "Bdim7",
       "arpeggio_cycle": [
         "F4",
@@ -771,14 +771,14 @@
       "manifest_url": "https://musicmatter.art/sounds/bdim7-arp-updown-4.nc.json",
       "supplier": {
         "id": null,
-        "display_name": "Petrus",
+        "display_name": "Peter",
         "primary_link": "https://musicmatter.art/"
       },
       "license": {
         "id": "CC-BY-SA-4.0",
         "uri": "https://creativecommons.org/licenses/by-sa/4.0/"
       },
-      "credit_line": "“B diminished 7th arpeggio (up/down), take 4” by Petrus (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/bdim7-arp-updown-4.flac",
+      "credit_line": "“B diminished 7th arpeggio (up/down), take 4” by Peter (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/bdim7-arp-updown-4.flac",
       "chord": "Bdim7",
       "arpeggio_cycle": [
         "G#4",
@@ -911,14 +911,14 @@
       "manifest_url": "https://musicmatter.art/sounds/c7-arp-updown-2.nc.json",
       "supplier": {
         "id": null,
-        "display_name": "Petrus",
+        "display_name": "Peter",
         "primary_link": "https://musicmatter.art/"
       },
       "license": {
         "id": "CC-BY-SA-4.0",
         "uri": "https://creativecommons.org/licenses/by-sa/4.0/"
       },
-      "credit_line": "“C dominant 7th arpeggio (up/down), take 2” by Petrus (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/c7-arp-updown-2.flac",
+      "credit_line": "“C dominant 7th arpeggio (up/down), take 2” by Peter (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/c7-arp-updown-2.flac",
       "chord": "C7",
       "arpeggio_cycle": [
         "C4",
@@ -1148,14 +1148,14 @@
       "manifest_url": "https://musicmatter.art/sounds/cmaj-arp-updown-2.nc.json",
       "supplier": {
         "id": null,
-        "display_name": "Petrus",
+        "display_name": "Peter",
         "primary_link": "https://musicmatter.art/"
       },
       "license": {
         "id": "CC-BY-SA-4.0",
         "uri": "https://creativecommons.org/licenses/by-sa/4.0/"
       },
-      "credit_line": "“C major arpeggio (up/down), take 2” by Petrus (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/cmaj-arp-updown-2.flac",
+      "credit_line": "“C major arpeggio (up/down), take 2” by Peter (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/cmaj-arp-updown-2.flac",
       "chord": "Cmaj",
       "arpeggio_cycle": [
         "G4",
@@ -1383,14 +1383,14 @@
       "manifest_url": "https://musicmatter.art/sounds/cmaj-arp-updown-4.nc.json",
       "supplier": {
         "id": null,
-        "display_name": "Petrus",
+        "display_name": "Peter",
         "primary_link": "https://musicmatter.art/"
       },
       "license": {
         "id": "CC-BY-SA-4.0",
         "uri": "https://creativecommons.org/licenses/by-sa/4.0/"
       },
-      "credit_line": "“C major arpeggio (up/down), take 4” by Petrus (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/cmaj-arp-updown-4.flac",
+      "credit_line": "“C major arpeggio (up/down), take 4” by Peter (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/cmaj-arp-updown-4.flac",
       "chord": "Cmaj",
       "arpeggio_cycle": [
         "C5",
@@ -1813,14 +1813,14 @@
       "manifest_url": "https://musicmatter.art/sounds/cmaj-arp-updown-5.nc.json",
       "supplier": {
         "id": null,
-        "display_name": "Petrus",
+        "display_name": "Peter",
         "primary_link": "https://musicmatter.art/"
       },
       "license": {
         "id": "CC-BY-SA-4.0",
         "uri": "https://creativecommons.org/licenses/by-sa/4.0/"
       },
-      "credit_line": "“C major arpeggio (up/down), take 5” by Petrus (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/cmaj-arp-updown-5.flac",
+      "credit_line": "“C major arpeggio (up/down), take 5” by Peter (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/cmaj-arp-updown-5.flac",
       "chord": "Cmaj",
       "arpeggio_cycle": [
         "E4",
@@ -1951,14 +1951,14 @@
       "manifest_url": "https://musicmatter.art/sounds/cmaj7-arp-updown-6.nc.json",
       "supplier": {
         "id": null,
-        "display_name": "Petrus",
+        "display_name": "Peter",
         "primary_link": "https://musicmatter.art/"
       },
       "license": {
         "id": "CC-BY-SA-4.0",
         "uri": "https://creativecommons.org/licenses/by-sa/4.0/"
       },
-      "credit_line": "“C major 7th arpeggio (up/down), take 6” by Petrus (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/cmaj7-arp-updown-6.flac",
+      "credit_line": "“C major 7th arpeggio (up/down), take 6” by Peter (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/cmaj7-arp-updown-6.flac",
       "chord": "Cmaj7",
       "arpeggio_cycle": [
         "B3",
@@ -2091,14 +2091,14 @@
       "manifest_url": "https://musicmatter.art/sounds/csus4-arp-updown-4.nc.json",
       "supplier": {
         "id": null,
-        "display_name": "Petrus",
+        "display_name": "Peter",
         "primary_link": "https://musicmatter.art/"
       },
       "license": {
         "id": "CC-BY-SA-4.0",
         "uri": "https://creativecommons.org/licenses/by-sa/4.0/"
       },
-      "credit_line": "“C suspended 4th arpeggio (up/down), take 4” by Petrus (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/csus4-arp-updown-4.flac",
+      "credit_line": "“C suspended 4th arpeggio (up/down), take 4” by Peter (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/csus4-arp-updown-4.flac",
       "chord": "Csus4",
       "arpeggio_cycle": [
         "G4",
@@ -2334,14 +2334,14 @@
       "manifest_url": "https://musicmatter.art/sounds/d7-arp-updown-3.nc.json",
       "supplier": {
         "id": null,
-        "display_name": "Petrus",
+        "display_name": "Peter",
         "primary_link": "https://musicmatter.art/"
       },
       "license": {
         "id": "CC-BY-SA-4.0",
         "uri": "https://creativecommons.org/licenses/by-sa/4.0/"
       },
-      "credit_line": "“D dominant 7th arpeggio (up/down), take 3” by Petrus (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/d7-arp-updown-3.flac",
+      "credit_line": "“D dominant 7th arpeggio (up/down), take 3” by Peter (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/d7-arp-updown-3.flac",
       "chord": "D7",
       "arpeggio_cycle": [
         "C4",
@@ -2474,14 +2474,14 @@
       "manifest_url": "https://musicmatter.art/sounds/d7-arp-updown-5.nc.json",
       "supplier": {
         "id": null,
-        "display_name": "Petrus",
+        "display_name": "Peter",
         "primary_link": "https://musicmatter.art/"
       },
       "license": {
         "id": "CC-BY-SA-4.0",
         "uri": "https://creativecommons.org/licenses/by-sa/4.0/"
       },
-      "credit_line": "“D dominant 7th arpeggio (up/down), take 5” by Petrus (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/d7-arp-updown-5.flac",
+      "credit_line": "“D dominant 7th arpeggio (up/down), take 5” by Peter (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/d7-arp-updown-5.flac",
       "chord": "D7",
       "arpeggio_cycle": [
         "D3",
@@ -2614,14 +2614,14 @@
       "manifest_url": "https://musicmatter.art/sounds/dm7-arp-updown-1.nc.json",
       "supplier": {
         "id": null,
-        "display_name": "Petrus",
+        "display_name": "Peter",
         "primary_link": "https://musicmatter.art/"
       },
       "license": {
         "id": "CC-BY-SA-4.0",
         "uri": "https://creativecommons.org/licenses/by-sa/4.0/"
       },
-      "credit_line": "“D minor 7th arpeggio (up/down), take 1” by Petrus (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/dm7-arp-updown-1.flac",
+      "credit_line": "“D minor 7th arpeggio (up/down), take 1” by Peter (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/dm7-arp-updown-1.flac",
       "chord": "Dm7",
       "arpeggio_cycle": [
         "D4",
@@ -2754,14 +2754,14 @@
       "manifest_url": "https://musicmatter.art/sounds/dm7-arp-updown-6.nc.json",
       "supplier": {
         "id": null,
-        "display_name": "Petrus",
+        "display_name": "Peter",
         "primary_link": "https://musicmatter.art/"
       },
       "license": {
         "id": "CC-BY-SA-4.0",
         "uri": "https://creativecommons.org/licenses/by-sa/4.0/"
       },
-      "credit_line": "“D minor 7th arpeggio (up/down), take 6” by Petrus (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/dm7-arp-updown-6.flac",
+      "credit_line": "“D minor 7th arpeggio (up/down), take 6” by Peter (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/dm7-arp-updown-6.flac",
       "chord": "Dm7",
       "arpeggio_cycle": [
         "C4",
@@ -2992,14 +2992,14 @@
       "manifest_url": "https://musicmatter.art/sounds/dmin-arp-updown-6.nc.json",
       "supplier": {
         "id": null,
-        "display_name": "Petrus",
+        "display_name": "Peter",
         "primary_link": "https://musicmatter.art/"
       },
       "license": {
         "id": "CC-BY-SA-4.0",
         "uri": "https://creativecommons.org/licenses/by-sa/4.0/"
       },
-      "credit_line": "“D minor arpeggio (up/down), take 6” by Petrus (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/dmin-arp-updown-6.flac",
+      "credit_line": "“D minor arpeggio (up/down), take 6” by Peter (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/dmin-arp-updown-6.flac",
       "chord": "Dmin",
       "arpeggio_cycle": [
         "F4",
@@ -3130,14 +3130,14 @@
       "manifest_url": "https://musicmatter.art/sounds/dsharpdim7-arp-updown-4.nc.json",
       "supplier": {
         "id": null,
-        "display_name": "Petrus",
+        "display_name": "Peter",
         "primary_link": "https://musicmatter.art/"
       },
       "license": {
         "id": "CC-BY-SA-4.0",
         "uri": "https://creativecommons.org/licenses/by-sa/4.0/"
       },
-      "credit_line": "“D♯ diminished 7th arpeggio (up/down), take 4” by Petrus (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/dsharpdim7-arp-updown-4.flac",
+      "credit_line": "“D♯ diminished 7th arpeggio (up/down), take 4” by Peter (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/dsharpdim7-arp-updown-4.flac",
       "chord": "D#dim7",
       "arpeggio_cycle": [
         "F#4",
@@ -3270,14 +3270,14 @@
       "manifest_url": "https://musicmatter.art/sounds/fmaj7-arp-updown-3.nc.json",
       "supplier": {
         "id": null,
-        "display_name": "Petrus",
+        "display_name": "Peter",
         "primary_link": "https://musicmatter.art/"
       },
       "license": {
         "id": "CC-BY-SA-4.0",
         "uri": "https://creativecommons.org/licenses/by-sa/4.0/"
       },
-      "credit_line": "“F major 7th arpeggio (up/down), take 3” by Petrus (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/fmaj7-arp-updown-3.flac",
+      "credit_line": "“F major 7th arpeggio (up/down), take 3” by Peter (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/fmaj7-arp-updown-3.flac",
       "chord": "Fmaj7",
       "arpeggio_cycle": [
         "E4",
@@ -3410,14 +3410,14 @@
       "manifest_url": "https://musicmatter.art/sounds/fmaj7-arp-updown-4.nc.json",
       "supplier": {
         "id": null,
-        "display_name": "Petrus",
+        "display_name": "Peter",
         "primary_link": "https://musicmatter.art/"
       },
       "license": {
         "id": "CC-BY-SA-4.0",
         "uri": "https://creativecommons.org/licenses/by-sa/4.0/"
       },
-      "credit_line": "“F major 7th arpeggio (up/down), take 4” by Petrus (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/fmaj7-arp-updown-4.flac",
+      "credit_line": "“F major 7th arpeggio (up/down), take 4” by Peter (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/fmaj7-arp-updown-4.flac",
       "chord": "Fmaj7",
       "arpeggio_cycle": [
         "F4",
@@ -3550,14 +3550,14 @@
       "manifest_url": "https://musicmatter.art/sounds/g7-arp-updown-1.nc.json",
       "supplier": {
         "id": null,
-        "display_name": "Petrus",
+        "display_name": "Peter",
         "primary_link": "https://musicmatter.art/"
       },
       "license": {
         "id": "CC-BY-SA-4.0",
         "uri": "https://creativecommons.org/licenses/by-sa/4.0/"
       },
-      "credit_line": "“G dominant 7th arpeggio (up/down), take 1” by Petrus (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/g7-arp-updown-1.flac",
+      "credit_line": "“G dominant 7th arpeggio (up/down), take 1” by Peter (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/g7-arp-updown-1.flac",
       "chord": "G7",
       "arpeggio_cycle": [
         "B3",
@@ -3690,14 +3690,14 @@
       "manifest_url": "https://musicmatter.art/sounds/g7-arp-updown-2.nc.json",
       "supplier": {
         "id": null,
-        "display_name": "Petrus",
+        "display_name": "Peter",
         "primary_link": "https://musicmatter.art/"
       },
       "license": {
         "id": "CC-BY-SA-4.0",
         "uri": "https://creativecommons.org/licenses/by-sa/4.0/"
       },
-      "credit_line": "“G dominant 7th arpeggio (up/down), take 2” by Petrus (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/g7-arp-updown-2.flac",
+      "credit_line": "“G dominant 7th arpeggio (up/down), take 2” by Peter (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/g7-arp-updown-2.flac",
       "chord": "G7",
       "arpeggio_cycle": [
         "G4",
@@ -4121,14 +4121,14 @@
       "manifest_url": "https://musicmatter.art/sounds/g7-arp-updown-3.nc.json",
       "supplier": {
         "id": null,
-        "display_name": "Petrus",
+        "display_name": "Peter",
         "primary_link": "https://musicmatter.art/"
       },
       "license": {
         "id": "CC-BY-SA-4.0",
         "uri": "https://creativecommons.org/licenses/by-sa/4.0/"
       },
-      "credit_line": "“G dominant 7th arpeggio (up/down), take 3” by Petrus (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/g7-arp-updown-3.flac",
+      "credit_line": "“G dominant 7th arpeggio (up/down), take 3” by Peter (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/g7-arp-updown-3.flac",
       "chord": "G7",
       "arpeggio_cycle": [
         "D4",
@@ -4261,14 +4261,14 @@
       "manifest_url": "https://musicmatter.art/sounds/gdim7-arp-updown-6.nc.json",
       "supplier": {
         "id": null,
-        "display_name": "Petrus",
+        "display_name": "Peter",
         "primary_link": "https://musicmatter.art/"
       },
       "license": {
         "id": "CC-BY-SA-4.0",
         "uri": "https://creativecommons.org/licenses/by-sa/4.0/"
       },
-      "credit_line": "“G diminished 7th arpeggio (up/down), take 6” by Petrus (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/gdim7-arp-updown-6.flac",
+      "credit_line": "“G diminished 7th arpeggio (up/down), take 6” by Peter (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/gdim7-arp-updown-6.flac",
       "chord": "Gdim7",
       "arpeggio_cycle": [
         "G4",
@@ -4401,14 +4401,14 @@
       "manifest_url": "https://musicmatter.art/sounds/gmaj-arp-updown-5.nc.json",
       "supplier": {
         "id": null,
-        "display_name": "Petrus",
+        "display_name": "Peter",
         "primary_link": "https://musicmatter.art/"
       },
       "license": {
         "id": "CC-BY-SA-4.0",
         "uri": "https://creativecommons.org/licenses/by-sa/4.0/"
       },
-      "credit_line": "“G major arpeggio (up/down), take 5” by Petrus (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/gmaj-arp-updown-5.flac",
+      "credit_line": "“G major arpeggio (up/down), take 5” by Peter (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/gmaj-arp-updown-5.flac",
       "chord": "Gmaj",
       "arpeggio_cycle": [
         "B3",
@@ -4539,14 +4539,14 @@
       "manifest_url": "https://musicmatter.art/sounds/gmaj-arp-updown-6.nc.json",
       "supplier": {
         "id": null,
-        "display_name": "Petrus",
+        "display_name": "Peter",
         "primary_link": "https://musicmatter.art/"
       },
       "license": {
         "id": "CC-BY-SA-4.0",
         "uri": "https://creativecommons.org/licenses/by-sa/4.0/"
       },
-      "credit_line": "“G major arpeggio (up/down), take 6” by Petrus (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/gmaj-arp-updown-6.flac",
+      "credit_line": "“G major arpeggio (up/down), take 6” by Peter (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/gmaj-arp-updown-6.flac",
       "chord": "Gmaj",
       "arpeggio_cycle": [
         "G4",
@@ -4677,14 +4677,14 @@
       "manifest_url": "https://musicmatter.art/sounds/gsus4-arp-updown-2.nc.json",
       "supplier": {
         "id": null,
-        "display_name": "Petrus",
+        "display_name": "Peter",
         "primary_link": "https://musicmatter.art/"
       },
       "license": {
         "id": "CC-BY-SA-4.0",
         "uri": "https://creativecommons.org/licenses/by-sa/4.0/"
       },
-      "credit_line": "“G suspended 4th arpeggio (up/down), take 2” by Petrus (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/gsus4-arp-updown-2.flac",
+      "credit_line": "“G suspended 4th arpeggio (up/down), take 2” by Peter (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/gsus4-arp-updown-2.flac",
       "chord": "Gsus4",
       "arpeggio_cycle": [
         "G4",
@@ -4910,7 +4910,7 @@
     "distinct_sounds": 26,
     "total_uses": 74,
     "suppliers": [
-      "Petrus"
+      "Peter"
     ]
   },
   "derived_inputs": {
@@ -4925,7 +4925,7 @@
         "attribution": "required, given in the credits"
       },
       {
-        "what": "26 arpeggio offerings by Petrus (musicmatter.art)",
+        "what": "26 arpeggio offerings by Peter (musicmatter.art)",
         "license": "CC-BY-SA-4.0",
         "attribution": "required, given per sound"
       },
@@ -4942,7 +4942,7 @@
     "rejected_present": [],
     "check": "OK: every input is public domain or CC BY-SA 4.0, none NC/ND, so the output can be CC BY-SA 4.0 (share-alike satisfied, attribution given)."
   },
-  "attribution": "“The C major Prelude, harmony only (after Bach, BWV 846)”, NetComposer Performance perf_bwv846-take6_arps_dly_lp1k, composed by Petrus after J.S. Bach (public domain), with harmonic analysis from When in Rome by Mark Gotham et al. (CC BY-SA 4.0, github.com/MarkGotham/When-in-Rome). Performed by the NetComposer Algorithmic Performer (Astrid) from 26 arpeggio recordings by Petrus (musicmatter.art, CC BY-SA 4.0). Licensed CC BY-SA 4.0, https://creativecommons.org/licenses/by-sa/4.0/",
+  "attribution": "“The C major Prelude, harmony only (after Bach, BWV 846)”, NetComposer Performance perf_bwv846-take6_arps_dly_lp1k, composed by Peter after J.S. Bach (public domain), with harmonic analysis from When in Rome by Mark Gotham et al. (CC BY-SA 4.0, github.com/MarkGotham/When-in-Rome). Performed by the NetComposer Algorithmic Performer (Astrid) from 26 arpeggio recordings by Peter (musicmatter.art, CC BY-SA 4.0). Licensed CC BY-SA 4.0, https://creativecommons.org/licenses/by-sa/4.0/",
   "provenance_files": {
     "render_script": {
       "path": "bach/render6_arps_dly_lp1k.py",
@@ -4981,6 +4981,14 @@
   "record_hash": {
     "algorithm": "sha256",
     "over": "canonical JSON (sorted keys, no whitespace) of the record without record_hash and signature",
-    "value": "06c7022509c4c760263f3ab68ee264f83c055129c095fb609cc08a9acbe941b2"
-  }
+    "value": "c1f64dbf2d9e62ceb0caac9e79028b7ffee4d2672fc112ceec31714f8b42e8fb"
+  },
+  "amendments": [
+    {
+      "at": "2026-10-17T19:29:52-07:00",
+      "what": "Contributor display name changed from 'Petrus' to 'Peter' (Peter Semmelhack) for netcomposer.art, at his request. No audio, input, setting or other field changed.",
+      "previous_record_hash": "06c7022509c4c760263f3ab68ee264f83c055129c095fb609cc08a9acbe941b2",
+      "original_record": "unchanged in the NetComposer working files"
+    }
+  ]
 }

@@ -2,7 +2,7 @@
 
 > Music performed by the open internet. A Composition sets the harmony, structure, and tempo shape; a Performer realizes it from openly licensed audio the crawlers find; every performance leaves a public record.
 
-Statement, Petrus Semmelhack: “Music’s structure can be described mathematically. There is art in the math, and there is art in the performance. NetComposer is my exploration of that duality.”
+Statement, Peter Semmelhack: “Music’s structure can be described mathematically. There is art in the math, and there is art in the performance. NetComposer is my exploration of that duality.”
 
 Art and research project. Output license: CC BY-SA 4.0. Accepted inputs: CC0, CC BY, CC BY-SA, public domain. Rejected: NC, ND, Sampling+, custom. No pitch-shifting; time-stretch allowed.
 
@@ -19,8 +19,10 @@ Art and research project. Output license: CC BY-SA 4.0. Accepted inputs: CC0, CC
 - [The C major Prelude, harmony only (after Bach, BWV 846): take 5, forward/reverse echo](https://netcomposer.art/audio/bwv846-take5-fwd-rev-echo.mp3): record [https://netcomposer.art/records/bwv846-take5-fwd-rev-echo.json](https://netcomposer.art/records/bwv846-take5-fwd-rev-echo.json). Chord strikes from musicmatter.art, two per bar. Each strike also plays reversed, swelling into the next. Hall 40%, 24 dB/oct low-pass swept 500 Hz → 20 kHz → 600 Hz.
 - [The C major Prelude, harmony only (after Bach, BWV 846): take 6 arps, 1/4 delay, hall 25%, LP 1 kHz](https://netcomposer.art/audio/bwv846-take6-arps-delay-lp1k.mp3): record [https://netcomposer.art/records/bwv846-take6-arps-delay-lp1k.json](https://netcomposer.art/records/bwv846-take6-arps-delay-lp1k.json). Up/down arpeggios from musicmatter.art, time-stretched to the half bar. 1/4 delay 40% fb, hall 25%, LP 1 kHz 24 dB/oct.
 - [The C major Prelude, harmony only (after Bach, BWV 846): search-driven take](https://netcomposer.art/audio/bwv846-search.mp3): record [https://netcomposer.art/records/bwv846-search.json](https://netcomposer.art/records/bwv846-search.json). Only the chords are fixed. Rhythm and figure contour come from the onsets of sounds the crawler found; notes, beds and bass are found sounds (no pitch-shift). Hall 30%.
+- [The C major Prelude, harmony only (after Bach, BWV 846): crawl walk](https://netcomposer.art/audio/bwv846-walk.mp3): record [https://netcomposer.art/records/bwv846-walk.json](https://netcomposer.art/records/bwv846-walk.json). The timbre travels. Each bar's sounds were found by following links from the previous bar's: similar sounds, tags, packs, users, then out to Wikimedia Commons and the Internet Archive. Rhythm rotates with them. Only the chords are fixed. Hall 30%.
 
 ## Suppliers
 
-- [musicmatter.art](https://musicmatter.art/) by Petrus Semmelhack: 1,356 FLAC chord sounds, CC BY-SA 4.0. Index: https://musicmatter.art/netcomposer.json
+- [musicmatter.art](https://musicmatter.art/) by Peter Semmelhack: 1,356 FLAC chord sounds, CC BY-SA 4.0. Index: https://musicmatter.art/netcomposer.json
 - [Freesound](https://freesound.org/): searched via API, CC0 and CC BY only
+- [Wikimedia Commons](https://commons.wikimedia.org/) and [Internet Archive](https://archive.org/): reached by the crawl walk; per-file license check

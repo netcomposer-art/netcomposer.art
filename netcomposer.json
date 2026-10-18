@@ -6,7 +6,7 @@
   "tagline": "Music performed by the open internet.",
   "statement": {
     "text": "Music’s structure can be described mathematically. There is art in the math, and there is art in the performance. NetComposer is my exploration of that duality.",
-    "by": "Petrus Semmelhack"
+    "by": "Peter Semmelhack"
   },
   "kind": "art and research project",
   "license_out": {
@@ -39,9 +39,9 @@
     {
       "id": "bwv846-harmony-only",
       "title": "The C major Prelude, harmony only (after Bach, BWV 846)",
-      "composer": "Petrus",
+      "composer": "Peter",
       "text": "https://netcomposer.art/composition/bwv846-harmony-only.md",
-      "sha256": "f63acadc04937a289a2f51c96386a0ae92de8f7fba00c69a16a038632b9b43d5",
+      "sha256": "84498ef5a094142d73d7171b6a1ea00acaefe180247bb12eb074d49d7de80430",
       "meter": "4/4",
       "bars": 35,
       "tempo_bpm": 69,
@@ -73,12 +73,12 @@
             "json": "https://netcomposer.art/records/bwv846-take5-fwd-rev-echo.json",
             "html": "https://netcomposer.art/records/bwv846-take5-fwd-rev-echo.html",
             "md": "https://netcomposer.art/records/bwv846-take5-fwd-rev-echo.md",
-            "record_hash_sha256": "d17c38ba79ba9451cb58ef993201693289aaf2122ec80933764d345826e11340",
+            "record_hash_sha256": "bdac1317881a82dd1467240291eb0e5a7ab0a11c4f418b6ef2c53384082c36ca",
             "signature": "UNSIGNED (open decision #33)"
           },
           "contributors": [
             {
-              "name": "Petrus",
+              "name": "Peter",
               "link": "https://musicmatter.art/",
               "licenses": [
                 "CC BY-SA 4.0"
@@ -97,12 +97,12 @@
             "json": "https://netcomposer.art/records/bwv846-take6-arps-delay-lp1k.json",
             "html": "https://netcomposer.art/records/bwv846-take6-arps-delay-lp1k.html",
             "md": "https://netcomposer.art/records/bwv846-take6-arps-delay-lp1k.md",
-            "record_hash_sha256": "06c7022509c4c760263f3ab68ee264f83c055129c095fb609cc08a9acbe941b2",
+            "record_hash_sha256": "c1f64dbf2d9e62ceb0caac9e79028b7ffee4d2672fc112ceec31714f8b42e8fb",
             "signature": "UNSIGNED (open decision #33)"
           },
           "contributors": [
             {
-              "name": "Petrus",
+              "name": "Peter",
               "link": "https://musicmatter.art/",
               "licenses": [
                 "CC BY-SA 4.0"
@@ -122,7 +122,7 @@
             "html": "https://netcomposer.art/records/bwv846-search.html",
             "md": "https://netcomposer.art/records/bwv846-search.md",
             "png": "https://netcomposer.art/records/bwv846-search.png",
-            "record_hash_sha256": "c8d51fe5c92c1ce55cacbda1e01f374b0a7927b90c67259e8d2a4cc3c122340b",
+            "record_hash_sha256": "bf1e0e63fc8717064c2f9a5a5dfb27a0a9674e62d1f1c83d74d8dcca231ac148",
             "signature": "UNSIGNED (open decision #33)"
           },
           "contributors": [
@@ -268,6 +268,1663 @@
             }
           ],
           "license": "CC-BY-SA-4.0"
+        },
+        {
+          "id": "perf_bwv846-walk",
+          "title": "The C major Prelude, harmony only (after Bach, BWV 846): crawl walk",
+          "audio": "https://netcomposer.art/audio/bwv846-walk.mp3",
+          "duration_s": 125.852,
+          "settings": "The timbre travels. Each bar's sounds were found by following links from the previous bar's: similar sounds, tags, packs, users, then out to Wikimedia Commons and the Internet Archive. Rhythm rotates with them. Only the chords are fixed. Hall 30%.",
+          "record": {
+            "json": "https://netcomposer.art/records/bwv846-walk.json",
+            "html": "https://netcomposer.art/records/bwv846-walk.html",
+            "md": "https://netcomposer.art/records/bwv846-walk.md",
+            "png": "https://netcomposer.art/records/bwv846-walk.png",
+            "record_hash_sha256": "ede74c6751c4da03c64f62df2067d7b564971a3cb68eca48188bd670a4d57bfb",
+            "signature": "UNSIGNED (open decision #33)"
+          },
+          "contributors": [
+            {
+              "name": "blukotek",
+              "link": "https://freesound.org/people/blukotek/",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "cabled_mess",
+              "link": "https://freesound.org/people/cabled_mess/",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "JamieBlam",
+              "link": "https://freesound.org/people/JamieBlam/",
+              "licenses": [
+                "CC BY 3.0"
+              ]
+            },
+            {
+              "name": "EagleStealthTeam",
+              "link": "https://freesound.org/people/EagleStealthTeam/",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "panosktn",
+              "link": "https://freesound.org/people/panosktn/",
+              "licenses": [
+                "CC BY 4.0"
+              ]
+            },
+            {
+              "name": "pmedig",
+              "link": "https://freesound.org/people/pmedig/",
+              "licenses": [
+                "CC BY 4.0"
+              ]
+            },
+            {
+              "name": "beskhu",
+              "link": "https://freesound.org/people/beskhu/",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "hollandm",
+              "link": "https://freesound.org/people/hollandm/",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "sgossner",
+              "link": "https://freesound.org/people/sgossner/",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "DANMITCH3LL",
+              "link": "https://freesound.org/people/DANMITCH3LL/",
+              "licenses": [
+                "CC BY 4.0"
+              ]
+            },
+            {
+              "name": "atonia",
+              "link": "https://freesound.org/people/atonia/",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "Zodoz",
+              "link": "https://freesound.org/people/Zodoz/",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "reacthor",
+              "link": "https://freesound.org/people/reacthor/",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "fran_ky",
+              "link": "https://freesound.org/people/fran_ky/",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "1LOVE",
+              "link": "https://freesound.org/people/1LOVE/",
+              "licenses": [
+                "CC BY 4.0"
+              ]
+            },
+            {
+              "name": "Jghoffman418",
+              "link": "https://freesound.org/people/Jghoffman418/",
+              "licenses": [
+                "CC BY 4.0"
+              ]
+            },
+            {
+              "name": "PhonosUPF",
+              "link": "https://freesound.org/people/PhonosUPF/",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "Komponist",
+              "link": "https://freesound.org/people/Komponist/",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "LilMati",
+              "link": "https://freesound.org/people/LilMati/",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "blikmusic",
+              "link": "https://freesound.org/people/blikmusic/",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "CVLTIV8R",
+              "link": "https://freesound.org/people/CVLTIV8R/",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "Oliver_555",
+              "link": "https://freesound.org/people/Oliver_555/",
+              "licenses": [
+                "CC BY 4.0"
+              ]
+            },
+            {
+              "name": "holizna",
+              "link": "https://freesound.org/people/holizna/",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "AdamGoik",
+              "link": "https://freesound.org/people/AdamGoik/",
+              "licenses": [
+                "CC BY 4.0"
+              ]
+            },
+            {
+              "name": "sonically_sound",
+              "link": "https://freesound.org/people/sonically_sound/",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "xserra",
+              "link": "https://freesound.org/people/xserra/",
+              "licenses": [
+                "CC BY 4.0"
+              ]
+            },
+            {
+              "name": "cookies+policy",
+              "link": "https://freesound.org/people/cookies+policy/",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "nickgar",
+              "link": "https://freesound.org/people/nickgar/",
+              "licenses": [
+                "CC BY 3.0"
+              ]
+            },
+            {
+              "name": "milton.",
+              "link": "https://freesound.org/people/milton./",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "f-r-a-g-i-l-e",
+              "link": "https://freesound.org/people/f-r-a-g-i-l-e/",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "chromakei",
+              "link": "https://freesound.org/people/chromakei/",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "skylar.mianlind",
+              "link": "https://freesound.org/people/skylar.mianlind/",
+              "licenses": [
+                "CC BY 4.0"
+              ]
+            },
+            {
+              "name": "klankbeeld",
+              "link": "https://freesound.org/people/klankbeeld/",
+              "licenses": [
+                "CC BY 4.0"
+              ]
+            },
+            {
+              "name": "Soughtaftersounds",
+              "link": "https://freesound.org/people/Soughtaftersounds/",
+              "licenses": [
+                "CC BY 3.0"
+              ]
+            },
+            {
+              "name": "Jagadamba",
+              "link": "https://freesound.org/people/Jagadamba/",
+              "licenses": [
+                "CC BY 4.0"
+              ]
+            },
+            {
+              "name": "NoiseCollector",
+              "link": "https://freesound.org/people/NoiseCollector/",
+              "licenses": [
+                "CC BY 3.0"
+              ]
+            },
+            {
+              "name": "LakorpSound",
+              "link": "https://freesound.org/people/LakorpSound/",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "deleted_user_13502068",
+              "link": "https://freesound.org/people/deleted_user_13502068/",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "IEDLabs",
+              "link": "https://freesound.org/people/IEDLabs/",
+              "licenses": [
+                "CC BY 4.0"
+              ]
+            },
+            {
+              "name": "zimbot",
+              "link": "https://freesound.org/people/zimbot/",
+              "licenses": [
+                "CC BY 4.0"
+              ]
+            },
+            {
+              "name": "LuizMouraBr",
+              "link": "https://freesound.org/people/LuizMouraBr/",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "DrTrumpet, Roland Bades (declaration of consent)",
+              "link": "https://commons.wikimedia.org/wiki/File:Klangdemonstration_Clackamore.wav",
+              "licenses": [
+                "CC BY-SA 4.0"
+              ]
+            },
+            {
+              "name": "juskiddink",
+              "link": "https://freesound.org/people/juskiddink/",
+              "licenses": [
+                "CC BY 4.0"
+              ]
+            },
+            {
+              "name": "klippersfx",
+              "link": "https://freesound.org/people/klippersfx/",
+              "licenses": [
+                "CC BY 4.0"
+              ]
+            },
+            {
+              "name": "SilverIllusionist",
+              "link": "https://freesound.org/people/SilverIllusionist/",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "timgormly",
+              "link": "https://freesound.org/people/timgormly/",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "newagesoup",
+              "link": "https://freesound.org/people/newagesoup/",
+              "licenses": [
+                "CC BY 4.0"
+              ]
+            },
+            {
+              "name": "dobroide",
+              "link": "https://freesound.org/people/dobroide/",
+              "licenses": [
+                "CC BY 4.0"
+              ]
+            },
+            {
+              "name": "InspectorJ",
+              "link": "https://freesound.org/people/InspectorJ/",
+              "licenses": [
+                "CC BY 4.0"
+              ]
+            },
+            {
+              "name": "AlphaDarkWolf",
+              "link": "https://freesound.org/people/AlphaDarkWolf/",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "ondrosik",
+              "link": "https://freesound.org/people/ondrosik/",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "KAMARIN",
+              "link": "https://freesound.org/people/KAMARIN/",
+              "licenses": [
+                "CC BY 4.0"
+              ]
+            },
+            {
+              "name": "gaiterjay",
+              "link": "https://freesound.org/people/gaiterjay/",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "Rolly-SFX",
+              "link": "https://freesound.org/people/Rolly-SFX/",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "saphe",
+              "link": "https://freesound.org/people/saphe/",
+              "licenses": [
+                "CC BY 4.0"
+              ]
+            },
+            {
+              "name": "Flying_Deer_Fx",
+              "link": "https://freesound.org/people/Flying_Deer_Fx/",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "rap2h",
+              "link": "https://freesound.org/people/rap2h/",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "neilraouf",
+              "link": "https://freesound.org/people/neilraouf/",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "Helen Keller",
+              "link": "https://commons.wikimedia.org/wiki/File:Helen_Keller_-_The_Story_of_My_Life_(Recording_A)_Part_13.mp3",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "LG",
+              "link": "https://freesound.org/people/LG/",
+              "licenses": [
+                "CC BY 4.0"
+              ]
+            },
+            {
+              "name": "ZekiFoxx",
+              "link": "https://freesound.org/people/ZekiFoxx/",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "dansayshi",
+              "link": "https://freesound.org/people/dansayshi/",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "ashassin",
+              "link": "https://freesound.org/people/ashassin/",
+              "licenses": [
+                "CC BY 3.0"
+              ]
+            },
+            {
+              "name": "outerandeventhorizon",
+              "link": "https://freesound.org/people/outerandeventhorizon/",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "nebulousflynn",
+              "link": "https://freesound.org/people/nebulousflynn/",
+              "licenses": [
+                "CC BY 4.0"
+              ]
+            },
+            {
+              "name": "xtrgamr",
+              "link": "https://freesound.org/people/xtrgamr/",
+              "licenses": [
+                "CC BY 4.0"
+              ]
+            },
+            {
+              "name": "Oh_my_dear_deer",
+              "link": "https://freesound.org/people/Oh_my_dear_deer/",
+              "licenses": [
+                "CC BY 4.0"
+              ]
+            },
+            {
+              "name": "Bak",
+              "link": "https://archive.org/details/pandacd-2071-haikeloops",
+              "licenses": [
+                "CC BY-SA 3.0"
+              ]
+            },
+            {
+              "name": "Bram",
+              "link": "https://freesound.org/people/Bram/",
+              "licenses": [
+                "CC BY 4.0"
+              ]
+            },
+            {
+              "name": "RachelEzell272744_LM4",
+              "link": "https://freesound.org/people/RachelEzell272744_LM4/",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "MaestroALF",
+              "link": "https://freesound.org/people/MaestroALF/",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "vita898",
+              "link": "https://freesound.org/people/vita898/",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "_SmoKer_",
+              "link": "https://freesound.org/people/_SmoKer_/",
+              "licenses": [
+                "CC BY 3.0"
+              ]
+            },
+            {
+              "name": "tusic99",
+              "link": "https://freesound.org/people/tusic99/",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "rico100",
+              "link": "https://freesound.org/people/rico100/",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "marianna-emma",
+              "link": "https://freesound.org/people/marianna-emma/",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "Marcperezz",
+              "link": "https://commons.wikimedia.org/wiki/File:Flute_Melody_Vibrato.wav",
+              "licenses": [
+                "CC BY-SA 4.0"
+              ]
+            },
+            {
+              "name": "Antti Luode",
+              "link": "https://commons.wikimedia.org/wiki/File:Tune_Out_(Antti_Luode).mp3",
+              "licenses": [
+                "CC BY 3.0"
+              ]
+            },
+            {
+              "name": "pandorabox02",
+              "link": "https://freesound.org/people/pandorabox02/",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "@realdavidfloat",
+              "link": "https://freesound.org/people/@realdavidfloat/",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "Calethos",
+              "link": "https://freesound.org/people/Calethos/",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "orginaljun",
+              "link": "https://freesound.org/people/orginaljun/",
+              "licenses": [
+                "CC BY 4.0"
+              ]
+            },
+            {
+              "name": "elvish_paisley",
+              "link": "https://freesound.org/people/elvish_paisley/",
+              "licenses": [
+                "CC BY 4.0"
+              ]
+            },
+            {
+              "name": "meganberger",
+              "link": "https://freesound.org/people/meganberger/",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "psynaptix",
+              "link": "https://freesound.org/people/psynaptix/",
+              "licenses": [
+                "CC BY 4.0"
+              ]
+            },
+            {
+              "name": "composingatnight",
+              "link": "https://freesound.org/people/composingatnight/",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "shawn200110",
+              "link": "https://freesound.org/people/shawn200110/",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "ManuelGraf",
+              "link": "https://freesound.org/people/ManuelGraf/",
+              "licenses": [
+                "CC BY 4.0"
+              ]
+            },
+            {
+              "name": "Anthony Mark LaMort",
+              "link": "https://archive.org/details/OrganImprovisationSicilianMariners",
+              "licenses": [
+                "CC BY 3.0"
+              ]
+            },
+            {
+              "name": "YellowTree",
+              "link": "https://freesound.org/people/YellowTree/",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "D4XX",
+              "link": "https://freesound.org/people/D4XX/",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "BeeProductive",
+              "link": "https://freesound.org/people/BeeProductive/",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "kejkz",
+              "link": "https://freesound.org/people/kejkz/",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "ZHRØ",
+              "link": "https://freesound.org/people/ZHRØ/",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "Tristan",
+              "link": "https://freesound.org/people/Tristan/",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "K.W.555",
+              "link": "https://freesound.org/people/K.W.555/",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "nomiqbomi",
+              "link": "https://freesound.org/people/nomiqbomi/",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "erger562",
+              "link": "https://freesound.org/people/erger562/",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "kaydinhamby",
+              "link": "https://freesound.org/people/kaydinhamby/",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "Robo9418",
+              "link": "https://freesound.org/people/Robo9418/",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "bbatv",
+              "link": "https://freesound.org/people/bbatv/",
+              "licenses": [
+                "CC BY 3.0"
+              ]
+            },
+            {
+              "name": "pogmothoin",
+              "link": "https://freesound.org/people/pogmothoin/",
+              "licenses": [
+                "CC BY 4.0"
+              ]
+            },
+            {
+              "name": "sdotlyre",
+              "link": "https://freesound.org/people/sdotlyre/",
+              "licenses": [
+                "CC BY 4.0"
+              ]
+            },
+            {
+              "name": "nettuli",
+              "link": "https://freesound.org/people/nettuli/",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "el_boss",
+              "link": "https://freesound.org/people/el_boss/",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "lori.mortimer",
+              "link": "https://freesound.org/people/lori.mortimer/",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "soundofsong",
+              "link": "https://freesound.org/people/soundofsong/",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "phantastonia",
+              "link": "https://freesound.org/people/phantastonia/",
+              "licenses": [
+                "CC BY 4.0",
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "skoul",
+              "link": "https://freesound.org/people/skoul/",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "cummingtt",
+              "link": "https://freesound.org/people/cummingtt/",
+              "licenses": [
+                "CC BY 4.0"
+              ]
+            },
+            {
+              "name": "pschrandt",
+              "link": "https://freesound.org/people/pschrandt/",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "musicbrain",
+              "link": "https://freesound.org/people/musicbrain/",
+              "licenses": [
+                "CC BY 4.0"
+              ]
+            },
+            {
+              "name": "aceinet",
+              "link": "https://freesound.org/people/aceinet/",
+              "licenses": [
+                "CC BY 4.0"
+              ]
+            },
+            {
+              "name": "Doctor_Dreamchip",
+              "link": "https://freesound.org/people/Doctor_Dreamchip/",
+              "licenses": [
+                "CC BY 4.0"
+              ]
+            },
+            {
+              "name": "bassboybg",
+              "link": "https://freesound.org/people/bassboybg/",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "amishaque",
+              "link": "https://freesound.org/people/amishaque/",
+              "licenses": [
+                "CC BY 3.0"
+              ]
+            },
+            {
+              "name": "Carla Scaletti",
+              "link": "https://commons.wikimedia.org/wiki/File:Cat6_mgg126p5_pTt70.wav",
+              "licenses": [
+                "CC BY-SA 4.0"
+              ]
+            },
+            {
+              "name": "cms4f",
+              "link": "https://freesound.org/people/cms4f/",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "bbberg",
+              "link": "https://freesound.org/people/bbberg/",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "Valerie-Vivegnis",
+              "link": "https://freesound.org/people/Valerie-Vivegnis/",
+              "licenses": [
+                "CC BY 4.0"
+              ]
+            },
+            {
+              "name": "Gorkovoy",
+              "link": "https://freesound.org/people/Gorkovoy/",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "mannhawks",
+              "link": "https://freesound.org/people/mannhawks/",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "kevp888",
+              "link": "https://freesound.org/people/kevp888/",
+              "licenses": [
+                "CC BY 4.0"
+              ]
+            },
+            {
+              "name": "Elandre01",
+              "link": "https://freesound.org/people/Elandre01/",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "designerschoice",
+              "link": "https://freesound.org/people/designerschoice/",
+              "licenses": [
+                "CC BY 4.0"
+              ]
+            },
+            {
+              "name": "Shangyne",
+              "link": "https://freesound.org/people/Shangyne/",
+              "licenses": [
+                "CC BY 3.0"
+              ]
+            },
+            {
+              "name": "Streetpoptunez",
+              "link": "https://freesound.org/people/Streetpoptunez/",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "SoundBiterSFX",
+              "link": "https://freesound.org/people/SoundBiterSFX/",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "bevibeldesign",
+              "link": "https://freesound.org/people/bevibeldesign/",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "vanessa.oo",
+              "link": "https://freesound.org/people/vanessa.oo/",
+              "licenses": [
+                "CC BY 3.0"
+              ]
+            },
+            {
+              "name": "Arielinson",
+              "link": "https://commons.wikimedia.org/wiki/File:%D7%94%D7%A7%D7%9C%D7%98%D7%94_%D7%99%D7%95%D7%A8%D7%9D_%D7%9C%D7%A1.flac",
+              "licenses": [
+                "CC BY-SA 4.0"
+              ]
+            },
+            {
+              "name": "SoundFlakes",
+              "link": "https://freesound.org/people/SoundFlakes/",
+              "licenses": [
+                "CC BY 4.0"
+              ]
+            },
+            {
+              "name": "MarcelineTheVampireQueen",
+              "link": "https://freesound.org/people/MarcelineTheVampireQueen/",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "haulaway",
+              "link": "https://freesound.org/people/haulaway/",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "qubodup",
+              "link": "https://freesound.org/people/qubodup/",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "Jovica",
+              "link": "https://freesound.org/people/Jovica/",
+              "licenses": [
+                "CC BY 4.0"
+              ]
+            },
+            {
+              "name": "Empiremonkey",
+              "link": "https://freesound.org/people/Empiremonkey/",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "EleonoraAndEthelOlson_987",
+              "link": "https://archive.org/details/EleonoraAndEthelOlson_987",
+              "licenses": [
+                "Public domain"
+              ]
+            },
+            {
+              "name": "nlux",
+              "link": "https://freesound.org/people/nlux/",
+              "licenses": [
+                "CC BY 4.0"
+              ]
+            },
+            {
+              "name": "modularsamples",
+              "link": "https://freesound.org/people/modularsamples/",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "GODDOG",
+              "link": "https://archive.org/details/jamendo-308534",
+              "licenses": [
+                "CC BY 3.0"
+              ]
+            },
+            {
+              "name": "David R Merry",
+              "link": "https://archive.org/details/DavidRMerryUntilDawnDrums",
+              "licenses": [
+                "CC BY-SA 2.0"
+              ]
+            },
+            {
+              "name": "ldk1609",
+              "link": "https://freesound.org/people/ldk1609/",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "hammondman",
+              "link": "https://freesound.org/people/hammondman/",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "Sherri Voigt",
+              "link": "https://archive.org/details/Listen32913",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "Vylet Pony",
+              "link": "https://archive.org/details/vylet-pony-love-ponystep",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "deleted_user_4338788",
+              "link": "https://freesound.org/people/deleted_user_4338788/",
+              "licenses": [
+                "CC BY 3.0"
+              ]
+            },
+            {
+              "name": "EEE3333E",
+              "link": "https://freesound.org/people/EEE3333E/",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "Anoesj",
+              "link": "https://freesound.org/people/Anoesj/",
+              "licenses": [
+                "CC BY 4.0"
+              ]
+            },
+            {
+              "name": "Cunningar0807",
+              "link": "https://freesound.org/people/Cunningar0807/",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "harrisonlace",
+              "link": "https://freesound.org/people/harrisonlace/",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "paulprio",
+              "link": "https://freesound.org/people/paulprio/",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "Stohgs",
+              "link": "https://freesound.org/people/Stohgs/",
+              "licenses": [
+                "CC BY 3.0"
+              ]
+            },
+            {
+              "name": "original_sound",
+              "link": "https://freesound.org/people/original_sound/",
+              "licenses": [
+                "CC BY 3.0"
+              ]
+            },
+            {
+              "name": "mrsjones",
+              "link": "https://freesound.org/people/mrsjones/",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "yu08723",
+              "link": "https://freesound.org/people/yu08723/",
+              "licenses": [
+                "CC BY 3.0"
+              ]
+            },
+            {
+              "name": "ajaysm",
+              "link": "https://freesound.org/people/ajaysm/",
+              "licenses": [
+                "CC BY 4.0"
+              ]
+            },
+            {
+              "name": "itinerantmonk108",
+              "link": "https://freesound.org/people/itinerantmonk108/",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "sarman1234",
+              "link": "https://freesound.org/people/sarman1234/",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "tim.kahn",
+              "link": "https://freesound.org/people/tim.kahn/",
+              "licenses": [
+                "CC BY 4.0"
+              ]
+            },
+            {
+              "name": "Music by Michael J. Burkard",
+              "link": "https://commons.wikimedia.org/wiki/File:Instrumental_Oriental_Music_of_India.webm",
+              "licenses": [
+                "CC BY 3.0"
+              ]
+            },
+            {
+              "name": "TheFlyFishingFilmmaker",
+              "link": "https://freesound.org/people/TheFlyFishingFilmmaker/",
+              "licenses": [
+                "CC BY 4.0"
+              ]
+            },
+            {
+              "name": "Andrew Duke",
+              "link": "https://freesound.org/people/Andrew Duke/",
+              "licenses": [
+                "CC BY 3.0"
+              ]
+            },
+            {
+              "name": "pe_mace",
+              "link": "https://freesound.org/people/pe_mace/",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "MeloMuzika",
+              "link": "https://freesound.org/people/MeloMuzika/",
+              "licenses": [
+                "CC BY 3.0"
+              ]
+            },
+            {
+              "name": "MTG",
+              "link": "https://freesound.org/people/MTG/",
+              "licenses": [
+                "CC BY 3.0"
+              ]
+            },
+            {
+              "name": "TeffyD1",
+              "link": "https://freesound.org/people/TeffyD1/",
+              "licenses": [
+                "CC BY 4.0"
+              ]
+            },
+            {
+              "name": "MJanneman",
+              "link": "https://freesound.org/people/MJanneman/",
+              "licenses": [
+                "CC BY 4.0"
+              ]
+            },
+            {
+              "name": "tootoos24",
+              "link": "https://freesound.org/people/tootoos24/",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "basta.poland",
+              "link": "https://freesound.org/people/basta.poland/",
+              "licenses": [
+                "CC BY 3.0"
+              ]
+            },
+            {
+              "name": "mickleness",
+              "link": "https://freesound.org/people/mickleness/",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "nikviolinist97",
+              "link": "https://freesound.org/people/nikviolinist97/",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "ken788",
+              "link": "https://freesound.org/people/ken788/",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "SkibkaMusic",
+              "link": "https://freesound.org/people/SkibkaMusic/",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "AlixTwix6",
+              "link": "https://freesound.org/people/AlixTwix6/",
+              "licenses": [
+                "CC BY 4.0"
+              ]
+            },
+            {
+              "name": "WelvynZPorterSamples",
+              "link": "https://freesound.org/people/WelvynZPorterSamples/",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "liezen3",
+              "link": "https://freesound.org/people/liezen3/",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "code_box",
+              "link": "https://freesound.org/people/code_box/",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "Briareus",
+              "link": "https://freesound.org/people/Briareus/",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "unknown",
+              "link": "https://commons.wikimedia.org/wiki/File:Assembly_-_Concert_Band_-_United_States_Air_Force_Band.mp3",
+              "licenses": [
+                "Public domain"
+              ]
+            },
+            {
+              "name": "USN Band",
+              "link": "https://commons.wikimedia.org/wiki/File:%22Assembly%22.mp3",
+              "licenses": [
+                "Public domain"
+              ]
+            },
+            {
+              "name": "Nightlife999",
+              "link": "https://freesound.org/people/Nightlife999/",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "Victor_Natas",
+              "link": "https://freesound.org/people/Victor_Natas/",
+              "licenses": [
+                "CC BY 4.0"
+              ]
+            },
+            {
+              "name": "TurnsworthCourtRehearsals052714",
+              "link": "https://archive.org/details/TurnsworthCourtRehearsals052714",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "se2001",
+              "link": "https://freesound.org/people/se2001/",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "TurnsworthCourtRehearsal111213",
+              "link": "https://archive.org/details/TurnsworthCourtRehearsal111213",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "CAT-FOX_ALEX",
+              "link": "https://freesound.org/people/CAT-FOX_ALEX/",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "sydmj07",
+              "link": "https://freesound.org/people/sydmj07/",
+              "licenses": [
+                "CC BY 3.0"
+              ]
+            },
+            {
+              "name": "emjaydabayou",
+              "link": "https://freesound.org/people/emjaydabayou/",
+              "licenses": [
+                "CC BY 4.0"
+              ]
+            },
+            {
+              "name": "djnomore",
+              "link": "https://freesound.org/people/djnomore/",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "Zankurō",
+              "link": "https://freesound.org/people/Zankurō/",
+              "licenses": [
+                "CC BY 4.0"
+              ]
+            },
+            {
+              "name": "szegvari",
+              "link": "https://freesound.org/people/szegvari/",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "masa_murra",
+              "link": "https://freesound.org/people/masa_murra/",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "wilLOCK",
+              "link": "https://freesound.org/people/wilLOCK/",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "jalastram",
+              "link": "https://freesound.org/people/jalastram/",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "C. Luckyth Roberts",
+              "link": "https://commons.wikimedia.org/wiki/File:%22The_Tremolo_Trot%22,_by_C._Luckyth_Roberts_(1914).mp3",
+              "licenses": [
+                "Public domain"
+              ]
+            },
+            {
+              "name": "__stone__",
+              "link": "https://freesound.org/people/__stone__/",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "Styroks",
+              "link": "https://commons.wikimedia.org/wiki/File:Tremolo.wav",
+              "licenses": [
+                "CC BY-SA 4.0"
+              ]
+            },
+            {
+              "name": "DeVern",
+              "link": "https://freesound.org/people/DeVern/",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "wi-photos",
+              "link": "https://freesound.org/people/wi-photos/",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "Carlos Ruben Gomez",
+              "link": "https://archive.org/details/MelodiaParaUnAngel",
+              "licenses": [
+                "CC BY 3.0"
+              ]
+            },
+            {
+              "name": "Aeon (AI Music Performer)",
+              "link": "https://archive.org/details/aeon-track-297-expectancy",
+              "licenses": [
+                "CC BY-SA 4.0"
+              ]
+            },
+            {
+              "name": "keweldog",
+              "link": "https://freesound.org/people/keweldog/",
+              "licenses": [
+                "CC BY 4.0"
+              ]
+            },
+            {
+              "name": "Aeon",
+              "link": "https://archive.org/details/aeon-track-350-flushing",
+              "licenses": [
+                "CC BY-SA 4.0"
+              ]
+            },
+            {
+              "name": "maxgreat",
+              "link": "https://freesound.org/people/maxgreat/",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "sangtao",
+              "link": "https://freesound.org/people/sangtao/",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "REVERBERA",
+              "link": "https://freesound.org/people/REVERBERA/",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "pc2752",
+              "link": "https://freesound.org/people/pc2752/",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "Jack_I_E",
+              "link": "https://freesound.org/people/Jack_I_E/",
+              "licenses": [
+                "CC BY 4.0"
+              ]
+            },
+            {
+              "name": "ehohnke",
+              "link": "https://freesound.org/people/ehohnke/",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "Sllarson",
+              "link": "https://freesound.org/people/Sllarson/",
+              "licenses": [
+                "CC BY 3.0"
+              ]
+            },
+            {
+              "name": "Johnnie_Holiday",
+              "link": "https://freesound.org/people/Johnnie_Holiday/",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "jack13_89",
+              "link": "https://freesound.org/people/jack13_89/",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "felix.blume",
+              "link": "https://freesound.org/people/felix.blume/",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "AslakHostaker",
+              "link": "https://freesound.org/people/AslakHostaker/",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "SlowMoManVL",
+              "link": "https://freesound.org/people/SlowMoManVL/",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "lunarrrs",
+              "link": "https://freesound.org/people/lunarrrs/",
+              "licenses": [
+                "CC BY 4.0"
+              ]
+            },
+            {
+              "name": "DYEKHO",
+              "link": "https://freesound.org/people/DYEKHO/",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "Ustym_Petrovych",
+              "link": "https://freesound.org/people/Ustym_Petrovych/",
+              "licenses": [
+                "CC BY 4.0"
+              ]
+            },
+            {
+              "name": "Mike888",
+              "link": "https://freesound.org/people/Mike888/",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "xkeril",
+              "link": "https://freesound.org/people/xkeril/",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "Breviceps",
+              "link": "https://freesound.org/people/Breviceps/",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "Beetricks",
+              "link": "https://commons.wikimedia.org/wiki/File:Female-vibrato-1.wav",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "johntrap",
+              "link": "https://freesound.org/people/johntrap/",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "Speaker: Nattes à chat\nRecorder: Nattes à chat",
+              "link": "https://commons.wikimedia.org/wiki/File:LL-Q1860_(eng)-Nattes_%C3%A0_chat-Reclining_Figure-_Arch_Leg.wav",
+              "licenses": [
+                "CC BY-SA 4.0"
+              ]
+            },
+            {
+              "name": "CadereSounds",
+              "link": "https://freesound.org/people/CadereSounds/",
+              "licenses": [
+                "CC BY 3.0"
+              ]
+            },
+            {
+              "name": "Johnnydhol",
+              "link": "https://freesound.org/people/Johnnydhol/",
+              "licenses": [
+                "CC BY 3.0"
+              ]
+            },
+            {
+              "name": "ErrorCell",
+              "link": "https://freesound.org/people/ErrorCell/",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "pepo100",
+              "link": "https://freesound.org/people/pepo100/",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "elp43",
+              "link": "https://freesound.org/people/elp43/",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "National Archives and Records Administration. Office of the Chief Operating Offi",
+              "link": "https://commons.wikimedia.org/wiki/File:President_Truman%27s_remarks_to_the_members_of_the_National_YMCA_and_Government_Assembly_-_DPLA_-_653bf71d7063617c870c92b724d0156c.mp3",
+              "licenses": [
+                "Public domain"
+              ]
+            },
+            {
+              "name": "deoking",
+              "link": "https://freesound.org/people/deoking/",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "ShrimpPizza",
+              "link": "https://freesound.org/people/ShrimpPizza/",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "FullMetalJedi",
+              "link": "https://freesound.org/people/FullMetalJedi/",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            }
+          ],
+          "license": "CC-BY-SA-4.0"
         }
       ]
     }
@@ -275,7 +1932,7 @@
   "suppliers": [
     {
       "name": "musicmatter.art",
-      "by": "Petrus Semmelhack",
+      "by": "Peter Semmelhack",
       "url": "https://musicmatter.art/",
       "index": "https://musicmatter.art/netcomposer.json",
       "manifest_pattern": "https://musicmatter.art/sounds/<name>.nc.json",
@@ -302,8 +1959,20 @@
     {
       "name": "Freesound",
       "url": "https://freesound.org/",
-      "access": "API v2 text search, license-filtered (CC0, CC BY); HQ previews (lossy)",
+      "access": "API v2 text, similarity, tag, pack and user queries, license-filtered (CC0, CC BY); HQ previews (lossy)",
       "role": "open library searched by the crawler"
+    },
+    {
+      "name": "Wikimedia Commons",
+      "url": "https://commons.wikimedia.org/",
+      "access": "MediaWiki API search (filemime:audio), per-file license check",
+      "role": "open library reached by the crawl walk"
+    },
+    {
+      "name": "Internet Archive",
+      "url": "https://archive.org/",
+      "access": "advancedsearch + metadata API, per-item license check",
+      "role": "open library reached by the crawl walk"
     }
   ],
   "reproducibility": "Each record lists every input (with sha256), every setting and the seed (846), so a performance can be rebuilt exactly.",

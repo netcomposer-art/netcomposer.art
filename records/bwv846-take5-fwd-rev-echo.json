@@ -23,8 +23,8 @@
     },
     "rules_set_by": {
       "id": null,
-      "display_name": "Petrus",
-      "note": "Forward/reverse echo idea and LP sweep requested by Petrus in chat; chord matching and take selection are the script's rules."
+      "display_name": "Peter",
+      "note": "Forward/reverse echo idea and LP sweep requested by Peter in chat; chord matching and take selection are the script's rules."
     },
     "engine_version": "render5_fwd_rev_echo.py@sha256:66b4fabc2a2bf152",
     "composition_ref": {
@@ -34,7 +34,7 @@
       "sha256": "f63acadc04937a289a2f51c96386a0ae92de8f7fba00c69a16a038632b9b43d5",
       "composer": {
         "id": null,
-        "display_name": "Petrus"
+        "display_name": "Peter"
       },
       "music": "Johann Sebastian Bach, Prelude in C major, BWV 846, Das Wohltemperierte Klavier I (1722). Public domain.",
       "analysis": {
@@ -81,7 +81,7 @@
       "time_stretch": false
     },
     "crawl_snapshot": {
-      "venue": "musicmatter.art (Petrus's own site)",
+      "venue": "musicmatter.art (Peter's own site)",
       "snapshot": "local copy /workspace/musicmatter/site_v4 (WAV)",
       "crawled_at": null,
       "crawled_at_note": "Read from the local site copy, not crawled live."
@@ -182,14 +182,14 @@
       "manifest_url": "https://musicmatter.art/sounds/am7-bounce-2.nc.json",
       "supplier": {
         "id": null,
-        "display_name": "Petrus",
+        "display_name": "Peter",
         "primary_link": "https://musicmatter.art/"
       },
       "license": {
         "id": "CC-BY-SA-4.0",
         "uri": "https://creativecommons.org/licenses/by-sa/4.0/"
       },
-      "credit_line": "“A minor 7th chord, bounce 2” by Petrus (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/am7-bounce-2.flac",
+      "credit_line": "“A minor 7th chord, bounce 2” by Peter (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/am7-bounce-2.flac",
       "chord": "Am7",
       "register": {
         "low": "A3",
@@ -298,14 +298,14 @@
       "manifest_url": "https://musicmatter.art/sounds/amin-bounce-5.nc.json",
       "supplier": {
         "id": null,
-        "display_name": "Petrus",
+        "display_name": "Peter",
         "primary_link": "https://musicmatter.art/"
       },
       "license": {
         "id": "CC-BY-SA-4.0",
         "uri": "https://creativecommons.org/licenses/by-sa/4.0/"
       },
-      "credit_line": "“A minor chord, bounce 5” by Petrus (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/amin-bounce-5.flac",
+      "credit_line": "“A minor chord, bounce 5” by Peter (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/amin-bounce-5.flac",
       "chord": "Amin",
       "register": {
         "low": "C4",
@@ -414,14 +414,14 @@
       "manifest_url": "https://musicmatter.art/sounds/bdim7-bounce-3.nc.json",
       "supplier": {
         "id": null,
-        "display_name": "Petrus",
+        "display_name": "Peter",
         "primary_link": "https://musicmatter.art/"
       },
       "license": {
         "id": "CC-BY-SA-4.0",
         "uri": "https://creativecommons.org/licenses/by-sa/4.0/"
       },
-      "credit_line": "“B diminished 7th chord, bounce 3” by Petrus (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/bdim7-bounce-3.flac",
+      "credit_line": "“B diminished 7th chord, bounce 3” by Peter (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/bdim7-bounce-3.flac",
       "chord": "Bdim7",
       "register": {
         "low": "F4",
@@ -530,14 +530,14 @@
       "manifest_url": "https://musicmatter.art/sounds/c7-bounce-4.nc.json",
       "supplier": {
         "id": null,
-        "display_name": "Petrus",
+        "display_name": "Peter",
         "primary_link": "https://musicmatter.art/"
       },
       "license": {
         "id": "CC-BY-SA-4.0",
         "uri": "https://creativecommons.org/licenses/by-sa/4.0/"
       },
-      "credit_line": "“C dominant 7th chord, bounce 4” by Petrus (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/c7-bounce-4.flac",
+      "credit_line": "“C dominant 7th chord, bounce 4” by Peter (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/c7-bounce-4.flac",
       "chord": "C7",
       "register": {
         "low": "C4",
@@ -646,14 +646,14 @@
       "manifest_url": "https://musicmatter.art/sounds/c7-bounce-6.nc.json",
       "supplier": {
         "id": null,
-        "display_name": "Petrus",
+        "display_name": "Peter",
         "primary_link": "https://musicmatter.art/"
       },
       "license": {
         "id": "CC-BY-SA-4.0",
         "uri": "https://creativecommons.org/licenses/by-sa/4.0/"
       },
-      "credit_line": "“C dominant 7th chord, bounce 6” by Petrus (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/c7-bounce-6.flac",
+      "credit_line": "“C dominant 7th chord, bounce 6” by Peter (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/c7-bounce-6.flac",
       "chord": "C7",
       "register": {
         "low": "C4",
@@ -762,14 +762,14 @@
       "manifest_url": "https://musicmatter.art/sounds/cdim7-bounce-3.nc.json",
       "supplier": {
         "id": null,
-        "display_name": "Petrus",
+        "display_name": "Peter",
         "primary_link": "https://musicmatter.art/"
       },
       "license": {
         "id": "CC-BY-SA-4.0",
         "uri": "https://creativecommons.org/licenses/by-sa/4.0/"
       },
-      "credit_line": "“C diminished 7th chord, bounce 3” by Petrus (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/cdim7-bounce-3.flac",
+      "credit_line": "“C diminished 7th chord, bounce 3” by Peter (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/cdim7-bounce-3.flac",
       "chord": "Cdim7",
       "register": {
         "low": "C4",
@@ -878,14 +878,14 @@
       "manifest_url": "https://musicmatter.art/sounds/cmaj-bounce-26.nc.json",
       "supplier": {
         "id": null,
-        "display_name": "Petrus",
+        "display_name": "Peter",
         "primary_link": "https://musicmatter.art/"
       },
       "license": {
         "id": "CC-BY-SA-4.0",
         "uri": "https://creativecommons.org/licenses/by-sa/4.0/"
       },
-      "credit_line": "“C major chord, bounce 26” by Petrus (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/cmaj-bounce-26.flac",
+      "credit_line": "“C major chord, bounce 26” by Peter (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/cmaj-bounce-26.flac",
       "chord": "Cmaj",
       "register": {
         "low": "C5",
@@ -1140,14 +1140,14 @@
       "manifest_url": "https://musicmatter.art/sounds/cmaj-bounce-28.nc.json",
       "supplier": {
         "id": null,
-        "display_name": "Petrus",
+        "display_name": "Peter",
         "primary_link": "https://musicmatter.art/"
       },
       "license": {
         "id": "CC-BY-SA-4.0",
         "uri": "https://creativecommons.org/licenses/by-sa/4.0/"
       },
-      "credit_line": "“C major chord, bounce 28” by Petrus (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/cmaj-bounce-28.flac",
+      "credit_line": "“C major chord, bounce 28” by Peter (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/cmaj-bounce-28.flac",
       "chord": "Cmaj",
       "register": {
         "low": "G4",
@@ -1329,14 +1329,14 @@
       "manifest_url": "https://musicmatter.art/sounds/cmaj-bounce-32.nc.json",
       "supplier": {
         "id": null,
-        "display_name": "Petrus",
+        "display_name": "Peter",
         "primary_link": "https://musicmatter.art/"
       },
       "license": {
         "id": "CC-BY-SA-4.0",
         "uri": "https://creativecommons.org/licenses/by-sa/4.0/"
       },
-      "credit_line": "“C major chord, bounce 32” by Petrus (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/cmaj-bounce-32.flac",
+      "credit_line": "“C major chord, bounce 32” by Peter (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/cmaj-bounce-32.flac",
       "chord": "Cmaj",
       "register": {
         "low": "C5",
@@ -1445,14 +1445,14 @@
       "manifest_url": "https://musicmatter.art/sounds/cmaj-bounce-34.nc.json",
       "supplier": {
         "id": null,
-        "display_name": "Petrus",
+        "display_name": "Peter",
         "primary_link": "https://musicmatter.art/"
       },
       "license": {
         "id": "CC-BY-SA-4.0",
         "uri": "https://creativecommons.org/licenses/by-sa/4.0/"
       },
-      "credit_line": "“C major chord, bounce 34” by Petrus (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/cmaj-bounce-34.flac",
+      "credit_line": "“C major chord, bounce 34” by Peter (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/cmaj-bounce-34.flac",
       "chord": "Cmaj",
       "register": {
         "low": "E4",
@@ -1561,14 +1561,14 @@
       "manifest_url": "https://musicmatter.art/sounds/cmaj7-bounce-6.nc.json",
       "supplier": {
         "id": null,
-        "display_name": "Petrus",
+        "display_name": "Peter",
         "primary_link": "https://musicmatter.art/"
       },
       "license": {
         "id": "CC-BY-SA-4.0",
         "uri": "https://creativecommons.org/licenses/by-sa/4.0/"
       },
-      "credit_line": "“C major 7th chord, bounce 6” by Petrus (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/cmaj7-bounce-6.flac",
+      "credit_line": "“C major 7th chord, bounce 6” by Peter (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/cmaj7-bounce-6.flac",
       "chord": "Cmaj7",
       "register": {
         "low": "B3",
@@ -1677,14 +1677,14 @@
       "manifest_url": "https://musicmatter.art/sounds/csus4-bounce-4.nc.json",
       "supplier": {
         "id": null,
-        "display_name": "Petrus",
+        "display_name": "Peter",
         "primary_link": "https://musicmatter.art/"
       },
       "license": {
         "id": "CC-BY-SA-4.0",
         "uri": "https://creativecommons.org/licenses/by-sa/4.0/"
       },
-      "credit_line": "“C suspended 4th chord, bounce 4” by Petrus (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/csus4-bounce-4.flac",
+      "credit_line": "“C suspended 4th chord, bounce 4” by Peter (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/csus4-bounce-4.flac",
       "chord": "Csus4",
       "register": {
         "low": "G3",
@@ -1874,14 +1874,14 @@
       "manifest_url": "https://musicmatter.art/sounds/d7-bounce-4.nc.json",
       "supplier": {
         "id": null,
-        "display_name": "Petrus",
+        "display_name": "Peter",
         "primary_link": "https://musicmatter.art/"
       },
       "license": {
         "id": "CC-BY-SA-4.0",
         "uri": "https://creativecommons.org/licenses/by-sa/4.0/"
       },
-      "credit_line": "“D dominant 7th chord, bounce 4” by Petrus (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/d7-bounce-4.flac",
+      "credit_line": "“D dominant 7th chord, bounce 4” by Peter (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/d7-bounce-4.flac",
       "chord": "D7",
       "register": {
         "low": "D4",
@@ -1990,14 +1990,14 @@
       "manifest_url": "https://musicmatter.art/sounds/d7-bounce-6.nc.json",
       "supplier": {
         "id": null,
-        "display_name": "Petrus",
+        "display_name": "Peter",
         "primary_link": "https://musicmatter.art/"
       },
       "license": {
         "id": "CC-BY-SA-4.0",
         "uri": "https://creativecommons.org/licenses/by-sa/4.0/"
       },
-      "credit_line": "“D dominant 7th chord, bounce 6” by Petrus (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/d7-bounce-6.flac",
+      "credit_line": "“D dominant 7th chord, bounce 6” by Peter (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/d7-bounce-6.flac",
       "chord": "D7",
       "register": {
         "low": "C4",
@@ -2106,14 +2106,14 @@
       "manifest_url": "https://musicmatter.art/sounds/dm7-bounce-1.nc.json",
       "supplier": {
         "id": null,
-        "display_name": "Petrus",
+        "display_name": "Peter",
         "primary_link": "https://musicmatter.art/"
       },
       "license": {
         "id": "CC-BY-SA-4.0",
         "uri": "https://creativecommons.org/licenses/by-sa/4.0/"
       },
-      "credit_line": "“D minor 7th chord, bounce 1” by Petrus (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/dm7-bounce-1.flac",
+      "credit_line": "“D minor 7th chord, bounce 1” by Peter (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/dm7-bounce-1.flac",
       "chord": "Dm7",
       "register": {
         "low": "D4",
@@ -2222,14 +2222,14 @@
       "manifest_url": "https://musicmatter.art/sounds/dm7-bounce-3.nc.json",
       "supplier": {
         "id": null,
-        "display_name": "Petrus",
+        "display_name": "Peter",
         "primary_link": "https://musicmatter.art/"
       },
       "license": {
         "id": "CC-BY-SA-4.0",
         "uri": "https://creativecommons.org/licenses/by-sa/4.0/"
       },
-      "credit_line": "“D minor 7th chord, bounce 3” by Petrus (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/dm7-bounce-3.flac",
+      "credit_line": "“D minor 7th chord, bounce 3” by Peter (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/dm7-bounce-3.flac",
       "chord": "Dm7",
       "register": {
         "low": "C4",
@@ -2411,14 +2411,14 @@
       "manifest_url": "https://musicmatter.art/sounds/dmin-bounce-4.nc.json",
       "supplier": {
         "id": null,
-        "display_name": "Petrus",
+        "display_name": "Peter",
         "primary_link": "https://musicmatter.art/"
       },
       "license": {
         "id": "CC-BY-SA-4.0",
         "uri": "https://creativecommons.org/licenses/by-sa/4.0/"
       },
-      "credit_line": "“D minor chord, bounce 4” by Petrus (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/dmin-bounce-4.flac",
+      "credit_line": "“D minor chord, bounce 4” by Peter (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/dmin-bounce-4.flac",
       "chord": "Dmin",
       "register": {
         "low": "F4",
@@ -2527,14 +2527,14 @@
       "manifest_url": "https://musicmatter.art/sounds/dsharpdim7-bounce-4.nc.json",
       "supplier": {
         "id": null,
-        "display_name": "Petrus",
+        "display_name": "Peter",
         "primary_link": "https://musicmatter.art/"
       },
       "license": {
         "id": "CC-BY-SA-4.0",
         "uri": "https://creativecommons.org/licenses/by-sa/4.0/"
       },
-      "credit_line": "“D♯ diminished 7th chord, bounce 4” by Petrus (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/dsharpdim7-bounce-4.flac",
+      "credit_line": "“D♯ diminished 7th chord, bounce 4” by Peter (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/dsharpdim7-bounce-4.flac",
       "chord": "D#dim7",
       "register": {
         "low": "F#4",
@@ -2643,14 +2643,14 @@
       "manifest_url": "https://musicmatter.art/sounds/edim7-bounce-5.nc.json",
       "supplier": {
         "id": null,
-        "display_name": "Petrus",
+        "display_name": "Peter",
         "primary_link": "https://musicmatter.art/"
       },
       "license": {
         "id": "CC-BY-SA-4.0",
         "uri": "https://creativecommons.org/licenses/by-sa/4.0/"
       },
-      "credit_line": "“E diminished 7th chord, bounce 5” by Petrus (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/edim7-bounce-5.flac",
+      "credit_line": "“E diminished 7th chord, bounce 5” by Peter (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/edim7-bounce-5.flac",
       "chord": "Edim7",
       "register": {
         "low": "G4",
@@ -2759,14 +2759,14 @@
       "manifest_url": "https://musicmatter.art/sounds/fmaj7-bounce-1.nc.json",
       "supplier": {
         "id": null,
-        "display_name": "Petrus",
+        "display_name": "Peter",
         "primary_link": "https://musicmatter.art/"
       },
       "license": {
         "id": "CC-BY-SA-4.0",
         "uri": "https://creativecommons.org/licenses/by-sa/4.0/"
       },
-      "credit_line": "“F major 7th chord, bounce 1” by Petrus (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/fmaj7-bounce-1.flac",
+      "credit_line": "“F major 7th chord, bounce 1” by Peter (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/fmaj7-bounce-1.flac",
       "chord": "Fmaj7",
       "register": {
         "low": "F4",
@@ -2875,14 +2875,14 @@
       "manifest_url": "https://musicmatter.art/sounds/fmaj7-bounce-4.nc.json",
       "supplier": {
         "id": null,
-        "display_name": "Petrus",
+        "display_name": "Peter",
         "primary_link": "https://musicmatter.art/"
       },
       "license": {
         "id": "CC-BY-SA-4.0",
         "uri": "https://creativecommons.org/licenses/by-sa/4.0/"
       },
-      "credit_line": "“F major 7th chord, bounce 4” by Petrus (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/fmaj7-bounce-4.flac",
+      "credit_line": "“F major 7th chord, bounce 4” by Peter (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/fmaj7-bounce-4.flac",
       "chord": "Fmaj7",
       "register": {
         "low": "E4",
@@ -2991,14 +2991,14 @@
       "manifest_url": "https://musicmatter.art/sounds/g7-bounce-2.nc.json",
       "supplier": {
         "id": null,
-        "display_name": "Petrus",
+        "display_name": "Peter",
         "primary_link": "https://musicmatter.art/"
       },
       "license": {
         "id": "CC-BY-SA-4.0",
         "uri": "https://creativecommons.org/licenses/by-sa/4.0/"
       },
-      "credit_line": "“G dominant 7th chord, bounce 2” by Petrus (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/g7-bounce-2.flac",
+      "credit_line": "“G dominant 7th chord, bounce 2” by Peter (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/g7-bounce-2.flac",
       "chord": "G7",
       "register": {
         "low": "G4",
@@ -3326,14 +3326,14 @@
       "manifest_url": "https://musicmatter.art/sounds/g7-bounce-3.nc.json",
       "supplier": {
         "id": null,
-        "display_name": "Petrus",
+        "display_name": "Peter",
         "primary_link": "https://musicmatter.art/"
       },
       "license": {
         "id": "CC-BY-SA-4.0",
         "uri": "https://creativecommons.org/licenses/by-sa/4.0/"
       },
-      "credit_line": "“G dominant 7th chord, bounce 3” by Petrus (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/g7-bounce-3.flac",
+      "credit_line": "“G dominant 7th chord, bounce 3” by Peter (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/g7-bounce-3.flac",
       "chord": "G7",
       "register": {
         "low": "D4",
@@ -3442,14 +3442,14 @@
       "manifest_url": "https://musicmatter.art/sounds/g7-bounce-6.nc.json",
       "supplier": {
         "id": null,
-        "display_name": "Petrus",
+        "display_name": "Peter",
         "primary_link": "https://musicmatter.art/"
       },
       "license": {
         "id": "CC-BY-SA-4.0",
         "uri": "https://creativecommons.org/licenses/by-sa/4.0/"
       },
-      "credit_line": "“G dominant 7th chord, bounce 6” by Petrus (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/g7-bounce-6.flac",
+      "credit_line": "“G dominant 7th chord, bounce 6” by Peter (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/g7-bounce-6.flac",
       "chord": "G7",
       "register": {
         "low": "B3",
@@ -3558,14 +3558,14 @@
       "manifest_url": "https://musicmatter.art/sounds/gmaj-bounce-30.nc.json",
       "supplier": {
         "id": null,
-        "display_name": "Petrus",
+        "display_name": "Peter",
         "primary_link": "https://musicmatter.art/"
       },
       "license": {
         "id": "CC-BY-SA-4.0",
         "uri": "https://creativecommons.org/licenses/by-sa/4.0/"
       },
-      "credit_line": "“G major chord, bounce 30” by Petrus (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/gmaj-bounce-30.flac",
+      "credit_line": "“G major chord, bounce 30” by Peter (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/gmaj-bounce-30.flac",
       "chord": "Gmaj",
       "register": {
         "low": "B3",
@@ -3674,14 +3674,14 @@
       "manifest_url": "https://musicmatter.art/sounds/gmaj-bounce-32.nc.json",
       "supplier": {
         "id": null,
-        "display_name": "Petrus",
+        "display_name": "Peter",
         "primary_link": "https://musicmatter.art/"
       },
       "license": {
         "id": "CC-BY-SA-4.0",
         "uri": "https://creativecommons.org/licenses/by-sa/4.0/"
       },
-      "credit_line": "“G major chord, bounce 32” by Petrus (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/gmaj-bounce-32.flac",
+      "credit_line": "“G major chord, bounce 32” by Peter (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/gmaj-bounce-32.flac",
       "chord": "Gmaj",
       "register": {
         "low": "G4",
@@ -3790,14 +3790,14 @@
       "manifest_url": "https://musicmatter.art/sounds/gsharpdim7-bounce-4.nc.json",
       "supplier": {
         "id": null,
-        "display_name": "Petrus",
+        "display_name": "Peter",
         "primary_link": "https://musicmatter.art/"
       },
       "license": {
         "id": "CC-BY-SA-4.0",
         "uri": "https://creativecommons.org/licenses/by-sa/4.0/"
       },
-      "credit_line": "“G♯ diminished 7th chord, bounce 4” by Petrus (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/gsharpdim7-bounce-4.flac",
+      "credit_line": "“G♯ diminished 7th chord, bounce 4” by Peter (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/gsharpdim7-bounce-4.flac",
       "chord": "G#dim7",
       "register": {
         "low": "G#4",
@@ -3906,14 +3906,14 @@
       "manifest_url": "https://musicmatter.art/sounds/gsus4-bounce-3.nc.json",
       "supplier": {
         "id": null,
-        "display_name": "Petrus",
+        "display_name": "Peter",
         "primary_link": "https://musicmatter.art/"
       },
       "license": {
         "id": "CC-BY-SA-4.0",
         "uri": "https://creativecommons.org/licenses/by-sa/4.0/"
       },
-      "credit_line": "“G suspended 4th chord, bounce 3” by Petrus (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/gsus4-bounce-3.flac",
+      "credit_line": "“G suspended 4th chord, bounce 3” by Peter (https://musicmatter.art/), CC BY-SA 4.0, https://musicmatter.art/sounds/gsus4-bounce-3.flac",
       "chord": "Gsus4",
       "register": {
         "low": "G4",
@@ -4093,7 +4093,7 @@
     "distinct_sounds": 28,
     "total_uses": 74,
     "suppliers": [
-      "Petrus"
+      "Peter"
     ]
   },
   "derived_inputs": {
@@ -4108,7 +4108,7 @@
         "attribution": "required, given in the credits"
       },
       {
-        "what": "28 chord strike offerings by Petrus (musicmatter.art)",
+        "what": "28 chord strike offerings by Peter (musicmatter.art)",
         "license": "CC-BY-SA-4.0",
         "attribution": "required, given per sound"
       },
@@ -4126,7 +4126,7 @@
     "rejected_present": [],
     "check": "OK: every input is public domain or CC BY-SA 4.0, none NC/ND, so the output can be CC BY-SA 4.0."
   },
-  "attribution": "“The C major Prelude, harmony only (after Bach, BWV 846)”, NetComposer Performance perf_bwv846-take5_fwd_rev_echo, composed by Petrus after J.S. Bach (public domain), with harmonic analysis from When in Rome by Mark Gotham et al. (CC BY-SA 4.0, github.com/MarkGotham/When-in-Rome). Performed by the NetComposer Algorithmic Performer (Astrid) from 28 chord recordings by Petrus (musicmatter.art, CC BY-SA 4.0). Licensed CC BY-SA 4.0, https://creativecommons.org/licenses/by-sa/4.0/",
+  "attribution": "“The C major Prelude, harmony only (after Bach, BWV 846)”, NetComposer Performance perf_bwv846-take5_fwd_rev_echo, composed by Peter after J.S. Bach (public domain), with harmonic analysis from When in Rome by Mark Gotham et al. (CC BY-SA 4.0, github.com/MarkGotham/When-in-Rome). Performed by the NetComposer Algorithmic Performer (Astrid) from 28 chord recordings by Peter (musicmatter.art, CC BY-SA 4.0). Licensed CC BY-SA 4.0, https://creativecommons.org/licenses/by-sa/4.0/",
   "provenance_files": {
     "render_script": {
       "path": "bach/render5_fwd_rev_echo.py",
@@ -4162,6 +4162,14 @@
   "record_hash": {
     "algorithm": "sha256",
     "over": "canonical JSON (sorted keys, no whitespace) of the record without record_hash and signature",
-    "value": "d17c38ba79ba9451cb58ef993201693289aaf2122ec80933764d345826e11340"
-  }
+    "value": "bdac1317881a82dd1467240291eb0e5a7ab0a11c4f418b6ef2c53384082c36ca"
+  },
+  "amendments": [
+    {
+      "at": "2026-10-17T19:29:52-07:00",
+      "what": "Contributor display name changed from 'Petrus' to 'Peter' (Peter Semmelhack) for netcomposer.art, at his request. No audio, input, setting or other field changed.",
+      "previous_record_hash": "d17c38ba79ba9451cb58ef993201693289aaf2122ec80933764d345826e11340",
+      "original_record": "unchanged in the NetComposer working files"
+    }
+  ]
 }
