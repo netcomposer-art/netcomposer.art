@@ -1,6 +1,8 @@
 // NetComposer /create/: write a Composition, hear a sketch, download, share. Static; no server.
+// The Play preview runs at double the Composition's tempo (still two strikes per chord); the rendered Performance keeps its real length.
 (function () {
 'use strict';
+var PREVIEW_TEMPO = 2;
 var $ = function (id) { return document.getElementById(id); };
 var CAT = null, STARTERS = JSON.parse($('starters').textContent);
 var PC = {C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11};
@@ -72,14 +74,14 @@ function slug(s) { return (s || 'untitled').toLowerCase().replace(/[^a-z0-9]+/g,
 function refresh() {
   var tl = CAT && timeline(), el = $('prog');
   if (!CAT) { el.textContent = 'Loading the chord set…'; return; }
-  if (!tl) { el.textContent = 'No chord symbols found yet. Write them like Cm, Am7, F#dim7, Bb7sus4, G/B.'; $('play').disabled = true; return; }
+  if (!tl) { $('progmeta').textContent = ''; el.textContent = 'No chord symbols found yet. Write them like Cm, Am7, F#dim7, Bb7sus4, G/B.'; $('play').disabled = true; return; }
   $('play').disabled = false;
   el.innerHTML = '';
   tl.chords.forEach(function (c, i) {
     var s = document.createElement('span'); s.className = 'ch'; s.id = 'ch' + i;
     s.title = c.voicing.map(nn).join(' ') + ' · ' + c.path; s.textContent = c.symbol; el.appendChild(s); el.appendChild(document.createTextNode(' '));
   });
-  $('progmeta').textContent = tl.chords.length + ' chords · ' + Math.round(tl.L) + ' s · ' + (tl.chords[0].dur).toFixed(1) + ' s each · voicings from the full chord set';
+  $('progmeta').textContent = tl.chords.length + ' chords · ' + Math.round(tl.L / PREVIEW_TEMPO) + ' s · ' + (tl.chords[0].dur / PREVIEW_TEMPO).toFixed(1) + ' s each, 2 strikes · voicings from the full chord set';
 }
 
 // ---------- play (WebAudio) ----------
@@ -108,14 +110,14 @@ function play() {
   if (playing.length || timers.length) { stop(); return; }
   var tl = timeline(); if (!tl) return;
   AC = AC || new (window.AudioContext || window.webkitAudioContext)(); AC.resume();
-  var speed = +$('spd').value, chords = tl.chords.slice(0, 64);
+  var speed = +$('spd').value * PREVIEW_TEMPO, chords = tl.chords.slice(0, 64);
   $('play').textContent = 'Stop'; status('Loading ' + new Set(chords.map(function (c) { return c.path; })).size + ' recorded chords from fullchords.musicmatter.art…');
   var master = AC.createGain(); master.gain.value = 0.8; master.connect(AC.destination);
   Promise.all(chords.map(function (c) { return load(c.path); })).then(function (bufs) {
     status('Playing the recorded chords (CC BY-SA 4.0, Peter Semmelhack). A sketch of the harmony only: a Performance is rendered with the kit.');
     go(chords, speed, master, function (c, i, t0, d) {
       [0, d / 2].forEach(function (off, k) {
-        if (off && d < 5) return;
+        if (off && d < 1) return;
         var s = AC.createBufferSource(), g = AC.createGain(); s.buffer = bufs[i];
         g.gain.setValueAtTime(k ? 0.45 : 0.8, t0 + off); g.gain.setTargetAtTime(0, t0 + Math.min(d + 1.5, off + bufs[i].duration) - 0.8, 0.35);
         s.connect(g); g.connect(master); s.start(t0 + off); playing.push(s);
@@ -210,8 +212,11 @@ function fromHash() {
 
 // ---------- wire up ----------
 var sel = $('starter');
+(function () { var o = document.createElement('option'); o.value = 'blank'; o.textContent = 'Start from scratch (blank page)'; sel.appendChild(o); })();
 STARTERS.forEach(function (s, i) { var o = document.createElement('option'); o.value = i; o.textContent = s.name; sel.appendChild(o); });
-sel.onchange = function () { if (sel.value === '') return; var s = STARTERS[+sel.value]; fill({t: s.title, by: s.composer, c: s.composition, p: s.performance}); sel.value = ''; };
+sel.onchange = function () { if (sel.value === '') return;
+  if (sel.value === 'blank') { fill({t: '', by: '', c: '', p: ''}); sel.value = ''; history.replaceState(null, '', location.href.split('#')[0]); $('shareurl').hidden = true; status('Blank page. Write your Composition and how it should be performed; chord symbols you type show up under Play.'); $('title').focus(); return; }
+  var s = STARTERS[+sel.value]; fill({t: s.title, by: s.composer, c: s.composition, p: s.performance}); sel.value = ''; };
 ['comp', 'perf'].forEach(function (id) { $(id).addEventListener('input', function () { stop(); refresh(); }); });
 $('play').onclick = play;
 $('spd').oninput = function () { $('spdv').textContent = (+$('spd').value).toFixed(1) + '×'; };
