@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>NetComposer Supplier registry</title>
+<meta name="description" content="Registered NetComposer Suppliers.">
+<link rel="alternate" type="application/json" href="/netcomposer.json" title="NetComposer index">
+<link rel="alternate" type="text/plain" href="/llms.txt" title="llms.txt">
+<link rel="license" href="https://creativecommons.org/licenses/by-sa/4.0/">
+<style>body{font:15px/1.55 ui-monospace,Menlo,Consolas,"DejaVu Sans Mono",monospace;color:#000;background:#fff;max-width:76rem;margin:2.5rem auto;padding:0 1.2rem}
+h1{font-size:1.4rem;margin:0}h2{font-size:1rem;font-weight:bold;margin:2.6rem 0 .6rem;border-bottom:1px solid #000}h3{font-size:1rem;margin:0 0 .5rem}
+a{color:#000}p{margin:.5rem 0;max-width:46rem}blockquote{margin:1.4rem 0;max-width:46rem}blockquote p{margin:0}blockquote footer{margin-top:.3rem}
+.perfs{display:grid;grid-template-columns:repeat(4,1fr);gap:1.1rem}article{border:1px solid #000;padding:.8rem}article p{font-size:13px}audio{width:100%}
+.m{color:#333}.chords{font-size:12px;line-height:1.9;max-width:none}.chords span{display:inline-block;margin-right:.9rem}ul{padding-left:1.2rem;max-width:46rem}li{margin:.2rem 0}
+footer.site{margin-top:3rem;font-size:12px;border-top:1px solid #000;padding-top:.6rem}
+li.small{font-size:12px}@media(max-width:1100px){.perfs{grid-template-columns:1fr 1fr}}@media(max-width:700px){.perfs{grid-template-columns:1fr}}
+.roles{display:grid;grid-template-columns:repeat(4,1fr);gap:1.1rem}.roles article p,.roles article li{font-size:13px}.roles ul{margin:.2rem 0 .4rem}
+.lede{font-size:16px;max-width:60rem}nav.toc{font-size:13px;margin:.6rem 0 1rem}pre{font-size:13px;line-height:1.35;overflow-x:auto;margin:.8rem 0}
+@media(max-width:1100px){.roles{grid-template-columns:1fr 1fr}}@media(max-width:700px){.roles{grid-template-columns:1fr}}
+body{max-width:60rem}pre{background:#fff;border-left:2px solid #000;padding-left:.8rem}code{font-size:13px}</style>
+</head>
+<body>
+<header>
+<h1><a href="../">NetComposer</a> / Suppliers</h1>
+<p class="lede">Registered Suppliers will be crawled first and checked (licenses and checksums) on every crawl. Today the registry is checked with the validator. The crawler also searches the open commons for everyone else.</p>
+</header>
+<main>
+<section><h2>Registry</h2>
+<p>Machine-readable: <a href="../suppliers.json">/suppliers.json</a>.</p>
+<pre>#  name             by                index                                        licenses       sounds  registered  last validated             status
+1  musicmatter.art  Peter Semmelhack  https://musicmatter.art/netcomposer.json     CC-BY-SA-4.0   1356    2026-10-17  2026-10-17T20:26:18-07:00  active</pre>
+<p>Last validation of musicmatter.art (2026-10-17T20:26:18-07:00): 1356 of 1356 manifests parsed and checked, all CC-BY-SA-4.0; 25 of 25 sampled audio files matched their manifest sha256 and size; 0 errors, 0 warnings.</p></section>
+<section><h2>Register</h2>
+<ol><li>Publish a <code>netcomposer.json</code> index and per-sound manifests as described in the <a href="../supplier-spec/">Supplier spec</a>.</li>
+<li>Check it: <code>python3 validate_supplier.py https://example.org/netcomposer.json</code> (<a href="../tools/validate_supplier.py">validate_supplier.py</a>, Python standard library only).</li>
+<li>Open an <a href="https://github.com/netcomposer-art/netcomposer.art/issues">issue on the site repository</a> with the index URL, or a pull request adding an entry to <a href="../suppliers.json">suppliers.json</a>.</li></ol>
+<p class=m>This registration channel is proposed and may change. Statuses (proposed): active, pending, failing, withdrawn.</p></section>
+</main>
+<footer class="site">
+<p>For agents: <a href="/netcomposer.json">/netcomposer.json</a> · <a href="/llms.txt">/llms.txt</a> · <a href="/suppliers.json">/suppliers.json</a> · <a href="/record/">/record/</a> · every record is raw JSON under <a href="/records/">/records/</a>.</p>
+</footer>
+</body>
+</html>

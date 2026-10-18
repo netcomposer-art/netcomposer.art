@@ -1,14 +1,118 @@
 # NetComposer
 
-> Music performed by the open internet. A Composition sets the harmony, structure, and tempo shape; a Performer realizes it from openly licensed audio the crawlers find; every performance leaves a public record.
+> Music performed by the open internet. A Composition fixes only the harmony, the bars and the tempo shape. A Performer realizes it from openly licensed sound the crawlers find. Every performance comes with a public record of what was used, where it came from and who made it.
 
 Statement, Peter Semmelhack: “Music’s structure can be described mathematically. There is art in the math, and there is art in the performance. NetComposer is my exploration of that duality.”
 
 Art and research project. Output license: CC BY-SA 4.0. Accepted inputs: CC0, CC BY, CC BY-SA, public domain. Rejected: NC, ND, Sampling+, custom. No pitch-shifting; time-stretch allowed.
 
+## Roles and how to take part
+
+Four roles make it work. Anyone can take any of them.
+
+### Suppliers
+
+- What: People and sites that make sound and share it under an open license.
+- Why: A Performer has no instrument of its own. The open sound commons is the instrument, and Suppliers build it.
+- Take part:
+  - Publish audio under CC0, CC BY, CC BY-SA or public domain anywhere a crawler can reach it. Freesound, Wikimedia Commons and the Internet Archive count: the crawl walk drew on 209 contributors there.
+  - Better: publish a netcomposer.json index with a manifest per sound, as musicmatter.art does, and register it.
+  - Registered Suppliers will be crawled first and checked (licenses and checksums) on every crawl. Today the registry is checked with the validator. The crawler keeps searching the open commons for everyone else.
+  - Every record that uses your sound credits you by name, with a link.
+- Links: spec https://netcomposer.art/supplier-spec/, registry https://netcomposer.art/suppliers.json, registry_page https://netcomposer.art/suppliers/, validator https://netcomposer.art/tools/validate_supplier.py, register https://github.com/netcomposer-art/netcomposer.art/issues
+
+### Composers
+
+- What: Write Compositions: a harmonic plan with chords per bar, bar count and tempo shape. No notes, no timbres.
+- Why: The Composition is what stays the same from one performance to the next. Leaving out notes and sounds leaves the rest to the network.
+- Take part:
+  - Write a plan in the form of the BWV 846 Composition file.
+  - Public-domain pieces with an openly licensed (CC BY-SA or PD) harmonic analysis work well. BWV 846 uses the When in Rome analysis.
+  - Send it as an issue on the site repository.
+- Links: example https://netcomposer.art/composition/bwv846-harmony-only.md, when_in_rome https://github.com/MarkGotham/When-in-Rome, submit https://github.com/netcomposer-art/netcomposer.art/issues
+
+### Performers
+
+- What: Realize a Composition from found sound.
+- Why: The choices are the art: which sources, which selection rules, how dense, how much contrast, which transformations, how much restraint.
+- Take part:
+  - Extend the system with hacks, or propose a Performance (sources, rules, settings) as an issue.
+  - Or realize a Composition with your own tools from openly licensed sound and publish a record in the same format.
+  - Every choice goes in the record, so the performance can be reproduced.
+  - Today the Performer is a set of scripts run by Peter. The tooling is not public yet, and the record format is a draft.
+- Links: record_format https://netcomposer.art/record/, example_record https://netcomposer.art/records/bwv846-walk.json, propose https://github.com/netcomposer-art/netcomposer.art/issues
+
+### Audience
+
+- What: Anyone listening, people or agents.
+- Why: Every performance ends as music someone hears. Listening, sharing and remixing keep it moving.
+- Take part:
+  - Listen, share and remix. Every performance is CC BY-SA 4.0.
+  - Read the record to see who made what you are hearing. Each sound has a credit line ready to paste.
+- Links: performances https://netcomposer.art/#comparison, records https://netcomposer.art/records/, license https://creativecommons.org/licenses/by-sa/4.0/
+
+Channel (PROPOSED, not decided): issues at https://github.com/netcomposer-art/netcomposer.art/issues, or a pull request adding an entry to https://netcomposer.art/suppliers.json.
+
+## How they interact
+
+```
+SUPPLIERS -- open sound (CC0 / BY / BY-SA / PD) --> CRAWLERS
+  ^   later: registered Suppliers first                 |
+  |                                                     | found sound
+  |                                                     v
+  |   COMPOSERS -- Composition ------------------> PERFORMERS <-- hacks
+  |                                                     |
+  |                                                     | performance + record
+  |                                                     v
+  +-- each record credits every Supplier ---------- AUDIENCE
+                                             listen / share / remix
+```
+
+Suppliers publish sound; crawlers find it (registered Suppliers will be crawled first). A Composer’s plan and the found sound meet in a Performer, whose choices produce the performance and its record. The Audience gets both, and the record credits every Supplier whose sound was used, with a link back. One person can play every role, or thousands of strangers can.
+
+## Record
+
+Each performance carries an exact account of itself: every sound, its contributor, license, source URL and checksum, where it was placed in the piece, every Performer setting and the seed. CC BY requires credit anyway. The record makes credit exact rather than a footnote.
+
+Recorded music has mostly been a sealed artifact. Sample-level credit is rare and usually private. Here credit, provenance and method travel with the music, in public, readable by people and agents. The Composition is the score of the piece; the record is the score of the performance.
+
+What it unlocks:
+- Reproduction: the inputs (with checksums), every setting and the seed are enough to rebuild a performance exactly.
+- Forks: change one setting or swap one Supplier, and the new record shows exactly what changed.
+- Supplier view: Suppliers can see where their sounds were used. A usage view built from records is in draft for musicmatter.art.
+- Comparison: performances of one Composition can be compared sound by sound and setting by setting.
+- The crawl path as artwork: the walk record traces every hop from the seed sound, drawn as a path chart.
+- Agents: agents can read, audit and build on any performance from the raw JSON.
+- Signed records, later: records are unsigned for now. Signing is open decision #33.
+
+Peter’s Notarism is about witnessing and recording existence. The record is NetComposer’s act of witness.
+
+- [Record format, annotated](https://netcomposer.art/record/)
+- Schema fields (from https://netcomposer.art/records/bwv846-walk.json; draft format):
+  - top_level: record_type, record_format_version, record_format_note, performance, hacks_chain, sounds_used, summary, derived_inputs, attribution, provenance_files, created_at, signature, record_hash, amendments
+  - performance: id, title, performed_at, performed_at_local, duration_s, music_ends_at_s, performer_mode, performer_id, performer, rules_set_by, composition_ref, rule_set, crawl, bars, outputs, known_compromises, license_out
+  - performance.composition_ref: composition_id, sha256, composer, music, analysis, not_used
+  - performance.rule_set: name, seed, walk, selection, caps, rhythm, bass, bed, tempo_map, transforms_enabled, pitch_shift
+  - performance.crawl: queries, queries_by_source, first_query_at, last_query_at, nodes_found, nodes_analyzed
+  - performance.bars[]: bar, chord, chord_pcs, figure_tones_available, chord_tone_energy, has_bass, has_bed, rhythm, expansions, sounds
+  - performance.bars[].sounds[]: key, title, by, source, license, url, roles, events, hop, found_at_bar, pitch_classes_used
+  - sounds_used[]: key, source, title, source_url, audio_used, supplier, license, credit_line, found, roles, uses, bars, time_stretch_ratios, pitch_shift, spans
+  - sounds_used[].audio_used: url, what, sha256, size_bytes
+  - sounds_used[].found: at_bar, hop, parent, parent_title, path_length_from_seed
+  - sounds_used[].spans[]: layer, bar, at_s, len_s, source_offset_s, pitch_class, midi_est, cents, gain_db, time_stretch, donor_onset_src_s, pitch_classes, fit
+  - summary: distinct_sounds_heard, rhythm_donors, distinct_sounds_total, contributors, sources, licenses, total_events, top_contributors_by_events, max_bars_per_sound, chord_tone_energy_mean
+  - signature: status, signed_by, algorithm, key_id, value, note
+  - record_hash: algorithm, over, value
+  - amendments[]: at, what, previous_record_hash, original_record
+  - record_hash: sha256 over canonical JSON (sorted keys, no whitespace) of the record without record_hash and signature
+  - signature: UNSIGNED (open decision #33)
+
 ## Index
 
-- [netcomposer.json](https://netcomposer.art/netcomposer.json): Composition, Performances, record URLs, Suppliers, licenses
+- [netcomposer.json](https://netcomposer.art/netcomposer.json): roles, participation, record schema, Composition, Performances, record URLs, Suppliers, licenses
+- [suppliers.json](https://netcomposer.art/suppliers.json): Supplier registry (1 entry); human-readable at https://netcomposer.art/suppliers/
+- [Supplier spec](https://netcomposer.art/supplier-spec/): netcomposer.json index and manifest fields, as musicmatter.art implements them
+- [validate_supplier.py](https://netcomposer.art/tools/validate_supplier.py): stdlib validator for a Supplier index
 
 ## Composition
 
@@ -23,6 +127,6 @@ Art and research project. Output license: CC BY-SA 4.0. Accepted inputs: CC0, CC
 
 ## Suppliers
 
-- [musicmatter.art](https://musicmatter.art/) by Peter Semmelhack: 1,356 FLAC chord sounds, CC BY-SA 4.0. Index: https://musicmatter.art/netcomposer.json
-- [Freesound](https://freesound.org/): searched via API, CC0 and CC BY only
+- [musicmatter.art](https://musicmatter.art/) by Peter Semmelhack (registry #1): 1,356 FLAC chord sounds, CC BY-SA 4.0. Index: https://musicmatter.art/netcomposer.json. Last validated 2026-10-17T20:26:18-07:00: valid.
+- [Freesound](https://freesound.org/): open library searched via API, license-filtered
 - [Wikimedia Commons](https://commons.wikimedia.org/) and [Internet Archive](https://archive.org/): reached by the crawl walk; per-file license check

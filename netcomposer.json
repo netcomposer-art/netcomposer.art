@@ -1,14 +1,402 @@
 {
   "nc_site_version": "0.1",
-  "status": "preview (not deployed)",
+  "status": "live",
   "name": "NetComposer",
   "url": "https://netcomposer.art/",
   "tagline": "Music performed by the open internet.",
+  "summary": "Music performed by the open internet. A Composition fixes only the harmony, the bars and the tempo shape. A Performer realizes it from openly licensed sound the crawlers find. Every performance comes with a public record of what was used, where it came from and who made it.",
   "statement": {
     "text": "Music’s structure can be described mathematically. There is art in the math, and there is art in the performance. NetComposer is my exploration of that duality.",
     "by": "Peter Semmelhack"
   },
   "kind": "art and research project",
+  "roles": {
+    "Supplier": {
+      "what": "People and sites that make sound and share it under an open license.",
+      "why": "A Performer has no instrument of its own. The open sound commons is the instrument, and Suppliers build it.",
+      "participate": [
+        "Publish audio under CC0, CC BY, CC BY-SA or public domain anywhere a crawler can reach it. Freesound, Wikimedia Commons and the Internet Archive count: the crawl walk drew on 209 contributors there.",
+        "Better: publish a netcomposer.json index with a manifest per sound, as musicmatter.art does, and register it.",
+        "Registered Suppliers will be crawled first and checked (licenses and checksums) on every crawl. Today the registry is checked with the validator. The crawler keeps searching the open commons for everyone else.",
+        "Every record that uses your sound credits you by name, with a link."
+      ],
+      "links": {
+        "spec": "https://netcomposer.art/supplier-spec/",
+        "registry": "https://netcomposer.art/suppliers.json",
+        "registry_page": "https://netcomposer.art/suppliers/",
+        "validator": "https://netcomposer.art/tools/validate_supplier.py",
+        "register": "https://github.com/netcomposer-art/netcomposer.art/issues"
+      }
+    },
+    "Composer": {
+      "what": "Write Compositions: a harmonic plan with chords per bar, bar count and tempo shape. No notes, no timbres.",
+      "why": "The Composition is what stays the same from one performance to the next. Leaving out notes and sounds leaves the rest to the network.",
+      "participate": [
+        "Write a plan in the form of the BWV 846 Composition file.",
+        "Public-domain pieces with an openly licensed (CC BY-SA or PD) harmonic analysis work well. BWV 846 uses the When in Rome analysis.",
+        "Send it as an issue on the site repository."
+      ],
+      "links": {
+        "example": "https://netcomposer.art/composition/bwv846-harmony-only.md",
+        "when_in_rome": "https://github.com/MarkGotham/When-in-Rome",
+        "submit": "https://github.com/netcomposer-art/netcomposer.art/issues"
+      }
+    },
+    "Performer": {
+      "what": "Realize a Composition from found sound.",
+      "why": "The choices are the art: which sources, which selection rules, how dense, how much contrast, which transformations, how much restraint.",
+      "participate": [
+        "Extend the system with hacks, or propose a Performance (sources, rules, settings) as an issue.",
+        "Or realize a Composition with your own tools from openly licensed sound and publish a record in the same format.",
+        "Every choice goes in the record, so the performance can be reproduced.",
+        "Today the Performer is a set of scripts run by Peter. The tooling is not public yet, and the record format is a draft."
+      ],
+      "links": {
+        "record_format": "https://netcomposer.art/record/",
+        "example_record": "https://netcomposer.art/records/bwv846-walk.json",
+        "propose": "https://github.com/netcomposer-art/netcomposer.art/issues"
+      }
+    },
+    "Audience": {
+      "what": "Anyone listening, people or agents.",
+      "why": "Every performance ends as music someone hears. Listening, sharing and remixing keep it moving.",
+      "participate": [
+        "Listen, share and remix. Every performance is CC BY-SA 4.0.",
+        "Read the record to see who made what you are hearing. Each sound has a credit line ready to paste."
+      ],
+      "links": {
+        "performances": "https://netcomposer.art/#comparison",
+        "records": "https://netcomposer.art/records/",
+        "license": "https://creativecommons.org/licenses/by-sa/4.0/"
+      }
+    }
+  },
+  "participate": {
+    "anyone_can_take_any_role": true,
+    "channel": {
+      "status": "PROPOSED, not decided",
+      "issues": "https://github.com/netcomposer-art/netcomposer.art/issues",
+      "pull_requests": "https://github.com/netcomposer-art/netcomposer.art",
+      "supplier_registry_entry": "https://netcomposer.art/suppliers.json"
+    },
+    "by_role": {
+      "Supplier": {
+        "steps": [
+          "Publish audio under CC0, CC BY, CC BY-SA or public domain anywhere a crawler can reach it. Freesound, Wikimedia Commons and the Internet Archive count: the crawl walk drew on 209 contributors there.",
+          "Better: publish a netcomposer.json index with a manifest per sound, as musicmatter.art does, and register it.",
+          "Registered Suppliers will be crawled first and checked (licenses and checksums) on every crawl. Today the registry is checked with the validator. The crawler keeps searching the open commons for everyone else.",
+          "Every record that uses your sound credits you by name, with a link."
+        ],
+        "links": {
+          "spec": "https://netcomposer.art/supplier-spec/",
+          "registry": "https://netcomposer.art/suppliers.json",
+          "registry_page": "https://netcomposer.art/suppliers/",
+          "validator": "https://netcomposer.art/tools/validate_supplier.py",
+          "register": "https://github.com/netcomposer-art/netcomposer.art/issues"
+        }
+      },
+      "Composer": {
+        "steps": [
+          "Write a plan in the form of the BWV 846 Composition file.",
+          "Public-domain pieces with an openly licensed (CC BY-SA or PD) harmonic analysis work well. BWV 846 uses the When in Rome analysis.",
+          "Send it as an issue on the site repository."
+        ],
+        "links": {
+          "example": "https://netcomposer.art/composition/bwv846-harmony-only.md",
+          "when_in_rome": "https://github.com/MarkGotham/When-in-Rome",
+          "submit": "https://github.com/netcomposer-art/netcomposer.art/issues"
+        }
+      },
+      "Performer": {
+        "steps": [
+          "Extend the system with hacks, or propose a Performance (sources, rules, settings) as an issue.",
+          "Or realize a Composition with your own tools from openly licensed sound and publish a record in the same format.",
+          "Every choice goes in the record, so the performance can be reproduced.",
+          "Today the Performer is a set of scripts run by Peter. The tooling is not public yet, and the record format is a draft."
+        ],
+        "links": {
+          "record_format": "https://netcomposer.art/record/",
+          "example_record": "https://netcomposer.art/records/bwv846-walk.json",
+          "propose": "https://github.com/netcomposer-art/netcomposer.art/issues"
+        }
+      },
+      "Audience": {
+        "steps": [
+          "Listen, share and remix. Every performance is CC BY-SA 4.0.",
+          "Read the record to see who made what you are hearing. Each sound has a credit line ready to paste."
+        ],
+        "links": {
+          "performances": "https://netcomposer.art/#comparison",
+          "records": "https://netcomposer.art/records/",
+          "license": "https://creativecommons.org/licenses/by-sa/4.0/"
+        }
+      }
+    }
+  },
+  "interaction": {
+    "diagram": "SUPPLIERS -- open sound (CC0 / BY / BY-SA / PD) --> CRAWLERS\n  ^   later: registered Suppliers first                 |\n  |                                                     | found sound\n  |                                                     v\n  |   COMPOSERS -- Composition ------------------> PERFORMERS <-- hacks\n  |                                                     |\n  |                                                     | performance + record\n  |                                                     v\n  +-- each record credits every Supplier ---------- AUDIENCE\n                                             listen / share / remix",
+    "text": "Suppliers publish sound; crawlers find it (registered Suppliers will be crawled first). A Composer’s plan and the found sound meet in a Performer, whose choices produce the performance and its record. The Audience gets both, and the record credits every Supplier whose sound was used, with a link back. One person can play every role, or thousands of strangers can."
+  },
+  "record": {
+    "page": "https://netcomposer.art/record/",
+    "why": "Each performance carries an exact account of itself: every sound, its contributor, license, source URL and checksum, where it was placed in the piece, every Performer setting and the seed. CC BY requires credit anyway. The record makes credit exact rather than a footnote.",
+    "why_new": "Recorded music has mostly been a sealed artifact. Sample-level credit is rare and usually private. Here credit, provenance and method travel with the music, in public, readable by people and agents.",
+    "score": "The Composition is the score of the piece; the record is the score of the performance.",
+    "unlocks": [
+      {
+        "what": "Reproduction",
+        "how": "the inputs (with checksums), every setting and the seed are enough to rebuild a performance exactly."
+      },
+      {
+        "what": "Forks",
+        "how": "change one setting or swap one Supplier, and the new record shows exactly what changed."
+      },
+      {
+        "what": "Supplier view",
+        "how": "Suppliers can see where their sounds were used. A usage view built from records is in draft for musicmatter.art."
+      },
+      {
+        "what": "Comparison",
+        "how": "performances of one Composition can be compared sound by sound and setting by setting."
+      },
+      {
+        "what": "The crawl path as artwork",
+        "how": "the walk record traces every hop from the seed sound, drawn as a path chart."
+      },
+      {
+        "what": "Agents",
+        "how": "agents can read, audit and build on any performance from the raw JSON."
+      },
+      {
+        "what": "Signed records, later",
+        "how": "records are unsigned for now. Signing is open decision #33."
+      }
+    ],
+    "notarism": "Peter’s Notarism is about witnessing and recording existence. The record is NetComposer’s act of witness.",
+    "schema": {
+      "described_from": "https://netcomposer.art/records/bwv846-walk.json",
+      "record_type": "netcomposer.performance_record",
+      "record_format_version": null,
+      "status": "draft format; fields may change; the walk record is the most complete example",
+      "top_level": [
+        "record_type",
+        "record_format_version",
+        "record_format_note",
+        "performance",
+        "hacks_chain",
+        "sounds_used",
+        "summary",
+        "derived_inputs",
+        "attribution",
+        "provenance_files",
+        "created_at",
+        "signature",
+        "record_hash",
+        "amendments"
+      ],
+      "performance": [
+        "id",
+        "title",
+        "performed_at",
+        "performed_at_local",
+        "duration_s",
+        "music_ends_at_s",
+        "performer_mode",
+        "performer_id",
+        "performer",
+        "rules_set_by",
+        "composition_ref",
+        "rule_set",
+        "crawl",
+        "bars",
+        "outputs",
+        "known_compromises",
+        "license_out"
+      ],
+      "performance.composition_ref": [
+        "composition_id",
+        "sha256",
+        "composer",
+        "music",
+        "analysis",
+        "not_used"
+      ],
+      "performance.rule_set": [
+        "name",
+        "seed",
+        "walk",
+        "selection",
+        "caps",
+        "rhythm",
+        "bass",
+        "bed",
+        "tempo_map",
+        "transforms_enabled",
+        "pitch_shift"
+      ],
+      "performance.crawl": [
+        "queries",
+        "queries_by_source",
+        "first_query_at",
+        "last_query_at",
+        "nodes_found",
+        "nodes_analyzed"
+      ],
+      "performance.bars[]": [
+        "bar",
+        "chord",
+        "chord_pcs",
+        "figure_tones_available",
+        "chord_tone_energy",
+        "has_bass",
+        "has_bed",
+        "rhythm",
+        "expansions",
+        "sounds"
+      ],
+      "performance.bars[].sounds[]": [
+        "key",
+        "title",
+        "by",
+        "source",
+        "license",
+        "url",
+        "roles",
+        "events",
+        "hop",
+        "found_at_bar",
+        "pitch_classes_used"
+      ],
+      "sounds_used[]": [
+        "key",
+        "source",
+        "title",
+        "source_url",
+        "audio_used",
+        "supplier",
+        "license",
+        "credit_line",
+        "found",
+        "roles",
+        "uses",
+        "bars",
+        "time_stretch_ratios",
+        "pitch_shift",
+        "spans"
+      ],
+      "sounds_used[].audio_used": [
+        "url",
+        "what",
+        "sha256",
+        "size_bytes"
+      ],
+      "sounds_used[].found": [
+        "at_bar",
+        "hop",
+        "parent",
+        "parent_title",
+        "path_length_from_seed"
+      ],
+      "sounds_used[].spans[]": [
+        "layer",
+        "bar",
+        "at_s",
+        "len_s",
+        "source_offset_s",
+        "pitch_class",
+        "midi_est",
+        "cents",
+        "gain_db",
+        "time_stretch",
+        "donor_onset_src_s",
+        "pitch_classes",
+        "fit"
+      ],
+      "summary": [
+        "distinct_sounds_heard",
+        "rhythm_donors",
+        "distinct_sounds_total",
+        "contributors",
+        "sources",
+        "licenses",
+        "total_events",
+        "top_contributors_by_events",
+        "max_bars_per_sound",
+        "chord_tone_energy_mean"
+      ],
+      "signature": [
+        "status",
+        "signed_by",
+        "algorithm",
+        "key_id",
+        "value",
+        "note"
+      ],
+      "record_hash": [
+        "algorithm",
+        "over",
+        "value"
+      ],
+      "amendments[]": [
+        "at",
+        "what",
+        "previous_record_hash",
+        "original_record"
+      ],
+      "record_hash_rule": "canonical JSON (sorted keys, no whitespace) of the record without record_hash and signature",
+      "other_records_top_level": {
+        "take5-fwd-rev-echo": [
+          "record_type",
+          "record_format_version",
+          "record_format_note",
+          "performance",
+          "hacks_chain",
+          "sounds_used",
+          "summary",
+          "derived_inputs",
+          "attribution",
+          "provenance_files",
+          "provenance_note",
+          "created_at",
+          "signature",
+          "record_hash",
+          "amendments"
+        ],
+        "take6-arps-delay-lp1k": [
+          "record_type",
+          "record_format_version",
+          "record_format_note",
+          "performance",
+          "hacks_chain",
+          "sounds_used",
+          "summary",
+          "derived_inputs",
+          "attribution",
+          "provenance_files",
+          "created_at",
+          "signature",
+          "record_hash",
+          "amendments"
+        ],
+        "search": [
+          "record_type",
+          "record_format_version",
+          "record_format_note",
+          "performance",
+          "hacks_chain",
+          "sounds_used",
+          "summary",
+          "derived_inputs",
+          "attribution",
+          "provenance_files",
+          "created_at",
+          "signature",
+          "record_hash",
+          "amendments"
+        ]
+      }
+    }
+  },
   "license_out": {
     "id": "CC-BY-SA-4.0",
     "uri": "https://creativecommons.org/licenses/by-sa/4.0/"
@@ -28,12 +416,6 @@
   "transforms": {
     "time_stretch": true,
     "pitch_shift": false
-  },
-  "roles": {
-    "Supplier": "shares openly licensed audio and is credited in every record that uses it",
-    "Composer": "writes a Composition: harmony, bars and tempo shape, no fixed notes or timbres",
-    "Performer": "realizes a Composition from what the crawlers find; extended with hacks",
-    "Audience": "hears the result, released CC BY-SA 4.0"
   },
   "compositions": [
     {
@@ -1954,7 +2336,8 @@
       ],
       "format": "FLAC 24-bit/48 kHz",
       "license": "CC-BY-SA-4.0",
-      "role": "first dedicated NetComposer Supplier"
+      "role": "first dedicated NetComposer Supplier; registry entry #1",
+      "registry_id": 1
     },
     {
       "name": "Freesound",
@@ -1979,6 +2362,72 @@
   "agents": {
     "llms_txt": "https://netcomposer.art/llms.txt",
     "robots": "https://netcomposer.art/robots.txt",
-    "records_are_raw_json": true
+    "records_are_raw_json": true,
+    "suppliers_json": "https://netcomposer.art/suppliers.json",
+    "record_page": "https://netcomposer.art/record/",
+    "supplier_spec": "https://netcomposer.art/supplier-spec/"
+  },
+  "supplier_registry": {
+    "json": "https://netcomposer.art/suppliers.json",
+    "page": "https://netcomposer.art/suppliers/",
+    "count": 1,
+    "crawl_policy": "Registered Suppliers will be crawled first and checked (licenses and checksums) on every crawl. Today the registry is checked with the validator. The crawler also searches the open commons (Freesound, Wikimedia Commons, Internet Archive) for everyone else."
+  },
+  "supplier_spec": {
+    "page": "https://netcomposer.art/supplier-spec/",
+    "nc_version": "0.1",
+    "reference_implementation": "https://musicmatter.art/netcomposer.json",
+    "index_fields": [
+      "nc_version",
+      "creator",
+      "default_license",
+      "default_audio_format",
+      "offerings[].audio",
+      "offerings[].manifest",
+      "offerings[].midi"
+    ],
+    "manifest_fields_present": {
+      "arpeggio": "654/1356",
+      "audio": "1356/1356",
+      "chords": "1356/1356",
+      "creator": "1356/1356",
+      "format": "1356/1356",
+      "key": "1068/1356",
+      "license": "1356/1356",
+      "loopable": "1356/1356",
+      "midi": "1356/1356",
+      "midi_info": "1356/1356",
+      "nc_version": "1356/1356",
+      "near_duplicate_of": "6/1356",
+      "notes_confidence": "2/1356",
+      "register": "1356/1356",
+      "register_source": "529/1356",
+      "sha256": "1356/1356",
+      "size_bytes": "1356/1356",
+      "title": "1356/1356",
+      "type": "1356/1356"
+    },
+    "proposed": {
+      "minimum_manifest_fields": [
+        "title",
+        "creator",
+        "audio",
+        "sha256",
+        "size_bytes",
+        "license (or index default_license)"
+      ],
+      "license_ids": [
+        "CC0-1.0",
+        "CC-BY-3.0",
+        "CC-BY-4.0",
+        "CC-BY-SA-3.0",
+        "CC-BY-SA-4.0",
+        "PDM-1.0"
+      ],
+      "checksums_required": true
+    }
+  },
+  "tools": {
+    "validate_supplier": "https://netcomposer.art/tools/validate_supplier.py"
   }
 }

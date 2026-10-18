@@ -1,6 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 <url><loc>https://netcomposer.art/</loc></url>
+<url><loc>https://netcomposer.art/record/</loc></url>
+<url><loc>https://netcomposer.art/suppliers/</loc></url>
+<url><loc>https://netcomposer.art/suppliers.json</loc></url>
+<url><loc>https://netcomposer.art/supplier-spec/</loc></url>
+<url><loc>https://netcomposer.art/tools/validate_supplier.py</loc></url>
 <url><loc>https://netcomposer.art/composition/bwv846-harmony-only.md</loc></url>
 <url><loc>https://netcomposer.art/netcomposer.json</loc></url>
 <url><loc>https://netcomposer.art/llms.txt</loc></url>

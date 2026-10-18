@@ -1,0 +1,47 @@
+{
+  "registry": "NetComposer Supplier registry",
+  "registry_version": "0.1 (draft)",
+  "url": "https://netcomposer.art/suppliers.json",
+  "updated": "2026-10-17",
+  "how_to_register": {
+    "status": "PROPOSED, not decided",
+    "channel": "https://github.com/netcomposer-art/netcomposer.art/issues",
+    "alternative": "pull request to https://github.com/netcomposer-art/netcomposer.art adding an entry to suppliers.json",
+    "spec": "https://netcomposer.art/supplier-spec/",
+    "validator": "https://netcomposer.art/tools/validate_supplier.py"
+  },
+  "crawl_policy": "Registered Suppliers will be crawled first and checked (licenses and checksums) on every crawl. Today the registry is checked with the validator. The crawler also searches the open commons (Freesound, Wikimedia Commons, Internet Archive) for everyone else.",
+  "status_values": {
+    "active": "index validates; will be crawled first",
+    "pending": "submitted, not yet validated",
+    "failing": "last validation found errors; will be skipped until fixed",
+    "withdrawn": "removed at the Supplier's request"
+  },
+  "status_values_note": "PROPOSED",
+  "suppliers": [
+    {
+      "id": 1,
+      "name": "musicmatter.art",
+      "display_name": "Peter Semmelhack",
+      "url": "https://musicmatter.art/",
+      "index": "https://musicmatter.art/netcomposer.json",
+      "licenses": [
+        "CC-BY-SA-4.0"
+      ],
+      "sounds": 1356,
+      "registered": "2026-10-17",
+      "registered_note": "seed entry, registered when the registry was created",
+      "last_validated": "2026-10-17T20:26:18-07:00",
+      "last_validation": {
+        "tool": "https://netcomposer.art/tools/validate_supplier.py",
+        "status": "valid",
+        "manifests_checked": 1356,
+        "audio_checksums_checked": 25,
+        "audio_checksums_ok": 25,
+        "errors": 0,
+        "warnings": 0
+      },
+      "status": "active"
+    }
+  ]
+}

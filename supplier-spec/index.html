@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>NetComposer Supplier spec</title>
+<meta name="description" content="The netcomposer.json index and per-sound manifest fields, as musicmatter.art implements them.">
+<link rel="alternate" type="application/json" href="/netcomposer.json" title="NetComposer index">
+<link rel="alternate" type="text/plain" href="/llms.txt" title="llms.txt">
+<link rel="license" href="https://creativecommons.org/licenses/by-sa/4.0/">
+<style>body{font:15px/1.55 ui-monospace,Menlo,Consolas,"DejaVu Sans Mono",monospace;color:#000;background:#fff;max-width:76rem;margin:2.5rem auto;padding:0 1.2rem}
+h1{font-size:1.4rem;margin:0}h2{font-size:1rem;font-weight:bold;margin:2.6rem 0 .6rem;border-bottom:1px solid #000}h3{font-size:1rem;margin:0 0 .5rem}
+a{color:#000}p{margin:.5rem 0;max-width:46rem}blockquote{margin:1.4rem 0;max-width:46rem}blockquote p{margin:0}blockquote footer{margin-top:.3rem}
+.perfs{display:grid;grid-template-columns:repeat(4,1fr);gap:1.1rem}article{border:1px solid #000;padding:.8rem}article p{font-size:13px}audio{width:100%}
+.m{color:#333}.chords{font-size:12px;line-height:1.9;max-width:none}.chords span{display:inline-block;margin-right:.9rem}ul{padding-left:1.2rem;max-width:46rem}li{margin:.2rem 0}
+footer.site{margin-top:3rem;font-size:12px;border-top:1px solid #000;padding-top:.6rem}
+li.small{font-size:12px}@media(max-width:1100px){.perfs{grid-template-columns:1fr 1fr}}@media(max-width:700px){.perfs{grid-template-columns:1fr}}
+.roles{display:grid;grid-template-columns:repeat(4,1fr);gap:1.1rem}.roles article p,.roles article li{font-size:13px}.roles ul{margin:.2rem 0 .4rem}
+.lede{font-size:16px;max-width:60rem}nav.toc{font-size:13px;margin:.6rem 0 1rem}pre{font-size:13px;line-height:1.35;overflow-x:auto;margin:.8rem 0}
+@media(max-width:1100px){.roles{grid-template-columns:1fr 1fr}}@media(max-width:700px){.roles{grid-template-columns:1fr}}
+body{max-width:60rem}pre{background:#fff;border-left:2px solid #000;padding-left:.8rem}code{font-size:13px}
+table{border-collapse:collapse;font-size:13px}td,th{border:1px solid #000;padding:.25rem .5rem;vertical-align:top;text-align:left}</style>
+</head>
+<body>
+<header>
+<h1><a href="../">NetComposer</a> / Supplier spec</h1>
+<p class="lede">A Supplier publishes one index file and one manifest per sound. This page describes the fields exactly as musicmatter.art publishes them today (format version 0.1). Anything not yet in use there is marked PROPOSED.</p>
+</header>
+<main>
+<section><h2>Index: netcomposer.json</h2>
+<p>Served at the site root, e.g. <a href="https://musicmatter.art/netcomposer.json">musicmatter.art/netcomposer.json</a>.</p>
+<table><tr><th>field</th><th>musicmatter.art value</th><th>meaning</th></tr>
+<tr><td><code>nc_version</code></td><td><code>"0.1"</code></td><td>format version</td></tr>
+<tr><td><code>creator</code></td><td><code>{"name": …, "link": "https://musicmatter.art/"}</code></td><td>who publishes the sounds: name, link</td></tr>
+<tr><td><code>default_license</code></td><td><code>"CC-BY-SA-4.0"</code></td><td>license for every offering unless its manifest says otherwise</td></tr>
+<tr><td><code>default_audio_format</code></td><td><code>"audio/flac"</code></td><td>MIME type of the audio</td></tr>
+<tr><td><code>offerings</code></td><td>1356 entries</td><td>one per sound; keys: <code>audio</code> (absolute audio URL), <code>manifest</code> (absolute manifest URL), <code>midi</code> (relative path to a MIDI transcription)</td></tr>
+</table></section>
+<section><h2>Manifest: one per sound</h2>
+<p>At the URL in <code>offerings[].manifest</code>, e.g. <code>/sounds/&lt;name&gt;.nc.json</code>. Field counts are from the 2026-10-17 validation of all 1356 live manifests; sub-keys are from the same published files.</p>
+<table><tr><th>field</th><th>present</th><th>meaning</th></tr>
+<tr><td><code>audio</code></td><td>1356/1356</td><td>audio file name, relative to the manifest.</td></tr><tr><td><code>chords</code></td><td>1356/1356</td><td>list of chord names sounded.</td></tr><tr><td><code>creator</code></td><td>1356/1356</td><td>object: name, link. Keys: <code>name</code>, <code>link</code>.</td></tr><tr><td><code>format</code></td><td>1356/1356</td><td>audio format details. Keys: <code>mime</code>, <code>container</code>, <code>codec</code>, <code>lossless</code>, <code>sample_rate</code>, <code>bit_depth</code>, <code>channels</code>, <code>frames</code>, <code>pcm_md5</code>.</td></tr><tr><td><code>license</code></td><td>1356/1356</td><td>SPDX-style id, e.g. &quot;CC-BY-SA-4.0&quot;.</td></tr><tr><td><code>loopable</code></td><td>1356/1356</td><td>true/false.</td></tr><tr><td><code>midi</code></td><td>1356/1356</td><td>relative path to a MIDI transcription.</td></tr><tr><td><code>midi_info</code></td><td>1356/1356</td><td>how the MIDI was derived. Keys: <code>derived_from_audio</code>, <code>source</code>, <code>confidence</code>, <code>method</code>, <code>timing</code>, <code>notes</code>, <code>size_bytes</code>, <code>sha256</code>.</td></tr><tr><td><code>nc_version</code></td><td>1356/1356</td><td>format version, &quot;0.1&quot;.</td></tr><tr><td><code>register</code></td><td>1356/1356</td><td>pitch range and bass. Keys: <code>low</code>, <code>high</code>, <code>root</code>, <code>bass</code>, <code>inversion</code>.</td></tr><tr><td><code>sha256</code></td><td>1356/1356</td><td>sha256 of the audio file.</td></tr><tr><td><code>size_bytes</code></td><td>1356/1356</td><td>audio file size in bytes.</td></tr><tr><td><code>title</code></td><td>1356/1356</td><td>human-readable title.</td></tr><tr><td><code>type</code></td><td>1356/1356</td><td>&quot;chord&quot; or &quot;arpeggio&quot;.</td></tr><tr><td><code>key</code></td><td>1068/1356</td><td>key context, where given.</td></tr><tr><td><code>arpeggio</code></td><td>654/1356</td><td>arpeggio details (arpeggio sounds only). Keys: <code>direction</code>, <code>pattern</code>, <code>cycle</code>, <code>pitch_order</code>, <code>pitch_order_note</code>, <code>note_count</code>, <code>bars</code>, <code>restarts_each_bar</code>, <code>rate</code>, <code>notes</code>, <code>onsets_s</code>, <code>duration_s</code>. Rate keys: <code>note_value</code>, <code>bpm</code>, <code>step_s</code>, <code>meter</code>.</td></tr><tr><td><code>register_source</code></td><td>529/1356</td><td>how the register was verified, e.g. &quot;verified_v6&quot;.</td></tr><tr><td><code>near_duplicate_of</code></td><td>6/1356</td><td>audio file this sound nearly duplicates.</td></tr><tr><td><code>notes_confidence</code></td><td>2/1356</td><td>confidence note for the pitch analysis, e.g. &quot;low&quot;.</td></tr>
+</table></section>
+<section><h2>PROPOSED</h2>
+<ul>
+<li><b>Minimum per manifest (PROPOSED).</b> <code>title</code>, <code>creator</code>, <code>audio</code>, <code>sha256</code>, <code>size_bytes</code>, and <code>license</code> unless the index has <code>default_license</code>. Everything else is optional. The validator checks this minimum.</li>
+<li><b>License identifiers (PROPOSED).</b> SPDX-style ids: <code>CC0-1.0</code>, <code>CC-BY-3.0</code>, <code>CC-BY-4.0</code>, <code>CC-BY-SA-3.0</code>, <code>CC-BY-SA-4.0</code>, <code>PDM-1.0</code>. Any NC, ND, Sampling+ or custom license is rejected.</li>
+<li><b>Checksums (PROPOSED as required).</b> <code>sha256</code> and <code>size_bytes</code> must match the audio bytes served. Crawls will check them; today the validator does.</li>
+</ul>
+<p>The fields describing the sound (<code>type</code>, <code>chords</code>, <code>register</code>, <code>key</code>, <code>arpeggio</code>) are what let a Performer choose musically without listening first. A Supplier of other kinds of sound may leave them out.</p></section>
+<section><h2>Validate</h2>
+<p><a href="../tools/validate_supplier.py">tools/validate_supplier.py</a> (Python standard library only): <code>python3 validate_supplier.py &lt;index_url&gt; [--sample 25] [--all-manifests] [--json report.json]</code>. It checks the index, the manifests (parse, license, minimum fields, audio path matches the index) and a sample of audio files (sha256 and size). Exit code 0 means valid.</p>
+<p>Then register: <a href="../suppliers/">Supplier registry</a>.</p></section>
+</main>
+<footer class="site">
+<p>For agents: <a href="/netcomposer.json">/netcomposer.json</a> · <a href="/llms.txt">/llms.txt</a> · <a href="/suppliers.json">/suppliers.json</a> · <a href="/record/">/record/</a> · every record is raw JSON under <a href="/records/">/records/</a>.</p>
+</footer>
+</body>
+</html>

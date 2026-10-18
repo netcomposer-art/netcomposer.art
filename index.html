@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>NetComposer — music performed by the open internet</title>
-<meta name="description" content="NetComposer: one Composition, performed from openly licensed audio. Every performance leaves a public record. CC BY-SA 4.0.">
+<meta name="description" content="NetComposer: music performed by the open internet. Four roles: Suppliers, Composers, Performers, Audience. Anyone can take part. Every performance has a public record. CC BY-SA 4.0.">
 <link rel="alternate" type="application/json" href="/netcomposer.json" title="NetComposer index">
 <link rel="alternate" type="text/plain" href="/llms.txt" title="llms.txt">
 <link rel="license" href="https://creativecommons.org/licenses/by-sa/4.0/">
@@ -14,7 +14,10 @@ a{color:#000}p{margin:.5rem 0;max-width:46rem}blockquote{margin:1.4rem 0;max-wid
 .perfs{display:grid;grid-template-columns:repeat(4,1fr);gap:1.1rem}article{border:1px solid #000;padding:.8rem}article p{font-size:13px}audio{width:100%}
 .m{color:#333}.chords{font-size:12px;line-height:1.9;max-width:none}.chords span{display:inline-block;margin-right:.9rem}ul{padding-left:1.2rem;max-width:46rem}li{margin:.2rem 0}
 footer.site{margin-top:3rem;font-size:12px;border-top:1px solid #000;padding-top:.6rem}
-li.small{font-size:12px}@media(max-width:1100px){.perfs{grid-template-columns:1fr 1fr}}@media(max-width:700px){.perfs{grid-template-columns:1fr}}</style>
+li.small{font-size:12px}@media(max-width:1100px){.perfs{grid-template-columns:1fr 1fr}}@media(max-width:700px){.perfs{grid-template-columns:1fr}}
+.roles{display:grid;grid-template-columns:repeat(4,1fr);gap:1.1rem}.roles article p,.roles article li{font-size:13px}.roles ul{margin:.2rem 0 .4rem}
+.lede{font-size:16px;max-width:60rem}nav.toc{font-size:13px;margin:.6rem 0 1rem}pre{font-size:13px;line-height:1.35;overflow-x:auto;margin:.8rem 0}
+@media(max-width:1100px){.roles{grid-template-columns:1fr 1fr}}@media(max-width:700px){.roles{grid-template-columns:1fr}}</style>
 <script type="application/ld+json">
 {
  "@context": "https://schema.org",
@@ -24,7 +27,7 @@ li.small{font-size:12px}@media(max-width:1100px){.perfs{grid-template-columns:1f
    "@id": "https://netcomposer.art/#site",
    "url": "https://netcomposer.art/",
    "name": "NetComposer",
-   "description": "Music performed by the open internet.",
+   "description": "Music performed by the open internet. A Composition fixes only the harmony, the bars and the tempo shape. A Performer realizes it from openly licensed sound the crawlers find. Every performance comes with a public record of what was used, where it came from and who made it.",
    "license": "https://creativecommons.org/licenses/by-sa/4.0/",
    "about": {
     "@type": "CreativeWork",
@@ -1505,6 +1508,84 @@ li.small{font-size:12px}@media(max-width:1100px){.perfs{grid-template-columns:1f
     "name": "Peter Semmelhack"
    },
    "description": "First NetComposer Supplier: 1,356 lossless chord recordings, CC BY-SA 4.0. Index: https://musicmatter.art/netcomposer.json"
+  },
+  {
+   "@type": "WebPage",
+   "@id": "https://netcomposer.art/#participate",
+   "name": "How to take part in NetComposer",
+   "isPartOf": {
+    "@id": "https://netcomposer.art/#site"
+   },
+   "hasPart": [
+    {
+     "@type": "CreativeWork",
+     "@id": "https://netcomposer.art/#role-supplier",
+     "name": "Suppliers",
+     "description": "People and sites that make sound and share it under an open license. A Performer has no instrument of its own. The open sound commons is the instrument, and Suppliers build it.",
+     "text": "Publish audio under CC0, CC BY, CC BY-SA or public domain anywhere a crawler can reach it. Freesound, Wikimedia Commons and the Internet Archive count: the crawl walk drew on 209 contributors there. Better: publish a netcomposer.json index with a manifest per sound, as musicmatter.art does, and register it. Registered Suppliers will be crawled first and checked (licenses and checksums) on every crawl. Today the registry is checked with the validator. The crawler keeps searching the open commons for everyone else. Every record that uses your sound credits you by name, with a link.",
+     "potentialAction": {
+      "@type": "Action",
+      "name": "Take part as Supplier",
+      "target": "https://github.com/netcomposer-art/netcomposer.art/issues"
+     }
+    },
+    {
+     "@type": "CreativeWork",
+     "@id": "https://netcomposer.art/#role-composer",
+     "name": "Composers",
+     "description": "Write Compositions: a harmonic plan with chords per bar, bar count and tempo shape. No notes, no timbres. The Composition is what stays the same from one performance to the next. Leaving out notes and sounds leaves the rest to the network.",
+     "text": "Write a plan in the form of the BWV 846 Composition file. Public-domain pieces with an openly licensed (CC BY-SA or PD) harmonic analysis work well. BWV 846 uses the When in Rome analysis. Send it as an issue on the site repository.",
+     "potentialAction": {
+      "@type": "Action",
+      "name": "Take part as Composer",
+      "target": "https://github.com/netcomposer-art/netcomposer.art/issues"
+     }
+    },
+    {
+     "@type": "CreativeWork",
+     "@id": "https://netcomposer.art/#role-performer",
+     "name": "Performers",
+     "description": "Realize a Composition from found sound. The choices are the art: which sources, which selection rules, how dense, how much contrast, which transformations, how much restraint.",
+     "text": "Extend the system with hacks, or propose a Performance (sources, rules, settings) as an issue. Or realize a Composition with your own tools from openly licensed sound and publish a record in the same format. Every choice goes in the record, so the performance can be reproduced. Today the Performer is a set of scripts run by Peter. The tooling is not public yet, and the record format is a draft.",
+     "potentialAction": {
+      "@type": "Action",
+      "name": "Take part as Performer",
+      "target": "https://github.com/netcomposer-art/netcomposer.art/issues"
+     }
+    },
+    {
+     "@type": "CreativeWork",
+     "@id": "https://netcomposer.art/#role-audience",
+     "name": "Audience",
+     "description": "Anyone listening, people or agents. Every performance ends as music someone hears. Listening, sharing and remixing keep it moving.",
+     "text": "Listen, share and remix. Every performance is CC BY-SA 4.0. Read the record to see who made what you are hearing. Each sound has a credit line ready to paste.",
+     "potentialAction": {
+      "@type": "Action",
+      "name": "Take part as Audience",
+      "target": "https://netcomposer.art/#comparison"
+     }
+    }
+   ]
+  },
+  {
+   "@type": "TechArticle",
+   "@id": "https://netcomposer.art/record/#article",
+   "name": "The NetComposer performance record",
+   "url": "https://netcomposer.art/record/",
+   "abstract": "Each performance carries an exact account of itself: every sound, its contributor, license, source URL and checksum, where it was placed in the piece, every Performer setting and the seed. CC BY requires credit anyway. The record makes credit exact rather than a footnote. The Composition is the score of the piece; the record is the score of the performance.",
+   "isPartOf": {
+    "@id": "https://netcomposer.art/#site"
+   },
+   "license": "https://creativecommons.org/licenses/by-sa/4.0/"
+  },
+  {
+   "@type": "Dataset",
+   "@id": "https://netcomposer.art/suppliers.json",
+   "name": "NetComposer Supplier registry",
+   "url": "https://netcomposer.art/suppliers.json",
+   "encodingFormat": "application/json",
+   "license": "https://creativecommons.org/licenses/by-sa/4.0/",
+   "dateModified": "2026-10-17"
   }
  ]
 }
@@ -1513,15 +1594,47 @@ li.small{font-size:12px}@media(max-width:1100px){.perfs{grid-template-columns:1f
 <body>
 <header>
 <h1>NetComposer</h1>
-<p>Music performed by the open internet.</p>
+<p class="lede">Music performed by the open internet. A Composition fixes only the harmony, the bars and the tempo shape. A Performer realizes it from openly licensed sound the crawlers find. Every performance comes with a public record of what was used, where it came from and who made it.</p>
+<p>Four roles make it work. Anyone can take any of them.</p>
+<nav class="toc"><a href="#roles">roles</a> · <a href="#interact">how they interact</a> · <a href="#record">the record</a> · <a href="#comparison">performances</a> · <a href="#status">status</a> · <a href="#supplier">musicmatter.art</a> · <a href="#license">license</a></nav>
 </header>
 <main>
+<section id="roles" aria-labelledby="h-roles">
+<div class="roles">
+<article id="role-supplier"><h3>Suppliers</h3><p><b>What</b> People and sites that make sound and share it under an open license.</p><p><b>Why</b> A Performer has no instrument of its own. The open sound commons is the instrument, and Suppliers build it.</p><p><b>Take part</b></p><ul><li>Publish audio under CC0, CC BY, CC BY-SA or public domain anywhere a crawler can reach it. Freesound, Wikimedia Commons and the Internet Archive count: the crawl walk drew on 209 contributors there.</li><li>Better: publish a netcomposer.json index with a manifest per sound, as musicmatter.art does, and register it.</li><li>Registered Suppliers will be crawled first and checked (licenses and checksums) on every crawl. Today the registry is checked with the validator. The crawler keeps searching the open commons for everyone else.</li><li>Every record that uses your sound credits you by name, with a link.</li></ul><p class=m><a href="supplier-spec/">Supplier spec</a> · <a href="suppliers/">registry</a> · <a href="https://github.com/netcomposer-art/netcomposer.art/issues">register (issue)</a></p></article><article id="role-composer"><h3>Composers</h3><p><b>What</b> Write Compositions: a harmonic plan with chords per bar, bar count and tempo shape. No notes, no timbres.</p><p><b>Why</b> The Composition is what stays the same from one performance to the next. Leaving out notes and sounds leaves the rest to the network.</p><p><b>Take part</b></p><ul><li>Write a plan in the form of the BWV 846 Composition file.</li><li>Public-domain pieces with an openly licensed (CC BY-SA or PD) harmonic analysis work well. BWV 846 uses the When in Rome analysis.</li><li>Send it as an issue on the site repository.</li></ul><p class=m><a href="composition/bwv846-harmony-only.md">example Composition</a> · <a href="https://github.com/netcomposer-art/netcomposer.art/issues">submit (issue)</a></p></article><article id="role-performer"><h3>Performers</h3><p><b>What</b> Realize a Composition from found sound.</p><p><b>Why</b> The choices are the art: which sources, which selection rules, how dense, how much contrast, which transformations, how much restraint.</p><p><b>Take part</b></p><ul><li>Extend the system with hacks, or propose a Performance (sources, rules, settings) as an issue.</li><li>Or realize a Composition with your own tools from openly licensed sound and publish a record in the same format.</li><li>Every choice goes in the record, so the performance can be reproduced.</li><li>Today the Performer is a set of scripts run by Peter. The tooling is not public yet, and the record format is a draft.</li></ul><p class=m><a href="record/">record format</a> · <a href="https://github.com/netcomposer-art/netcomposer.art/issues">propose (issue)</a></p></article><article id="role-audience"><h3>Audience</h3><p><b>What</b> Anyone listening, people or agents.</p><p><b>Why</b> Every performance ends as music someone hears. Listening, sharing and remixing keep it moving.</p><p><b>Take part</b></p><ul><li>Listen, share and remix. Every performance is CC BY-SA 4.0.</li><li>Read the record to see who made what you are hearing. Each sound has a credit line ready to paste.</li></ul><p class=m><a href="#comparison">performances</a> · <a href="records/">records</a></p></article>
+</div>
+<p class=m>Submissions go through <a href="https://github.com/netcomposer-art/netcomposer.art/issues">issues on the site repository</a> (or a pull request adding an entry to <a href="suppliers.json">suppliers.json</a>). This channel is proposed and may change.</p>
+</section>
+
 <blockquote id="statement" cite="https://netcomposer.art/">
 <p>“Music’s structure can be described mathematically. There is art in the math, and there is art in the performance. NetComposer is my exploration of that duality.”</p>
 <footer>— Peter Semmelhack</footer>
 </blockquote>
-<p>A Composition sets the harmony, structure, and tempo shape. A Performer realizes it from openly licensed audio the crawlers find. Every performance leaves a public record of what was used, where it came from, and who made it.</p>
-<p>The record lists every input with its checksum, every setting and the seed, so each performance can be rebuilt exactly.</p>
+
+<section id="interact" aria-labelledby="h-int">
+<h2 id="h-int">How they interact</h2>
+<pre aria-label="Flow: Suppliers to crawlers to Performers; Composers to Performers; Performers to Audience with a record that credits Suppliers">SUPPLIERS -- open sound (CC0 / BY / BY-SA / PD) --&gt; CRAWLERS
+  ^   later: registered Suppliers first                 |
+  |                                                     | found sound
+  |                                                     v
+  |   COMPOSERS -- Composition ------------------&gt; PERFORMERS &lt;-- hacks
+  |                                                     |
+  |                                                     | performance + record
+  |                                                     v
+  +-- each record credits every Supplier ---------- AUDIENCE
+                                             listen / share / remix</pre>
+<p>Suppliers publish sound; crawlers find it (registered Suppliers will be crawled first). A Composer’s plan and the found sound meet in a Performer, whose choices produce the performance and its record. The Audience gets both, and the record credits every Supplier whose sound was used, with a link back. One person can play every role, or thousands of strangers can.</p>
+</section>
+
+<section id="record" aria-labelledby="h-rec">
+<h2 id="h-rec">The record</h2>
+<p>Each performance carries an exact account of itself: every sound, its contributor, license, source URL and checksum, where it was placed in the piece, every Performer setting and the seed. CC BY requires credit anyway. The record makes credit exact rather than a footnote.</p>
+<p>Recorded music has mostly been a sealed artifact. Sample-level credit is rare and usually private. Here credit, provenance and method travel with the music, in public, readable by people and agents. The Composition is the score of the piece; the record is the score of the performance.</p>
+<p>What it makes possible:</p>
+<ul><li><b>Reproduction:</b> the inputs (with checksums), every setting and the seed are enough to rebuild a performance exactly.</li><li><b>Forks:</b> change one setting or swap one Supplier, and the new record shows exactly what changed.</li><li><b>Supplier view:</b> Suppliers can see where their sounds were used. A usage view built from records is in draft for musicmatter.art.</li><li><b>Comparison:</b> performances of one Composition can be compared sound by sound and setting by setting.</li><li><b>The crawl path as artwork:</b> the walk record traces every hop from the seed sound, drawn as a <a href="records/bwv846-walk.png">path chart</a>.</li><li><b>Agents:</b> agents can read, audit and build on any performance from the raw JSON.</li><li><b>Signed records, later:</b> records are unsigned for now. Signing is open decision #33.</li></ul>
+<p>Peter’s Notarism is about witnessing and recording existence. The record is NetComposer’s act of witness.</p>
+<p>How a record is built, with annotated excerpts from the walk performance: <a href="record/">/record/</a>.</p>
+</section>
 
 <section id="comparison" aria-labelledby="h-comp">
 <h2 id="h-comp">One Composition, four Performances</h2>
@@ -1552,25 +1665,15 @@ li.small{font-size:12px}@media(max-width:1100px){.perfs{grid-template-columns:1f
 </div>
 </section>
 
-<section id="roles" aria-labelledby="h-roles">
-<h2 id="h-roles">Roles</h2>
-<ul>
-<li><b>Suppliers</b> share audio under open licenses and are credited in every record that uses it.</li>
-<li><b>Composers</b> write Compositions: harmony, bars, and tempo shape, with no fixed notes or timbres.</li>
-<li><b>Performers</b> realize a Composition from what the crawlers find, extended with hacks.</li>
-<li><b>Audience</b> hears the result, released CC BY-SA 4.0 to share and remix.</li>
-</ul>
-</section>
-
 <section id="status" aria-labelledby="h-status">
 <h2 id="h-status">Status</h2>
-<p>Today the Performer draws on one dedicated Supplier, musicmatter.art, plus open libraries: Freesound, and in the crawl walk also Wikimedia Commons and the Internet Archive. The wider Supplier network is the ambition. Inputs must be CC0, CC BY, CC BY-SA, or public domain; never NC, ND, Sampling+, or custom licenses. Time-stretch is allowed; pitch-shifting is not. Records are unsigned for now.</p>
+<p>Today the Performer draws on one registered Supplier, musicmatter.art, plus open libraries: Freesound, and in the crawl walk also Wikimedia Commons and the Internet Archive. The wider Supplier network is the ambition. The <a href="suppliers/">Supplier registry</a> has one entry. Inputs must be CC0, CC BY, CC BY-SA, or public domain; never NC, ND, Sampling+, or custom licenses. Time-stretch is allowed; pitch-shifting is not. The record format is a draft, and records are unsigned for now.</p>
 </section>
 
 <section id="supplier" aria-labelledby="h-sup">
 <h2 id="h-sup">First Supplier: musicmatter.art</h2>
-<p><a href="https://musicmatter.art/">musicmatter.art</a> by Peter Semmelhack is the first NetComposer Supplier: 1,356 lossless sounds (FLAC, 24-bit/48 kHz), 702 chord strikes and 654 up/down arpeggios, across 12 roots and 9 qualities (maj, min, 7, maj7, m7, dim, dim7, aug, sus4), in multiple takes. License: CC BY-SA 4.0.</p>
-<p>Machine-readable: an index at <a href="https://musicmatter.art/netcomposer.json">musicmatter.art/netcomposer.json</a> lists every sound with its FLAC and a per-sound manifest (<code>/sounds/&lt;name&gt;.nc.json</code>: chord, register and bass, format, sha256, license).</p>
+<p><a href="https://musicmatter.art/">musicmatter.art</a> by Peter Semmelhack is the first NetComposer Supplier and entry #1 in the <a href="suppliers/">registry</a>: 1,356 lossless sounds (FLAC, 24-bit/48 kHz), 702 chord strikes and 654 up/down arpeggios, across 12 roots and 9 qualities (maj, min, 7, maj7, m7, dim, dim7, aug, sus4), in multiple takes. License: CC BY-SA 4.0.</p>
+<p>Machine-readable: an index at <a href="https://musicmatter.art/netcomposer.json">musicmatter.art/netcomposer.json</a> lists every sound with its FLAC and a per-sound manifest (<code>/sounds/&lt;name&gt;.nc.json</code>: chord, register and bass, format, sha256, license). The <a href="supplier-spec/">Supplier spec</a> documents these fields.</p>
 <p>How the Performer uses it: it reads the manifests, picks one sound per bar whose chord matches the Composition, prefers the one whose lowest note is the written bass and whose register sits close to the previous bar, then trims, layers or time-stretches it (never pitch-shifts). Performance 1 uses 28 chord strikes; performance 2 uses 26 arpeggios. Both were read from a local copy of the site, and the audio used is sample-identical to the published FLACs. Performances 3 and 4 do not use it: 3 draws on Freesound, 4 on Freesound, Wikimedia Commons and the Internet Archive.</p>
 </section>
 
@@ -1590,7 +1693,7 @@ Recorder: Nattes à chat</a>, <a href='https://commons.wikimedia.org/wiki/File:T
 </section>
 </main>
 <footer class="site">
-<p>For agents: <a href="/netcomposer.json">/netcomposer.json</a> · <a href="/llms.txt">/llms.txt</a> · every record is raw JSON under <a href="/records/">/records/</a>.</p>
+<p>For agents: <a href="/netcomposer.json">/netcomposer.json</a> · <a href="/llms.txt">/llms.txt</a> · <a href="/suppliers.json">/suppliers.json</a> · <a href="/record/">/record/</a> · every record is raw JSON under <a href="/records/">/records/</a>.</p>
 </footer>
 </body>
 </html>

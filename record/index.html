@@ -1,0 +1,304 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>The NetComposer record</title>
+<meta name="description" content="How a NetComposer performance record works, with annotated excerpts from a real record.">
+<link rel="alternate" type="application/json" href="/netcomposer.json" title="NetComposer index">
+<link rel="alternate" type="text/plain" href="/llms.txt" title="llms.txt">
+<link rel="license" href="https://creativecommons.org/licenses/by-sa/4.0/">
+<style>body{font:15px/1.55 ui-monospace,Menlo,Consolas,"DejaVu Sans Mono",monospace;color:#000;background:#fff;max-width:76rem;margin:2.5rem auto;padding:0 1.2rem}
+h1{font-size:1.4rem;margin:0}h2{font-size:1rem;font-weight:bold;margin:2.6rem 0 .6rem;border-bottom:1px solid #000}h3{font-size:1rem;margin:0 0 .5rem}
+a{color:#000}p{margin:.5rem 0;max-width:46rem}blockquote{margin:1.4rem 0;max-width:46rem}blockquote p{margin:0}blockquote footer{margin-top:.3rem}
+.perfs{display:grid;grid-template-columns:repeat(4,1fr);gap:1.1rem}article{border:1px solid #000;padding:.8rem}article p{font-size:13px}audio{width:100%}
+.m{color:#333}.chords{font-size:12px;line-height:1.9;max-width:none}.chords span{display:inline-block;margin-right:.9rem}ul{padding-left:1.2rem;max-width:46rem}li{margin:.2rem 0}
+footer.site{margin-top:3rem;font-size:12px;border-top:1px solid #000;padding-top:.6rem}
+li.small{font-size:12px}@media(max-width:1100px){.perfs{grid-template-columns:1fr 1fr}}@media(max-width:700px){.perfs{grid-template-columns:1fr}}
+.roles{display:grid;grid-template-columns:repeat(4,1fr);gap:1.1rem}.roles article p,.roles article li{font-size:13px}.roles ul{margin:.2rem 0 .4rem}
+.lede{font-size:16px;max-width:60rem}nav.toc{font-size:13px;margin:.6rem 0 1rem}pre{font-size:13px;line-height:1.35;overflow-x:auto;margin:.8rem 0}
+@media(max-width:1100px){.roles{grid-template-columns:1fr 1fr}}@media(max-width:700px){.roles{grid-template-columns:1fr}}
+body{max-width:60rem}pre{background:#fff;border-left:2px solid #000;padding-left:.8rem}code{font-size:13px}</style>
+</head>
+<body>
+<header>
+<h1><a href="../">NetComposer</a> / the record</h1>
+<p class="lede">The Composition is the score of the piece; the record is the score of the performance.</p>
+</header>
+<main>
+<section><h2>Why it exists</h2>
+<p>Each performance carries an exact account of itself: every sound, its contributor, license, source URL and checksum, where it was placed in the piece, every Performer setting and the seed. CC BY requires credit anyway. The record makes credit exact rather than a footnote.</p>
+<p>Recorded music has mostly been a sealed artifact. Sample-level credit is rare and usually private. Here credit, provenance and method travel with the music, in public, readable by people and agents.</p>
+<p>Peter’s Notarism is about witnessing and recording existence. The record is NetComposer’s act of witness.</p></section>
+
+<section><h2>What it makes possible</h2><ul><li><b>Reproduction:</b> the inputs (with checksums), every setting and the seed are enough to rebuild a performance exactly.</li><li><b>Forks:</b> change one setting or swap one Supplier, and the new record shows exactly what changed.</li><li><b>Supplier view:</b> Suppliers can see where their sounds were used. A usage view built from records is in draft for musicmatter.art.</li><li><b>Comparison:</b> performances of one Composition can be compared sound by sound and setting by setting.</li><li><b>The crawl path as artwork:</b> the walk record traces every hop from the seed sound, drawn as a <a href="../records/bwv846-walk.png">path chart</a>.</li><li><b>Agents:</b> agents can read, audit and build on any performance from the raw JSON.</li><li><b>Signed records, later:</b> records are unsigned for now. Signing is open decision #33.</li></ul></section>
+
+<section><h2>Anatomy, from a real record</h2>
+<p>Every excerpt below is copied from <a href="../records/bwv846-walk.json">records/bwv846-walk.json</a>, performance 4 (the crawl walk: 290 sounds from 234 contributors were used, 265 sounds from 209 contributors are heard; the rest lent rhythm only). Long lists are cut where marked …. The format is a draft: <code>record_type</code> is <code>netcomposer.performance_record</code>, and fields may change.</p>
+
+<h3>1. Top level</h3>
+<p><code>record_type</code>, <code>record_format_version</code>, <code>record_format_note</code>, <code>performance</code>, <code>hacks_chain</code>, <code>sounds_used</code>, <code>summary</code>, <code>derived_inputs</code>, <code>attribution</code>, <code>provenance_files</code>, <code>created_at</code>, <code>signature</code>, <code>record_hash</code>, <code>amendments</code>.</p>
+<p><code>performance</code> holds what was played and how; <code>sounds_used</code> holds every input; <code>summary</code> holds the counts; <code>record_hash</code>, <code>signature</code> and <code>amendments</code> hold integrity.</p>
+
+<h3>2. Which Composition</h3>
+<p>The record names the Composition file the Performer read and pins it by sha256, so a changed text cannot pass as the same input. (The copy published on this site carries the name amendment, so its own checksum differs; netcomposer.json lists it.)</p>
+<pre>"composition_ref": {
+ &quot;composition_id&quot;: &quot;compositions/bach_bwv846_prelude_progression.md&quot;,
+ &quot;sha256&quot;: &quot;f63acadc04937a289a2f51c96386a0ae92de8f7fba00c69a16a038632b9b43d5&quot;,
+ &quot;composer&quot;: {
+  &quot;display_name&quot;: &quot;Peter&quot;
+ },
+ &quot;music&quot;: &quot;Johann Sebastian Bach, Prelude in C major, BWV 846 (1722). Public domain.&quot;,
+ &quot;analysis&quot;: {
+  &quot;credit&quot;: &quot;Mark Gotham et al., When in Rome corpus&quot;,
+  &quot;uri&quot;: &quot;https://github.com/MarkGotham/When-in-Rome&quot;,
+  &quot;license&quot;: &quot;CC-BY-SA-4.0&quot;
+ },
+ &quot;not_used&quot;: &quot;Bach&#x27;s written notes. No score, MIDI or kern file is read.&quot;
+}</pre>
+
+<h3>3. The Performer’s settings and the seed</h3>
+<p>Every rule the Performer followed, including the caps that keep any one sound or contributor from dominating, and the seed that makes the random choices repeatable. Full keys: <code>name</code>, <code>seed</code>, <code>walk</code>, <code>selection</code>, <code>caps</code>, <code>rhythm</code>, <code>bass</code>, <code>bed</code>, <code>tempo_map</code>, <code>transforms_enabled</code>, <code>pitch_shift</code>.</p>
+<pre>"rule_set": {
+ &quot;name&quot;: &quot;crawl walk (BWV 846)&quot;,
+ &quot;seed&quot;: 846,
+ &quot;caps&quot;: {
+  &quot;sound_max_bars&quot;: 3,
+  &quot;contributor_max_bars&quot;: 5,
+  &quot;donor_max_bars&quot;: 2
+ },
+ &quot;transforms_enabled&quot;: [
+  &quot;trim&quot;,
+  &quot;gain&quot;,
+  &quot;fade&quot;,
+  &quot;time_stretch&quot;
+ ],
+ &quot;pitch_shift&quot;: false
+} …</pre>
+
+<h3>4. The crawl</h3>
+<p>How many queries ran against which sources, and when. The query list itself is in the record.</p>
+<pre>"crawl": {
+ &quot;queries_by_source&quot;: {
+  &quot;freesound&quot;: 133,
+  &quot;internet_archive&quot;: 9,
+  &quot;wikimedia_commons&quot;: 11
+ },
+ &quot;first_query_at&quot;: &quot;2026-10-17T18:56:31-0700&quot;,
+ &quot;last_query_at&quot;: &quot;2026-10-17T19:10:15-0700&quot;,
+ &quot;nodes_found&quot;: 1022,
+ &quot;nodes_analyzed&quot;: 1021
+}</pre>
+
+<h3>5. One bar</h3>
+<p>Bar 9 of 35: the chord, how much of the bar’s energy falls on chord tones, which sound lent its rhythm, how the walk expanded from sounds it already had, and the sounds placed there. Keys: <code>bar</code>, <code>chord</code>, <code>chord_pcs</code>, <code>figure_tones_available</code>, <code>chord_tone_energy</code>, <code>has_bass</code>, <code>has_bed</code>, <code>rhythm</code>, <code>expansions</code>, <code>sounds</code>.</p>
+<pre>{
+ &quot;bar&quot;: 9,
+ &quot;chord&quot;: &quot;Am7&quot;,
+ &quot;chord_pcs&quot;: [
+  &quot;C&quot;,
+  &quot;E&quot;,
+  &quot;G&quot;,
+  &quot;A&quot;
+ ],
+ &quot;figure_tones_available&quot;: [
+  &quot;C&quot;,
+  &quot;E&quot;,
+  &quot;G&quot;,
+  &quot;A&quot;
+ ],
+ &quot;chord_tone_energy&quot;: 0.632,
+ &quot;has_bass&quot;: false,
+ &quot;has_bed&quot;: true,
+ &quot;rhythm&quot;: {
+  &quot;donor&quot;: &quot;fs:220942&quot;,
+  &quot;onsets&quot;: 8,
+  &quot;time_scale&quot;: 1.1345,
+  &quot;heard&quot;: true,
+  &quot;fallback_even&quot;: false
+ },
+ &quot;expansions&quot;: [
+  {
+   &quot;from&quot;: &quot;fs:613178&quot;,
+   &quot;from_title&quot;: &quot;Music Box (G, 4/4, 60 BPM)&quot;,
+   &quot;hop&quot;: &quot;similar&quot;,
+   &quot;new_sounds&quot;: 10
+  },
+  &quot;… 3 more&quot;
+ ],
+ &quot;sounds&quot;: [
+  {
+   &quot;key&quot;: &quot;fs:118165&quot;,
+   &quot;title&quot;: &quot;What Child is This.wav&quot;,
+   &quot;by&quot;: &quot;ZekiFoxx&quot;,
+   &quot;source&quot;: &quot;Freesound&quot;,
+   &quot;license&quot;: &quot;CC0 1.0&quot;,
+   &quot;url&quot;: &quot;https://freesound.org/people/ZekiFoxx/sounds/118165/&quot;,
+   &quot;roles&quot;: [
+    &quot;figure&quot;
+   ],
+   &quot;events&quot;: 2,
+   &quot;hop&quot;: &quot;similar to “Music Box Melody #3”&quot;,
+   &quot;found_at_bar&quot;: 8,
+   &quot;pitch_classes_used&quot;: [
+    &quot;A&quot;
+   ]
+  },
+  {
+   &quot;key&quot;: &quot;fs:473638&quot;,
+   &quot;title&quot;: &quot;CreepyMusicBox.wav&quot;,
+   &quot;by&quot;: &quot;dansayshi&quot;,
+   &quot;source&quot;: &quot;Freesound&quot;,
+   &quot;license&quot;: &quot;CC0 1.0&quot;,
+   &quot;url&quot;: &quot;https://freesound.org/people/dansayshi/sounds/473638/&quot;,
+   &quot;roles&quot;: [
+    &quot;figure&quot;
+   ],
+   &quot;events&quot;: 3,
+   &quot;hop&quot;: &quot;similar to “Music Box (G, 4/4, 60 BPM)”&quot;,
+   &quot;found_at_bar&quot;: 9,
+   &quot;pitch_classes_used&quot;: [
+    &quot;C&quot;,
+    &quot;G&quot;
+   ]
+  },
+  &quot;… 7 more&quot;
+ ]
+}</pre>
+
+<h3>6. One sound</h3>
+<p>One entry of <code>sounds_used</code>: where the file came from, the checksum of the exact bytes used, the license, a credit line ready to paste, how the walk found it (hop, parent, distance from the seed), and every span where it sounds, down to the source offset and gain. Keys: <code>key</code>, <code>source</code>, <code>title</code>, <code>source_url</code>, <code>audio_used</code>, <code>supplier</code>, <code>license</code>, <code>credit_line</code>, <code>found</code>, <code>roles</code>, <code>uses</code>, <code>bars</code>, <code>time_stretch_ratios</code>, <code>pitch_shift</code>, <code>spans</code>; span keys: <code>layer</code>, <code>bar</code>, <code>at_s</code>, <code>len_s</code>, <code>source_offset_s</code>, <code>pitch_class</code>, <code>midi_est</code>, <code>cents</code>, <code>gain_db</code>, <code>time_stretch</code>, <code>donor_onset_src_s</code>, <code>pitch_classes</code>, <code>fit</code>.</p>
+<pre>{
+ &quot;key&quot;: &quot;wc:File:Helen Keller - The Story of My Life (Recording A) Part 13.mp3&quot;,
+ &quot;source&quot;: &quot;Wikimedia Commons&quot;,
+ &quot;title&quot;: &quot;Helen Keller - The Story of My Life (Recording A) Part 13.mp3&quot;,
+ &quot;source_url&quot;: &quot;https://commons.wikimedia.org/wiki/File:Helen_Keller_-_The_Story_of_My_Life_(Recording_A)_Part_13.mp3&quot;,
+ &quot;audio_used&quot;: {
+  &quot;url&quot;: &quot;https://upload.wikimedia.org/wikipedia/commons/7/73/Helen_Keller_-_The_Story_of_My_Life_%28Recording_A%29_Part_13.mp3?utm_source=commons.wikimedia.org&amp;utm_campaign=imageinfo&amp;utm_content=original&quot;,
+  &quot;what&quot;: &quot;original file&quot;,
+  &quot;sha256&quot;: &quot;d4d50ae3611413f7b19dd06a92c3ba9808c3c731798e08e8cb27f796f691eb9d&quot;,
+  &quot;size_bytes&quot;: 4369472
+ },
+ &quot;supplier&quot;: {
+  &quot;display_name&quot;: &quot;Helen Keller&quot;,
+  &quot;primary_link&quot;: &quot;https://commons.wikimedia.org/wiki/File:Helen_Keller_-_The_Story_of_My_Life_(Recording_A)_Part_13.mp3&quot;
+ },
+ &quot;license&quot;: {
+  &quot;name&quot;: &quot;CC0 1.0&quot;,
+  &quot;uri&quot;: &quot;http://creativecommons.org/publicdomain/zero/1.0/deed.en&quot;
+ },
+ &quot;credit_line&quot;: &quot;“Helen Keller - The Story of My Life (Recording A) Part 13.mp3” by Helen Keller (https://commons.wikimedia.org/wiki/File:Helen_Keller_-_The_Story_of_My_Life_(Recording_A)_Part_13.mp3), CC0 1.0&quot;,
+ &quot;found&quot;: {
+  &quot;at_bar&quot;: 9,
+  &quot;hop&quot;: &quot;Wikimedia Commons search “story” (from “Music Box (G, 4/4, 60 BPM)”)&quot;,
+  &quot;parent&quot;: &quot;fs:613178&quot;,
+  &quot;parent_title&quot;: &quot;Music Box (G, 4/4, 60 BPM)&quot;,
+  &quot;path_length_from_seed&quot;: 9
+ },
+ &quot;roles&quot;: [
+  &quot;figure&quot;
+ ],
+ &quot;uses&quot;: 1,
+ &quot;bars&quot;: [
+  9
+ ],
+ &quot;time_stretch_ratios&quot;: [
+  1.0
+ ],
+ &quot;pitch_shift&quot;: false,
+ &quot;spans&quot;: [
+  {
+   &quot;layer&quot;: &quot;figure&quot;,
+   &quot;bar&quot;: 9,
+   &quot;at_s&quot;: 27.8261,
+   &quot;len_s&quot;: 0.3,
+   &quot;source_offset_s&quot;: 6.664,
+   &quot;pitch_class&quot;: &quot;G&quot;,
+   &quot;midi_est&quot;: 55,
+   &quot;cents&quot;: 10.0,
+   &quot;gain_db&quot;: -3.14,
+   &quot;time_stretch&quot;: 1.0,
+   &quot;donor_onset_src_s&quot;: 0.046
+  }
+ ]
+}</pre>
+
+<h3>7. Summary</h3>
+<p>Counts for the whole performance (first keys shown).</p>
+<pre>"summary": {
+ &quot;distinct_sounds_heard&quot;: 265,
+ &quot;rhythm_donors&quot;: 35,
+ &quot;distinct_sounds_total&quot;: 290,
+ &quot;contributors&quot;: 234,
+ &quot;sources&quot;: {
+  &quot;Freesound&quot;: 255,
+  &quot;Wikimedia Commons&quot;: 21,
+  &quot;Internet Archive&quot;: 14
+ },
+ &quot;licenses&quot;: {
+  &quot;CC0 1.0&quot;: 165,
+  &quot;CC BY 3.0&quot;: 36,
+  &quot;CC BY 4.0&quot;: 72,
+  &quot;CC BY-SA 4.0&quot;: 8,
+  &quot;CC BY-SA 3.0&quot;: 1,
+  &quot;Public domain&quot;: 7,
+  &quot;CC BY-SA 2.0&quot;: 1
+ },
+ &quot;total_events&quot;: 619,
+ &quot;top_contributors_by_events&quot;: [
+  {
+   &quot;name&quot;: &quot;Antti Luode&quot;,
+   &quot;events&quot;: 18,
+   &quot;share&quot;: 0.029
+  },
+  {
+   &quot;name&quot;: &quot;sgossner&quot;,
+   &quot;events&quot;: 16,
+   &quot;share&quot;: 0.026
+  },
+  {
+   &quot;name&quot;: &quot;klankbeeld&quot;,
+   &quot;events&quot;: 12,
+   &quot;share&quot;: 0.019
+  }
+ ],
+ &quot;max_bars_per_sound&quot;: 3,
+ &quot;chord_tone_energy_mean&quot;: 0.576
+} …</pre>
+
+<h3>8. Integrity</h3>
+<p><code>record_hash</code> is the sha256 of the record in canonical JSON (sorted keys, no whitespace) without <code>record_hash</code> and <code>signature</code>. Anyone can recompute it. Records are unsigned for now (open decision #33). When a record changes after the fact, an amendment says what changed and keeps the previous hash.</p>
+<pre>"record_hash": {
+ &quot;algorithm&quot;: &quot;sha256&quot;,
+ &quot;over&quot;: &quot;canonical JSON (sorted keys, no whitespace) of the record without record_hash and signature&quot;,
+ &quot;value&quot;: &quot;ede74c6751c4da03c64f62df2067d7b564971a3cb68eca48188bd670a4d57bfb&quot;
+},
+"signature": {
+ &quot;status&quot;: &quot;UNSIGNED&quot;,
+ &quot;signed_by&quot;: null,
+ &quot;algorithm&quot;: null,
+ &quot;key_id&quot;: null,
+ &quot;value&quot;: null,
+ &quot;note&quot;: &quot;Placeholder. Open decision #33 (signed usage records) is not decided.&quot;
+},
+"amendments": [
+ {
+  &quot;at&quot;: &quot;2026-10-17T19:29:52-07:00&quot;,
+  &quot;what&quot;: &quot;Contributor display name changed from &#x27;Petrus&#x27; to &#x27;Peter&#x27; (Peter Semmelhack) for netcomposer.art, at his request. No audio, input, setting or other field changed.&quot;,
+  &quot;previous_record_hash&quot;: &quot;4ae478e5aadd378528565518aa3ed5c25c53685f474481e2edac08a65dd14a99&quot;,
+  &quot;original_record&quot;: &quot;unchanged in the NetComposer working files&quot;
+ }
+]</pre>
+<p>To check: <code>python3 -c "import json,hashlib;r=json.load(open('bwv846-walk.json'));[r.pop(k) for k in ('record_hash','signature')];print(hashlib.sha256(json.dumps(r,sort_keys=True,separators=(',',':'),ensure_ascii=False).encode()).hexdigest())"</code></p>
+</section>
+
+<section><h2>All records</h2>
+<ul><li>The C major Prelude, harmony only (after Bach, BWV 846): take 5, forward/reverse echo: <a href="../records/bwv846-take5-fwd-rev-echo.html">read</a> · <a href="../records/bwv846-take5-fwd-rev-echo.json">json</a></li><li>The C major Prelude, harmony only (after Bach, BWV 846): take 6 arps, 1/4 delay, hall 25%, LP 1 kHz: <a href="../records/bwv846-take6-arps-delay-lp1k.html">read</a> · <a href="../records/bwv846-take6-arps-delay-lp1k.json">json</a></li><li>The C major Prelude, harmony only (after Bach, BWV 846): search-driven take: <a href="../records/bwv846-search.html">read</a> · <a href="../records/bwv846-search.json">json</a></li><li>The C major Prelude, harmony only (after Bach, BWV 846): crawl walk: <a href="../records/bwv846-walk.html">read</a> · <a href="../records/bwv846-walk.json">json</a></li></ul>
+<p class=m>Performances 1–3 predate the walk and use an earlier, smaller set of the same fields.</p>
+</section>
+</main>
+<footer class="site">
+<p>For agents: <a href="/netcomposer.json">/netcomposer.json</a> · <a href="/llms.txt">/llms.txt</a> · <a href="/suppliers.json">/suppliers.json</a> · <a href="/record/">/record/</a> · every record is raw JSON under <a href="/records/">/records/</a>.</p>
+</footer>
+</body>
+</html>
