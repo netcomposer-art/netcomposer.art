@@ -10,9 +10,9 @@
     "spec": "https://netcomposer.art/supplier-spec/",
     "validator": "https://netcomposer.art/tools/validate_supplier.py"
   },
-  "crawl_policy": "Registered Suppliers will be crawled first and checked (licenses and checksums) on every crawl. Today the registry is checked with the validator. The crawler also searches the open commons (Freesound, Wikimedia Commons, Internet Archive) for everyone else.",
+  "crawl_policy": "Registered Suppliers are listed in suppliers.json, where agents look first, and will be checked (licenses and checksums) on every validation run. Today the registry is checked with the validator. Beyond the registry, agents search the open commons (Freesound, Wikimedia Commons, Internet Archive); the NetComposer crawler is one tool for that.",
   "status_values": {
-    "active": "index validates; will be crawled first",
+    "active": "index validates; agents use it first",
     "pending": "submitted, not yet validated",
     "failing": "last validation found errors; will be skipped until fixed",
     "withdrawn": "removed at the Supplier's request"

@@ -1,10 +1,32 @@
 # NetComposer
 
-> Music performed by the open internet. A Composition fixes only the harmony, the bars and the tempo shape. A Performer realizes it from openly licensed sound the crawlers find. Every performance comes with a public record of what was used, where it came from and who made it.
+> Music performed by the open internet. A Composition fixes only the harmony, the bars and the tempo shape. A Performer, often an agent a person sends, realizes it from openly licensed sound: registered Suppliers first, then the open commons, found with any discovery tool (the NetComposer crawler is one). Every performance comes with a public record of what was used, where it came from and who made it.
 
 Statement, Peter Semmelhack: “Music’s structure can be described mathematically. There is art in the math, and there is art in the performance. NetComposer is my exploration of that duality.”
 
 Art and research project. Output license: CC BY-SA 4.0. Accepted inputs: CC0, CC BY, CC BY-SA, public domain. Rejected: NC, ND, Sampling+, custom. No pitch-shifting; time-stretch allowed.
+
+## Agents start here
+
+Built for humans and robots. If a person sent you, take part as a Performer. Page: https://netcomposer.art/agents/ . JSON: agents_start_here in https://netcomposer.art/netcomposer.json .
+
+1. Read a Composition: A Composition is a Markdown file under /composition/. It holds the composer’s words verbatim, a sections table (time, harmony, notes), a one-line structure and the material rules. It fixes harmony, length and shape only: no notes, no timbres. The list, with sha256 and the verbatim words, is compositions[] in /netcomposer.json. Links: current https://netcomposer.art/composition/ambient-cm.md, bwv846 https://netcomposer.art/composition/bwv846-harmony-only.md, index https://netcomposer.art/netcomposer.json
+2. Find and fetch sounds: Start with registered Suppliers: /suppliers.json lists each one’s netcomposer.json index; each sound has a manifest (.nc.json) with license, sha256 and an audio URL. The format is in /supplier-spec/, and /tools/validate_supplier.py checks an index. Then the open commons (Freesound, Wikimedia Commons, Internet Archive, public-domain collections): check each file’s license on its live page. Use any discovery tool; the NetComposer crawler is one, and it is not public yet. Measure pitch; do not trust labels. Links: suppliers https://netcomposer.art/suppliers.json, spec https://netcomposer.art/supplier-spec/, validator https://netcomposer.art/tools/validate_supplier.py
+3. Keep to the license rules: Inputs: CC0, CC BY, CC BY-SA or public domain. Never NC, ND, Sampling+ or custom licenses. No pitch-shifting; time-stretch is fine. Output: CC BY-SA 4.0. Credit every CC BY and CC BY-SA author. Links: license_out https://creativecommons.org/licenses/by-sa/4.0/
+4. Render a Performance: Realize the Composition with your own tools and hacks (trim, gain, fade, filter, reverb, delay, time-stretch). The choices are yours: sources, selection rules, density, contrast, restraint.
+5. Produce a performance record: JSON, one per Performance: every source with URL, license, author, sha256 and uses; every setting and the seed; the outputs with sha256; a record_hash (sha256 of the canonical JSON without record_hash and signature). The format is a draft; signature stays UNSIGNED for now. Links: format https://netcomposer.art/record/, example https://netcomposer.art/records/ambient-cm-perf03.json, example_html https://netcomposer.art/records/ambient-cm-perf03.html, example_bwv846 https://netcomposer.art/records/bwv846-walk.json
+6. Submit: Submissions go through issues on the site repository (or a pull request adding an entry to suppliers.json). This channel is proposed and may change. For a Performance: propose it (sources, rules, settings) as an issue, or publish your record in the same format and link it there. Links: issues https://github.com/netcomposer-art/netcomposer.art/issues, pull_requests https://github.com/netcomposer-art/netcomposer.art
+
+## Now: one composition, two performances
+
+Composition by Peter Semmelhack, verbatim: “2 mins - half Cm, Cm7, Cm9. Second half Cm7, Am, F.”
+Performance instructions, verbatim: “ambient vibe, no harsh tones, randomly alt between Cm chord structure in first half, build to second half and follow Cm, Am, F pattern. Don't rush it. Over the top of it all play a slow C, F, G pattern. Include an occasional triplet”
+
+- Composition file: https://netcomposer.art/composition/ambient-cm.md
+- Take 2: [Cm into Am and F, with a slow C–F–G line (ambient): take 2, open-commons palette](https://netcomposer.art/audio/ambient-cm-perf02.mp3) (FLAC https://netcomposer.art/audio/ambient-cm-perf02.flac), record https://netcomposer.art/records/ambient-cm-perf02.json. 46 sounds from 7 contributors, hacks only, no pitch-shifting, CC BY-SA 4.0.
+- Take 3: [Cm into Am and F, with a slow C–F–G line (ambient): take 3, rolled piano and forest air](https://netcomposer.art/audio/ambient-cm-perf03.mp3) (FLAC https://netcomposer.art/audio/ambient-cm-perf03.flac), record https://netcomposer.art/records/ambient-cm-perf03.json. 46 sounds from 8 contributors, hacks only, no pitch-shifting, CC BY-SA 4.0.
+
+Everything else (the four roles, how they interact, the record, the four BWV 846 performances) is on https://netcomposer.art/how-it-works/.
 
 ## Roles and how to take part
 
@@ -15,9 +37,9 @@ Four roles make it work. Anyone can take any of them.
 - What: People and sites that make sound and share it under an open license.
 - Why: A Performer has no instrument of its own. The open sound commons is the instrument, and Suppliers build it.
 - Take part:
-  - Publish audio under CC0, CC BY, CC BY-SA or public domain anywhere a crawler can reach it. Freesound, Wikimedia Commons and the Internet Archive count: the crawl walk drew on 209 contributors there.
+  - Publish audio under CC0, CC BY, CC BY-SA or public domain anywhere an agent can reach it. Freesound, Wikimedia Commons and the Internet Archive count: the crawl walk drew on 209 contributors there.
   - Better: publish a netcomposer.json index with a manifest per sound, as musicmatter.art does, and register it.
-  - Registered Suppliers will be crawled first and checked (licenses and checksums) on every crawl. Today the registry is checked with the validator. The crawler keeps searching the open commons for everyone else.
+  - Registered Suppliers are listed in suppliers.json, where agents look first, and will be checked (licenses and checksums) on every validation run. Today the registry is checked with the validator. Beyond the registry, agents search the open commons; the NetComposer crawler is one tool for that.
   - Every record that uses your sound credits you by name, with a link.
 - Links: spec https://netcomposer.art/supplier-spec/, registry https://netcomposer.art/suppliers.json, registry_page https://netcomposer.art/suppliers/, validator https://netcomposer.art/tools/validate_supplier.py, register https://github.com/netcomposer-art/netcomposer.art/issues
 
@@ -49,15 +71,15 @@ Four roles make it work. Anyone can take any of them.
 - Take part:
   - Listen, share and remix. Every performance is CC BY-SA 4.0.
   - Read the record to see who made what you are hearing. Each sound has a credit line ready to paste.
-- Links: performances https://netcomposer.art/#comparison, records https://netcomposer.art/records/, license https://creativecommons.org/licenses/by-sa/4.0/
+- Links: performances https://netcomposer.art/how-it-works/#comparison, records https://netcomposer.art/records/, license https://creativecommons.org/licenses/by-sa/4.0/
 
 Channel (PROPOSED, not decided): issues at https://github.com/netcomposer-art/netcomposer.art/issues, or a pull request adding an entry to https://netcomposer.art/suppliers.json.
 
 ## How they interact
 
 ```
-SUPPLIERS -- open sound (CC0 / BY / BY-SA / PD) --> CRAWLERS
-  ^   later: registered Suppliers first                 |
+SUPPLIERS -- open sound (CC0 / BY / BY-SA / PD) --> DISCOVERY
+  ^   suppliers.json first; crawler is one tool         |
   |                                                     | found sound
   |                                                     v
   |   COMPOSERS -- Composition ------------------> PERFORMERS <-- hacks
@@ -68,7 +90,7 @@ SUPPLIERS -- open sound (CC0 / BY / BY-SA / PD) --> CRAWLERS
                                              listen / share / remix
 ```
 
-Suppliers publish sound; crawlers find it (registered Suppliers will be crawled first). A Composer’s plan and the found sound meet in a Performer, whose choices produce the performance and its record. The Audience gets both, and the record credits every Supplier whose sound was used, with a link back. One person can play every role, or thousands of strangers can.
+Suppliers publish sound; Performers and the agents people send find it, in suppliers.json first and then the open commons, with any discovery tool (the NetComposer crawler is one). A Composer’s plan and the found sound meet in a Performer, whose choices produce the performance and its record. The Audience gets both, and the record credits every Supplier whose sound was used, with a link back. One person can play every role, or thousands of strangers can.
 
 ## Record
 
@@ -116,6 +138,7 @@ Peter’s Notarism is about witnessing and recording existence. The record is Ne
 
 ## Composition
 
+- [Cm into Am and F, with a slow C–F–G line (ambient)](https://netcomposer.art/composition/ambient-cm.md): about 2 minutes, Cm/Cm7/Cm9 then Cm7, Am, F; slow C–F–G line
 - [The C major Prelude, harmony only (after Bach, BWV 846)](https://netcomposer.art/composition/bwv846-harmony-only.md): 35 bars, one chord per bar, 69 BPM
 
 ## Performances (audio + record JSON)

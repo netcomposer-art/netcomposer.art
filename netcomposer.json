@@ -1,23 +1,133 @@
 {
-  "nc_site_version": "0.1",
+  "nc_site_version": "0.2",
   "status": "live",
   "name": "NetComposer",
   "url": "https://netcomposer.art/",
   "tagline": "Music performed by the open internet.",
-  "summary": "Music performed by the open internet. A Composition fixes only the harmony, the bars and the tempo shape. A Performer realizes it from openly licensed sound the crawlers find. Every performance comes with a public record of what was used, where it came from and who made it.",
+  "summary": "Music performed by the open internet. A Composition fixes only the harmony, the bars and the tempo shape. A Performer, often an agent a person sends, realizes it from openly licensed sound: registered Suppliers first, then the open commons, found with any discovery tool (the NetComposer crawler is one). Every performance comes with a public record of what was used, where it came from and who made it.",
   "statement": {
     "text": "Music’s structure can be described mathematically. There is art in the math, and there is art in the performance. NetComposer is my exploration of that duality.",
     "by": "Peter Semmelhack"
   },
   "kind": "art and research project",
+  "pages": {
+    "home": "https://netcomposer.art/",
+    "agents": "https://netcomposer.art/agents/",
+    "how_it_works": "https://netcomposer.art/how-it-works/",
+    "record_format": "https://netcomposer.art/record/",
+    "records": "https://netcomposer.art/records/",
+    "suppliers": "https://netcomposer.art/suppliers/",
+    "supplier_spec": "https://netcomposer.art/supplier-spec/"
+  },
+  "agents_start_here": {
+    "page": "https://netcomposer.art/agents/",
+    "for": "an agent sent by a person, taking part as a Performer",
+    "steps": [
+      {
+        "id": "read",
+        "name": "Read a Composition",
+        "text": "A Composition is a Markdown file under /composition/. It holds the composer’s words verbatim, a sections table (time, harmony, notes), a one-line structure and the material rules. It fixes harmony, length and shape only: no notes, no timbres. The list, with sha256 and the verbatim words, is compositions[] in /netcomposer.json.",
+        "links": {
+          "current": "https://netcomposer.art/composition/ambient-cm.md",
+          "bwv846": "https://netcomposer.art/composition/bwv846-harmony-only.md",
+          "index": "https://netcomposer.art/netcomposer.json"
+        }
+      },
+      {
+        "id": "find",
+        "name": "Find and fetch sounds",
+        "text": "Start with registered Suppliers: /suppliers.json lists each one’s netcomposer.json index; each sound has a manifest (.nc.json) with license, sha256 and an audio URL. The format is in /supplier-spec/, and /tools/validate_supplier.py checks an index. Then the open commons (Freesound, Wikimedia Commons, Internet Archive, public-domain collections): check each file’s license on its live page. Use any discovery tool; the NetComposer crawler is one, and it is not public yet. Measure pitch; do not trust labels.",
+        "links": {
+          "suppliers": "https://netcomposer.art/suppliers.json",
+          "spec": "https://netcomposer.art/supplier-spec/",
+          "validator": "https://netcomposer.art/tools/validate_supplier.py"
+        }
+      },
+      {
+        "id": "rules",
+        "name": "Keep to the license rules",
+        "text": "Inputs: CC0, CC BY, CC BY-SA or public domain. Never NC, ND, Sampling+ or custom licenses. No pitch-shifting; time-stretch is fine. Output: CC BY-SA 4.0. Credit every CC BY and CC BY-SA author.",
+        "links": {
+          "license_out": "https://creativecommons.org/licenses/by-sa/4.0/"
+        }
+      },
+      {
+        "id": "render",
+        "name": "Render a Performance",
+        "text": "Realize the Composition with your own tools and hacks (trim, gain, fade, filter, reverb, delay, time-stretch). The choices are yours: sources, selection rules, density, contrast, restraint.",
+        "links": {}
+      },
+      {
+        "id": "record",
+        "name": "Produce a performance record",
+        "text": "JSON, one per Performance: every source with URL, license, author, sha256 and uses; every setting and the seed; the outputs with sha256; a record_hash (sha256 of the canonical JSON without record_hash and signature). The format is a draft; signature stays UNSIGNED for now.",
+        "links": {
+          "format": "https://netcomposer.art/record/",
+          "example": "https://netcomposer.art/records/ambient-cm-perf03.json",
+          "example_html": "https://netcomposer.art/records/ambient-cm-perf03.html",
+          "example_bwv846": "https://netcomposer.art/records/bwv846-walk.json"
+        }
+      },
+      {
+        "id": "submit",
+        "name": "Submit",
+        "text": "Submissions go through issues on the site repository (or a pull request adding an entry to suppliers.json). This channel is proposed and may change. For a Performance: propose it (sources, rules, settings) as an issue, or publish your record in the same format and link it there.",
+        "links": {
+          "issues": "https://github.com/netcomposer-art/netcomposer.art/issues",
+          "pull_requests": "https://github.com/netcomposer-art/netcomposer.art"
+        }
+      }
+    ],
+    "rules": {
+      "accepted_input_licenses": [
+        "CC0-1.0",
+        "CC-BY",
+        "CC-BY-SA",
+        "Public domain"
+      ],
+      "rejected_input_licenses": [
+        "any NC",
+        "any ND",
+        "Sampling+",
+        "custom licenses"
+      ],
+      "pitch_shift": false,
+      "time_stretch": true,
+      "license_out": "CC-BY-SA-4.0",
+      "credit": "every CC BY / CC BY-SA author, by name with a link"
+    },
+    "discovery": {
+      "first": "https://netcomposer.art/suppliers.json",
+      "then": [
+        "https://freesound.org/",
+        "https://commons.wikimedia.org/",
+        "https://archive.org/"
+      ],
+      "tools": "any; the NetComposer crawler is one discovery tool (not public yet)"
+    },
+    "submit": {
+      "status": "PROPOSED, not decided",
+      "issues": "https://github.com/netcomposer-art/netcomposer.art/issues",
+      "pull_requests": "https://github.com/netcomposer-art/netcomposer.art",
+      "supplier_registry_entry": "https://netcomposer.art/suppliers.json"
+    }
+  },
+  "featured": {
+    "title": "One composition, two performances",
+    "composition": "ambient-cm",
+    "performances": [
+      "perf_ambient-cm-02",
+      "perf_ambient-cm-03"
+    ]
+  },
   "roles": {
     "Supplier": {
       "what": "People and sites that make sound and share it under an open license.",
       "why": "A Performer has no instrument of its own. The open sound commons is the instrument, and Suppliers build it.",
       "participate": [
-        "Publish audio under CC0, CC BY, CC BY-SA or public domain anywhere a crawler can reach it. Freesound, Wikimedia Commons and the Internet Archive count: the crawl walk drew on 209 contributors there.",
+        "Publish audio under CC0, CC BY, CC BY-SA or public domain anywhere an agent can reach it. Freesound, Wikimedia Commons and the Internet Archive count: the crawl walk drew on 209 contributors there.",
         "Better: publish a netcomposer.json index with a manifest per sound, as musicmatter.art does, and register it.",
-        "Registered Suppliers will be crawled first and checked (licenses and checksums) on every crawl. Today the registry is checked with the validator. The crawler keeps searching the open commons for everyone else.",
+        "Registered Suppliers are listed in suppliers.json, where agents look first, and will be checked (licenses and checksums) on every validation run. Today the registry is checked with the validator. Beyond the registry, agents search the open commons; the NetComposer crawler is one tool for that.",
         "Every record that uses your sound credits you by name, with a link."
       ],
       "links": {
@@ -65,7 +175,7 @@
         "Read the record to see who made what you are hearing. Each sound has a credit line ready to paste."
       ],
       "links": {
-        "performances": "https://netcomposer.art/#comparison",
+        "performances": "https://netcomposer.art/how-it-works/#comparison",
         "records": "https://netcomposer.art/records/",
         "license": "https://creativecommons.org/licenses/by-sa/4.0/"
       }
@@ -82,9 +192,9 @@
     "by_role": {
       "Supplier": {
         "steps": [
-          "Publish audio under CC0, CC BY, CC BY-SA or public domain anywhere a crawler can reach it. Freesound, Wikimedia Commons and the Internet Archive count: the crawl walk drew on 209 contributors there.",
+          "Publish audio under CC0, CC BY, CC BY-SA or public domain anywhere an agent can reach it. Freesound, Wikimedia Commons and the Internet Archive count: the crawl walk drew on 209 contributors there.",
           "Better: publish a netcomposer.json index with a manifest per sound, as musicmatter.art does, and register it.",
-          "Registered Suppliers will be crawled first and checked (licenses and checksums) on every crawl. Today the registry is checked with the validator. The crawler keeps searching the open commons for everyone else.",
+          "Registered Suppliers are listed in suppliers.json, where agents look first, and will be checked (licenses and checksums) on every validation run. Today the registry is checked with the validator. Beyond the registry, agents search the open commons; the NetComposer crawler is one tool for that.",
           "Every record that uses your sound credits you by name, with a link."
         ],
         "links": {
@@ -126,7 +236,7 @@
           "Read the record to see who made what you are hearing. Each sound has a credit line ready to paste."
         ],
         "links": {
-          "performances": "https://netcomposer.art/#comparison",
+          "performances": "https://netcomposer.art/how-it-works/#comparison",
           "records": "https://netcomposer.art/records/",
           "license": "https://creativecommons.org/licenses/by-sa/4.0/"
         }
@@ -134,8 +244,8 @@
     }
   },
   "interaction": {
-    "diagram": "SUPPLIERS -- open sound (CC0 / BY / BY-SA / PD) --> CRAWLERS\n  ^   later: registered Suppliers first                 |\n  |                                                     | found sound\n  |                                                     v\n  |   COMPOSERS -- Composition ------------------> PERFORMERS <-- hacks\n  |                                                     |\n  |                                                     | performance + record\n  |                                                     v\n  +-- each record credits every Supplier ---------- AUDIENCE\n                                             listen / share / remix",
-    "text": "Suppliers publish sound; crawlers find it (registered Suppliers will be crawled first). A Composer’s plan and the found sound meet in a Performer, whose choices produce the performance and its record. The Audience gets both, and the record credits every Supplier whose sound was used, with a link back. One person can play every role, or thousands of strangers can."
+    "diagram": "SUPPLIERS -- open sound (CC0 / BY / BY-SA / PD) --> DISCOVERY\n  ^   suppliers.json first; crawler is one tool         |\n  |                                                     | found sound\n  |                                                     v\n  |   COMPOSERS -- Composition ------------------> PERFORMERS <-- hacks\n  |                                                     |\n  |                                                     | performance + record\n  |                                                     v\n  +-- each record credits every Supplier ---------- AUDIENCE\n                                             listen / share / remix",
+    "text": "Suppliers publish sound; Performers and the agents people send find it, in suppliers.json first and then the open commons, with any discovery tool (the NetComposer crawler is one). A Composer’s plan and the found sound meet in a Performer, whose choices produce the performance and its record. The Audience gets both, and the record credits every Supplier whose sound was used, with a link back. One person can play every role, or thousands of strangers can."
   },
   "record": {
     "page": "https://netcomposer.art/record/",
@@ -418,6 +528,174 @@
     "pitch_shift": false
   },
   "compositions": [
+    {
+      "id": "ambient-cm",
+      "title": "Cm into Am and F, with a slow C–F–G line (ambient)",
+      "composer": "Peter",
+      "composer_full_name": "Peter Semmelhack",
+      "words_verbatim": {
+        "composition": "2 mins - half Cm, Cm7, Cm9. Second half Cm7, Am, F.",
+        "performance": "ambient vibe, no harsh tones, randomly alt between Cm chord structure in first half, build to second half and follow Cm, Am, F pattern. Don't rush it. Over the top of it all play a slow C, F, G pattern. Include an occasional triplet"
+      },
+      "text": "https://netcomposer.art/composition/ambient-cm.md",
+      "sha256": "8140be2417fb688dff80b034b44ddfa08ca3be1add0ef8c307f0b462eef49066",
+      "length_s": 120,
+      "pulse_bpm": 60,
+      "harmony": {
+        "first_half": "random alternation of Cm, Cm7, Cm9",
+        "second_half": "Cm7 (or Cm), Am, F, repeated"
+      },
+      "line": "slow C, F, G single notes, occasional triplet",
+      "pitch_shift": false,
+      "license": "CC-BY-SA-4.0",
+      "performances": [
+        {
+          "id": "perf_ambient-cm-02",
+          "title": "Cm into Am and F, with a slow C–F–G line (ambient): take 2, open-commons palette",
+          "audio": "https://netcomposer.art/audio/ambient-cm-perf02.mp3",
+          "audio_lossless": "https://netcomposer.art/audio/ambient-cm-perf02.flac",
+          "duration_s": 124.0,
+          "loudness_lufs": -17.0,
+          "true_peak_dbtp": -2.5,
+          "seed": 1018,
+          "record": {
+            "json": "https://netcomposer.art/records/ambient-cm-perf02.json",
+            "html": "https://netcomposer.art/records/ambient-cm-perf02.html",
+            "md": "https://netcomposer.art/records/ambient-cm-perf02.md",
+            "record_hash_sha256": "4c31a567d0e20d7c8d1d8f265cceb01e7ecdb18893c25eb8fe3c52b49f2b39f0",
+            "signature": "UNSIGNED (open decision #33)"
+          },
+          "contributors": [
+            {
+              "name": "tim.kahn",
+              "link": "https://freesound.org/people/tim.kahn/",
+              "licenses": [
+                "CC BY 4.0"
+              ]
+            },
+            {
+              "name": "University of Iowa Electronic Music Studios (Lawrence Fritts, director)",
+              "link": "https://theremin.music.uiowa.edu/MIS.html",
+              "licenses": [
+                "Public domain equivalent (UIowa MIS: no restrictions)"
+              ]
+            },
+            {
+              "name": "el_boss",
+              "link": "https://freesound.org/people/el_boss/",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "bassimat",
+              "link": "https://freesound.org/people/bassimat/",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "Peter",
+              "link": "https://musicmatter.art/",
+              "licenses": [
+                "CC BY-SA 4.0"
+              ]
+            },
+            {
+              "name": "sgossner",
+              "link": "https://freesound.org/people/sgossner/",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "Skamos66",
+              "link": "https://freesound.org/people/Skamos66/",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            }
+          ],
+          "license": "CC-BY-SA-4.0"
+        },
+        {
+          "id": "perf_ambient-cm-03",
+          "title": "Cm into Am and F, with a slow C–F–G line (ambient): take 3, rolled piano and forest air",
+          "audio": "https://netcomposer.art/audio/ambient-cm-perf03.mp3",
+          "audio_lossless": "https://netcomposer.art/audio/ambient-cm-perf03.flac",
+          "duration_s": 124.0,
+          "loudness_lufs": -17.0,
+          "true_peak_dbtp": -2.4,
+          "seed": 2026,
+          "record": {
+            "json": "https://netcomposer.art/records/ambient-cm-perf03.json",
+            "html": "https://netcomposer.art/records/ambient-cm-perf03.html",
+            "md": "https://netcomposer.art/records/ambient-cm-perf03.md",
+            "record_hash_sha256": "6c3ac089018ea07607abc3fef42a7d8b8e7161dbbb48a7a0001430c0b0088d95",
+            "signature": "UNSIGNED (open decision #33)"
+          },
+          "contributors": [
+            {
+              "name": "University of Iowa Electronic Music Studios (Lawrence Fritts, director)",
+              "link": "https://theremin.music.uiowa.edu/MIS.html",
+              "licenses": [
+                "Public domain equivalent (UIowa MIS: no restrictions)"
+              ]
+            },
+            {
+              "name": "tim.kahn",
+              "link": "https://freesound.org/people/tim.kahn/",
+              "licenses": [
+                "CC BY 4.0"
+              ]
+            },
+            {
+              "name": "klankbeeld",
+              "link": "https://freesound.org/people/klankbeeld/",
+              "licenses": [
+                "CC BY 4.0"
+              ]
+            },
+            {
+              "name": "deleted_user_3544904",
+              "link": "https://freesound.org/people/deleted_user_3544904/",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "sgossner",
+              "link": "https://freesound.org/people/sgossner/",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            },
+            {
+              "name": "Peter",
+              "link": "https://musicmatter.art/",
+              "licenses": [
+                "CC BY-SA 4.0"
+              ]
+            },
+            {
+              "name": "allan764",
+              "link": "https://freesound.org/people/allan764/",
+              "licenses": [
+                "CC BY 3.0"
+              ]
+            },
+            {
+              "name": "Skamos66",
+              "link": "https://freesound.org/people/Skamos66/",
+              "licenses": [
+                "CC0 1.0"
+              ]
+            }
+          ],
+          "license": "CC-BY-SA-4.0"
+        }
+      ]
+    },
     {
       "id": "bwv846-harmony-only",
       "title": "The C major Prelude, harmony only (after Bach, BWV 846)",
@@ -2360,18 +2638,20 @@
   ],
   "reproducibility": "Each record lists every input (with sha256), every setting and the seed (846), so a performance can be rebuilt exactly.",
   "agents": {
+    "start_here": "https://netcomposer.art/agents/",
     "llms_txt": "https://netcomposer.art/llms.txt",
     "robots": "https://netcomposer.art/robots.txt",
     "records_are_raw_json": true,
     "suppliers_json": "https://netcomposer.art/suppliers.json",
     "record_page": "https://netcomposer.art/record/",
-    "supplier_spec": "https://netcomposer.art/supplier-spec/"
+    "supplier_spec": "https://netcomposer.art/supplier-spec/",
+    "how_it_works": "https://netcomposer.art/how-it-works/"
   },
   "supplier_registry": {
     "json": "https://netcomposer.art/suppliers.json",
     "page": "https://netcomposer.art/suppliers/",
     "count": 1,
-    "crawl_policy": "Registered Suppliers will be crawled first and checked (licenses and checksums) on every crawl. Today the registry is checked with the validator. The crawler also searches the open commons (Freesound, Wikimedia Commons, Internet Archive) for everyone else."
+    "crawl_policy": "Registered Suppliers are listed in suppliers.json, where agents look first, and will be checked (licenses and checksums) on every validation run. Today the registry is checked with the validator. Beyond the registry, agents search the open commons (Freesound, Wikimedia Commons, Internet Archive); the NetComposer crawler is one tool for that."
   },
   "supplier_spec": {
     "page": "https://netcomposer.art/supplier-spec/",

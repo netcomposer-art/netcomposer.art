@@ -45,7 +45,7 @@ table{border-collapse:collapse;font-size:13px}td,th{border:1px solid #000;paddin
 <ul>
 <li><b>Minimum per manifest (PROPOSED).</b> <code>title</code>, <code>creator</code>, <code>audio</code>, <code>sha256</code>, <code>size_bytes</code>, and <code>license</code> unless the index has <code>default_license</code>. Everything else is optional. The validator checks this minimum.</li>
 <li><b>License identifiers (PROPOSED).</b> SPDX-style ids: <code>CC0-1.0</code>, <code>CC-BY-3.0</code>, <code>CC-BY-4.0</code>, <code>CC-BY-SA-3.0</code>, <code>CC-BY-SA-4.0</code>, <code>PDM-1.0</code>. Any NC, ND, Sampling+ or custom license is rejected.</li>
-<li><b>Checksums (PROPOSED as required).</b> <code>sha256</code> and <code>size_bytes</code> must match the audio bytes served. Crawls will check them; today the validator does.</li>
+<li><b>Checksums (PROPOSED as required).</b> <code>sha256</code> and <code>size_bytes</code> must match the audio bytes served. Validation runs will check them; today the validator does.</li>
 </ul>
 <p>The fields describing the sound (<code>type</code>, <code>chords</code>, <code>register</code>, <code>key</code>, <code>arpeggio</code>) are what let a Performer choose musically without listening first. A Supplier of other kinds of sound may leave them out.</p></section>
 <section><h2>Validate</h2>
