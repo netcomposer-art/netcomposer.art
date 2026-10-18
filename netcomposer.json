@@ -13,6 +13,7 @@
   "pages": {
     "home": "https://netcomposer.art/",
     "agents": "https://netcomposer.art/agents/",
+    "create": "https://netcomposer.art/create/",
     "how_it_works": "https://netcomposer.art/how-it-works/",
     "record_format": "https://netcomposer.art/record/",
     "records": "https://netcomposer.art/records/",
@@ -54,8 +55,13 @@
       {
         "id": "render",
         "name": "Render a Performance",
-        "text": "Realize the Composition with your own tools and hacks (trim, gain, fade, filter, reverb, delay, time-stretch). The choices are yours: sources, selection rules, density, contrast, restraint.",
-        "links": {}
+        "text": "Realize the Composition with your own tools and hacks (trim, gain, fade, filter, reverb, delay, time-stretch). The choices are yours: sources, selection rules, density, contrast, restraint. Or use the open-source Performer kit (MIT), https://github.com/netcomposer-art/nc-performer, installed with: pip install git+https://github.com/netcomposer-art/nc-performer. The Performer skill for agents: https://netcomposer.art/create/SKILL.md (plain text https://netcomposer.art/create/SKILL.txt).",
+        "links": {
+          "kit": "https://github.com/netcomposer-art/nc-performer",
+          "install": "pip install git+https://github.com/netcomposer-art/nc-performer",
+          "skill": "https://netcomposer.art/create/SKILL.md",
+          "skill_text": "https://netcomposer.art/create/SKILL.txt"
+        }
       },
       {
         "id": "record",
@@ -159,7 +165,7 @@
         "Extend the system with hacks, or propose a Performance (sources, rules, settings) as an issue.",
         "Or realize a Composition with your own tools from openly licensed sound and publish a record in the same format.",
         "Every choice goes in the record, so the performance can be reproduced.",
-        "Today the Performer is a set of scripts run by Peter. The tooling is not public yet, and the record format is a draft."
+        "The Performer kit is open source (MIT): https://github.com/netcomposer-art/nc-performer (pip install git+https://github.com/netcomposer-art/nc-performer). The record format is a draft."
       ],
       "links": {
         "record_format": "https://netcomposer.art/record/",
@@ -222,7 +228,7 @@
           "Extend the system with hacks, or propose a Performance (sources, rules, settings) as an issue.",
           "Or realize a Composition with your own tools from openly licensed sound and publish a record in the same format.",
           "Every choice goes in the record, so the performance can be reproduced.",
-          "Today the Performer is a set of scripts run by Peter. The tooling is not public yet, and the record format is a draft."
+          "The Performer kit is open source (MIT): https://github.com/netcomposer-art/nc-performer (pip install git+https://github.com/netcomposer-art/nc-performer). The record format is a draft."
         ],
         "links": {
           "record_format": "https://netcomposer.art/record/",
@@ -2709,5 +2715,43 @@
   },
   "tools": {
     "validate_supplier": "https://netcomposer.art/tools/validate_supplier.py"
+  },
+  "create": {
+    "status": "live",
+    "url": "https://netcomposer.art/create/",
+    "what": "Write a Composition and Performance in the browser, hear the chords from the musicmatter full chord set, download composition.md and a plan stub, open a composition.md, share it as a link (the text rides in the URL hash; nothing is stored).",
+    "plan_schema": "https://netcomposer.art/create/plan.schema.json",
+    "skill": "https://netcomposer.art/create/SKILL.md",
+    "skill_text": "https://netcomposer.art/create/SKILL.txt",
+    "chords": "https://netcomposer.art/create/chords.json",
+    "hosted_render": "coming later",
+    "kit": {
+      "url": "https://github.com/netcomposer-art/nc-performer",
+      "version": "0.2.0",
+      "license": "MIT",
+      "install": "pip install git+https://github.com/netcomposer-art/nc-performer"
+    }
+  },
+  "performer_kit": {
+    "name": "nc-performer",
+    "version": "0.2.0",
+    "url": "https://github.com/netcomposer-art/nc-performer",
+    "license": "MIT (code); CC BY-SA 4.0 (docs, schema, skill)",
+    "install": "pip install git+https://github.com/netcomposer-art/nc-performer",
+    "requires": "Python 3.10+, ffmpeg with the rubberband filter",
+    "optional": {
+      "reverb": "Dragonfly Hall (default reverb hack): pip install pedalboard, plus Dragonfly Reverb (apt install dragonfly-reverb, or its VST3); both GPL-3.0, not bundled. Without them the kit falls back to its synthetic hall and the record says which reverb ran.",
+      "stretch": "rubberband-cli 3.x for the R3 time-stretch"
+    },
+    "commands": [
+      "nc compose",
+      "nc interpret",
+      "nc render",
+      "nc perform",
+      "nc verify-record"
+    ],
+    "skill": "https://netcomposer.art/create/SKILL.md",
+    "skill_text": "https://netcomposer.art/create/SKILL.txt",
+    "plan_schema": "https://netcomposer.art/create/plan.schema.json"
   }
 }
