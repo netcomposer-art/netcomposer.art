@@ -2719,12 +2719,19 @@
   "create": {
     "status": "live",
     "url": "https://netcomposer.art/create/",
-    "what": "Write a Composition and Performance in the browser. Play sketches the chords from musicmatter.art recordings (sounds/ bounces where the index has that chord, the full chord set for the rest). Perform offers Live (you at the dials) and a hosted render that is not built yet. Download composition.md and a plan stub, open a composition.md, share it as a link (the text rides in the URL hash; nothing is stored).",
+    "what": "Write a Composition and Performance in the browser. Play sketches the chords from musicmatter.art recordings (sounds/ bounces where the index has that chord, the full chord set for the rest). Perform offers Live (you at the dials) and a hosted render on the page. Download composition.md and a plan stub, open a composition.md, share it as a link (the text rides in the URL hash; nothing is stored).",
     "plan_schema": "https://netcomposer.art/create/plan.schema.json",
     "skill": "https://netcomposer.art/create/SKILL.md",
     "skill_text": "https://netcomposer.art/create/SKILL.txt",
     "chords": "https://netcomposer.art/create/chords.json",
-    "hosted_render": "coming later",
+    "hosted_render": {
+      "status": "preview",
+      "where": "Inside Perform on /create/, below Live",
+      "api": "https://nc-perform-api.psemme.workers.dev",
+      "config_value": "API in create/perform.js",
+      "turnstile": true,
+      "limits": "3 per 10 minutes, 10 per day, max_length_s 180, max_words 4000 characters"
+    },
     "kit": {
       "url": "https://github.com/netcomposer-art/nc-performer",
       "version": "0.2.0",
