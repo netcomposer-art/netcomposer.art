@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Create — NetComposer</title>
-<meta name="description" content="Write a NetComposer Composition, hear its chords, perform it live at the dials, or render it here. Static; the Composition is not stored.">
+<meta name="description" content="Write a NetComposer Composition, hear its chords, and render a Performance here. Live rides that Performance. Static; the Composition is not stored.">
 <link rel="canonical" href="https://netcomposer.art/create/">
 <link rel="alternate" type="text/markdown" href="/create/SKILL.md" title="Performer skill (SKILL.md)">
 <link rel="alternate" type="text/plain" href="/create/SKILL.txt" title="Performer skill (plain text)">
@@ -81,29 +81,7 @@ footer{max-width:46rem;margin:0 auto;padding:0 1.2rem 4rem;font-size:.85rem;colo
 
 <section id="perform">
 <h2 id="perform-h">Perform</h2>
-<p>A Performance is an interpretation of this Composition. Two ways.</p>
-<section id="live">
-<h3 id="live-h">Live</h3>
-<p>You at the dials. The Composition loops, and you ride two hacks while it plays. Record a take: the sound and every move of the dials.</p>
-<p class="m" id="lsrc">Same chords as Play. Edits land on the next loop.</p>
-<div class="row"><button id="lplay" type="button" disabled>Play</button><label class="toggle"><input id="lloop" type="checkbox" checked> Loop</label></div>
-<div class="hack" id="hack-lp">
-<h3>Low-pass filter</h3>
-<div class="dial"><label for="lcut">Cutoff</label><input id="lcut" type="range" min="0" max="100" step="1" value="0"><output id="lcutv" for="lcut">open</output></div>
-<p class="m">0 is fully open. Turn it up to close the filter and darken the sound.</p>
-</div>
-<div class="hack" id="hack-delay">
-<h3>Delay</h3>
-<div class="dial"><label for="ltime">Timing</label><select id="ltime"><option value="0.25">1/16</option><option value="0.5">1/8</option><option value="0.75" selected>1/8 dotted</option><option value="1">1/4</option><option value="1.5">1/4 dotted</option><option value="2">1/2</option></select><output id="ltimev" for="ltime"></output></div>
-<div class="dial"><label for="lfb">Feedback</label><input id="lfb" type="range" min="0" max="90" step="1" value="35"><output id="lfbv" for="lfb">35%</output></div>
-<div class="dial"><label for="lmix">Wet/dry</label><input id="lmix" type="range" min="0" max="100" step="1" value="25"><output id="lmixv" for="lmix">25% wet</output></div>
-</div>
-<div class="row"><button id="lrec" type="button" disabled>● Record</button><button id="lclear" type="button" disabled>Clear</button><button id="ldl" type="button" disabled>Download</button><button id="lcancel" type="button" disabled>Cancel</button><input id="lup" class="vh" type="file" accept=".json,application/json"><label class="btn" for="lup">Upload dial log</label></div>
-<div id="lconflict" hidden><p id="lconflictmsg"></p><button id="lusetheirs" type="button">Load its Composition</button><button id="lkeepmine" type="button">Keep mine, use only the moves</button><button id="lconfcancel" type="button">Cancel</button></div>
-<div id="llog" hidden><p class="m" id="llogmeta"></p><button id="lreplay" type="button" disabled>▶ Replay moves</button><button id="lforget" type="button">Put the log away</button><p class="m">Replay plays from the first chord and moves the dials as logged. Touch a dial to take it over. Record during a replay to make a new take.</p></div>
-<p class="m" id="lstatus" aria-live="polite">Press Play, then Record when you are ready. A take is a WAV file plus a dial log, up to 10 minutes. Recording starts from the first chord.</p>
-<div id="ltake" hidden><audio id="ltakeaudio" controls></audio><p class="m" id="ltakemeta"></p></div>
-</section>
+<p>Press Perform. When the render comes back, Live appears under the player so you can ride that Performance.</p>
 <h3 id="render-h">Rendered</h3>
 <p>Press Perform. The kit fetches the sounds, checks the licenses, and renders it here. A minute or two. Pitch is never shifted.</p>
 <div class="row"><button id="performBtn" type="button" disabled>Perform</button><label class="toggle" id="perform-vis" for="perform-public"><input id="perform-public" type="checkbox"> List it after a day</label></div>
@@ -116,6 +94,29 @@ footer{max-width:46rem;margin:0 auto;padding:0 1.2rem 4rem;font-size:.85rem;colo
 <p class="m" id="perform-claim" hidden></p>
 <p class="m" id="perform-meta"></p>
 </div>
+<section id="live" hidden>
+<h3 id="live-h">Live</h3>
+<p>You, on this Performance. The filter and the delay run while it plays. Record keeps the processed sound and every dial move.</p>
+<p class="m" id="lsrc"></p>
+<div class="row"><button id="lplay" type="button" disabled>Play</button><label class="toggle"><input id="lloop" type="checkbox" checked> Loop</label></div>
+<div class="hack" id="hack-lp">
+<h3>Low-pass filter</h3>
+<div class="dial"><label for="lcut">Cutoff</label><input id="lcut" type="range" min="0" max="100" step="1" value="0"><output id="lcutv" for="lcut">open</output></div>
+<p class="m">0 is fully open. Turn it up to close the filter and darken the sound.</p>
+</div>
+<div class="hack" id="hack-delay">
+<h3>Delay</h3>
+<div class="dial"><label for="ltime">Timing</label><select id="ltime"><option value="0.25">1/16</option><option value="0.5">1/8</option><option value="0.75" selected>1/8 dotted</option><option value="1">1/4</option><option value="1.5">1/4 dotted</option><option value="2">1/2</option></select><output id="ltimev" for="ltime"></output></div>
+<div class="dial"><label for="lfb">Feedback</label><input id="lfb" type="range" min="0" max="90" step="1" value="35"><output id="lfbv" for="lfb">35%</output></div>
+<div class="dial"><label for="lmix">Wet/dry</label><input id="lmix" type="range" min="0" max="100" step="1" value="25"><output id="lmixv" for="lmix">25% wet</output></div>
+<p class="m">Note values of this Performance. 60 BPM until the record names a tempo.</p>
+</div>
+<div class="row"><button id="lrec" type="button" disabled>● Record</button><button id="lclear" type="button" disabled>Clear</button><button id="ldl" type="button" disabled>Download</button><button id="lcancel" type="button" disabled>Cancel</button><input id="lup" class="vh" type="file" accept=".json,application/json"><label class="btn" for="lup">Upload dial log</label></div>
+<div id="lconflict" hidden><p id="lconflictmsg"></p><button id="lloadperf" type="button">Load that Performance</button><button id="lconfcancel" type="button">Cancel</button></div>
+<div id="llog" hidden><p class="m" id="llogmeta"></p><button id="lreplay" type="button" disabled>▶ Replay moves</button><button id="lforget" type="button">Put the log away</button><p class="m">Replay starts this Performance and moves the dials as logged. Touch a dial to take it over. Record during a replay to make a new take.</p></div>
+<p class="m" id="lstatus" aria-live="polite">Press Play, then Record when you are ready. A take is a WAV of this Performance through the dials, plus a dial log, up to 10 minutes.</p>
+<div id="ltake" hidden><audio id="ltakeaudio" controls></audio><p class="m" id="ltakemeta"></p></div>
+</section>
 </section>
 
 <section class="further" id="further">

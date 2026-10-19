@@ -1,14 +1,16 @@
-// NetComposer /create/ Live: play the Composition in a loop and ride two hacks by hand, a low-pass filter and a delay.
-// Record keeps the wet take as a WAV file and a time-coded log of every dial move. Upload a dial log to restore and replay a take's moves.
-// Everything runs in this page (Web Audio). Nothing is uploaded anywhere.
-// Graph: chord strikes -> input -> low-pass -> dry --------------------------> master -> speakers
-//                                          \-> delay <-> feedback; delay -> wet -/      \-> tap (WAV recorder)
+// NetComposer /create/ Live: ride two hacks on a finished Performance, not on the Composition preview.
+// The Performance audio (FLAC, or MP3 if that is all that loads) runs through a low-pass and a delay.
+// Record keeps that processed sound as a WAV plus a dial log that names the Performance.
+// Graph: performance audio -> input -> low-pass -> dry --------------------------> master -> speakers
+//                                                   \-> delay <-> feedback; delay -> wet -/      \-> tap (WAV recorder)
 (function () {
 'use strict';
 var $ = function (id) { return document.getElementById(id); };
-var PREVIEW_TEMPO = 2, TAIL_S = 3, LEAD_S = 0.15, MAX_TAKE_S = 600, MAX_LOG_BYTES = 5e6, LOG_VERSION = '0.2';
+var TAIL_S = 3, LEAD_S = 0.05, MAX_TAKE_S = 600, MAX_LOG_BYTES = 5e6, LOG_VERSION = '0.3';
 var DIALS = {cutoff: 'lcut', delay_timing: 'ltime', feedback: 'lfb', wet: 'lmix'};
-var AC = null, G = null, live = false, gen = 0, T0 = 0, nextAt = 0, pass = 0, timers = [], sources = [];
+var AC = null, G = null, live = false, gen = 0, T0 = 0, timers = [], sources = [], SRC = null;
+var PERF = null;    // the Performance in the dials: {id, buffer, sha, audioUrl, audioFile, record, bpm, tempoSource, creditName}
+var openGen = 0;
 var REC = null;     // a take in progress: {log, frames, chunks, firstT, stopping}
 var TAKE = null;    // the finished take: {blob, log, url}
 var LOG = null;     // an uploaded dial log: {log, name}
@@ -16,8 +18,7 @@ var FOLLOW = false, OVERRIDE = {}, PENDING = null;
 
 // ---------- dial semantics ----------
 function cutoffHz(v) { return v <= 0 ? null : Math.round(20000 * Math.pow(150 / 20000, v / 100)); }   // 0 = fully open (no filtering), 100 = 150 Hz
-function bpm() { var m = /(\d+(?:\.\d+)?)\s*BPM/i.exec($('comp').value + ' ' + $('perf').value); return m ? +m[1] : 60; }
-function beatS() { return 60 / (bpm() * PREVIEW_TEMPO * (+$('spd').value || 1)); }   // one quarter note at the preview tempo
+function beatS() { return 60 / ((PERF && PERF.bpm) || 60); }   // one quarter note of this Performance
 function delayS() { return Math.min(4.9, +$('ltime').value * beatS()); }
 function fmtHz(h) { return h === null ? 'open' : h >= 1000 ? (h / 1000).toFixed(h >= 10000 ? 0 : 1) + ' kHz' : h + ' Hz'; }
 function readouts() {
@@ -102,54 +103,145 @@ function wav(chunks, frames, rate) {
   return new Blob([h].concat(chunks), {type: 'audio/wav'});
 }
 
-// ---------- play, loop ----------
-function schedulePass(my) {
-  if (my !== gen) return;
-  var tl = NC.timeline(); if (!tl) { stop('No chord symbols to play.'); return; }   // read every pass, so edits above land on the next loop
-  var speed = PREVIEW_TEMPO * (+$('spd').value || 1), chords = tl.chords, start = nextAt, len = tl.L / speed, n = ++pass;
-  NC.audition(AC, chords).then(function (clips) {
-    if (my !== gen) return;
-    if (n === 1) NC.showSources(clips);
-    if (REC && n === 1) { var cr = NC.creditsFor(clips); REC.log.credits = cr.credits; REC.log.license = cr.license; REC.log.sounds = cr.files; if (cr.sine.length) REC.log.sine = cr.sine; }
-    chords.forEach(function (c, i) {
-      var t = start + c.t / speed, d = c.dur / speed, buf = clips[i].buffer;
-      if (!buf) c.voicing.forEach(function (m) {
-        var o = AC.createOscillator(), gn = AC.createGain(); o.type = 'sine'; o.frequency.value = 440 * Math.pow(2, (m - 69) / 12);
-        gn.gain.setValueAtTime(0, t); gn.gain.linearRampToValueAtTime(0.12 / c.voicing.length * 2, t + 0.4); gn.gain.setTargetAtTime(0, t + d - 0.6, 0.4);
-        o.connect(gn); gn.connect(G.input); o.start(t); o.stop(t + d + 2); sources.push(o);
-      });
-      if (buf) [0, d / 2].forEach(function (off, k) {
-        if (off && d < 1) return;
-        var s = AC.createBufferSource(), g = AC.createGain(); s.buffer = buf;
-        g.gain.setValueAtTime(k ? 0.45 : 0.8, t + off); g.gain.setTargetAtTime(0, t + Math.min(d + 1.5, off + buf.duration) - 0.8, 0.35);
-        s.connect(g); g.connect(G.input); s.start(Math.max(AC.currentTime, t + off)); sources.push(s);
-      });
-      later(t, function () { document.querySelectorAll('.ch.on').forEach(function (e) { e.classList.remove('on'); }); var e = $('ch' + i); if (e) e.classList.add('on'); });
+// ---------- the Performance in the dials ----------
+function sha256(buf) {
+  if (!window.crypto || !crypto.subtle) return Promise.resolve(null);
+  return crypto.subtle.digest('SHA-256', buf.slice(0)).then(function (d) {
+    return Array.from(new Uint8Array(d)).map(function (b) { return ('0' + b.toString(16)).slice(-2); }).join('');
+  }, function () { return null; });
+}
+function decode(buf) {
+  graph();
+  return new Promise(function (ok, no) { AC.decodeAudioData(buf.slice(0), ok, function () { no(new Error('decode')); }); });
+}
+function fileOf(url) { var p = String(url || '').split('?')[0].split('/').pop(); return p || 'audio'; }
+function candidates(desc) {
+  if (desc.only) return desc.only.filter(Boolean);
+  var api = window.NCPerform && NCPerform.api, id = desc.id;
+  var flac = desc.flac || (id && api ? api + '/api/jobs/' + encodeURIComponent(id) + '/files/performance.flac' : null);
+  var mp3 = desc.mp3 || (id && api ? api + '/api/jobs/' + encodeURIComponent(id) + '/files/preview.mp3' : null);
+  return [flac, mp3].filter(Boolean);
+}
+function loadOne(url) {
+  return fetch(url).then(function (r) {
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    return r.arrayBuffer();
+  }).then(function (raw) {
+    return sha256(raw).then(function (sha) {
+      return decode(raw).then(function (buffer) { return {raw: raw, sha: sha, buffer: buffer, url: url, file: fileOf(url)}; });
     });
-    later(start, function () { if (n > 1) { logEvent({event: 'pass', n: n}); if (REC) status('Recording, pass ' + n + '. Press Stop when you are done.'); } });
-    nextAt = start + len;
-    later(nextAt - 1.0, function () {
-      if ($('lloop').checked) schedulePass(my);
-      else later(nextAt, function () { REC ? finish('The Composition ended; the take is ready.') : stop('Played through once. Turn Loop on to keep going.'); });
-    });
-    if (n === 1) status(REC ? 'Recording' + (FOLLOW ? ' the replay' : '') + '. Press Stop when you are done.' : FOLLOW ? 'Replaying the logged moves. Touch a dial to take it over.' :
-      'Playing' + ($('lloop').checked ? ' in a loop' : '') + '. Ride the dials; press Record when you are ready.');
-  }).catch(function (e) { stop('Could not load the chords (' + (e && e.message || e) + ').'); });
+  });
+}
+function loadAudio(desc) {
+  var urls = candidates(desc), i = 0;
+  function next(err) {
+    if (i >= urls.length) return Promise.reject(err || new Error('no audio'));
+    var url = urls[i++];
+    return loadOne(url).catch(next);
+  }
+  return next();
+}
+function creditFrom(rec) {
+  if (!rec) return 'hosted Perform';
+  if (typeof rec.attribution === 'string' && rec.attribution.trim()) return rec.attribution.trim().slice(0, 300);
+  var p = rec.performance;
+  if (p && typeof p.title === 'string' && p.title.trim()) return p.title.trim().slice(0, 200);
+  return 'hosted Perform';
+}
+function tempoFrom(rec) {
+  var n = rec && (typeof rec.bpm === 'number' ? rec.bpm : rec.performance && typeof rec.performance.bpm === 'number' ? rec.performance.bpm : null);
+  return n && n > 0 && n < 400 ? n : null;
+}
+function noteRecord(url) {
+  if (!url) return;
+  fetch(url).then(function (r) { return r.ok ? r.json() : null; }).then(function (rec) {
+    if (!rec || !PERF || PERF.record !== url) return;
+    PERF.creditName = creditFrom(rec);
+    var bpm = tempoFrom(rec);
+    if (bpm) { PERF.bpm = bpm; PERF.tempoSource = 'record'; readouts(); if (G) apply(false); }
+    if (TAKE && TAKE.log && TAKE.log.performance && TAKE.log.performance.id === PERF.id) stamp(TAKE.log);
+    if (REC && REC.log && REC.log.performance && REC.log.performance.id === PERF.id) stamp(REC.log);
+    label();
+  }).catch(function () {});
+}
+function label() {
+  if (!PERF) { $('lsrc').textContent = ''; return; }
+  var sha = PERF.sha ? PERF.sha.slice(0, 8) : 'no sha yet';
+  $('lsrc').textContent = 'Performance ' + PERF.id + ' · ' + (PERF.audioFile || 'audio') + ' · ' + sha;
+}
+var inflight = null;
+function open(desc) {
+  if (!desc || !desc.id) return Promise.resolve(false);
+  var id = String(desc.id);
+  if (PERF && PERF.buffer && PERF.id === id && !desc.force) { $('live').hidden = false; label(); buttons(); return Promise.resolve(true); }
+  if (inflight && inflight.id === id && !desc.force) { $('live').hidden = false; return inflight.p; }
+  var my = ++openGen;
+  $('live').hidden = false;
+  status('Loading this Performance…');
+  var p = loadAudio(desc).then(function (got) {
+    if (inflight && inflight.p === p) inflight = null;
+    if (my !== openGen) return false;
+    stopAudio(); clearTake(); LOG = null; $('llog').hidden = true; $('lconflict').hidden = true;
+    resetDials();
+    PERF = {id: id, buffer: got.buffer, sha: got.sha || desc.sha || null, audioUrl: got.url, audioFile: got.file,
+      record: desc.record || null, bpm: 60, tempoSource: '60 BPM', creditName: 'hosted Perform'};
+    label(); noteRecord(PERF.record); buttons();
+    status('This Performance is in the dials. Press Play and ride them.');
+    return true;
+  }, function () {
+    if (inflight && inflight.p === p) inflight = null;
+    if (my !== openGen) return false;
+    if (!PERF) status('This Performance came back, but its audio did not load into the dials.');
+    else status('That Performance is no longer reachable, so the dials stayed on this one.');
+    buttons();
+    return false;
+  });
+  inflight = {id: id, p: p};
+  return p;
+}
+function hide() {
+  openGen++; inflight = null; takeGen++;
+  if (REC) { var R = REC; REC = null; R.stopping = true; if (R.T) R.T.stop(function () {}); }
+  stopAudio(); clearTake(); LOG = null; PENDING = null; PERF = null;
+  $('llog').hidden = true; $('lconflict').hidden = true; $('live').hidden = true;
+  resetDials(); buttons();
+}
+function resetDials() {
+  $('lcut').value = 0; $('ltime').value = '0.75'; $('lfb').value = 35; $('lmix').value = 25; $('lloop').checked = true;
+  readouts(); if (G) apply(true);
+}
+
+// ---------- play the Performance through the dials ----------
+function playFrom() {
+  if (SRC) { try { SRC.onended = null; SRC.stop(); } catch (e) {} SRC = null; }
+  if (!PERF || !PERF.buffer) return;
+  var src = AC.createBufferSource(); src.buffer = PERF.buffer; src.loop = $('lloop').checked; src.connect(G.input);
+  src.onended = function () {
+    if (SRC !== src) return;
+    if (REC) finish('The Performance ended; the take is ready.');
+    else stop('Played through once. Turn Loop on to keep going.');
+  };
+  var when = AC.currentTime + LEAD_S; T0 = when;
+  SRC = src; sources.push(src); src.start(when);
 }
 function later(at, f) { var my = gen; timers.push(setTimeout(function () { if (my === gen) f(); }, Math.max(0, (at - AC.currentTime) * 1000))); }   // at: AudioContext time
+function haltSources(when) {
+  sources.forEach(function (s) { try { s.onended = null; s.stop(when || 0); } catch (e) {} });
+  sources = []; SRC = null;
+}
 function start(follow) {
-  stopAudio(); graph(); AC.resume(); NC.stop();
+  if (!PERF || !PERF.buffer) { status('A Performance has to load before these dials can play.'); return; }
+  stopAudio(); graph(); AC.resume(); if (window.NC && NC.stop) NC.stop();
   FOLLOW = !!(follow && LOG); OVERRIDE = {};
   if (FOLLOW) restoreInitial();
-  gen++; live = true; pass = 0; T0 = AC.currentTime + LEAD_S; nextAt = T0; apply(true);
+  gen++; live = true; apply(true); playFrom();
   if (FOLLOW) scheduleMoves();
   $('lplay').textContent = 'Stop'; $('lreplay').textContent = FOLLOW ? 'Stop' : '▶ Replay moves';
-  status('Loading chord recordings…'); schedulePass(gen); buttons();
+  status(FOLLOW ? 'Replaying the dial log on this Performance.' : 'Playing this Performance through the dials.');
+  buttons();
 }
 function stopAudio() {
-  gen++; live = false; timers.forEach(clearTimeout); timers = [];
-  sources.forEach(function (s) { try { s.stop(); } catch (e) {} }); sources = [];
-  document.querySelectorAll('.ch.on').forEach(function (e) { e.classList.remove('on'); });
+  gen++; live = false; timers.forEach(clearTimeout); timers = []; haltSources();
   $('lplay').textContent = 'Play'; $('lreplay').textContent = '▶ Replay moves'; FOLLOW = false;
 }
 function stop(msg) { if (REC) { finish(msg); return; } stopAudio(); buttons(); if (msg) status(msg); }
@@ -175,25 +267,37 @@ function scheduleMoves() {
 function flash(d) { var e = $(DIALS[d]).closest('.dial'); e.classList.add('auto'); clearTimeout(e._t); e._t = setTimeout(function () { e.classList.remove('auto'); }, 250); }
 
 // ---------- record: the wet take (WAV) + a dial log ----------
+function freshLog(follow) {
+  return {
+    nc_live_log_version: LOG_VERSION, kind: 'netcomposer live take (dial log)', started_at: new Date().toISOString(),
+    t_unit: 's, from the start of the Performance audio',
+    performance: {id: PERF.id, record_url: PERF.record, audio_url: PERF.audioUrl, audio_sha256: PERF.sha, audio_file: PERF.audioFile},
+    credits: [{role: 'performance', name: PERF.creditName, link: PERF.record, license: 'CC-BY-SA-4.0', record_id: PERF.id, audio_sha256: PERF.sha}],
+    playback: {bpm: PERF.bpm, tempo_source: PERF.tempoSource, quarter_s: +beatS().toFixed(4), pitch_shift: false, time_stretch: false, source: 'hosted Performance audio, then low-pass and delay'},
+    graph: 'performance audio -> low-pass -> (dry + delay with feedback, equal-power wet/dry) -> out',
+    hacks: {lowpass: {type: 'biquad lowpass, Q 0.707', cutoff_map: '0 = open; v in 1..100 -> 20000 * (150/20000)^(v/100) Hz'}, delay: {timing_unit: 'quarter note of this Performance (60 BPM until the record names a tempo)', feedback_max: 0.9, mix: 'equal-power'}},
+    performer: 'human', based_on: follow ? {file: LOG.name, started_at: LOG.log.started_at || null} : null,
+    initial: settings(), events: [], audio: null, license: 'CC BY-SA 4.0'};
+}
+function stamp(log) {
+  if (!log || !PERF) return log;
+  log.performance.audio_sha256 = PERF.sha; log.performance.record_url = PERF.record;
+  log.playback.bpm = PERF.bpm; log.playback.tempo_source = PERF.tempoSource; log.playback.quarter_s = +beatS().toFixed(4);
+  if (log.credits && log.credits[0]) { log.credits[0].name = PERF.creditName; log.credits[0].link = PERF.record; log.credits[0].audio_sha256 = PERF.sha; }
+  return log;
+}
 function record() {
   if (REC) { finish('Stopped. The take is ready.'); return; }
+  if (!PERF || !PERF.buffer) { status('A Performance has to load before a take can be recorded.'); return; }
   graph(); AC.resume();
   $('lrec').disabled = true; status('Getting the recorder ready…');
   tap().then(function (T) {
-    var follow = FOLLOW; clearTake(); start(follow);   // a take always starts from the first chord, so t = 0 is the start of the Composition
-    var S = NC.state();
-    REC = {T: T, chunks: [], frames: 0, firstT: null, log: {
-      nc_live_log_version: LOG_VERSION, kind: 'netcomposer live take (dial log)', started_at: new Date().toISOString(), t_unit: 's, from the first chord of pass 1',
-      composition: {title: S.t, composer: S.by, words: {composition: S.c, performance: S.p}, chords: (NC.timeline() || {unique: []}).unique, share_url: NC.shareUrl()},
-      playback: {preview_tempo: PREVIEW_TEMPO, speed: +$('spd').value, bpm: bpm(), quarter_s: +beatS().toFixed(4), strikes_per_chord: 2, pitch_shift: false, time_stretch: false, source: 'musicmatter.art chord recordings (Petrus, CC BY-SA 4.0): sounds/ where that chord has a bounce, the full chord set otherwise'},
-      graph: 'chord strikes -> low-pass -> (dry + delay with feedback, equal-power wet/dry) -> out',
-      hacks: {lowpass: {type: 'biquad lowpass, Q 0.707', cutoff_map: '0 = open; v in 1..100 -> 20000 * (150/20000)^(v/100) Hz'}, delay: {timing_unit: 'quarter note at the preview tempo', feedback_max: 0.9, mix: 'equal-power'}},
-      performer: 'human', based_on: follow ? {file: LOG.name, started_at: LOG.log.started_at || null} : null,
-      initial: settings(), events: [], audio: null, license: 'CC BY-SA 4.0'}};
+    var follow = FOLLOW; clearTake(); start(follow);   // t = 0 is the start of this Performance's audio
+    REC = {T: T, chunks: [], frames: 0, firstT: null, log: freshLog(follow)};
     var R = REC;
     T.start(function (t, b) { if (REC !== R) return; if (R.firstT === null) R.firstT = t; R.chunks.push(b); R.frames += b.length / 2; });
     later(T0 + MAX_TAKE_S, function () { finish('Ten minutes is the limit for one take; it is ready.'); });
-    $('lrec').textContent = '■ Stop'; $('lrec').classList.add('on'); buttons();
+    $('lrec').textContent = '■ Stop'; $('lrec').classList.add('on'); status('Recording this Performance.'); buttons();
   }).catch(function (e) { buttons(); status('This browser cannot record here (' + (e && e.message || e) + ').'); });
 }
 function now() { return +(Math.max(0, AC.currentTime - T0)).toFixed(3); }
@@ -202,14 +306,17 @@ function logEvent(ev) {
   var E = REC.log.events, last = E[E.length - 1];
   if (last && ev.dial && last.dial === ev.dial && ev.t - last.t < 0.04) E[E.length - 1] = ev; else E.push(ev);   // coalesce a drag to ~25 events/s per dial
 }
+var takeGen = 0;
 function finish(msg) {
-  if (!REC || REC.stopping) return; var R = REC; R.stopping = true;
-  var end = now(); R.log.events.push({t: end, event: 'stop'});
-  gen++; timers.forEach(clearTimeout); timers = []; sources.forEach(function (s) { try { s.stop(AC.currentTime + 0.05); } catch (e) {} }); sources = [];
+  if (!REC || REC.stopping) return; var R = REC, my = ++takeGen; R.stopping = true;
+  var end = now(); stamp(R.log); R.log.events.push({t: end, event: 'stop'});
+  gen++; timers.forEach(clearTimeout); timers = []; haltSources(AC.currentTime + 0.05);
   status('Letting the delay ring out…');
   setTimeout(function () {
     R.T.stop(function () {
+      if (my !== takeGen) return;
       var rate = AC.sampleRate, blob = wav(R.chunks, R.frames, rate), dur = R.frames / rate;
+      stamp(R.log);
       R.log.audio = {file: 'take.wav', mime: 'audio/wav', encoding: 'PCM 16-bit stereo', bytes: blob.size, sample_rate: rate,
                      starts_at_t: R.firstT === null ? -LEAD_S : +(R.firstT - T0).toFixed(4), music_ends_at_t: end, tail_s: TAIL_S, duration_s: +dur.toFixed(3)};
       TAKE = {blob: blob, log: R.log, url: URL.createObjectURL(blob)}; REC = null;
@@ -221,25 +328,28 @@ function finish(msg) {
   $('lrec').textContent = '● Record'; $('lrec').classList.remove('on'); buttons();
 }
 function cancel() {
-  if (!REC) return; var R = REC; REC = null; R.chunks = []; R.T.stop(function () {});
+  if (!REC) return; var R = REC; takeGen++; REC = null; R.chunks = []; R.T.stop(function () {});
   stopAudio(); $('lrec').textContent = '● Record'; $('lrec').classList.remove('on'); buttons(); status('Take cancelled. Nothing was kept.');
 }
 function clearTake() { if (TAKE) URL.revokeObjectURL(TAKE.url); TAKE = null; $('ltake').hidden = true; $('ltakeaudio').removeAttribute('src'); buttons(); }
-function slug() { return (NC.state().t || 'take').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 40) || 'take'; }
+function slug() { return String(PERF && PERF.id || 'take').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 40) || 'take'; }
 function save(name, blob) { var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click(); setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 1000); }
 function download() {
   if (!TAKE) return; var base = slug();
   TAKE.log.audio.file = base + '.live.wav';
   save(base + '.live.wav', TAKE.blob);
   setTimeout(function () { save(base + '.live.dials.json', new Blob([JSON.stringify(TAKE.log, null, 1) + '\n'], {type: 'application/json'})); }, 300);
-  status('Downloaded the take (WAV) and its dial log. Upload the dial log later to replay the moves.');
+  status('Downloaded the WAV and its dial log. The log names this Performance.');
 }
 
 // ---------- upload a dial log: check it, restore, offer replay ----------
 function num(x, lo, hi) { return typeof x === 'number' && isFinite(x) && x >= lo && x <= hi; }
+function clip(x, n) { return typeof x === 'string' ? x.slice(0, n) : null; }
 function validate(o) {   // -> {log, dropped, notes}; throws a plain-words message
   if (!o || typeof o !== 'object' || Array.isArray(o)) throw 'it is not a dial log (expected a JSON object)';
+  if (o.nc_live_log_version === '0.2' || o.nc_live_log_version === '0.1' || (o.composition && !o.performance)) throw 'it rides a Composition sketch. Live now rides a finished Performance, so this log cannot play here';
   if (typeof o.nc_live_log_version !== 'string') throw 'it has no nc_live_log_version, so it is not a Live dial log';
+  if (!o.performance || typeof o.performance !== 'object' || o.performance.id == null || String(o.performance.id).trim() === '') throw 'it does not name a Performance';
   if (!Array.isArray(o.events)) throw 'it has no events list';
   var I = o.initial && typeof o.initial === 'object' ? o.initial : {}, init = {}, notes = [], dropped = 0, ev = [];
   if (num(I.cutoff, 0, 100)) init.cutoff = I.cutoff;
@@ -247,7 +357,10 @@ function validate(o) {   // -> {log, dropped, notes}; throws a plain-words messa
   if (num(I.feedback, 0, 0.9)) init.feedback = I.feedback;
   if (num(I.wet, 0, 1)) init.wet = I.wet;
   if (typeof I.loop === 'boolean') init.loop = I.loop;
-  if (!/^0\./.test(o.nc_live_log_version)) notes.push('version ' + o.nc_live_log_version + ' is newer than this page');
+  if (o.nc_live_log_version !== LOG_VERSION) notes.push('version ' + o.nc_live_log_version + ' is not ' + LOG_VERSION);
+  var sha = typeof o.performance.audio_sha256 === 'string' && /^[0-9a-f]{64}$/i.test(o.performance.audio_sha256) ? o.performance.audio_sha256.toLowerCase() : null;
+  if (!sha) notes.push('no audio sha, so a match cannot be checked');
+  var perf = {id: String(o.performance.id).slice(0, 200), record_url: clip(o.performance.record_url, 2000), audio_url: clip(o.performance.audio_url, 2000), audio_sha256: sha, audio_file: clip(o.performance.audio_file, 300)};
   o.events.slice(0, 200000).forEach(function (e) {
     if (!e || !num(e.t, 0, 7200)) { dropped++; return; }
     if (e.dial === 'cutoff' && num(e.value, 0, 100)) ev.push({t: e.t, dial: 'cutoff', value: e.value});
@@ -255,49 +368,56 @@ function validate(o) {   // -> {log, dropped, notes}; throws a plain-words messa
     else if (e.dial === 'delay_timing' && num(e.beats, 0.0625, 8)) ev.push({t: e.t, dial: 'delay_timing', beats: e.beats});
     else if (e.event === 'loop' && typeof e.value === 'boolean') ev.push({t: e.t, event: 'loop', value: e.value});
     else if (e.event === 'stop') ev.push({t: e.t, event: 'stop'});
-    else if (e.event !== 'pass') dropped++;
+    else dropped++;
   });
   if (o.events.length > 200000) { dropped += o.events.length - 200000; }
   ev.sort(function (a, b) { return a.t - b.t; });
   var stops = ev.filter(function (e) { return e.event === 'stop'; }); if (stops.length > 1) ev = ev.filter(function (e) { return e.event !== 'stop' || e === stops[0]; }).filter(function (e) { return e.t <= stops[0].t; });
-  var c = o.composition && o.composition.words && typeof o.composition.words.composition === 'string' ? o.composition : null;
-  var comp = c ? {t: String(c.title || '').slice(0, 300), by: String(c.composer || '').slice(0, 300), c: c.words.composition.slice(0, 20000), p: String(c.words.performance || '').slice(0, 20000)} : null;
-  var sp = o.playback && num(o.playback.speed, 1, 4) ? o.playback.speed : null;
   if (!ev.some(function (e) { return e.dial; })) notes.push('it has no dial moves, only starting positions');
-  return {log: {initial: init, events: ev, composition: comp, speed: sp, started_at: typeof o.started_at === 'string' ? o.started_at : null}, dropped: dropped, notes: notes};
+  return {log: {initial: init, events: ev, performance: perf, started_at: typeof o.started_at === 'string' ? o.started_at : null}, dropped: dropped, notes: notes};
 }
-function norm(s) { return String(s || '').replace(/\s+/g, ' ').trim(); }
+function shaMatches(P) { return !P.audio_sha256 || !PERF || !PERF.sha || P.audio_sha256 === PERF.sha; }
 function upload(f) {
   if (!f) return;
   if (f.size > MAX_LOG_BYTES) { status('That file is too big for a dial log (over 5 MB).'); return; }
   f.text().then(function (txt) {
     var V; try { V = validate(JSON.parse(txt)); } catch (e) { status('Could not use ' + f.name + ': ' + (e instanceof SyntaxError ? 'it is not valid JSON' : e) + '.'); return; }
-    var L = {log: V.log, name: f.name, dropped: V.dropped, notes: V.notes}, S = NC.state(), C = V.log.composition;
-    if (C && (norm(C.c) !== norm(S.c) || norm(C.p) !== norm(S.p))) {
-      PENDING = L; $('lconflictmsg').textContent = 'This dial log was made with a different Composition (' + (C.t || 'untitled') + '). Load its Composition, or keep yours and use only the moves?';
-      $('lconflict').hidden = false; $('lusetheirs').focus(); status('Your call: which Composition?'); return;
+    var L = {log: V.log, name: f.name, dropped: V.dropped, notes: V.notes}, P = V.log.performance;
+    if (PERF && PERF.id === P.id) {
+      if (!shaMatches(P)) { status('This dial log names this Performance, but the audio does not match, so the moves were not applied.'); return; }
+      useLog(L); return;
     }
-    useLog(L, C ? 'same' : 'none');
+    PENDING = L;
+    $('lconflictmsg').textContent = 'This dial log rides Performance ' + P.id + '. Load that Performance?';
+    $('lconflict').hidden = false; $('lloadperf').focus(); status('Your call: load that Performance?');
   });
 }
-function useLog(L, mode) {   // mode: 'same' (page already has its Composition), 'theirs' (load it), 'mine' (keep the page's, moves only), 'none' (log has no Composition)
+function loadPending() {
+  if (!PENDING) return;
+  var L = PENDING, P = L.log.performance; PENDING = null; $('lconflict').hidden = true;
+  if (!P.audio_url && !P.id) { status('That Performance is no longer reachable, so this dial log cannot play.'); return; }
+  status('Loading that Performance…');
+  open({id: P.id, only: P.audio_url ? [P.audio_url] : null, record: P.record_url, sha: P.audio_sha256, force: true}).then(function (ok) {
+    if (!ok || !PERF || PERF.id !== P.id) { status('That Performance is no longer reachable, so this dial log cannot play.'); return; }
+    if (P.audio_sha256 && PERF.sha && P.audio_sha256 !== PERF.sha) { status('That Performance loaded, but its audio does not match this dial log, so the moves were not applied.'); return; }
+    useLog(L);
+  });
+}
+function useLog(L) {
   stop(); PENDING = null; $('lconflict').hidden = true;
-  if (mode === 'theirs') { var C = L.log.composition; NC.pushUndo(); NC.fill({t: C.t, by: C.by, c: C.c, p: C.p}); NC.persist(); }
-  if (L.log.speed && mode !== 'mine' && +$('spd').value !== L.log.speed) { $('spd').value = L.log.speed; $('spd').dispatchEvent(new Event('input')); NC.stop(); }
   LOG = L; restoreInitial();
   var moves = L.log.events.filter(function (e) { return e.dial; }).length, end = L.log.events.filter(function (e) { return e.event === 'stop'; })[0];
-  var how = {same: 'same Composition as yours', theirs: 'its Composition is loaded (Undo goes back)', mine: 'moves only, on your Composition', none: 'no Composition in the log; playing yours'}[mode];
   $('llog').hidden = false;
-  $('llogmeta').textContent = L.name + ' · ' + moves + ' dial moves' + (end ? ' over ' + Math.round(end.t) + ' s' : '') + ' · ' + how +
+  $('llogmeta').textContent = L.name + ' · ' + moves + ' dial moves' + (end ? ' over ' + Math.round(end.t) + ' s' : '') + ' · Performance ' + L.log.performance.id +
     (L.dropped ? ' · ' + L.dropped + ' unreadable entries skipped' : '') + (L.notes.length ? ' · ' + L.notes.join('; ') : '');
-  buttons(); status('Dial log loaded: the dials are at its starting positions. Press Replay moves to hear it.');
+  buttons(); status('Dial log loaded. The dials are at its starting positions. Press Replay moves.');
 }
 function forget() { if (FOLLOW) stop(); LOG = null; $('llog').hidden = true; $('lup').value = ''; buttons(); status('Dial log put away. The dials are yours.'); }
 
 // ---------- wire up ----------
 function status(t) { $('lstatus').textContent = t; }
 function buttons() {
-  var ready = !!(window.NC && NC.catalog && NC.catalog()), has = ready && !!NC.timeline();
+  var has = !!(PERF && PERF.buffer);
   $('lplay').disabled = !has || !!REC; $('lrec').disabled = !has || !!(REC && REC.stopping);
   $('lcancel').disabled = !REC || REC.stopping; $('lclear').disabled = !TAKE || !!REC; $('ldl').disabled = !TAKE || !!REC;
   $('lreplay').disabled = !has || !LOG || !!REC; $('lup').disabled = !!REC; $('lforget').disabled = !!REC;
@@ -305,10 +425,9 @@ function buttons() {
 $('lplay').onclick = function () { if (live) stop('Stopped.'); else start(false); };
 $('lreplay').onclick = function () { if (live && FOLLOW) stop('Stopped.'); else start(true); };
 $('lrec').onclick = record; $('lcancel').onclick = cancel; $('lclear').onclick = function () { clearTake(); status('Take cleared.'); }; $('ldl').onclick = download;
-$('lup').onchange = function () { upload(this.files[0]); };
-$('lusetheirs').onclick = function () { if (PENDING) useLog(PENDING, 'theirs'); };
-$('lkeepmine').onclick = function () { if (PENDING) useLog(PENDING, 'mine'); };
-$('lconfcancel').onclick = function () { PENDING = null; $('lconflict').hidden = true; $('lup').value = ''; status('Nothing loaded.'); };
+$('lup').onchange = function () { upload(this.files[0]); this.value = ''; };
+$('lloadperf').onclick = function () { loadPending(); };
+$('lconfcancel').onclick = function () { PENDING = null; $('lconflict').hidden = true; status('Nothing loaded.'); };
 $('lforget').onclick = forget;
 Object.keys(DIALS).forEach(function (d) {
   $(DIALS[d]).addEventListener('input', function () {
@@ -316,12 +435,14 @@ Object.keys(DIALS).forEach(function (d) {
     readouts(); apply(false); logEvent(dialEvent(d));
   });
 });
-$('lloop').addEventListener('change', function () { logEvent({event: 'loop', value: $('lloop').checked}); });
-$('spd').addEventListener('input', function () { readouts(); apply(false); });
+$('lloop').addEventListener('change', function () {
+  if (SRC) SRC.loop = $('lloop').checked;
+  logEvent({event: 'loop', value: $('lloop').checked});
+});
 $('play').addEventListener('click', function () { if (live) stop('The preview took over.'); });
-['comp', 'perf'].forEach(function (id) { $(id).addEventListener('input', function () { readouts(); buttons(); }); });
-readouts();
-var w = setInterval(function () { if (document.body.getAttribute('data-ready')) { clearInterval(w); buttons(); } }, 100);
-window.NCLive = {settings: settings, cutoffHz: cutoffHz, validate: validate, take: function () { return TAKE && {bytes: TAKE.blob.size, log: TAKE.log}; }, recording: function () { return !!REC; },
+readouts(); buttons();
+window.NCLive = {settings: settings, cutoffHz: cutoffHz, validate: validate, open: open, hide: hide,
+  performanceId: function () { return PERF && PERF.id; },
+  take: function () { return TAKE && {bytes: TAKE.blob.size, log: TAKE.log}; }, recording: function () { return !!REC; },
   log: function () { return LOG && {name: LOG.name, events: LOG.log.events.length, initial: LOG.log.initial}; }, following: function () { return FOLLOW; }, clock: function () { return AC && live ? AC.currentTime - T0 : null; }, overrides: function () { return Object.assign({}, OVERRIDE); }};
 })();

@@ -63,6 +63,7 @@
     $('perform-record').href = rec;
     $('perform-out').hidden = false;
     $('perform-bar').value = 100;
+    if (window.NCLive) NCLive.open({id: id, flac: flac, mp3: mp3, record: rec});
     $('perform-keep').disabled = !sessionStorage.getItem('nc-claim:' + id);
     status('Done. CC BY-SA 4.0. Pitch was not shifted.');
     $('perform-meta').textContent = 'Unlisted audio is kept 90 days unless you press Keep. Listed audio waits a day, then joins the feed.';
@@ -105,6 +106,7 @@
       if (x.j.claim_token) claim(jobId, x.j.claim_token);
       $('perform-turnstile').hidden = true;
       $('perform-out').hidden = true;
+      if (window.NCLive) NCLive.hide();
       $('perform-bar').hidden = false;
       $('perform-bar').value = 0;
       status(x.j.position ? 'Queued · position ' + x.j.position : 'Queued…');
