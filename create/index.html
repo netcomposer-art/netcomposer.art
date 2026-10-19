@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Create — NetComposer</title>
-<meta name="description" content="Write a NetComposer Composition, hear its chords from musicmatter.art, and perform it live at the dials. Static; nothing is stored.">
+<meta name="description" content="Write a NetComposer Composition, hear its chords, perform it live at the dials, or render it here. Static; the Composition is not stored.">
 <link rel="canonical" href="https://netcomposer.art/create/">
 <link rel="alternate" type="text/markdown" href="/create/SKILL.md" title="Performer skill (SKILL.md)">
 <link rel="alternate" type="text/plain" href="/create/SKILL.txt" title="Performer skill (plain text)">
@@ -30,7 +30,7 @@ code{font:inherit}#shareurl{font-size:.8rem;margin-top:.5rem}#perform-out audio{
 .further{margin-top:4.5rem;border-top:1px solid #000;padding-top:.2rem;font-size:.9rem}.further h2{margin-top:1.2rem}.further h3{font-size:.9rem;margin:1.8rem 0 .4rem}.further button{font-size:.85rem}
 footer{max-width:46rem;margin:0 auto;padding:0 1.2rem 4rem;font-size:.85rem;color:#555}
 @media(min-width:760px){body{font-size:17px}main{padding-top:6rem}.two{grid-template-columns:1fr 1fr}}
-#perform h3{font-size:.95rem;margin:1.8rem 0 .4rem}#live .hack{border-left:2px solid #000;padding:.1rem 0 .3rem .8rem;margin:1rem 0}#live .hack h3{font-size:.95rem;margin:.2rem 0 .4rem}
+#performBtn{background:#000;color:#fff;min-width:6.5rem}#performBtn:disabled{background:#fff;color:#999}#perform-bar{width:min(100%,28rem);height:.5rem;margin:.35rem 0;accent-color:#000}#perform-turnstile{margin:.5rem 0}#perform-vis{text-transform:none;letter-spacing:normal;color:#000;font-size:.95rem;display:inline-flex;margin:0}#perform h3{font-size:.95rem;margin:1.8rem 0 .4rem}#live .hack{border-left:2px solid #000;padding:.1rem 0 .3rem .8rem;margin:1rem 0}#live .hack h3{font-size:.95rem;margin:.2rem 0 .4rem}
 .dial{display:grid;grid-template-columns:7.5rem 1fr 5.5rem;align-items:center;gap:.6rem;margin:.55rem 0}.dial label{margin:0}.dial input[type=range]{width:100%;height:2rem}
 .dial output{font-size:.85rem;text-align:right;font-variant-numeric:tabular-nums}.dial select{padding:.35rem .5rem;font-size:.9rem}.dial.auto output{text-decoration:underline}
 #lplay{background:#000;color:#fff;min-width:6.5rem}#lplay:disabled{background:#fff}#lrec.on{background:#000;color:#fff}.toggle{display:inline-flex;align-items:center;gap:.4rem;font-size:.95rem;margin:.3rem .4rem}
@@ -105,10 +105,17 @@ footer{max-width:46rem;margin:0 auto;padding:0 1.2rem 4rem;font-size:.85rem;colo
 <div id="ltake" hidden><audio id="ltakeaudio" controls></audio><p class="m" id="ltakemeta"></p></div>
 </section>
 <h3 id="render-h">Rendered</h3>
-<p>A full-quality Performance, with the kit's chain (Rubber Band time-stretch, Dragonfly Hall) and its record, will render here soon.</p>
-<div class="row"><button id="performBtn" type="button" disabled>Perform · coming soon</button></div>
-<p class="m" id="perform-status" aria-live="polite">Today: perform it with the <a href="https://github.com/netcomposer-art/nc-performer">Performer kit</a>, <code>pip install git+https://github.com/netcomposer-art/nc-performer</code>, or hand the plan to an agent with <a href="SKILL.md">SKILL.md</a>.</p>
-<div id="perform-out" hidden><audio id="perform-audio" controls preload="none"></audio><p class="m"><a id="perform-record" href="#">The performance record</a></p></div>
+<p>Press Perform. The kit fetches the sounds, checks the licenses, and renders it here. A minute or two. Pitch is never shifted.</p>
+<div class="row"><button id="performBtn" type="button" disabled>Perform</button><label class="toggle" id="perform-vis" for="perform-public"><input id="perform-public" type="checkbox"> List it after a day</label></div>
+<div id="perform-turnstile" hidden></div>
+<p class="m" id="perform-status" aria-live="polite">Checking whether Perform is awake…</p>
+<progress id="perform-bar" hidden max="100" value="0"></progress>
+<div id="perform-out" hidden>
+<audio id="perform-audio" controls preload="none"></audio>
+<div class="row"><a class="btn" id="perform-mp3" href="#">MP3</a><a class="btn" id="perform-flac" href="#">FLAC</a><a class="btn" id="perform-record" href="#">Signed record</a><button type="button" id="perform-keep" disabled>Keep</button></div>
+<p class="m" id="perform-claim" hidden></p>
+<p class="m" id="perform-meta"></p>
+</div>
 </section>
 
 <section class="further" id="further">
@@ -136,5 +143,6 @@ nc perform composition.md -o out/           # any OpenAI-compatible LLM</pre>
 <script src="recordings.js"></script>
 <script src="app.js"></script>
 <script src="live.js"></script>
+<script src="perform.js"></script>
 </body>
 </html>
