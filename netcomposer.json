@@ -2719,14 +2719,14 @@
   "create": {
     "status": "live",
     "url": "https://netcomposer.art/create/",
-    "what": "Write a Composition in the browser, hear it with Play, then write the Performance prompt in the Perform section and press Perform for a hosted render. When that Performance comes back, Live appears under the player and rides that audio. Perform again replaces the result and hides Live until the new render returns. Download composition.md and a plan stub, open a composition.md, share it as a link (the text rides in the URL hash; nothing is stored).",
+    "what": "Write a Composition in the browser, hear it with Play, then write Performance notes in the Perform section (editable immediately; Save, Undo, Cancel; Perform uses the current text) and press Perform for a hosted render. The signed record is shown as readable text, with the JSON behind Show signed JSON. Keep holds the audio on the Performer past 90 days and does not list it. When that Performance comes back, Live appears under the player and rides that audio. Perform again replaces the result and hides Live until the new render returns. Download composition.md and a plan stub, open a composition.md, share it as a link (the text rides in the URL hash; nothing is stored).",
     "plan_schema": "https://netcomposer.art/create/plan.schema.json",
     "skill": "https://netcomposer.art/create/SKILL.md",
     "skill_text": "https://netcomposer.art/create/SKILL.txt",
     "chords": "https://netcomposer.art/create/chords.json",
     "hosted_render": {
       "status": "preview",
-      "where": "Inside Perform on /create/: the Performance prompt, then the Perform button, then progress and the player. Live stays hidden until a job is done, then sits under the player. Perform again clears the player and Live until the next render returns.",
+      "where": "Inside Perform on /create/: Performance notes, then the Perform button, then progress and the player. The readable signed record and Keep sit with the player. Live stays hidden until a job is done, then sits under the player. Perform again clears the player and Live until the next render returns.",
       "api": "https://nc-perform-api.psemme.workers.dev",
       "config_value": "API in create/perform.js",
       "turnstile": true,

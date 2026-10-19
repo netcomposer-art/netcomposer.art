@@ -1,6 +1,6 @@
 // NetComposer /create/: write a Composition, hear a sketch, download, share. Static; no server.
 // The Play preview runs at double the Composition's tempo (still two strikes per chord); the rendered Performance keeps its real length.
-// Edit as text, Surprise me, Undo and Play all work in place; the work in progress is kept in the URL hash.
+// Surprise me, Undo and Play all work in place; the work in progress is kept in the URL hash.
 (function () {
 'use strict';
 var PREVIEW_TEMPO = 2;
@@ -243,7 +243,7 @@ function parseMd(txt) {
   }
   return {t: title, by: by, c: c, p: p || ''};
 }
-function fill(S) { $('title').value = S.t || ''; $('by').value = S.by || ''; $('comp').value = S.c || ''; $('perf').value = S.p || ''; SEED = S.sd ? surpriseInfo(S.sd, S.c) : null; stop(); refresh(); }
+function fill(S) { $('title').value = S.t || ''; $('by').value = S.by || ''; $('comp').value = S.c || ''; $('perf').value = S.p || ''; SEED = S.sd ? surpriseInfo(S.sd, S.c) : null; stop(); refresh(); adoptNotes($('perf').value); }
 // ---------- share ----------
 function b64e(s) { return btoa(unescape(encodeURIComponent(s))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); }
 function b64d(s) { s = s.replace(/-/g, '+').replace(/_/g, '/'); while (s.length % 4) s += '='; return decodeURIComponent(escape(atob(s))); }
@@ -257,7 +257,7 @@ function fromHash() {
   var m = /[#&]c=([A-Za-z0-9_-]+)/.exec(location.hash); if (!m) return false;
   try { var S = JSON.parse(b64d(m[1])); fill(S); return true; } catch (e) { status('That share link could not be read.', true); return false; }
 }
-// ---------- undo (Surprise me, a starter, Apply) ----------
+// ---------- undo (Surprise me, a starter, an opened file) ----------
 var UNDO = [];
 function pushUndo() {
   var S = raw(), top = UNDO[UNDO.length - 1];
@@ -269,7 +269,7 @@ function undo() {
   fill(S); persist(); $('undo').disabled = !UNDO.length; status('Back to your previous version.');
   if (was) start(at);
 }
-// ---------- edit as text (the whole composition.md) ----------
+// ---------- read a composition.md into the fields (Open a file). No on-page markdown editor. ----------
 function fromText(txt) {
   var S = parseMd(txt), now = raw(), md = /^#{1,2}\s+\S/m.test(txt) || /^\s*>/m.test(txt);
   if (!/^#\s+\S/m.test(txt)) S.t = now.t;
@@ -279,16 +279,82 @@ function fromText(txt) {
   if (S.t === 'Untitled') S.t = '';
   return S;
 }
-function openEditor() {
-  var e = $('mdedit'); e.value = toMd(state()); $('editor').hidden = false; $('edit').setAttribute('aria-expanded', 'true');
-  e.focus(); e.setSelectionRange(0, 0); e.scrollTop = 0;
+// ---------- performance notes: saved text is what Perform uses ----------
+var notesSaved = '', notesBefore = '', notesPast = [], notesTimer = null, notesFlash = null;
+function growNotes() {
+  var el = $('perf');
+  el.style.height = 'auto';
+  var max = Math.round(window.innerHeight * 0.7);
+  var h = Math.max(el.scrollHeight, el.offsetHeight);
+  el.style.height = Math.min(h, max) + 'px';
 }
-function closeEditor() { $('editor').hidden = true; $('edit').setAttribute('aria-expanded', 'false'); $('edit').focus(); }
-function applyEditor() {
-  var S = fromText($('mdedit').value), was = active, at = cur;
-  pushUndo(); fill(S); closeEditor(); persist();
-  status(timeline() ? 'Applied. Undo goes back to the version before.' : 'Applied, but no chord symbols were found. Undo goes back.', !timeline());
-  if (was) start(at);
+function syncNotes() {
+  var dirty = $('perf').value !== notesSaved;
+  $('notes-save').disabled = !dirty;
+  $('notes-undo').disabled = !notesPast.length;
+  $('notes-cancel').disabled = !dirty;
+}
+function adoptNotes(text) {
+  notesSaved = text; notesBefore = text; notesPast = [];
+  if (notesTimer) { clearTimeout(notesTimer); notesTimer = null; }
+  if (notesFlash) { clearTimeout(notesFlash); notesFlash = null; }
+  $('notes-save').textContent = 'Save';
+  $('notes-status').textContent = '';
+  growNotes(); syncNotes();
+}
+function noteBurst() {
+  var cur = $('perf').value;
+  if (cur === notesBefore) return;
+  if (!notesTimer) {
+    if (!notesPast.length || notesPast[notesPast.length - 1] !== notesBefore) notesPast.push(notesBefore);
+    if (notesPast.length > 40) notesPast.shift();
+  }
+  if (notesTimer) clearTimeout(notesTimer);
+  notesTimer = setTimeout(function () { notesTimer = null; }, 450);
+  notesBefore = cur;
+  if ($('notes-save').textContent === 'Saved') $('notes-save').textContent = 'Save';
+  $('notes-status').textContent = '';
+  growNotes(); syncNotes();
+}
+function saveNotes() {
+  if ($('perf').value === notesSaved) { syncNotes(); return; }
+  if (notesTimer) { clearTimeout(notesTimer); notesTimer = null; }
+  notesSaved = $('perf').value; notesBefore = notesSaved; notesPast = [];
+  persist();
+  $('notes-save').textContent = 'Saved';
+  $('notes-save').disabled = true;
+  $('notes-status').textContent = 'Saved';
+  syncNotes();
+  if (notesFlash) clearTimeout(notesFlash);
+  notesFlash = setTimeout(function () {
+    if ($('notes-save').textContent === 'Saved') $('notes-save').textContent = 'Save';
+    notesFlash = null; syncNotes();
+  }, 1600);
+}
+function undoNotes() {
+  if (!notesPast.length) return;
+  if (notesTimer) { clearTimeout(notesTimer); notesTimer = null; }
+  var prev = notesPast.pop();
+  $('perf').value = prev; notesBefore = prev;
+  if ($('notes-save').textContent === 'Saved') $('notes-save').textContent = 'Save';
+  $('notes-status').textContent = '';
+  growNotes(); refresh(); persistSoon(); syncNotes();
+  $('perf').focus();
+}
+function cancelNotes() {
+  if ($('perf').value === notesSaved) { syncNotes(); return; }
+  if (notesTimer) { clearTimeout(notesTimer); notesTimer = null; }
+  $('perf').value = notesSaved; notesBefore = notesSaved; notesPast = [];
+  if ($('notes-save').textContent === 'Saved') $('notes-save').textContent = 'Save';
+  $('notes-status').textContent = '';
+  growNotes(); refresh(); persist(); syncNotes();
+  $('perf').focus();
+}
+function commitNotes() {
+  var el = $('perf'), trimmed = el.value.trim();
+  if (el.value !== trimmed) el.value = trimmed;
+  if (trimmed !== notesSaved) saveNotes();
+  else adoptNotes(trimmed);
 }
 // ---------- Surprise me: an 8-chord progression from a small grammar ----------
 // Keys per mode are the tonics whose diatonic chords spell cleanly with the chord set's roots (C Db D Eb E F F# G Ab A Bb B).
@@ -397,15 +463,22 @@ sel.onchange = function () { if (sel.value === '') return;
   pushUndo();
   if (sel.value === 'blank') { fill({t: '', by: '', c: '', p: ''}); sel.value = ''; persist(); $('shareurl').hidden = true; status('Blank page. Write your Composition and how it should be performed; chord symbols you type show up under Play.'); $('title').focus(); return; }
   var s = STARTERS[+sel.value]; fill({t: s.title, by: s.composer, c: s.composition, p: s.performance}); sel.value = ''; persist(); };
-['comp', 'perf'].forEach(function (id) { $(id).addEventListener('input', function () { refresh(); persistSoon(); if (!timeline()) stop(); else restartSoon(); }); });
+['comp', 'perf'].forEach(function (id) { $(id).addEventListener('input', function () {
+  if (id === 'perf') noteBurst();
+  refresh(); persistSoon(); if (!timeline()) stop(); else restartSoon();
+}); });
 ['title', 'by'].forEach(function (id) { $(id).addEventListener('input', persistSoon); });
 $('play').onclick = toggle;
 $('surprise').onclick = surprise; $('surprise2').onclick = surprise;
 $('undo').onclick = undo;
-$('edit').onclick = function () { if ($('editor').hidden) openEditor(); else closeEditor(); };
-$('apply').onclick = applyEditor; $('cancel').onclick = closeEditor;
-$('mdedit').addEventListener('keydown', function (e) { if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); applyEditor(); } });
-document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !$('editor').hidden) { e.preventDefault(); closeEditor(); } });
+$('notes-save').onclick = saveNotes;
+$('notes-undo').onclick = undoNotes;
+$('notes-cancel').onclick = cancelNotes;
+$('perf').addEventListener('keydown', function (e) {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); saveNotes(); }
+  else if ((e.ctrlKey || e.metaKey) && (e.key === 'z' || e.key === 'Z') && !e.shiftKey) { e.preventDefault(); undoNotes(); }
+  else if (e.key === 'Escape' && $('perf').value !== notesSaved) { e.preventDefault(); cancelNotes(); }
+});
 $('spd').oninput = function () { $('spdv').textContent = (+$('spd').value).toFixed(1) + '×'; restartSoon(); };
 $('dlmd').onclick = function () { var S = state(); download(slug(S.t) + '.composition.md', toMd(S), 'text/markdown'); };
 $('dlplan').onclick = function () { var S = state(), p = toPlan(S); if (!p) { status('Write some chord symbols first.', true); return; } download(slug(S.t) + '.plan.json', JSON.stringify(p, null, 1) + '\n', 'application/json'); };
@@ -417,12 +490,13 @@ $('share').onclick = function () {
   var u = shareUrl(); $('shareurl').value = u; $('shareurl').hidden = false; $('shareurl').select();
   if (navigator.clipboard) navigator.clipboard.writeText(u).then(function () { status('Link copied. The composition travels in the link itself; nothing is stored anywhere.'); }, function () {});
 };
+window.addEventListener('resize', growNotes);
 window.addEventListener('hashchange', fromHash);
 window.addEventListener('pagehide', function () { if (persistT) persist(); });
 window.NC = {timeline: timeline, toPlan: toPlan, toMd: toMd, parseMd: parseMd, state: state, raw: raw, fill: fill, findChords: findChords, pickVoicing: pickVoicing, shareUrl: shareUrl,
   fromText: fromText, makeSurprise: makeSurprise, progression: progression, start: start, stop: stop, undo: undo, sched: function () { return SCHED.slice(); },
   catalog: function () { return CAT; }, audition: function (ac, chords) { return window.MM.prepare(ac, chords, CAT); }, showSources: showSources, creditsFor: creditsFor, chordLabel: chordLabel,
-  PREVIEW_TEMPO: PREVIEW_TEMPO, perform: PERFORM, showPerformance: showPerformance, performStatus: performStatus, pushUndo: pushUndo, persist: persist};
+  PREVIEW_TEMPO: PREVIEW_TEMPO, perform: PERFORM, showPerformance: showPerformance, performStatus: performStatus, pushUndo: pushUndo, persist: persist, commitNotes: commitNotes, growNotes: growNotes};
 fetch('chords.json').then(function (r) { return r.json(); }).then(function (c) {
   CAT = c; Object.keys(c.chords).forEach(function (k) { QUALS[k.replace(/^[A-G](#|b)?/, '')] = 1; });
   if (!fromHash()) { var s = STARTERS[0]; fill({t: s.title, by: s.composer, c: s.composition, p: s.performance}); }
