@@ -8,7 +8,7 @@
 var $ = function (id) { return document.getElementById(id); };
 var PREVIEW_TEMPO = 2, TAIL_S = 3, LEAD_S = 0.15, MAX_TAKE_S = 600, MAX_LOG_BYTES = 5e6, LOG_VERSION = '0.2';
 var DIALS = {cutoff: 'lcut', delay_timing: 'ltime', feedback: 'lfb', wet: 'lmix'};
-var AC = null, G = null, BUF = {}, live = false, gen = 0, T0 = 0, nextAt = 0, pass = 0, timers = [], sources = [];
+var AC = null, G = null, live = false, gen = 0, T0 = 0, nextAt = 0, pass = 0, timers = [], sources = [];
 var REC = null;     // a take in progress: {log, frames, chunks, firstT, stopping}
 var TAKE = null;    // the finished take: {blob, log, url}
 var LOG = null;     // an uploaded dial log: {log, name}
@@ -66,12 +66,6 @@ function apply(now) {
   G.fb.gain.setTargetAtTime(S.feedback, t, k);
   G.dry.gain.setTargetAtTime(Math.cos(S.wet * Math.PI / 2), t, k); G.wet.gain.setTargetAtTime(Math.sin(S.wet * Math.PI / 2), t, k);   // equal-power wet/dry
 }
-function load(path) {
-  if (!BUF[path]) BUF[path] = fetch(NC.catalog().audio_base + path + '.flac', {mode: 'cors'}).then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.arrayBuffer(); })
-    .then(function (a) { return new Promise(function (ok, no) { AC.decodeAudioData(a, ok, no); }); });
-  return BUF[path];
-}
-
 // ---------- the WAV tap: 16-bit stereo PCM straight from the master bus ----------
 var TAP_SRC = "registerProcessor('nc-tap',class extends AudioWorkletProcessor{constructor(){super();this.on=false;this.b=new Int16Array(8192);this.n=0;this.t=0;" +
   "this.port.onmessage=e=>{if(e.data==='start'){this.on=true;this.n=0}else if(e.data==='stop'){this.flush();this.on=false;this.port.postMessage({done:true})}}}" +
@@ -113,14 +107,21 @@ function schedulePass(my) {
   if (my !== gen) return;
   var tl = NC.timeline(); if (!tl) { stop('No chord symbols to play.'); return; }   // read every pass, so edits above land on the next loop
   var speed = PREVIEW_TEMPO * (+$('spd').value || 1), chords = tl.chords, start = nextAt, len = tl.L / speed, n = ++pass;
-  Promise.all(chords.map(function (c) { return load(c.path); })).then(function (bufs) {
+  NC.audition(AC, chords).then(function (clips) {
     if (my !== gen) return;
+    if (n === 1) NC.showSources(clips);
+    if (REC && n === 1) { var cr = NC.creditsFor(clips); REC.log.credits = cr.credits; REC.log.license = cr.license; REC.log.sounds = cr.files; }
     chords.forEach(function (c, i) {
-      var t = start + c.t / speed, d = c.dur / speed;
-      [0, d / 2].forEach(function (off, k) {
+      var t = start + c.t / speed, d = c.dur / speed, buf = clips[i].buffer;
+      if (!buf) c.voicing.forEach(function (m) {
+        var o = AC.createOscillator(), gn = AC.createGain(); o.type = 'sine'; o.frequency.value = 440 * Math.pow(2, (m - 69) / 12);
+        gn.gain.setValueAtTime(0, t); gn.gain.linearRampToValueAtTime(0.12 / c.voicing.length * 2, t + 0.4); gn.gain.setTargetAtTime(0, t + d - 0.6, 0.4);
+        o.connect(gn); gn.connect(G.input); o.start(t); o.stop(t + d + 2); sources.push(o);
+      });
+      if (buf) [0, d / 2].forEach(function (off, k) {
         if (off && d < 1) return;
-        var s = AC.createBufferSource(), g = AC.createGain(); s.buffer = bufs[i];
-        g.gain.setValueAtTime(k ? 0.45 : 0.8, t + off); g.gain.setTargetAtTime(0, t + Math.min(d + 1.5, off + bufs[i].duration) - 0.8, 0.35);
+        var s = AC.createBufferSource(), g = AC.createGain(); s.buffer = buf;
+        g.gain.setValueAtTime(k ? 0.45 : 0.8, t + off); g.gain.setTargetAtTime(0, t + Math.min(d + 1.5, off + buf.duration) - 0.8, 0.35);
         s.connect(g); g.connect(G.input); s.start(Math.max(AC.currentTime, t + off)); sources.push(s);
       });
       later(t, function () { document.querySelectorAll('.ch.on').forEach(function (e) { e.classList.remove('on'); }); var e = $('ch' + i); if (e) e.classList.add('on'); });
@@ -133,7 +134,7 @@ function schedulePass(my) {
     });
     if (n === 1) status(REC ? 'Recording' + (FOLLOW ? ' the replay' : '') + '. Press Stop when you are done.' : FOLLOW ? 'Replaying the logged moves. Touch a dial to take it over.' :
       'Playing' + ($('lloop').checked ? ' in a loop' : '') + '. Ride the dials; press Record when you are ready.');
-  }).catch(function (e) { stop('Could not load the recorded chords (' + (e && e.message || e) + ').'); });
+  }).catch(function (e) { stop('Could not load the chords (' + (e && e.message || e) + ').'); });
 }
 function later(at, f) { var my = gen; timers.push(setTimeout(function () { if (my === gen) f(); }, Math.max(0, (at - AC.currentTime) * 1000))); }   // at: AudioContext time
 function start(follow) {
@@ -143,7 +144,7 @@ function start(follow) {
   gen++; live = true; pass = 0; T0 = AC.currentTime + LEAD_S; nextAt = T0; apply(true);
   if (FOLLOW) scheduleMoves();
   $('lplay').textContent = 'Stop'; $('lreplay').textContent = FOLLOW ? 'Stop' : '▶ Replay moves';
-  status('Loading the recorded chords…'); schedulePass(gen); buttons();
+  status('Loading chord recordings…'); schedulePass(gen); buttons();
 }
 function stopAudio() {
   gen++; live = false; timers.forEach(clearTimeout); timers = [];
@@ -184,7 +185,7 @@ function record() {
     REC = {T: T, chunks: [], frames: 0, firstT: null, log: {
       nc_live_log_version: LOG_VERSION, kind: 'netcomposer live take (dial log)', started_at: new Date().toISOString(), t_unit: 's, from the first chord of pass 1',
       composition: {title: S.t, composer: S.by, words: {composition: S.c, performance: S.p}, chords: (NC.timeline() || {unique: []}).unique, share_url: NC.shareUrl()},
-      playback: {preview_tempo: PREVIEW_TEMPO, speed: +$('spd').value, bpm: bpm(), quarter_s: +beatS().toFixed(4), strikes_per_chord: 2, source: 'recorded chords, fullchords.musicmatter.art (CC BY-SA 4.0)'},
+      playback: {preview_tempo: PREVIEW_TEMPO, speed: +$('spd').value, bpm: bpm(), quarter_s: +beatS().toFixed(4), strikes_per_chord: 2, pitch_shift: false, time_stretch: false, source: 'musicmatter.art chord recordings (Petrus, CC BY-SA 4.0); piano from the full chord set where that chord has no recording'},
       graph: 'chord strikes -> low-pass -> (dry + delay with feedback, equal-power wet/dry) -> out',
       hacks: {lowpass: {type: 'biquad lowpass, Q 0.707', cutoff_map: '0 = open; v in 1..100 -> 20000 * (150/20000)^(v/100) Hz'}, delay: {timing_unit: 'quarter note at the preview tempo', feedback_max: 0.9, mix: 'equal-power'}},
       performer: 'human', based_on: follow ? {file: LOG.name, started_at: LOG.log.started_at || null} : null,

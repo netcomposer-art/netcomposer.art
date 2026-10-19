@@ -2719,7 +2719,7 @@
   "create": {
     "status": "live",
     "url": "https://netcomposer.art/create/",
-    "what": "Write a Composition and Performance in the browser, hear the chords from the musicmatter full chord set, download composition.md and a plan stub, open a composition.md, share it as a link (the text rides in the URL hash; nothing is stored).",
+    "what": "Write a Composition and Performance in the browser. Play sketches the chords from musicmatter.art recordings (piano from the full chord set only where a chord has no recording). Perform offers Live (you at the dials) and a hosted render that is not built yet. Download composition.md and a plan stub, open a composition.md, share it as a link (the text rides in the URL hash; nothing is stored).",
     "plan_schema": "https://netcomposer.art/create/plan.schema.json",
     "skill": "https://netcomposer.art/create/SKILL.md",
     "skill_text": "https://netcomposer.art/create/SKILL.txt",
@@ -2731,9 +2731,21 @@
       "license": "MIT",
       "install": "pip install git+https://github.com/netcomposer-art/nc-performer"
     },
+    "recordings": {
+      "index": "https://musicmatter.art/netcomposer.json",
+      "audio_base": "https://audio.musicmatter.art/",
+      "key": "instrument + root + quality",
+      "default_instrument": "musicmatter (the only instrument in the published index today; a picker would list each instrument id the index names)",
+      "creator": "Petrus",
+      "license": "CC-BY-SA-4.0",
+      "pitch_shift": false,
+      "time_stretch": false,
+      "fallback": "full chord set piano (https://fullchords.musicmatter.art/), one chord at a time, named on the page"
+    },
     "live": {
       "status": "live",
-      "what": "Play the Composition in a loop and ride two hacks by hand; record the take and a time-coded dial log; upload a dial log to restore and replay the moves.",
+      "where": "Inside Perform on /create/ (#live). Play stays a plain preview.",
+      "what": "A human performs the Composition at the dials: it loops, two hacks ride on the same recordings as Play, Record keeps a WAV and a dial log, and an uploaded dial log restores and replays the moves.",
       "runs": "in the browser (Web Audio); nothing is uploaded",
       "hacks": {
         "lowpass": "biquad lowpass, Q 0.707; cutoff 0..100, 0 = fully open, v -> 20000*(150/20000)^(v/100) Hz",
