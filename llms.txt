@@ -30,7 +30,7 @@ Performance instructions, verbatim: “ambient vibe, no harsh tones, randomly al
 - Take 2: [Cm into Am and F, with a slow C–F–G line (ambient): take 2, open-commons palette](https://netcomposer.art/audio/ambient-cm-perf02.mp3) (FLAC https://netcomposer.art/audio/ambient-cm-perf02.flac), record https://netcomposer.art/records/ambient-cm-perf02.json. 46 sounds from 7 contributors, hacks only, no pitch-shifting, CC BY-SA 4.0.
 - Take 3: [Cm into Am and F, with a slow C–F–G line (ambient): take 3, rolled piano and forest air](https://netcomposer.art/audio/ambient-cm-perf03.mp3) (FLAC https://netcomposer.art/audio/ambient-cm-perf03.flac), record https://netcomposer.art/records/ambient-cm-perf03.json. 46 sounds from 8 contributors, hacks only, no pitch-shifting, CC BY-SA 4.0.
 
-Everything else (the four roles, how they interact, the record, the four BWV 846 performances) is on https://netcomposer.art/how-it-works/.
+The basics in plain words: https://netcomposer.art/how-it-works/ (the idea, the four roles, the flow, the rules, the record, the four BWV 846 performances). The detail is below in this file (roles and how to take part, how they interact, the record and its schema, performances, Suppliers), in https://netcomposer.art/netcomposer.json, on https://netcomposer.art/record/ and in each record.
 
 ## Roles and how to take part
 
