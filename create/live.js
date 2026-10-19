@@ -110,7 +110,7 @@ function schedulePass(my) {
   NC.audition(AC, chords).then(function (clips) {
     if (my !== gen) return;
     if (n === 1) NC.showSources(clips);
-    if (REC && n === 1) { var cr = NC.creditsFor(clips); REC.log.credits = cr.credits; REC.log.license = cr.license; REC.log.sounds = cr.files; }
+    if (REC && n === 1) { var cr = NC.creditsFor(clips); REC.log.credits = cr.credits; REC.log.license = cr.license; REC.log.sounds = cr.files; if (cr.sine.length) REC.log.sine = cr.sine; }
     chords.forEach(function (c, i) {
       var t = start + c.t / speed, d = c.dur / speed, buf = clips[i].buffer;
       if (!buf) c.voicing.forEach(function (m) {
@@ -185,7 +185,7 @@ function record() {
     REC = {T: T, chunks: [], frames: 0, firstT: null, log: {
       nc_live_log_version: LOG_VERSION, kind: 'netcomposer live take (dial log)', started_at: new Date().toISOString(), t_unit: 's, from the first chord of pass 1',
       composition: {title: S.t, composer: S.by, words: {composition: S.c, performance: S.p}, chords: (NC.timeline() || {unique: []}).unique, share_url: NC.shareUrl()},
-      playback: {preview_tempo: PREVIEW_TEMPO, speed: +$('spd').value, bpm: bpm(), quarter_s: +beatS().toFixed(4), strikes_per_chord: 2, pitch_shift: false, time_stretch: false, source: 'musicmatter.art chord recordings (Petrus, CC BY-SA 4.0); piano from the full chord set where that chord has no recording'},
+      playback: {preview_tempo: PREVIEW_TEMPO, speed: +$('spd').value, bpm: bpm(), quarter_s: +beatS().toFixed(4), strikes_per_chord: 2, pitch_shift: false, time_stretch: false, source: 'musicmatter.art chord recordings (Petrus, CC BY-SA 4.0): sounds/ where that chord has a bounce, the full chord set otherwise'},
       graph: 'chord strikes -> low-pass -> (dry + delay with feedback, equal-power wet/dry) -> out',
       hacks: {lowpass: {type: 'biquad lowpass, Q 0.707', cutoff_map: '0 = open; v in 1..100 -> 20000 * (150/20000)^(v/100) Hz'}, delay: {timing_unit: 'quarter note at the preview tempo', feedback_max: 0.9, mix: 'equal-power'}},
       performer: 'human', based_on: follow ? {file: LOG.name, started_at: LOG.log.started_at || null} : null,

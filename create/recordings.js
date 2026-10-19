@@ -2,7 +2,9 @@
 // Lookup key: instrument + root (pitch class) + quality. New instruments show up when the index
 // names them (an instrument field, or sounds/<instrument>/<file>); this file does not list them.
 // No pitch-shift and no time-stretch: a file is used only for its own root and quality.
-// The full chord set (fullchords/) stays the piano fallback and is not an instrument here.
+// sounds/ bounces are preferred. The full chord set (fullchords/) is the other musicmatter
+// library, used for every other symbol and for a written slash bass. A simple tone plays
+// only when neither file can be loaded.
 (function () {
   'use strict';
   var INDEX = 'https://musicmatter.art/netcomposer.json';
@@ -181,26 +183,27 @@
     }
     return m[url];
   }
-  function pianoUrl(cat, path) { return cat.audio_base + path + '.flac'; }
-  function one(ac, chord, pianoCat) {
+  function fullUrl(cat, path) { return cat.audio_base + path + '.flac'; }
+  function one(ac, chord, chordCat) {
     var symbol = chord.symbol;
     return resolve(symbol, chord.bass).then(function (hit) {
-      if (!hit) return piano(ac, chord, pianoCat, 'missing');
+      if (!hit) return fullset(ac, chord, chordCat, null);
       return decode(ac, hit.url).then(function (buffer) {
-        return {buffer: buffer, kind: 'recording', symbol: symbol, bass: chord.bass, url: hit.url, creator: hit.creator, link: hit.link, license: hit.license, instrument: hit.instrument, inversion: hit.inversion};
-      }, function () { return piano(ac, chord, pianoCat, 'failed'); });
-    }, function () { return piano(ac, chord, pianoCat, 'index'); });
+        return {buffer: buffer, kind: 'sounds', library: 'sounds', symbol: symbol, bass: chord.bass, url: hit.url, creator: hit.creator || 'Petrus', link: hit.link || 'https://musicmatter.art/', license: hit.license || 'CC-BY-SA-4.0', instrument: hit.instrument, inversion: hit.inversion};
+      }, function () { return fullset(ac, chord, chordCat, 'failed'); });
+    }, function () { return fullset(ac, chord, chordCat, 'index'); });
   }
-  function piano(ac, chord, pianoCat, why) {
-    var url = pianoUrl(pianoCat, chord.path);
+  function fullset(ac, chord, chordCat, why) {
+    if (!chord.path) return Promise.resolve({buffer: null, kind: 'sine', why: why || 'missing', symbol: chord.symbol, bass: chord.bass});
+    var url = fullUrl(chordCat, chord.path);
     return decode(ac, url).then(function (buffer) {
-      return {buffer: buffer, kind: 'piano', why: why, symbol: chord.symbol, bass: chord.bass, url: url, creator: 'Peter Semmelhack', link: 'https://fullchords.musicmatter.art/', license: 'CC-BY-SA-4.0'};
+      return {buffer: buffer, kind: 'fullchords', library: 'fullchords', why: why, symbol: chord.symbol, bass: chord.bass, url: url, creator: 'Petrus', link: 'https://musicmatter.art/', license: (chordCat && chordCat.license) || 'CC-BY-SA-4.0'};
     }, function () {
-      return {buffer: null, kind: 'sine', why: why, symbol: chord.symbol, bass: chord.bass};
+      return {buffer: null, kind: 'sine', why: why || 'failed', symbol: chord.symbol, bass: chord.bass};
     });
   }
-  function prepare(ac, chords, pianoCat) {
-    return Promise.all(chords.map(function (c) { return one(ac, c, pianoCat); }));
+  function prepare(ac, chords, chordCat) {
+    return Promise.all(chords.map(function (c) { return one(ac, c, chordCat); }));
   }
   function instruments(cat) {
     return Object.keys(cat.instruments).map(function (id) {

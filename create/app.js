@@ -102,39 +102,35 @@ function chordLabel(c) {
   return pc === c.bass ? s : s + '/' + SPELL[c.bass];
 }
 function sourceNote(items) {
-  var piano = [], failed = [], sine = [], index = false, i;
-  for (i = 0; i < items.length; i++) {
-    var it = items[i], name = chordLabel(it);
-    if (it.kind === 'recording') continue;
-    if (it.why === 'index') index = true;
-    else if (it.why === 'failed') failed.push(name);
-    else if (it.kind === 'sine') sine.push(name);
-    else piano.push(name);
-  }
-  function uniq(a) { var o = [], s = {}; a.forEach(function (x) { if (!s[x]) { s[x] = 1; o.push(x); } }); return o; }
-  if (index && !piano.length && !failed.length) return 'musicmatter.art did not answer, so this is the piano.';
-  var parts = [];
-  if (piano.length) parts.push('Piano for ' + uniq(piano).join(', ') + ' — no musicmatter recording of that chord.');
-  if (failed.length) parts.push('Piano for ' + uniq(failed).join(', ') + ' — the recording did not load.');
-  if (sine.length) parts.push('Simple tones for ' + uniq(sine).join(', ') + ' — the piano did not load either.');
-  return parts.join(' ');
+  var names = [], seen = {};
+  items.forEach(function (it) {
+    if (it.kind !== 'sine') return;
+    var name = chordLabel(it);
+    if (seen[name]) return;
+    seen[name] = 1; names.push(name);
+  });
+  return names.length ? 'Simple tones for ' + names.join(', ') + ' — no recording loaded for that chord.' : '';
 }
 function showSources(items) {
-  var el = $('fallback'), note = sourceNote(items);
+  var el = $('sinenote'), note = sourceNote(items);
   el.hidden = !note; el.textContent = note || '';
 }
 function creditsFor(items) {
-  var rec = false, pia = false, files = [], seen = {};
+  var files = [], seen = {}, sine = [], sseen = {};
   items.forEach(function (it) {
-    if (it.kind === 'recording') {
-      rec = true;
-      if (!seen[it.url]) { seen[it.url] = 1; files.push({symbol: chordLabel(it), url: it.url, creator: it.creator || 'Petrus', license: it.license || 'CC-BY-SA-4.0', instrument: it.instrument || 'musicmatter'}); }
-    } else pia = true;
+    if (it.kind === 'sine') {
+      var name = chordLabel(it);
+      if (!sseen[name]) { sseen[name] = 1; sine.push(name); }
+      return;
+    }
+    if (!it.url || seen[it.url]) return;
+    seen[it.url] = 1;
+    var row = {symbol: chordLabel(it), library: it.library, url: it.url, creator: it.creator || 'Petrus', license: it.license || 'CC-BY-SA-4.0'};
+    if (it.instrument) row.instrument = it.instrument;
+    files.push(row);
   });
-  var credits = [];
-  if (rec) credits.push({name: 'Petrus', link: 'https://musicmatter.art/', license: 'CC-BY-SA-4.0', role: 'chord recordings'});
-  if (pia) credits.push({name: 'Peter Semmelhack', link: 'https://fullchords.musicmatter.art/', license: 'CC-BY-SA-4.0', role: 'piano (full chord set), where no recording matches'});
-  return {license: 'CC BY-SA 4.0', credits: credits, files: files};
+  var credits = files.length ? [{name: 'Petrus', link: 'https://musicmatter.art/', license: 'CC-BY-SA-4.0', role: 'chord recordings'}] : [];
+  return {license: 'CC BY-SA 4.0', credits: credits, files: files, sine: sine};
 }
 function sine(v, t0, d, out) {
   v.forEach(function (m) {
@@ -155,8 +151,7 @@ function start(from) {
   window.MM.prepare(AC, chords, CAT).then(function (clips) {
     if (my !== gen) return;
     showSources(clips);
-    var nRec = clips.filter(function (c) { return c.kind === 'recording'; }).length;
-    status(nRec ? 'Playing recordings from musicmatter.art (Petrus, CC BY-SA 4.0). A sketch of the harmony only.' : 'Playing the piano from the full chord set. A sketch of the harmony only.');
+    status('Chords from musicmatter.art (Petrus, CC BY-SA 4.0).');
     go(chords, from, speed, master, function (c, i, t0, d) {
       var clip = clips[i];
       if (!clip.buffer) { sine(c.voicing, t0, d, master); SCHED.push({i: from + i, symbol: c.symbol, strike: 1, at: t0, d: d, src: 'sine'}); return; }

@@ -2719,7 +2719,7 @@
   "create": {
     "status": "live",
     "url": "https://netcomposer.art/create/",
-    "what": "Write a Composition and Performance in the browser. Play sketches the chords from musicmatter.art recordings (piano from the full chord set only where a chord has no recording). Perform offers Live (you at the dials) and a hosted render that is not built yet. Download composition.md and a plan stub, open a composition.md, share it as a link (the text rides in the URL hash; nothing is stored).",
+    "what": "Write a Composition and Performance in the browser. Play sketches the chords from musicmatter.art recordings (sounds/ bounces where the index has that chord, the full chord set for the rest). Perform offers Live (you at the dials) and a hosted render that is not built yet. Download composition.md and a plan stub, open a composition.md, share it as a link (the text rides in the URL hash; nothing is stored).",
     "plan_schema": "https://netcomposer.art/create/plan.schema.json",
     "skill": "https://netcomposer.art/create/SKILL.md",
     "skill_text": "https://netcomposer.art/create/SKILL.txt",
@@ -2740,7 +2740,9 @@
       "license": "CC-BY-SA-4.0",
       "pitch_shift": false,
       "time_stretch": false,
-      "fallback": "full chord set piano (https://fullchords.musicmatter.art/), one chord at a time, named on the page"
+      "sounds": "bounce takes from the index, when that root and quality exist and the chord has no slash bass",
+      "fullchords": "https://fullchords.musicmatter.art/ for every other symbol in the 420, and for a written slash bass",
+      "sine": "only when neither library has the chord, or the file does not load; only that case is named on the page"
     },
     "live": {
       "status": "live",
