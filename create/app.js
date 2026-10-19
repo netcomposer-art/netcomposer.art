@@ -1,5 +1,6 @@
 // NetComposer /create/: write a Composition, hear a sketch, download, share. Static; no server.
 // The Play preview runs at double the Composition's tempo (still two strikes per chord); the rendered Performance keeps its real length.
+// Edit as text, Surprise me, Undo and Play all work in place; the work in progress is kept in the URL hash.
 (function () {
 'use strict';
 var PREVIEW_TEMPO = 2;
@@ -79,14 +80,16 @@ function refresh() {
   el.innerHTML = '';
   tl.chords.forEach(function (c, i) {
     var s = document.createElement('span'); s.className = 'ch'; s.id = 'ch' + i;
-    s.title = c.voicing.map(nn).join(' ') + ' · ' + c.path; s.textContent = c.symbol; el.appendChild(s); el.appendChild(document.createTextNode(' '));
+    s.title = c.voicing.map(nn).join(' ') + ' · ' + c.path; s.textContent = prettySym(c.symbol); el.appendChild(s); el.appendChild(document.createTextNode(' '));
   });
   $('progmeta').textContent = tl.chords.length + ' chords · ' + Math.round(tl.L / PREVIEW_TEMPO) + ' s · ' + (tl.chords[0].dur / PREVIEW_TEMPO).toFixed(1) + ' s each, 2 strikes · voicings from the full chord set';
 }
 
 // ---------- play (WebAudio) ----------
-var AC = null, BUF = {}, playing = [], timers = [];
+// Edits, Undo, Apply and the speed slider restart the preview at the chord it was on, with the new chords.
+var AC = null, BUF = {}, playing = [], timers = [], gen = 0, active = false, cur = 0, restartT = null, SCHED = [];
 function stop() {
+  gen++; active = false; clearTimeout(restartT);
   playing.forEach(function (n) { try { n.stop(); } catch (e) {} }); playing = [];
   timers.forEach(clearTimeout); timers = [];
   document.querySelectorAll('.ch.on').forEach(function (e) { e.classList.remove('on'); });
@@ -106,41 +109,48 @@ function sine(v, t0, d, out) {
     o.connect(g); g.connect(out); o.start(t0); o.stop(t0 + d + 2); playing.push(o);
   });
 }
-function play() {
-  if (playing.length || timers.length) { stop(); return; }
+function toggle() { if (active) stop(); else start(0); }
+function start(from) {
+  stop();
   var tl = timeline(); if (!tl) return;
   AC = AC || new (window.AudioContext || window.webkitAudioContext)(); AC.resume();
-  var speed = +$('spd').value * PREVIEW_TEMPO, chords = tl.chords.slice(0, 64);
+  from = (from || 0) % tl.chords.length;
+  var speed = +$('spd').value * PREVIEW_TEMPO, chords = tl.chords.slice(from, from + 64), my = gen; active = true; SCHED = [];
   $('play').textContent = 'Stop'; status('Loading ' + new Set(chords.map(function (c) { return c.path; })).size + ' recorded chords from fullchords.musicmatter.art…');
   var master = AC.createGain(); master.gain.value = 0.8; master.connect(AC.destination);
   Promise.all(chords.map(function (c) { return load(c.path); })).then(function (bufs) {
+    if (my !== gen) return;
     status('Playing the recorded chords (CC BY-SA 4.0, Peter Semmelhack). A sketch of the harmony only: a Performance is rendered with the kit.');
-    go(chords, speed, master, function (c, i, t0, d) {
+    go(chords, from, speed, master, function (c, i, t0, d) {
       [0, d / 2].forEach(function (off, k) {
         if (off && d < 1) return;
         var s = AC.createBufferSource(), g = AC.createGain(); s.buffer = bufs[i];
         g.gain.setValueAtTime(k ? 0.45 : 0.8, t0 + off); g.gain.setTargetAtTime(0, t0 + Math.min(d + 1.5, off + bufs[i].duration) - 0.8, 0.35);
         s.connect(g); g.connect(master); s.start(t0 + off); playing.push(s);
+        SCHED.push({i: from + i, symbol: c.symbol, path: c.path, strike: k + 1, at: t0 + off, d: d, src: 'recorded'});
       });
     });
   }).catch(function (e) {
+    if (my !== gen) return;
     BUF = {};
     status('Could not load the recorded chords (' + (e && e.message || e) + '). Playing plain sine tones of the same voicings instead.', true);
-    go(chords, speed, master, function (c, i, t0, d) { sine(c.voicing, t0, d, master); });
+    go(chords, from, speed, master, function (c, i, t0, d) { sine(c.voicing, t0, d, master); SCHED.push({i: from + i, symbol: c.symbol, strike: 1, at: t0, d: d, src: 'sine'}); });
   });
 }
-function go(chords, speed, out, fn) {
+function go(chords, from, speed, out, fn) {
   var t0 = AC.currentTime + 0.15, base = chords[0].t;
   chords.forEach(function (c, i) {
     var t = t0 + (c.t - base) / speed, d = c.dur / speed; fn(c, i, t, d);
     timers.push(setTimeout(function () {
+      cur = from + i;
       document.querySelectorAll('.ch.on').forEach(function (e) { e.classList.remove('on'); });
-      var e = $('ch' + i); if (e) e.classList.add('on');
+      var e = $('ch' + (from + i)); if (e) e.classList.add('on');
     }, (t - AC.currentTime) * 1000));
   });
   var last = chords[chords.length - 1];
-  timers.push(setTimeout(function () { timers = []; playing = []; stop(); }, ((last.t - base + last.dur) / speed + 3) * 1000));
+  timers.push(setTimeout(function () { stop(); cur = 0; }, ((last.t - base + last.dur) / speed + 3) * 1000));
 }
+function restartSoon() { if (!active) return; clearTimeout(restartT); var at = cur; restartT = setTimeout(function () { if (active) start(at); }, 700); }
 function status(t, warn) { var s = $('status'); s.textContent = t; s.className = warn ? 'm warn' : 'm'; }
 
 // ---------- composition.md, plan stub ----------
@@ -166,14 +176,15 @@ function toPlan(S) {
   return {nc_plan_version: '0.1', id: slug(S.t), title: S.t + ' (stub performance)',
     composition: {title: S.t, composer: S.by, file: 'composition.md', words_verbatim: {composition: S.c, performance: S.p}},
     interpreter: {kind: 'stub', at: new Date().toISOString(), note: 'Plan stub from netcomposer.art/create/: chord symbols found in the words, each voiced from the full chord set by voice leading, chord strikes plus a time-stretched pad. Edit it, or let an agent or `nc interpret` write a fuller plan.'},
-    seed: 1, length_s: +tl.L.toFixed(3), tail_s: 4, pulse_bpm: 60, pitch_tolerance_cents: 15,
+    seed: (SEED && SEED.c === S.c) ? SEED.seed : 1, length_s: +tl.L.toFixed(3), tail_s: 4, pulse_bpm: 60, pitch_tolerance_cents: 15,
     sections: [{id: 'A', start_s: 0, end_s: +tl.L.toFixed(3), harmony: tl.unique.join(' ')}],
     chords: tl.chords.map(function (c) { return {t: c.t, dur: c.dur, symbol: c.symbol, voicing: c.voicing, section: 'A'}; }),
     sources: sources, banks: {},
     layers: [{id: 'pad', type: 'clips', bus: 'pad', role: 'stretched chord pad', events: pad}, {id: 'keys', type: 'clips', bus: 'keys', role: 'chord strikes', events: keys}],
     master: {buses: {pad: {filters: [{type: 'lp', hz: soft ? 2500 : 6000, order: 2}], lufs: -21, pan: 0.05}, keys: {filters: [{type: 'lp', hz: soft ? 3000 : 8000, order: 2}], lufs: -23, pan: -0.08}},
       reverb: {engine: 'dragonfly', send_lu: soft ? 5.3 : 1.7, params: {decay_s: soft ? 6.2 : 2.8}}, hp_hz: 30, high_shelf: {hz: 9000, db: soft ? -4.4 : -0.9}, loudness: {lufs: -17, tp: -1.5}},
-    notes: ['Stub plan from netcomposer.art/create/: no melody line and no triplets were read from the words; add a "notes" layer by hand or use an interpreter.']};
+    notes: ['Stub plan from netcomposer.art/create/: no melody line and no triplets were read from the words; add a "notes" layer by hand or use an interpreter.'].concat(
+      (SEED && SEED.c === S.c) ? ['Progression from Surprise me: ' + SEED.key + ' ' + SEED.mode + ', seed ' + SEED.seed + ' (also the render seed).'] : [])};
 }
 function download(name, text, type) {
   var a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([text], {type: type}));
@@ -194,44 +205,191 @@ function parseMd(txt) {
     p = p || sec('Prose') || '';
   }
   if (c === null) {
-    var w = sec("Composer's words") || txt, q = w.split('\n').filter(function (l) { return /^\s*>/.test(l); }).map(function (l) { return l.replace(/^\s*>\s?/, '').trim(); }).join(' ');
+    var w = sec("Composer's words") || txt.split('\n').filter(function (l) { return !/^#\s|^\*\*(Composer|Allowed|License)|^\*Written on/.test(l); }).join('\n'), q = w.split('\n').filter(function (l) { return /^\s*>/.test(l); }).map(function (l) { return l.replace(/^\s*>\s?/, '').trim(); }).join(' ');
     w = q || w; var parts = w.split(/\bPerformance\s*[-:\u2013\u2014]/);
     c = parts[0].replace(/^\s*Composition\s*[-:\u2013\u2014]\s*/, '').trim(); p = p || (parts[1] || '').trim();
   }
   return {t: title, by: by, c: c, p: p || ''};
 }
-function fill(S) { $('title').value = S.t || ''; $('by').value = S.by || ''; $('comp').value = S.c || ''; $('perf').value = S.p || ''; stop(); refresh(); }
+function fill(S) { $('title').value = S.t || ''; $('by').value = S.by || ''; $('comp').value = S.c || ''; $('perf').value = S.p || ''; SEED = S.sd ? surpriseInfo(S.sd, S.c) : null; stop(); refresh(); }
 // ---------- share ----------
 function b64e(s) { return btoa(unescape(encodeURIComponent(s))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); }
 function b64d(s) { s = s.replace(/-/g, '+').replace(/_/g, '/'); while (s.length % 4) s += '='; return decodeURIComponent(escape(atob(s))); }
-function shareUrl() { return location.href.split('#')[0] + '#c=' + b64e(JSON.stringify(state())); }
+// The work in progress lives in the page address (#c=…): written as you edit, read on load. No storage, no server.
+function raw() { var S = {t: $('title').value, by: $('by').value, c: $('comp').value, p: $('perf').value}; if (SEED && SEED.c === S.c) S.sd = SEED.seed; return S; }
+var persistT = null;
+function persist() { clearTimeout(persistT); persistT = null; history.replaceState(null, '', location.href.split('#')[0] + '#c=' + b64e(JSON.stringify(raw()))); }
+function persistSoon() { clearTimeout(persistT); persistT = setTimeout(persist, 400); }
+function shareUrl() { persist(); return location.href; }
 function fromHash() {
   var m = /[#&]c=([A-Za-z0-9_-]+)/.exec(location.hash); if (!m) return false;
   try { var S = JSON.parse(b64d(m[1])); fill(S); return true; } catch (e) { status('That share link could not be read.', true); return false; }
 }
+// ---------- undo (Surprise me, a starter, Apply) ----------
+var UNDO = [];
+function pushUndo() {
+  var S = raw(), top = UNDO[UNDO.length - 1];
+  if (!top || JSON.stringify(top) !== JSON.stringify(S)) UNDO.push(S);
+  if (UNDO.length > 30) UNDO.shift(); $('undo').disabled = false;
+}
+function undo() {
+  var S = UNDO.pop(); if (!S) return; var was = active, at = cur;
+  fill(S); persist(); $('undo').disabled = !UNDO.length; status('Back to your previous version.');
+  if (was) start(at);
+}
+// ---------- edit as text (the whole composition.md) ----------
+function fromText(txt) {
+  var S = parseMd(txt), now = raw(), md = /^#{1,2}\s+\S/m.test(txt) || /^\s*>/m.test(txt);
+  if (!/^#\s+\S/m.test(txt)) S.t = now.t;
+  if (!/\*\*Composer[^*]*:\*\*/.test(txt)) S.by = now.by;
+  if (!md && !S.p) S.p = now.p;          // a bare chord list or plain prose: it is the Composition; keep the rest
+  if (S.by === 'anonymous') S.by = '';   // toMd writes these for empty fields
+  if (S.t === 'Untitled') S.t = '';
+  return S;
+}
+function openEditor() {
+  var e = $('mdedit'); e.value = toMd(state()); $('editor').hidden = false; $('edit').setAttribute('aria-expanded', 'true');
+  e.focus(); e.setSelectionRange(0, 0); e.scrollTop = 0;
+}
+function closeEditor() { $('editor').hidden = true; $('edit').setAttribute('aria-expanded', 'false'); $('edit').focus(); }
+function applyEditor() {
+  var S = fromText($('mdedit').value), was = active, at = cur;
+  pushUndo(); fill(S); closeEditor(); persist();
+  status(timeline() ? 'Applied. Undo goes back to the version before.' : 'Applied, but no chord symbols were found. Undo goes back.', !timeline());
+  if (was) start(at);
+}
+// ---------- Surprise me: an 8-chord progression from a small grammar ----------
+// Keys per mode are the tonics whose diatonic chords spell cleanly with the chord set's roots (C Db D Eb E F F# G Ab A Bb B).
+// Tokens are scale degrees: [semitones above the tonic, qualities from the full chord set, most likely first].
+// next[a][b] is the weight of moving from a to b: functional motion (ii-V-I, vi-IV-I-V), deceptive cadences,
+// borrowed chords (iv, bVI, bVII, bIII), secondary dominants and chromatic mediants. Chord 8 must lead back to chord 1.
+var GRAMMAR = {
+  major: {w: 3, keys: [0, 2, 3, 5, 7, 8, 10], tonic: 'I', tok: {
+      I: [0, ['maj7', 'add9', '6-9', 'maj9', '6', '']], ii: [2, ['m7', 'm9', 'm11']], iii: [4, ['m7', 'm9']], IV: [5, ['maj7', 'add9', 'maj9', '6-9', 'maj7#11', '']],
+      V: [7, ['9', '7', '13', '9sus4', '7sus4', '']], vi: [9, ['m7', 'm9', 'm11', '']], iv: [5, ['m6', 'm7', 'm-add9', 'm']], bVI: [8, ['maj7', 'add9', 'maj9']],
+      bVII: [10, ['9', '13', 'add9', '']], bIII: [3, ['maj7', 'add9', '6-9']], I7: [0, ['7', '9']], VI7: [9, ['7', '7b9', '13']], III7: [4, ['7', '7b9', '7#9']], II7: [2, ['9', '7', '13']]},
+    next: {I: {IV: 3, vi: 3, ii: 2, iii: 1, V: 1.5, bVII: 0.8, bVI: 0.7, bIII: 0.5, I7: 0.6, VI7: 0.6, III7: 0.5},
+      ii: {V: 5, bVII: 0.7, iii: 0.4}, iii: {vi: 3, IV: 2, ii: 0.6, VI7: 0.5}, IV: {V: 3, I: 2, ii: 1, iv: 1.5, vi: 0.8, bVII: 1, iii: 0.4},
+      V: {I: 4, vi: 2.5, bVI: 1, IV: 0.6}, vi: {IV: 3, ii: 3, V: 1.5, iii: 0.5, II7: 0.8}, iv: {I: 3, V: 1.2, bVII: 1.5, bVI: 0.7},
+      bVI: {bVII: 3, V: 1, IV: 0.8, I: 1.2}, bVII: {I: 3, IV: 1.5, bVI: 0.5}, bIII: {bVI: 1.5, IV: 1, bVII: 1, ii: 0.5},
+      I7: {IV: 5}, VI7: {ii: 5}, III7: {vi: 5}, II7: {V: 4}},
+    mood: ['Bright and open; let each chord ring into the next.', 'Warm and unhurried, gentle strikes, a little air between chords.', 'Clear morning light. Soft attacks, long tails.']},
+  minor: {w: 2.5, keys: [9, 11, 0, 2, 4, 5, 7], tonic: 'i', tok: {
+      i: [0, ['m9', 'm7', 'm-add9', 'm11', 'm']], ii0: [2, ['m7b5']], bIII: [3, ['maj7', 'add9', '6-9', 'maj9']], iv: [5, ['m9', 'm7', 'm11', 'm']], v: [7, ['m7', 'm9']],
+      V: [7, ['7b9', '7', '7#9', '7b13', '7alt']], bVI: [8, ['maj7', 'add9', 'maj9', 'maj7#11']], bVII: [10, ['', '9', 'add9', '13', '9sus4']], bII: [1, ['maj7']]},
+    next: {i: {iv: 3, bVI: 3, bVII: 2.5, bIII: 1.5, ii0: 1, v: 1, V: 0.8}, ii0: {V: 5}, bIII: {bVI: 2, iv: 2, bVII: 1.5, ii0: 0.5},
+      iv: {bVII: 2.5, V: 2, i: 1.5, bVI: 0.8, v: 1, ii0: 0.5, bII: 0.4}, v: {bVI: 2, iv: 1.5, i: 1.5}, V: {i: 4, bVI: 2},
+      bVI: {bVII: 3, V: 1.5, iv: 1, bIII: 1, i: 1, ii0: 0.7, bII: 0.4}, bVII: {i: 2.5, bIII: 2, bVI: 1, iv: 0.5}, bII: {V: 3, i: 0.5}},
+    mood: ['Dark and patient. Soft attacks, long tails.', 'Night rain. Low and warm, nothing bright.', 'Slow and serious; let the minor ninths breathe.']},
+  dorian: {w: 1.5, keys: [2, 4, 5, 7, 9, 10, 0], tonic: 'i', tok: {
+      i: [0, ['m9', 'm11', 'm7', 'm6-9', 'm6']], ii: [2, ['m7', 'm9', 'm11']], bIII: [3, ['maj7', 'add9', '6-9']], IV: [5, ['9', '13', '7', '']], v: [7, ['m7', 'm9', 'm11']], bVII: [10, ['add9', '6-9', '', 'maj7']]},
+    next: {i: {IV: 4, bVII: 2.5, ii: 1.5, bIII: 1.5, v: 1.2}, IV: {i: 3, bVII: 1.5, v: 1, ii: 0.8}, bVII: {i: 2, IV: 2, bIII: 1, v: 0.6},
+      ii: {bIII: 1.5, i: 1, v: 1, IV: 1}, bIII: {IV: 2, bVII: 1.5, ii: 0.8}, v: {bVII: 1.5, i: 1.5, IV: 1, bIII: 1}},
+    mood: ['Cool and floating, a little night air.', 'Easy groove, soft and round; let the major IV glow.', 'Smoky and slow. Gentle strikes.']},
+  lydian: {w: 1.5, keys: [5, 7, 8, 10, 0, 1, 3], tonic: 'I', tok: {
+      I: [0, ['maj7#11', 'maj9', 'maj7', '6-9', 'maj13', 'add9']], II: [2, ['', 'add9', '6']], iii: [4, ['m7']], V: [7, ['maj7', 'add9', 'maj9', '']], vi: [9, ['m7', 'm9']], vii: [11, ['m7', 'm']], bVI: [8, ['maj7', 'add9']]},
+    next: {I: {II: 4, V: 1.5, vi: 1.5, vii: 1, iii: 1, bVI: 0.5}, II: {I: 3, V: 1, vi: 1, iii: 1.2, vii: 1}, V: {I: 2, II: 1.5, vi: 1.5},
+      vi: {II: 2, V: 1.5, vii: 1, I: 0.8}, iii: {II: 1.5, vi: 1.5, V: 1}, vii: {I: 1.5, vi: 1, II: 1}, bVI: {I: 1.5, V: 0.8}},
+    mood: ['Bright and weightless; let the #11 shimmer.', 'Wide open sky. Slow, clear, a little wonder.', 'Floating, unhurried; let the high notes ring.']},
+  mixolydian: {w: 1.5, keys: [7, 9, 10, 0, 2, 3, 5], tonic: 'I', tok: {
+      I: [0, ['add9', '6-9', '', '13', '9']], ii: [2, ['m7', 'm9']], IV: [5, ['', 'maj7', 'add9', '6-9', '6']], v: [7, ['m7', 'm9', 'm11']], vi: [9, ['m7', 'm9']], bVII: [10, ['', 'add9', '6-9', 'maj7', '6']]},
+    next: {I: {bVII: 4, IV: 2.5, v: 1.5, vi: 0.8, ii: 0.8}, bVII: {IV: 3, I: 2.5, v: 0.8, vi: 0.5}, IV: {I: 3, bVII: 1.5, v: 1.2, ii: 0.5},
+      v: {IV: 2, bVII: 1.5, vi: 1, I: 1}, vi: {IV: 2, v: 1, bVII: 1, ii: 1}, ii: {v: 1.5, IV: 1, bVII: 1}},
+    mood: ['Easy and sunlit, a slow sway.', 'Open road at dusk. Warm, unhurried.', 'Relaxed and bright; let the flat seven hang.']}
+};
+var QW = [5, 4, 3, 2, 1.5, 1];
+var PRETTY = {'6-9': '6/9', 'm6-9': 'm6/9', 'm-add9': 'madd9'};
+function prettySym(x) { var m = /^([A-G][#b]?)(.*)$/.exec(x); return m ? m[1] + (PRETTY[m[2]] || m[2]) : x; }
+function rng(seed) {   // mulberry32
+  var a = seed >>> 0;
+  return function () { a = (a + 0x6D2B79F5) >>> 0; var t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+}
+function wpick(r, items) { var tot = 0, i; for (i = 0; i < items.length; i++) tot += items[i][1]; var x = r() * tot; for (i = 0; i < items.length; i++) { x -= items[i][1]; if (x < 0) return items[i][0]; } return items[items.length - 1][0]; }
+function progression(seed) {
+  var r = rng(seed), modes = Object.keys(GRAMMAR), mode = wpick(r, modes.map(function (m) { return [m, GRAMMAR[m].w]; })), G = GRAMMAR[mode], key = G.keys[Math.floor(r() * G.keys.length)], seq;
+  for (var tries = 0; tries < 500; tries++) {
+    seq = [G.tonic];
+    for (var i = 1; i < 7; i++) {
+      var nx = G.next[seq[i - 1]], opts = [];
+      Object.keys(nx).forEach(function (k) {
+        var w = nx[k], n = seq.filter(function (x) { return x === k; }).length;
+        if (n >= 2) w *= 0.05; if (i === 4 && k === G.tonic) w *= 2.5;
+        if (i >= 3 && k === seq[i - 2] && seq[i - 1] === seq[i - 3]) w *= 0.05;   // no A B A B see-saw   // chord 5 often returns home: two 4-chord phrases
+        opts.push([k, w]);
+      });
+      seq.push(wpick(r, opts));
+    }
+    var last = [], nx7 = G.next[seq[6]];
+    Object.keys(nx7).forEach(function (k) { var back = (G.next[k] || {})[G.tonic] || 0; if (k !== G.tonic && back > 0 && seq.filter(function (x) { return x === k; }).length < 2 && !(k === seq[5] && seq[6] === seq[4])) last.push([k, nx7[k] * back * back]); });
+    if (!last.length) continue;
+    seq.push(wpick(r, last));
+    var most = Math.max.apply(null, seq.map(function (x) { return seq.filter(function (y) { return y === x; }).length; }));
+    if (new Set(seq).size >= 4 && most <= 3) break;
+  }
+  var memo = {}, syms = seq.map(function (tk) {
+    var d = G.tok[tk], q = (memo[tk] && r() < 0.65) ? memo[tk] : wpick(r, d[1].map(function (x, j) { return [x, QW[j] || 1]; }));
+    memo[tk] = memo[tk] || q; return SPELL[(key + d[0]) % 12] + q;
+  });
+  return {seed: seed >>> 0, key: SPELL[key], mode: mode, degrees: seq, chords: syms, pretty: syms.map(prettySym),
+    mood: G.mood[Math.floor(r() * G.mood.length)]};
+}
+// every symbol must read back through the page's own lookup and have a recorded voicing; otherwise try the next seed
+function makeSurprise(seed) {
+  for (var k = 0; k < 50; k++, seed = (seed + 0x9E3779B9) >>> 0) {
+    var P = progression(seed), c = '2 min 8 s. ' + P.pretty.join(', ') + '. Twice through.', f = findChords(c);
+    if (f.length === 8 && f.every(function (x, i) { return x.sym === P.chords[i] && pickVoicing(x.sym, null, x.bass); })) { P.composition = c; return P; }
+  }
+  return null;
+}
+var SEED = null;
+function surpriseInfo(seed, c) { var P = makeSurprise(seed); return P && P.composition === c ? {seed: P.seed, c: c, key: P.key, mode: P.mode} : null; }
+function surprise() {
+  if (!CAT) return;
+  var P = makeSurprise(crypto.getRandomValues(new Uint32Array(1))[0] >>> 0); if (!P) return;
+  pushUndo();
+  fill({t: 'Surprise in ' + P.key + ' ' + P.mode, by: '', c: P.composition, p: P.mood, sd: P.seed});
+  persist(); $('shareurl').hidden = true; start(0);
+  status('Surprise: ' + P.key + ' ' + P.mode + ', ' + P.degrees.join(' ') + ' (seed ' + P.seed + '). Again for another; Undo goes back.');
+}
+
+// ---------- perform (a hosted render drops in here later: performBtn -> render -> #perform-audio + #perform-record) ----------
+var PERFORM = {available: false};
+function performStatus(t, warn) { var s = $('perform-status'); s.textContent = t; s.className = warn ? 'm warn' : 'm'; }
+function showPerformance(audioUrl, recordUrl) { $('perform-audio').src = audioUrl; $('perform-record').href = recordUrl; $('perform-out').hidden = false; }
 
 // ---------- wire up ----------
 var sel = $('starter');
 (function () { var o = document.createElement('option'); o.value = 'blank'; o.textContent = 'Start from scratch (blank page)'; sel.appendChild(o); })();
 STARTERS.forEach(function (s, i) { var o = document.createElement('option'); o.value = i; o.textContent = s.name; sel.appendChild(o); });
 sel.onchange = function () { if (sel.value === '') return;
-  if (sel.value === 'blank') { fill({t: '', by: '', c: '', p: ''}); sel.value = ''; history.replaceState(null, '', location.href.split('#')[0]); $('shareurl').hidden = true; status('Blank page. Write your Composition and how it should be performed; chord symbols you type show up under Play.'); $('title').focus(); return; }
-  var s = STARTERS[+sel.value]; fill({t: s.title, by: s.composer, c: s.composition, p: s.performance}); sel.value = ''; };
-['comp', 'perf'].forEach(function (id) { $(id).addEventListener('input', function () { stop(); refresh(); }); });
-$('play').onclick = play;
-$('spd').oninput = function () { $('spdv').textContent = (+$('spd').value).toFixed(1) + '×'; };
+  pushUndo();
+  if (sel.value === 'blank') { fill({t: '', by: '', c: '', p: ''}); sel.value = ''; persist(); $('shareurl').hidden = true; status('Blank page. Write your Composition and how it should be performed; chord symbols you type show up under Play.'); $('title').focus(); return; }
+  var s = STARTERS[+sel.value]; fill({t: s.title, by: s.composer, c: s.composition, p: s.performance}); sel.value = ''; persist(); };
+['comp', 'perf'].forEach(function (id) { $(id).addEventListener('input', function () { refresh(); persistSoon(); if (!timeline()) stop(); else restartSoon(); }); });
+['title', 'by'].forEach(function (id) { $(id).addEventListener('input', persistSoon); });
+$('play').onclick = toggle;
+$('surprise').onclick = surprise; $('surprise2').onclick = surprise;
+$('undo').onclick = undo;
+$('edit').onclick = function () { if ($('editor').hidden) openEditor(); else closeEditor(); };
+$('apply').onclick = applyEditor; $('cancel').onclick = closeEditor;
+$('mdedit').addEventListener('keydown', function (e) { if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); applyEditor(); } });
+document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !$('editor').hidden) { e.preventDefault(); closeEditor(); } });
+$('spd').oninput = function () { $('spdv').textContent = (+$('spd').value).toFixed(1) + '×'; restartSoon(); };
 $('dlmd').onclick = function () { var S = state(); download(slug(S.t) + '.composition.md', toMd(S), 'text/markdown'); };
 $('dlplan').onclick = function () { var S = state(), p = toPlan(S); if (!p) { status('Write some chord symbols first.', true); return; } download(slug(S.t) + '.plan.json', JSON.stringify(p, null, 1) + '\n', 'application/json'); };
 $('up').onchange = function (e) {
   var f = e.target.files[0]; if (!f) return;
-  f.text().then(function (t) { fill(parseMd(t)); status('Loaded ' + f.name + '.'); });
+  f.text().then(function (t) { pushUndo(); fill(parseMd(t)); persist(); status('Loaded ' + f.name + '. Undo goes back.'); });
 };
 $('share').onclick = function () {
-  var u = shareUrl(); history.replaceState(null, '', u); $('shareurl').value = u; $('shareurl').hidden = false; $('shareurl').select();
+  var u = shareUrl(); $('shareurl').value = u; $('shareurl').hidden = false; $('shareurl').select();
   if (navigator.clipboard) navigator.clipboard.writeText(u).then(function () { status('Link copied. The composition travels in the link itself; nothing is stored anywhere.'); }, function () {});
 };
 window.addEventListener('hashchange', fromHash);
-window.NC = {timeline: timeline, toPlan: toPlan, toMd: toMd, parseMd: parseMd, state: state, fill: fill, findChords: findChords, shareUrl: shareUrl};
+window.addEventListener('pagehide', function () { if (persistT) persist(); });
+window.NC = {timeline: timeline, toPlan: toPlan, toMd: toMd, parseMd: parseMd, state: state, raw: raw, fill: fill, findChords: findChords, pickVoicing: pickVoicing, shareUrl: shareUrl,
+  fromText: fromText, makeSurprise: makeSurprise, progression: progression, start: start, stop: stop, undo: undo, sched: function () { return SCHED.slice(); },
+  catalog: function () { return CAT; }, PREVIEW_TEMPO: PREVIEW_TEMPO, perform: PERFORM, showPerformance: showPerformance, performStatus: performStatus};
 fetch('chords.json').then(function (r) { return r.json(); }).then(function (c) {
   CAT = c; Object.keys(c.chords).forEach(function (k) { QUALS[k.replace(/^[A-G](#|b)?/, '')] = 1; });
   if (!fromHash()) { var s = STARTERS[0]; fill({t: s.title, by: s.composer, c: s.composition, p: s.performance}); }
