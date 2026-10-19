@@ -1,10 +1,9 @@
-// Chord recordings from musicmatter's published index (https://musicmatter.art/netcomposer.json).
-// Lookup key: instrument + root (pitch class) + quality. New instruments show up when the index
-// names them (an instrument field, or sounds/<instrument>/<file>); this file does not list them.
-// No pitch-shift and no time-stretch: a file is used only for its own root and quality.
-// sounds/ bounces are preferred. The full chord set (fullchords/) is the other musicmatter
-// library, used for every other symbol and for a written slash bass. A simple tone plays
-// only when neither file can be loaded.
+// Chord recordings. INDEX is the one config value.
+// Lookup key: instrument + root (pitch class) + quality. The picker lists instrument_name.
+// A chord plays that instrument's default voicing (gesture bounce). If it has none, an alt
+// voicing of the same instrument, then the piano full chord, then a simple tone.
+// A slash bass uses an alt voicing whose bass matches; otherwise the piano full chord.
+// No pitch-shift and no time-stretch.
 (function () {
   'use strict';
   var INDEX = 'https://musicmatter.art/netcomposer.json';
@@ -56,7 +55,10 @@
   function instrumentOf(off, file) {
     var inst = off.instrument || off.instrument_id;
     if (inst && typeof inst === 'object') return {id: String(inst.id || inst.name || 'musicmatter'), name: String(inst.name || inst.id || 'musicmatter')};
-    if (typeof inst === 'string' && inst.trim()) return {id: inst.trim(), name: inst.trim()};
+    if (typeof inst === 'string' && inst.trim()) {
+      var named = typeof off.instrument_name === 'string' && off.instrument_name.trim();
+      return {id: inst.trim(), name: named ? off.instrument_name.trim() : inst.trim()};
+    }
     var parts = String(off.audio || '').split('?')[0].replace(/^https?:\/\/[^/]+\//, '').split('/');
     if (parts[0] === 'sounds' && parts.length >= 3 && !parseFile(parts[1])) return {id: parts[1], name: parts[1]};
     return {id: 'musicmatter', name: 'musicmatter.art'};
@@ -88,15 +90,17 @@
       var bag = instruments[inst.id] || (instruments[inst.id] = {id: inst.id, name: inst.name, groups: {}});
       var key = described.pc + '|' + described.quality;
       var g = bag.groups[key] || (bag.groups[key] = {});
-      (g[described.gesture] = g[described.gesture] || []).push({url: off.audio, manifest: off.manifest || null, gesture: described.gesture, take: described.take});
+      (g[described.gesture] = g[described.gesture] || []).push({url: off.audio, manifest: off.manifest || null, gesture: described.gesture, take: described.take, path: chordPath(off.audio)});
     });
     Object.keys(instruments).forEach(function (id) {
-      var chords = {};
+      var chords = {}, alts = {};
       Object.keys(instruments[id].groups).forEach(function (key) {
-        var byG = instruments[id].groups[key], names = Object.keys(byG).sort(function (a, b) { return rank(a) - rank(b); });
-        chords[key] = byG[names[0]].slice().sort(function (a, b) { return a.take - b.take; });
+        var byG = instruments[id].groups[key], names = Object.keys(byG).filter(function (g) { return g !== 'alt'; }).sort(function (a, b) { return rank(a) - rank(b); });
+        if (names.length) chords[key] = byG[names[0]].slice().sort(function (a, b) { return a.take - b.take; });
+        if (byG.alt) alts[key] = byG.alt.slice().sort(function (a, b) { return a.take - b.take; });
       });
       instruments[id].chords = chords;
+      instruments[id].alts = alts;
       delete instruments[id].groups;
     });
     var ids = Object.keys(instruments);
@@ -141,17 +145,58 @@
         creator: who.name || credit.name, link: who.link || credit.link, license: man.license || credit.license};
     });
   }
-  function resolve(symbol, bass) {
+  function chordPath(url) {
+    var parts = String(url || '').split('?')[0].split('/');
+    var i = parts.indexOf('fullchords');
+    if (i < 0 || parts.length < i + 4) return null;
+    return parts.slice(i + 2).join('/').replace(/\.flac$/i, '');
+  }
+  function bassOf(chordCat, symbol, path) {
+    var rows = chordCat && chordCat.chords && chordCat.chords[symbol];
+    if (!rows || !path) return null;
+    for (var i = 0; i < rows.length; i++) {
+      if (rows[i][0] !== path) continue;
+      var notes = rows[i][1];
+      return notes && notes.length ? Math.min.apply(null, notes) % 12 : null;
+    }
+    return null;
+  }
+  function bestAlt(list) {
+    var roots = list.filter(function (c) { return (c.path || '').indexOf('_root') >= 0 && (c.path || '').indexOf('inv') < 0; });
+    var pool = roots.length ? roots : list;
+    return pool.slice().sort(function (a, b) { return a.take - b.take; })[0];
+  }
+  function stamp(hit, inst, role) {
+    hit.instrument = inst.id; hit.instrumentName = inst.name; hit.role = role;
+    hit.fallback = role === 'alt' ? 'alt' : null;
+    return hit;
+  }
+  function resolve(symbol, bass, instrumentId, opts) {
+    opts = opts || {};
     return loadIndex().then(function (cat) {
       var s = splitSym(symbol);
-      if (!s || !cat.defaultId) return null;
-      if (bass !== null && bass !== undefined && bass !== s.pc) return null;
-      var inst = cat.instruments[cat.defaultId];
-      var list = inst && inst.chords[s.pc + '|' + s.quality];
-      if (!list || !list.length) return null;
-      var ck = cat.defaultId + '|' + s.pc + '|' + s.quality;
-      if (!choice[ck]) choice[ck] = pick(list, cat.credit);
-      return choice[ck].then(function (hit) { hit.instrument = inst.id; hit.instrumentName = inst.name; return hit; });
+      var id = instrumentId && cat.instruments[instrumentId] ? instrumentId : cat.defaultId;
+      if (!s || !id) return null;
+      var inst = cat.instruments[id], key = s.pc + '|' + s.quality, slash = bass !== null && bass !== undefined && bass !== s.pc;
+      var alts = (inst.alts && inst.alts[key]) || [];
+      if (slash || opts.altOnly) {
+        if (slash) {
+          var matched = alts.filter(function (c) { return bassOf(opts.catalog, symbol, c.path) === bass; });
+          if (!matched.length) return null;
+          var exact = opts.path && matched.filter(function (c) { return c.path === opts.path; })[0];
+          return stamp(Object.assign({}, exact || matched[0]), inst, 'slash');
+        }
+        if (!alts.length) return null;
+        return stamp(Object.assign({}, bestAlt(alts)), inst, 'alt');
+      }
+      var list = inst.chords && inst.chords[key];
+      if (list && list.length) {
+        var ck = id + '|' + key;
+        if (!choice[ck]) choice[ck] = pick(list, cat.credit);
+        return choice[ck].then(function (hit) { return stamp(hit, inst, 'bounce'); });
+      }
+      if (!alts.length) return null;
+      return stamp(Object.assign({}, bestAlt(alts)), inst, 'alt');
     });
   }
   function raw(url) {
@@ -184,32 +229,42 @@
     return m[url];
   }
   function fullUrl(cat, path) { return cat.audio_base + path + '.flac'; }
-  function one(ac, chord, chordCat) {
-    var symbol = chord.symbol;
-    return resolve(symbol, chord.bass).then(function (hit) {
-      if (!hit) return fullset(ac, chord, chordCat, null);
-      return decode(ac, hit.url).then(function (buffer) {
-        return {buffer: buffer, kind: 'sounds', library: 'sounds', symbol: symbol, bass: chord.bass, url: hit.url, creator: hit.creator || 'Petrus', link: hit.link || 'https://musicmatter.art/', license: hit.license || 'CC-BY-SA-4.0', instrument: hit.instrument, inversion: hit.inversion};
-      }, function () { return fullset(ac, chord, chordCat, 'failed'); });
+  function clipOf(buffer, chord, hit) {
+    return {buffer: buffer, kind: 'instrument', library: hit.instrumentName || hit.instrument, symbol: chord.symbol, bass: chord.bass, url: hit.url,
+      creator: hit.creator || 'Petrus', link: hit.link || 'https://musicmatter.art/', license: hit.license || 'CC-BY-SA-4.0',
+      instrument: hit.instrument, instrumentName: hit.instrumentName, inversion: hit.inversion || null, fallback: hit.fallback || null};
+  }
+  function one(ac, chord, chordCat, instrumentId) {
+    var opts = {catalog: chordCat, path: chord.path};
+    return resolve(chord.symbol, chord.bass, instrumentId, opts).then(function (hit) {
+      function play(h) { return decode(ac, h.url).then(function (buffer) { return clipOf(buffer, chord, h); }); }
+      if (!hit) return fullset(ac, chord, chordCat, 'missing');
+      return play(hit).catch(function () {
+        if (hit.role !== 'bounce') return fullset(ac, chord, chordCat, 'failed');
+        return resolve(chord.symbol, chord.bass, instrumentId, {catalog: chordCat, path: chord.path, altOnly: true}).then(function (alt) {
+          if (!alt) return fullset(ac, chord, chordCat, 'failed');
+          return play(alt).catch(function () { return fullset(ac, chord, chordCat, 'failed'); });
+        });
+      });
     }, function () { return fullset(ac, chord, chordCat, 'index'); });
   }
   function fullset(ac, chord, chordCat, why) {
-    if (!chord.path) return Promise.resolve({buffer: null, kind: 'sine', why: why || 'missing', symbol: chord.symbol, bass: chord.bass});
+    if (!chord.path) return Promise.resolve({buffer: null, kind: 'sine', fallback: 'sine', why: why || 'missing', symbol: chord.symbol, bass: chord.bass});
     var url = fullUrl(chordCat, chord.path);
     return decode(ac, url).then(function (buffer) {
-      return {buffer: buffer, kind: 'fullchords', library: 'fullchords', why: why, symbol: chord.symbol, bass: chord.bass, url: url, creator: 'Petrus', link: 'https://musicmatter.art/', license: (chordCat && chordCat.license) || 'CC-BY-SA-4.0'};
+      return {buffer: buffer, kind: 'piano', library: 'piano', fallback: 'piano', why: why, symbol: chord.symbol, bass: chord.bass, url: url, creator: 'Petrus', link: 'https://musicmatter.art/', license: (chordCat && chordCat.license) || 'CC-BY-SA-4.0', instrumentName: 'piano'};
     }, function () {
-      return {buffer: null, kind: 'sine', why: why || 'failed', symbol: chord.symbol, bass: chord.bass};
+      return {buffer: null, kind: 'sine', fallback: 'sine', why: why || 'failed', symbol: chord.symbol, bass: chord.bass};
     });
   }
-  function prepare(ac, chords, chordCat) {
-    return Promise.all(chords.map(function (c) { return one(ac, c, chordCat); }));
+  function prepare(ac, chords, chordCat, instrumentId) {
+    return Promise.all(chords.map(function (c) { return one(ac, c, chordCat, instrumentId); }));
   }
   function instruments(cat) {
     return Object.keys(cat.instruments).map(function (id) {
       var inst = cat.instruments[id];
       return {id: id, name: inst.name, chords: Object.keys(inst.chords).length, default: id === cat.defaultId};
-    });
+    }).sort(function (a, b) { return (b.default ? 1 : 0) - (a.default ? 1 : 0); });
   }
   window.MM = {loadIndex: loadIndex, ingest: ingest, parseFile: parseFile, splitSym: splitSym, resolve: resolve, prepare: prepare, instruments: instruments, indexUrl: INDEX};
 })();

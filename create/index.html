@@ -17,7 +17,7 @@ label{display:block;font-size:.8rem;letter-spacing:.08em;text-transform:uppercas
 input[type=text],textarea,select{width:100%;font:inherit;font-size:16px;color:#000;background:#fff;border:1px solid #000;border-radius:0;padding:.55rem .6rem}
 textarea{min-height:7.5rem;resize:vertical;line-height:1.5;background:#fafafa;cursor:text}textarea:hover{background:#fff}
 input[type=text]:focus,textarea:focus,select:focus{outline:2px solid #000;outline-offset:2px;background:#fff}
-select{appearance:none;-webkit-appearance:none;background:#fff}
+select{appearance:none;-webkit-appearance:none;background:#fff}#inst{width:auto;min-width:9rem;max-width:16rem;padding:.4rem .5rem;font-size:.95rem}
 button,.btn{font:inherit;font-size:.95rem;color:#000;background:#fff;border:1px solid #000;border-radius:0;padding:.5rem .9rem;margin:.3rem .4rem .3rem 0;cursor:pointer}
 button:disabled{color:#999;border-color:#999;cursor:default}#play{background:#000;color:#fff;min-width:6.5rem}#play:disabled{background:#999;border-color:#999}
 .row{display:flex;flex-wrap:wrap;align-items:center;gap:.2rem .6rem}.two{display:grid;grid-template-columns:1fr;gap:0 1rem}
@@ -71,7 +71,9 @@ footer{max-width:46rem;margin:0 auto;padding:0 1.2rem 4rem;font-size:.85rem;colo
 <div id="prog" aria-live="polite">Loading the chord set…</div>
 <p class="m" id="progmeta"></p>
 <div class="row"><button id="play" type="button" disabled>Play</button><button id="surprise2" type="button">Surprise me</button>
+<span class="m">instrument <select id="inst" aria-label="Instrument"></select></span>
 <span class="m">speed <input id="spd" type="range" min="1" max="4" step="0.5" value="1" aria-label="speed"> <span id="spdv">1.0×</span></span></div>
+<p class="m" id="instnote">Three recordings of the same chords. A missing take falls to the piano, then a simple tone.</p>
 <p class="m" id="status">Chords from <a href="https://musicmatter.art/">musicmatter.art</a> (Petrus, <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a>).</p>
 <p class="m" id="sinenote" hidden></p>
 <div class="row"><button id="share" type="button">Copy link</button></div>

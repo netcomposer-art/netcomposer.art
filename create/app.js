@@ -101,15 +101,37 @@ function chordLabel(c) {
   var pc = {c: 0, 'c#': 1, db: 1, d: 2, 'd#': 3, eb: 3, e: 4, f: 5, 'f#': 6, gb: 6, g: 7, 'g#': 8, ab: 8, a: 9, 'a#': 10, bb: 10, b: 11}[m[1].toLowerCase()];
   return pc === c.bass ? s : s + '/' + SPELL[c.bass];
 }
-function sourceNote(items) {
-  var names = [], seen = {};
-  items.forEach(function (it) {
-    if (it.kind !== 'sine') return;
-    var name = chordLabel(it);
-    if (seen[name]) return;
-    seen[name] = 1; names.push(name);
+function listed(names) { return names.length <= 4 ? names.join(', ') : names.slice(0, 3).join(', ') + ', and ' + (names.length - 3) + ' more'; }
+function creditLineFor(name) {
+  return /musicmatter\.art/i.test(name || '') ? 'musicmatter.art (Petrus, CC BY-SA 4.0).' : name + ' from musicmatter.art (Petrus, CC BY-SA 4.0).';
+}
+function instrumentName() {
+  var e = $('inst');
+  if (!e || !e.options.length || e.selectedIndex < 0) return 'musicmatter.art';
+  return e.options[e.selectedIndex].textContent;
+}
+function creditLine() { return creditLineFor(instrumentName()); }
+function fillInstruments(list) {
+  var sel = $('inst'), prev = sel.value; sel.innerHTML = '';
+  list.forEach(function (inst) {
+    var o = document.createElement('option'); o.value = inst.id; o.textContent = inst.name;
+    if ((prev && inst.id === prev) || (!prev && inst.default)) o.selected = true;
+    sel.appendChild(o);
   });
-  return names.length ? 'Simple tones for ' + names.join(', ') + ' — no recording loaded for that chord.' : '';
+  status(creditLine());
+}
+function sourceNote(items) {
+  var alt = [], piano = [], sine = [], seen = {};
+  items.forEach(function (it) {
+    var name = chordLabel(it), slot = it.fallback === 'alt' ? alt : it.fallback === 'piano' || it.kind === 'piano' ? piano : it.kind === 'sine' || it.fallback === 'sine' ? sine : null;
+    if (!slot || seen[slot === alt ? 'a' + name : slot === piano ? 'p' + name : 's' + name]) return;
+    seen[slot === alt ? 'a' + name : slot === piano ? 'p' + name : 's' + name] = 1; slot.push(name);
+  });
+  var bits = [];
+  if (alt.length) bits.push('Alternate voicing for ' + listed(alt) + '.');
+  if (piano.length) bits.push('Piano for ' + listed(piano) + '.');
+  if (sine.length) bits.push('Simple tone for ' + listed(sine) + ' — no recording loaded.');
+  return bits.join(' ');
 }
 function showSources(items) {
   var el = $('sinenote'), note = sourceNote(items);
@@ -125,11 +147,14 @@ function creditsFor(items) {
     }
     if (!it.url || seen[it.url]) return;
     seen[it.url] = 1;
-    var row = {symbol: chordLabel(it), library: it.library, url: it.url, creator: it.creator || 'Petrus', license: it.license || 'CC-BY-SA-4.0'};
-    if (it.instrument) row.instrument = it.instrument;
+    var row = {symbol: chordLabel(it), library: it.instrumentName || it.library, url: it.url, creator: it.creator || 'Petrus', license: it.license || 'CC-BY-SA-4.0'};
+    if (it.instrumentName || it.instrument) row.instrument = it.instrumentName || it.instrument;
     files.push(row);
   });
-  var credits = files.length ? [{name: 'Petrus', link: 'https://musicmatter.art/', license: 'CC-BY-SA-4.0', role: 'chord recordings'}] : [];
+  var heard = {}, who = [];
+  files.forEach(function (f) { var n = f.instrument && f.instrument !== 'piano' ? f.instrument : null; if (n && !heard[n]) { heard[n] = 1; who.push(n); } });
+  if (files.some(function (f) { return f.instrument === 'piano'; })) who.push('Piano');
+  var credits = files.length ? [{name: 'Petrus', link: 'https://musicmatter.art/', license: 'CC-BY-SA-4.0', role: 'chord recordings', line: who.map(creditLineFor).join(' ')}] : [];
   return {license: 'CC BY-SA 4.0', credits: credits, files: files, sine: sine};
 }
 function sine(v, t0, d, out) {
@@ -146,12 +171,12 @@ function start(from) {
   AC = AC || new (window.AudioContext || window.webkitAudioContext)(); AC.resume();
   from = (from || 0) % tl.chords.length;
   var speed = +$('spd').value * PREVIEW_TEMPO, chords = tl.chords.slice(from, from + 64), my = gen; active = true; SCHED = [];
-  $('play').textContent = 'Stop'; status('Loading chord recordings…');
+  $('play').textContent = 'Stop'; $('sinenote').hidden = true; status('Loading chord recordings…');
   var master = AC.createGain(); master.gain.value = 0.8; master.connect(AC.destination);
-  window.MM.prepare(AC, chords, CAT).then(function (clips) {
+  window.MM.prepare(AC, chords, CAT, $('inst').value || null).then(function (clips) {
     if (my !== gen) return;
     showSources(clips);
-    status('Chords from musicmatter.art (Petrus, CC BY-SA 4.0).');
+    status(creditLine());
     go(chords, from, speed, master, function (c, i, t0, d) {
       var clip = clips[i];
       if (!clip.buffer) { sine(c.voicing, t0, d, master); SCHED.push({i: from + i, symbol: c.symbol, strike: 1, at: t0, d: d, src: 'sine'}); return; }
@@ -407,6 +432,11 @@ $('apply').onclick = applyEditor; $('cancel').onclick = closeEditor;
 $('mdedit').addEventListener('keydown', function (e) { if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); applyEditor(); } });
 document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !$('editor').hidden) { e.preventDefault(); closeEditor(); } });
 $('spd').oninput = function () { $('spdv').textContent = (+$('spd').value).toFixed(1) + '×'; restartSoon(); };
+$('inst').addEventListener('change', function () { $('sinenote').hidden = true; status(creditLine()); if (active) restartSoon(); });
+window.MM.loadIndex().then(function (cat) { fillInstruments(window.MM.instruments(cat)); }).catch(function () {
+  $('inst').disabled = true;
+  $('instnote').textContent = 'The instrument list did not load. Play uses the piano.';
+});
 $('dlmd').onclick = function () { var S = state(); download(slug(S.t) + '.composition.md', toMd(S), 'text/markdown'); };
 $('dlplan').onclick = function () { var S = state(), p = toPlan(S); if (!p) { status('Write some chord symbols first.', true); return; } download(slug(S.t) + '.plan.json', JSON.stringify(p, null, 1) + '\n', 'application/json'); };
 $('up').onchange = function (e) {
@@ -421,7 +451,7 @@ window.addEventListener('hashchange', fromHash);
 window.addEventListener('pagehide', function () { if (persistT) persist(); });
 window.NC = {timeline: timeline, toPlan: toPlan, toMd: toMd, parseMd: parseMd, state: state, raw: raw, fill: fill, findChords: findChords, pickVoicing: pickVoicing, shareUrl: shareUrl,
   fromText: fromText, makeSurprise: makeSurprise, progression: progression, start: start, stop: stop, undo: undo, sched: function () { return SCHED.slice(); },
-  catalog: function () { return CAT; }, audition: function (ac, chords) { return window.MM.prepare(ac, chords, CAT); }, showSources: showSources, creditsFor: creditsFor, chordLabel: chordLabel,
+  catalog: function () { return CAT; }, audition: function (ac, chords) { return window.MM.prepare(ac, chords, CAT, $('inst').value || null); }, showSources: showSources, creditsFor: creditsFor, chordLabel: chordLabel,
   PREVIEW_TEMPO: PREVIEW_TEMPO, perform: PERFORM, showPerformance: showPerformance, performStatus: performStatus, pushUndo: pushUndo, persist: persist};
 fetch('chords.json').then(function (r) { return r.json(); }).then(function (c) {
   CAT = c; Object.keys(c.chords).forEach(function (k) { QUALS[k.replace(/^[A-G](#|b)?/, '')] = 1; });
