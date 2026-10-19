@@ -17,7 +17,7 @@ label{display:block;font-size:.8rem;letter-spacing:.08em;text-transform:uppercas
 input[type=text],textarea,select{width:100%;font:inherit;font-size:16px;color:#000;background:#fff;border:1px solid #000;border-radius:0;padding:.55rem .6rem}
 textarea{min-height:7.5rem;resize:vertical;line-height:1.5;background:#fafafa;cursor:text}textarea:hover{background:#fff}
 input[type=text]:focus,textarea:focus,select:focus{outline:2px solid #000;outline-offset:2px;background:#fff}
-select{appearance:none;-webkit-appearance:none;background:#fff}
+select{appearance:none;-webkit-appearance:none;background:#fff}#inst{width:auto;min-width:8.5rem;max-width:100%;padding:.45rem .6rem}label.inlbl{display:inline;margin:0;font-size:.85rem;letter-spacing:normal;text-transform:none;color:#555}
 button,.btn{font:inherit;font-size:.95rem;color:#000;background:#fff;border:1px solid #000;border-radius:0;padding:.5rem .9rem;margin:.3rem .4rem .3rem 0;cursor:pointer}
 button:disabled{color:#999;border-color:#999;cursor:default}button:focus-visible,.btn:focus-visible,summary:focus-visible{outline:2px solid #000;outline-offset:2px}#play{background:#000;color:#fff;min-width:6.5rem}#play:disabled{background:#999;border-color:#999}
 .row{display:flex;flex-wrap:wrap;align-items:center;gap:.2rem .6rem}.two{display:grid;grid-template-columns:1fr;gap:0 1rem}
@@ -45,7 +45,7 @@ footer{max-width:46rem;margin:0 auto;padding:0 1.2rem 4rem;font-size:.85rem;colo
 .toggle input{width:1.15rem;height:1.15rem;accent-color:#000}#ltake audio{width:100%;margin:.4rem 0 .1rem}
 .vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}#live label.btn{display:inline-block;font-size:.95rem;text-transform:none;letter-spacing:normal;color:#000;margin:.3rem .4rem .3rem 0}#live .vh:focus-visible+label.btn{outline:2px solid #000;outline-offset:2px}
 #llog,#lconflict{border-left:2px solid #000;padding:.1rem 0 .2rem .8rem;margin:.8rem 0}#lconflict p{margin:.2rem 0 .3rem}
-@media(max-width:520px){.dial{grid-template-columns:1fr 4.8rem}.dial label{grid-column:1/-1}#perf{min-height:11rem}#perform-record-view .rec-row{grid-template-columns:minmax(0,1fr)}}</style>
+@media(max-width:520px){.dial{grid-template-columns:1fr 4.8rem}.dial label{grid-column:1/-1}#perf{min-height:11rem}#perform-record-view .rec-row{grid-template-columns:minmax(0,1fr)}#inst{min-height:2.75rem;flex:1 1 9rem}}</style>
 </head>
 <body>
 <main>
@@ -69,8 +69,10 @@ footer{max-width:46rem;margin:0 auto;padding:0 1.2rem 4rem;font-size:.85rem;colo
 <h2 id="play-h">Play</h2>
 <div id="prog" aria-live="polite">Loading the chord set…</div>
 <p class="m" id="progmeta"></p>
-<div class="row"><button id="play" type="button" disabled>Play</button><button id="surprise2" type="button">Surprise me</button>
+<div class="row" id="playrow"><button id="play" type="button" disabled>Play</button><button id="surprise2" type="button">Surprise me</button>
+<label class="inlbl" for="inst">Instrument</label><select id="inst" aria-label="Instrument"></select>
 <span class="m">speed <input id="spd" type="range" min="1" max="4" step="0.5" value="1" aria-label="speed"> <span id="spdv">1.0×</span></span></div>
+<p class="m" id="instnote">A missing chord plays another voicing of this instrument, then piano, then a simple tone.</p>
 <p class="m" id="status">Chords from <a href="https://musicmatter.art/">musicmatter.art</a> (Petrus, <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a>).</p>
 <p class="m" id="sinenote" hidden></p>
 <div class="row"><button id="share" type="button">Copy link</button></div>

@@ -2742,14 +2742,19 @@
       "index": "https://musicmatter.art/netcomposer.json",
       "audio_base": "https://audio.musicmatter.art/",
       "key": "instrument + root + quality",
-      "default_instrument": "musicmatter (the only instrument in the published index today; a picker would list each instrument id the index names)",
+      "default_instrument": "piano",
+      "instruments": [
+        {"id": "piano", "name": "Piano", "collection": "full-chord-set-v4"},
+        {"id": "syntharp", "name": "Synth Arp", "collection": "full-chord-set-v4-syntharp"},
+        {"id": "jacobschoir", "name": "Choir", "collection": "full-chord-set-v4-jacobschoir"},
+        {"id": "fatsynth", "name": "Fat Synth", "collection": "full-chord-set-v4-fatsynth"}
+      ],
       "creator": "Petrus",
       "license": "CC-BY-SA-4.0",
       "pitch_shift": false,
       "time_stretch": false,
-      "sounds": "bounce takes from the index, when that root and quality exist and the chord has no slash bass",
-      "fullchords": "https://fullchords.musicmatter.art/ for every other symbol in the 420, and for a written slash bass",
-      "sine": "only when neither library has the chord, or the file does not load; only that case is named on the page"
+      "playback": "the chosen instrument's default voicing from audio.musicmatter.art; a missing chord uses an alt voicing of that instrument, then piano, then a simple tone",
+      "sine": "only when the instrument, its other voicings, and piano do not load; the page names the fallback"
     },
     "live": {
       "status": "preview",
