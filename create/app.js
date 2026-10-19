@@ -101,15 +101,54 @@ function chordLabel(c) {
   var pc = {c: 0, 'c#': 1, db: 1, d: 2, 'd#': 3, eb: 3, e: 4, f: 5, 'f#': 6, gb: 6, g: 7, 'g#': 8, ab: 8, a: 9, 'a#': 10, bb: 10, b: 11}[m[1].toLowerCase()];
   return pc === c.bass ? s : s + '/' + SPELL[c.bass];
 }
-function sourceNote(items) {
-  var names = [], seen = {};
-  items.forEach(function (it) {
-    if (it.kind !== 'sine') return;
-    var name = chordLabel(it);
-    if (seen[name]) return;
-    seen[name] = 1; names.push(name);
+function listed(names) { return names.length <= 4 ? names.join(', ') : names.slice(0, 3).join(', ') + ', and ' + (names.length - 3) + ' more'; }
+function instrumentName() {
+  var e = $('inst');
+  if (!e || e.selectedIndex < 0 || !e.options.length) return 'Piano';
+  return e.options[e.selectedIndex].textContent;
+}
+function creditSentence() {
+  return instrumentName() + ' from musicmatter.art (Petrus, CC BY-SA 4.0).';
+}
+function showCredit() {
+  var s = $('status'), name = instrumentName();
+  s.className = 'm';
+  s.textContent = '';
+  s.appendChild(document.createTextNode(name + ' from '));
+  var home = document.createElement('a'); home.href = 'https://musicmatter.art/'; home.textContent = 'musicmatter.art';
+  s.appendChild(home);
+  s.appendChild(document.createTextNode(' (Petrus, '));
+  var lic = document.createElement('a'); lic.href = 'https://creativecommons.org/licenses/by-sa/4.0/'; lic.textContent = 'CC BY-SA 4.0';
+  s.appendChild(lic);
+  s.appendChild(document.createTextNode(').'));
+}
+function fillInstruments(list) {
+  var sel = $('inst'), prev = sel.value;
+  sel.innerHTML = '';
+  list.forEach(function (inst) {
+    var o = document.createElement('option');
+    o.value = inst.id;
+    o.textContent = inst.name;
+    if ((prev && inst.id === prev) || (!prev && inst.default)) o.selected = true;
+    sel.appendChild(o);
   });
-  return names.length ? 'Simple tones for ' + names.join(', ') + ' — no recording loaded for that chord.' : '';
+  showCredit();
+}
+function sourceNote(items) {
+  var alt = [], piano = [], sine = [], seen = {};
+  items.forEach(function (it) {
+    var name = chordLabel(it);
+    var slot = it.fallback === 'alt' ? alt : (it.fallback === 'piano' ? piano : (it.kind === 'sine' || it.fallback === 'sine' ? sine : null));
+    var key = (slot === alt ? 'a' : slot === piano ? 'p' : 's') + name;
+    if (!slot || seen[key]) return;
+    seen[key] = 1;
+    slot.push(name);
+  });
+  var bits = [];
+  if (alt.length) bits.push('Another voicing for ' + listed(alt) + '.');
+  if (piano.length) bits.push('Piano for ' + listed(piano) + '.');
+  if (sine.length) bits.push('Simple tone for ' + listed(sine) + '.');
+  return bits.join(' ');
 }
 function showSources(items) {
   var el = $('sinenote'), note = sourceNote(items);
@@ -125,11 +164,13 @@ function creditsFor(items) {
     }
     if (!it.url || seen[it.url]) return;
     seen[it.url] = 1;
-    var row = {symbol: chordLabel(it), library: it.library, url: it.url, creator: it.creator || 'Petrus', license: it.license || 'CC-BY-SA-4.0'};
-    if (it.instrument) row.instrument = it.instrument;
+    var row = {symbol: chordLabel(it), library: it.instrumentName || it.library, url: it.url, creator: it.creator || 'Petrus', license: it.license || 'CC-BY-SA-4.0'};
+    if (it.instrumentName || it.instrument) row.instrument = it.instrumentName || it.instrument;
     files.push(row);
   });
-  var credits = files.length ? [{name: 'Petrus', link: 'https://musicmatter.art/', license: 'CC-BY-SA-4.0', role: 'chord recordings'}] : [];
+  var heard = {}, who = [];
+  files.forEach(function (f) { if (f.instrument && !heard[f.instrument]) { heard[f.instrument] = 1; who.push(f.instrument + ' from musicmatter.art (Petrus, CC BY-SA 4.0).'); } });
+  var credits = files.length ? [{name: 'Petrus', link: 'https://musicmatter.art/', license: 'CC-BY-SA-4.0', role: 'chord recordings', line: who.join(' ')}] : [];
   return {license: 'CC BY-SA 4.0', credits: credits, files: files, sine: sine};
 }
 function sine(v, t0, d, out) {
@@ -146,12 +187,12 @@ function start(from) {
   AC = AC || new (window.AudioContext || window.webkitAudioContext)(); AC.resume();
   from = (from || 0) % tl.chords.length;
   var speed = +$('spd').value * PREVIEW_TEMPO, chords = tl.chords.slice(from, from + 64), my = gen; active = true; SCHED = [];
-  $('play').textContent = 'Stop'; status('Loading chord recordings…');
+  $('play').textContent = 'Stop'; $('sinenote').hidden = true; status('Loading chord recordings…');
   var master = AC.createGain(); master.gain.value = 0.8; master.connect(AC.destination);
-  window.MM.prepare(AC, chords, CAT).then(function (clips) {
+  window.MM.prepare(AC, chords, CAT, $('inst').value || 'piano').then(function (clips) {
     if (my !== gen) return;
     showSources(clips);
-    status('Chords from musicmatter.art (Petrus, CC BY-SA 4.0).');
+    showCredit();
     go(chords, from, speed, master, function (c, i, t0, d) {
       var clip = clips[i];
       if (!clip.buffer) { sine(c.voicing, t0, d, master); SCHED.push({i: from + i, symbol: c.symbol, strike: 1, at: t0, d: d, src: 'sine'}); return; }
@@ -193,7 +234,8 @@ function toMd(S) {
     '**Allowed transforms:** trim, gain, fade, filter, reverb, delay, time_stretch (no pitch-shift)\n\n' +
     '## Composition\n\n' + S.c + '\n\n## Performance\n\n' + S.p + '\n\n## Material rules\n\n' +
     '- Inputs: CC0, CC BY, CC BY-SA or public domain only.\n- No pitch-shifting. Time-stretch is fine.\n- Output license: CC BY-SA 4.0.\n\n' +
-    '## Credits\n\n- **Composition:** ' + S.by + ' (' + d + '). CC BY-SA 4.0.\n\n*Written on https://netcomposer.art/create/*\n';
+    '## Credits\n\n- **Composition:** ' + S.by + ' (' + d + '). CC BY-SA 4.0.\n' +
+    '- **Chord recordings:** ' + creditSentence() + '\n\n*Written on https://netcomposer.art/create/*\n';
 }
 function toPlan(S) {
   var tl = timeline(); if (!tl) return null;
@@ -215,7 +257,8 @@ function toPlan(S) {
     layers: [{id: 'pad', type: 'clips', bus: 'pad', role: 'stretched chord pad', events: pad}, {id: 'keys', type: 'clips', bus: 'keys', role: 'chord strikes', events: keys}],
     master: {buses: {pad: {filters: [{type: 'lp', hz: soft ? 2500 : 6000, order: 2}], lufs: -21, pan: 0.05}, keys: {filters: [{type: 'lp', hz: soft ? 3000 : 8000, order: 2}], lufs: -23, pan: -0.08}},
       reverb: {engine: 'dragonfly', send_lu: soft ? 5.3 : 1.7, params: {decay_s: soft ? 6.2 : 2.8}}, hp_hz: 30, high_shelf: {hz: 9000, db: soft ? -4.4 : -0.9}, loudness: {lufs: -17, tp: -1.5}},
-    notes: ['Stub plan from netcomposer.art/create/: no melody line and no triplets were read from the words; add a "notes" layer by hand or use an interpreter.'].concat(
+    notes: ['Stub plan from netcomposer.art/create/: no melody line and no triplets were read from the words; add a "notes" layer by hand or use an interpreter.',
+      'Play instrument: ' + creditSentence()].concat(
       (SEED && SEED.c === S.c) ? ['Progression from Surprise me: ' + SEED.key + ' ' + SEED.mode + ', seed ' + SEED.seed + ' (also the render seed).'] : [])};
 }
 function download(name, text, type) {
@@ -480,6 +523,11 @@ $('perf').addEventListener('keydown', function (e) {
   else if (e.key === 'Escape' && $('perf').value !== notesSaved) { e.preventDefault(); cancelNotes(); }
 });
 $('spd').oninput = function () { $('spdv').textContent = (+$('spd').value).toFixed(1) + '×'; restartSoon(); };
+$('inst').addEventListener('change', function () { $('sinenote').hidden = true; showCredit(); if (active) restartSoon(); });
+window.MM.loadIndex().then(function (cat) { fillInstruments(window.MM.instruments(cat)); }).catch(function () {
+  $('inst').disabled = true;
+  $('instnote').textContent = 'The instrument list did not load. Play uses piano when the file is there, then a simple tone.';
+});
 $('dlmd').onclick = function () { var S = state(); download(slug(S.t) + '.composition.md', toMd(S), 'text/markdown'); };
 $('dlplan').onclick = function () { var S = state(), p = toPlan(S); if (!p) { status('Write some chord symbols first.', true); return; } download(slug(S.t) + '.plan.json', JSON.stringify(p, null, 1) + '\n', 'application/json'); };
 $('up').onchange = function (e) {
@@ -495,7 +543,7 @@ window.addEventListener('hashchange', fromHash);
 window.addEventListener('pagehide', function () { if (persistT) persist(); });
 window.NC = {timeline: timeline, toPlan: toPlan, toMd: toMd, parseMd: parseMd, state: state, raw: raw, fill: fill, findChords: findChords, pickVoicing: pickVoicing, shareUrl: shareUrl,
   fromText: fromText, makeSurprise: makeSurprise, progression: progression, start: start, stop: stop, undo: undo, sched: function () { return SCHED.slice(); },
-  catalog: function () { return CAT; }, audition: function (ac, chords) { return window.MM.prepare(ac, chords, CAT); }, showSources: showSources, creditsFor: creditsFor, chordLabel: chordLabel,
+  catalog: function () { return CAT; }, audition: function (ac, chords) { return window.MM.prepare(ac, chords, CAT, $('inst').value || 'piano'); }, showSources: showSources, creditsFor: creditsFor, chordLabel: chordLabel, instrument: function () { return $('inst').value || 'piano'; }, creditSentence: creditSentence,
   PREVIEW_TEMPO: PREVIEW_TEMPO, perform: PERFORM, showPerformance: showPerformance, performStatus: performStatus, pushUndo: pushUndo, persist: persist, commitNotes: commitNotes, growNotes: growNotes};
 fetch('chords.json').then(function (r) { return r.json(); }).then(function (c) {
   CAT = c; Object.keys(c.chords).forEach(function (k) { QUALS[k.replace(/^[A-G](#|b)?/, '')] = 1; });
