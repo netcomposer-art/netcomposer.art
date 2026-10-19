@@ -64,7 +64,7 @@ function timeline() {
   var reps = (B && B.n === n) ? 1 : Math.max(1, Math.round(L / (n * 9))), seq = [];
   for (var r = 0; r < reps; r++) seq = seq.concat(found);
   var dur = L / seq.length, prev = null, out = [];
-  seq.forEach(function (c, i) { var v = pickVoicing(c.sym, prev, c.bass); prev = v[1]; out.push({t: +(i * dur).toFixed(3), dur: +dur.toFixed(3), symbol: c.sym, path: v[0], voicing: v[1]}); });
+  seq.forEach(function (c, i) { var v = pickVoicing(c.sym, prev, c.bass); prev = v[1]; out.push({t: +(i * dur).toFixed(3), dur: +dur.toFixed(3), symbol: c.sym, bass: c.bass, path: v[0], voicing: v[1]}); });
   return {L: L, chords: out, unique: found.map(function (c) { return c.sym; })};
 }
 var NAMES = ['C', 'C#', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab', 'A', 'Bb', 'B'];
@@ -82,12 +82,12 @@ function refresh() {
     var s = document.createElement('span'); s.className = 'ch'; s.id = 'ch' + i;
     s.title = c.voicing.map(nn).join(' ') + ' · ' + c.path; s.textContent = prettySym(c.symbol); el.appendChild(s); el.appendChild(document.createTextNode(' '));
   });
-  $('progmeta').textContent = tl.chords.length + ' chords · ' + Math.round(tl.L / PREVIEW_TEMPO) + ' s · ' + (tl.chords[0].dur / PREVIEW_TEMPO).toFixed(1) + ' s each, 2 strikes · voicings from the full chord set';
+  $('progmeta').textContent = tl.chords.length + ' chords · ' + Math.round(tl.L / PREVIEW_TEMPO) + ' s · ' + (tl.chords[0].dur / PREVIEW_TEMPO).toFixed(1) + ' s each, 2 strikes';
 }
 
 // ---------- play (WebAudio) ----------
 // Edits, Undo, Apply and the speed slider restart the preview at the chord it was on, with the new chords.
-var AC = null, BUF = {}, playing = [], timers = [], gen = 0, active = false, cur = 0, restartT = null, SCHED = [];
+var AC = null, playing = [], timers = [], gen = 0, active = false, cur = 0, restartT = null, SCHED = [];
 function stop() {
   gen++; active = false; clearTimeout(restartT);
   playing.forEach(function (n) { try { n.stop(); } catch (e) {} }); playing = [];
@@ -95,12 +95,42 @@ function stop() {
   document.querySelectorAll('.ch.on').forEach(function (e) { e.classList.remove('on'); });
   $('play').textContent = 'Play';
 }
-function load(path) {
-  if (BUF[path]) return BUF[path];
-  BUF[path] = fetch(CAT.audio_base + path + '.flac', {mode: 'cors'}).then(function (r) {
-    if (!r.ok) throw new Error('HTTP ' + r.status); return r.arrayBuffer();
-  }).then(function (a) { return AC.decodeAudioData(a); });
-  return BUF[path];
+function chordLabel(c) {
+  var s = prettySym(c.symbol), m = /^([A-G](?:#|b)?)/.exec(c.symbol);
+  if (!m || c.bass === null || c.bass === undefined) return s;
+  var pc = {c: 0, 'c#': 1, db: 1, d: 2, 'd#': 3, eb: 3, e: 4, f: 5, 'f#': 6, gb: 6, g: 7, 'g#': 8, ab: 8, a: 9, 'a#': 10, bb: 10, b: 11}[m[1].toLowerCase()];
+  return pc === c.bass ? s : s + '/' + SPELL[c.bass];
+}
+function sourceNote(items) {
+  var names = [], seen = {};
+  items.forEach(function (it) {
+    if (it.kind !== 'sine') return;
+    var name = chordLabel(it);
+    if (seen[name]) return;
+    seen[name] = 1; names.push(name);
+  });
+  return names.length ? 'Simple tones for ' + names.join(', ') + ' — no recording loaded for that chord.' : '';
+}
+function showSources(items) {
+  var el = $('sinenote'), note = sourceNote(items);
+  el.hidden = !note; el.textContent = note || '';
+}
+function creditsFor(items) {
+  var files = [], seen = {}, sine = [], sseen = {};
+  items.forEach(function (it) {
+    if (it.kind === 'sine') {
+      var name = chordLabel(it);
+      if (!sseen[name]) { sseen[name] = 1; sine.push(name); }
+      return;
+    }
+    if (!it.url || seen[it.url]) return;
+    seen[it.url] = 1;
+    var row = {symbol: chordLabel(it), library: it.library, url: it.url, creator: it.creator || 'Petrus', license: it.license || 'CC-BY-SA-4.0'};
+    if (it.instrument) row.instrument = it.instrument;
+    files.push(row);
+  });
+  var credits = files.length ? [{name: 'Petrus', link: 'https://musicmatter.art/', license: 'CC-BY-SA-4.0', role: 'chord recordings'}] : [];
+  return {license: 'CC BY-SA 4.0', credits: credits, files: files, sine: sine};
 }
 function sine(v, t0, d, out) {
   v.forEach(function (m) {
@@ -116,25 +146,27 @@ function start(from) {
   AC = AC || new (window.AudioContext || window.webkitAudioContext)(); AC.resume();
   from = (from || 0) % tl.chords.length;
   var speed = +$('spd').value * PREVIEW_TEMPO, chords = tl.chords.slice(from, from + 64), my = gen; active = true; SCHED = [];
-  $('play').textContent = 'Stop'; status('Loading ' + new Set(chords.map(function (c) { return c.path; })).size + ' recorded chords from fullchords.musicmatter.art…');
+  $('play').textContent = 'Stop'; status('Loading chord recordings…');
   var master = AC.createGain(); master.gain.value = 0.8; master.connect(AC.destination);
-  Promise.all(chords.map(function (c) { return load(c.path); })).then(function (bufs) {
+  window.MM.prepare(AC, chords, CAT).then(function (clips) {
     if (my !== gen) return;
-    status('Playing the recorded chords (CC BY-SA 4.0, Peter Semmelhack). A sketch of the harmony only: a Performance is rendered with the kit.');
+    showSources(clips);
+    status('Chords from musicmatter.art (Petrus, CC BY-SA 4.0).');
     go(chords, from, speed, master, function (c, i, t0, d) {
+      var clip = clips[i];
+      if (!clip.buffer) { sine(c.voicing, t0, d, master); SCHED.push({i: from + i, symbol: c.symbol, strike: 1, at: t0, d: d, src: 'sine'}); return; }
       [0, d / 2].forEach(function (off, k) {
         if (off && d < 1) return;
-        var s = AC.createBufferSource(), g = AC.createGain(); s.buffer = bufs[i];
-        g.gain.setValueAtTime(k ? 0.45 : 0.8, t0 + off); g.gain.setTargetAtTime(0, t0 + Math.min(d + 1.5, off + bufs[i].duration) - 0.8, 0.35);
+        var s = AC.createBufferSource(), g = AC.createGain(); s.buffer = clip.buffer;
+        g.gain.setValueAtTime(k ? 0.45 : 0.8, t0 + off); g.gain.setTargetAtTime(0, t0 + Math.min(d + 1.5, off + clip.buffer.duration) - 0.8, 0.35);
         s.connect(g); g.connect(master); s.start(t0 + off); playing.push(s);
-        SCHED.push({i: from + i, symbol: c.symbol, path: c.path, strike: k + 1, at: t0 + off, d: d, src: 'recorded'});
+        SCHED.push({i: from + i, symbol: c.symbol, path: c.path, strike: k + 1, at: t0 + off, d: d, src: clip.kind, url: clip.url || null});
       });
     });
   }).catch(function (e) {
     if (my !== gen) return;
-    BUF = {};
-    status('Could not load the recorded chords (' + (e && e.message || e) + '). Playing plain sine tones of the same voicings instead.', true);
-    go(chords, from, speed, master, function (c, i, t0, d) { sine(c.voicing, t0, d, master); SCHED.push({i: from + i, symbol: c.symbol, strike: 1, at: t0, d: d, src: 'sine'}); });
+    status('Could not start playback (' + (e && e.message || e) + ').', true);
+    stop();
   });
 }
 function go(chords, from, speed, out, fn) {
@@ -389,7 +421,8 @@ window.addEventListener('hashchange', fromHash);
 window.addEventListener('pagehide', function () { if (persistT) persist(); });
 window.NC = {timeline: timeline, toPlan: toPlan, toMd: toMd, parseMd: parseMd, state: state, raw: raw, fill: fill, findChords: findChords, pickVoicing: pickVoicing, shareUrl: shareUrl,
   fromText: fromText, makeSurprise: makeSurprise, progression: progression, start: start, stop: stop, undo: undo, sched: function () { return SCHED.slice(); },
-  catalog: function () { return CAT; }, PREVIEW_TEMPO: PREVIEW_TEMPO, perform: PERFORM, showPerformance: showPerformance, performStatus: performStatus, pushUndo: pushUndo, persist: persist};
+  catalog: function () { return CAT; }, audition: function (ac, chords) { return window.MM.prepare(ac, chords, CAT); }, showSources: showSources, creditsFor: creditsFor, chordLabel: chordLabel,
+  PREVIEW_TEMPO: PREVIEW_TEMPO, perform: PERFORM, showPerformance: showPerformance, performStatus: performStatus, pushUndo: pushUndo, persist: persist};
 fetch('chords.json').then(function (r) { return r.json(); }).then(function (c) {
   CAT = c; Object.keys(c.chords).forEach(function (k) { QUALS[k.replace(/^[A-G](#|b)?/, '')] = 1; });
   if (!fromHash()) { var s = STARTERS[0]; fill({t: s.title, by: s.composer, c: s.composition, p: s.performance}); }
