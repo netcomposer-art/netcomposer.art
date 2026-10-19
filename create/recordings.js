@@ -1,5 +1,4 @@
-// Chord recordings. INDEX is the one config value: this branch uses the draft instrument index.
-// Publish points it at https://musicmatter.art/netcomposer.json.
+// Chord recordings. INDEX is the one config value.
 // Lookup key: instrument + root (pitch class) + quality. The picker lists instrument_name.
 // A chord plays that instrument's default voicing (gesture bounce). If it has none, an alt
 // voicing of the same instrument, then the piano full chord, then a simple tone.
@@ -7,7 +6,7 @@
 // No pitch-shift and no time-stretch.
 (function () {
   'use strict';
-  var INDEX = 'https://audio.musicmatter.art/drafts/netcomposer.instruments-preview.json';
+  var INDEX = 'https://musicmatter.art/netcomposer.json';
   var PC = {c: 0, 'c#': 1, csharp: 1, db: 1, d: 2, 'd#': 3, dsharp: 3, eb: 3, e: 4, f: 5, 'f#': 6, fsharp: 6, gb: 6,
     g: 7, 'g#': 8, gsharp: 8, ab: 8, a: 9, 'a#': 10, asharp: 10, bb: 10, b: 11};
   var QUAL_ALIAS = {maj: '', major: '', min: 'm', minor: 'm'};

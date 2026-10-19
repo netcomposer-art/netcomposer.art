@@ -2739,8 +2739,8 @@
       "install": "pip install git+https://github.com/netcomposer-art/nc-performer"
     },
     "recordings": {
-      "index": "https://audio.musicmatter.art/drafts/netcomposer.instruments-preview.json",
-      "index_config": "INDEX in create/recordings.js. This branch uses the draft. Publish points it at https://musicmatter.art/netcomposer.json",
+      "index": "https://musicmatter.art/netcomposer.json",
+      "index_config": "INDEX in create/recordings.js",
       "audio_base": "https://audio.musicmatter.art/",
       "key": "instrument + root + quality",
       "picker": "one control for the whole Play preview; option text is instrument_name from the index",
