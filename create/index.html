@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Create — NetComposer</title>
-<meta name="description" content="Write a NetComposer Composition, hear its chords, perform it live at the dials, or render it here. Static; the Composition is not stored.">
+<meta name="description" content="Write a NetComposer Composition, hear its chords, and render a Performance here. Live rides that Performance. Static; the Composition is not stored.">
 <link rel="canonical" href="https://netcomposer.art/create/">
 <link rel="alternate" type="text/markdown" href="/create/SKILL.md" title="Performer skill (SKILL.md)">
 <link rel="alternate" type="text/plain" href="/create/SKILL.txt" title="Performer skill (plain text)">
@@ -19,14 +19,22 @@ textarea{min-height:7.5rem;resize:vertical;line-height:1.5;background:#fafafa;cu
 input[type=text]:focus,textarea:focus,select:focus{outline:2px solid #000;outline-offset:2px;background:#fff}
 select{appearance:none;-webkit-appearance:none;background:#fff}
 button,.btn{font:inherit;font-size:.95rem;color:#000;background:#fff;border:1px solid #000;border-radius:0;padding:.5rem .9rem;margin:.3rem .4rem .3rem 0;cursor:pointer}
-button:disabled{color:#999;border-color:#999;cursor:default}#play{background:#000;color:#fff;min-width:6.5rem}#play:disabled{background:#999;border-color:#999}
+button:disabled{color:#999;border-color:#999;cursor:default}button:focus-visible,.btn:focus-visible,summary:focus-visible{outline:2px solid #000;outline-offset:2px}#play{background:#000;color:#fff;min-width:6.5rem}#play:disabled{background:#999;border-color:#999}
 .row{display:flex;flex-wrap:wrap;align-items:center;gap:.2rem .6rem}.two{display:grid;grid-template-columns:1fr;gap:0 1rem}
 .pick{display:flex;gap:.5rem;align-items:stretch}.pick select{flex:1;min-width:0}.pick button{margin:0;white-space:nowrap}
 #prog{margin:.9rem 0 .2rem;line-height:2.1}.ch{display:inline-block;border-bottom:2px solid transparent;padding:0 .1rem}.ch.on{border-bottom-color:#000;font-weight:bold}
-#editor{border-left:2px solid #000;padding:.1rem 0 .3rem .8rem;margin:1rem 0}#editor textarea{min-height:26rem;font-size:.85rem;white-space:pre-wrap;background:#fff}
+#perf{min-height:8.5rem;max-height:70vh;overflow:auto;resize:vertical}#notes-status{min-height:1.2em}
 input[type=range]{width:9rem;accent-color:#000}input[type=file]{font:inherit;font-size:.85rem;max-width:100%}
 pre{white-space:pre;overflow-x:auto;font:inherit;font-size:.8rem;border-left:2px solid #000;padding:.1rem 0 .1rem .8rem;margin:.6rem 0}
-code{font:inherit}#shareurl{font-size:.8rem;margin-top:.5rem}#perform-out audio{width:100%;margin:.6rem 0 .2rem}
+code{font:inherit;overflow-wrap:anywhere;word-break:break-word}#shareurl{font-size:.8rem;margin-top:.5rem}#perform-out audio{width:100%;margin:.6rem 0 .2rem}#perf-box{scroll-margin-top:1.2rem}
+#perform-record-view{margin-top:1.1rem;border-top:1px solid #000;padding-top:.3rem;max-width:100%}
+#perform-record-view h3{font-size:.95rem;margin:1.15rem 0 .35rem;border-bottom:1px solid #000;padding-bottom:.15rem}
+#perform-record-view .rec-row{display:grid;grid-template-columns:8.2rem minmax(0,1fr);gap:.15rem .8rem;margin:.28rem 0}
+#perform-record-view .rec-k{color:#555;font-size:.75rem;letter-spacing:.06em;text-transform:uppercase}
+#perform-record-view a,#perform-record-view p,#perform-kept{overflow-wrap:anywhere}
+#perform-record-view blockquote{margin:.4rem 0;padding-left:.8rem;border-left:2px solid #000}
+#perform-json{margin:.8rem 0}#perform-json pre{white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word;overflow-x:hidden;max-width:100%}
+#perform-keep-note,#perform-kept{margin:.15rem 0 .4rem}
 .further{margin-top:4.5rem;border-top:1px solid #000;padding-top:.2rem;font-size:.9rem}.further h2{margin-top:1.2rem}.further h3{font-size:.9rem;margin:1.8rem 0 .4rem}.further button{font-size:.85rem}
 footer{max-width:46rem;margin:0 auto;padding:0 1.2rem 4rem;font-size:.85rem;color:#555}
 @media(min-width:760px){body{font-size:17px}main{padding-top:6rem}.two{grid-template-columns:1fr 1fr}}
@@ -37,7 +45,7 @@ footer{max-width:46rem;margin:0 auto;padding:0 1.2rem 4rem;font-size:.85rem;colo
 .toggle input{width:1.15rem;height:1.15rem;accent-color:#000}#ltake audio{width:100%;margin:.4rem 0 .1rem}
 .vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}#live label.btn{display:inline-block;font-size:.95rem;text-transform:none;letter-spacing:normal;color:#000;margin:.3rem .4rem .3rem 0}#live .vh:focus-visible+label.btn{outline:2px solid #000;outline-offset:2px}
 #llog,#lconflict{border-left:2px solid #000;padding:.1rem 0 .2rem .8rem;margin:.8rem 0}#lconflict p{margin:.2rem 0 .3rem}
-@media(max-width:520px){.dial{grid-template-columns:1fr 4.8rem}.dial label{grid-column:1/-1}}</style>
+@media(max-width:520px){.dial{grid-template-columns:1fr 4.8rem}.dial label{grid-column:1/-1}#perf{min-height:11rem}#perform-record-view .rec-row{grid-template-columns:minmax(0,1fr)}}</style>
 </head>
 <body>
 <main>
@@ -49,21 +57,12 @@ footer{max-width:46rem;margin:0 auto;padding:0 1.2rem 4rem;font-size:.85rem;colo
 <section id="write">
 <h2 id="write-h">Write</h2>
 <label for="starter">Start from</label>
-<div class="pick"><select id="starter"><option value="">Choose a starter…</option></select><button id="surprise" type="button" title="A new 8-chord progression in a random key and mode">Surprise me</button></div>
+<div class="pick"><select id="starter"><option value="">Choose a starter…</option></select><button id="surprise" type="button" title="A new 8-chord progression in a random key and mode">Surprise me</button><button id="undo" type="button" disabled>Undo</button></div>
 <label for="title">Title</label><input id="title" type="text" autocomplete="off">
 <label for="by">Composer</label><input id="by" type="text" autocomplete="off" placeholder="your name">
 <label for="comp">Composition</label>
 <textarea id="comp" placeholder="Harmony, length and shape. e.g. 2 mins - half Cm, Cm7, Cm9. Second half Cm7, Am, F."></textarea>
 <p class="m">Chords as symbols: Cm, Am7, Bb7sus4, F#dim7, Ebmaj9, A7alt, G/B. Any of the 420 in the full chord set.</p>
-<label for="perf">Performance</label>
-<textarea id="perf" placeholder="How it should sound. e.g. ambient, no harsh tones, don't rush it."></textarea>
-<div class="row"><button id="edit" type="button" aria-expanded="false" aria-controls="editor">Edit as text</button><button id="undo" type="button" disabled>Undo</button></div>
-<div id="editor" hidden>
-<label for="mdedit">composition.md</label>
-<textarea id="mdedit" spellcheck="false" autocomplete="off"></textarea>
-<div class="row"><button id="apply" type="button">Apply</button><button id="cancel" type="button">Cancel</button></div>
-<p class="m">The whole Composition as text. Type, or paste a composition.md, or just a list of chords. Apply (Ctrl/⌘+Enter) or Cancel (Esc).</p>
-</div>
 </section>
 
 <section id="play-s">
@@ -81,11 +80,40 @@ footer{max-width:46rem;margin:0 auto;padding:0 1.2rem 4rem;font-size:.85rem;colo
 
 <section id="perform">
 <h2 id="perform-h">Perform</h2>
-<p>A Performance is an interpretation of this Composition. Two ways.</p>
-<section id="live">
+<p>Render this Composition. When it comes back, tweak it at the dials, or change the prompt and press Perform again. Pitch is never shifted.</p>
+<div id="perf-box">
+<label for="perf">Performance notes</label>
+<textarea id="perf" placeholder="How it should sound. e.g. warm and late at night, let each chord ring."></textarea>
+<div class="row" role="group" aria-label="Performance notes">
+<button id="notes-save" type="button" disabled aria-keyshortcuts="Control+Enter Meta+Enter">Save</button>
+<button id="notes-undo" type="button" disabled aria-keyshortcuts="Control+Z Meta+Z">Undo</button>
+<button id="notes-cancel" type="button" disabled aria-keyshortcuts="Escape">Cancel</button>
+<span class="m" id="notes-status" role="status" aria-live="polite"></span>
+</div>
+</div>
+<div class="row"><button id="performBtn" type="button" disabled>Perform</button><label class="toggle" id="perform-vis" for="perform-public"><input id="perform-public" type="checkbox"> List it after a day</label></div>
+<div id="perform-turnstile" hidden></div>
+<p class="m" id="perform-status" aria-live="polite">Checking whether Perform is awake…</p>
+<progress id="perform-bar" hidden max="100" value="0"></progress>
+<div id="perform-out" hidden>
+<audio id="perform-audio" controls preload="none"></audio>
+<div class="row"><a class="btn" id="perform-mp3" href="#">MP3</a><a class="btn" id="perform-flac" href="#">FLAC</a><a class="btn" id="perform-record" href="#" target="_blank" rel="noopener">Signed record</a><button type="button" id="perform-keep" disabled>Keep</button></div>
+<p class="m" id="perform-keep-note">Keep holds the audio past 90 days. It stays unlisted.</p>
+<p class="m" id="perform-kept" hidden></p>
+<p class="m" id="perform-claim" hidden></p>
+<p class="m" id="perform-meta"></p>
+<div id="perform-record-view" hidden></div>
+<details id="perform-json" hidden>
+<summary>Show signed JSON</summary>
+<div class="row"><button type="button" id="perform-json-copy">Copy</button><button type="button" id="perform-json-dl">Download</button></div>
+<pre id="perform-json-pre" tabindex="0"></pre>
+</details>
+<p class="m"><a href="#perf-box" id="perform-edit">Change the prompt</a>, then press Perform again. Or ride the dials below.</p>
+</div>
+<section id="live" hidden>
 <h3 id="live-h">Live</h3>
-<p>You at the dials. The Composition loops, and you ride two hacks while it plays. Record a take: the sound and every move of the dials.</p>
-<p class="m" id="lsrc">Same chords as Play. Edits land on the next loop.</p>
+<p>You at the dials. Your Performance loops; ride two hacks while it plays.</p>
+<p class="m" id="lsrc"></p>
 <div class="row"><button id="lplay" type="button" disabled>Play</button><label class="toggle"><input id="lloop" type="checkbox" checked> Loop</label></div>
 <div class="hack" id="hack-lp">
 <h3>Low-pass filter</h3>
@@ -97,25 +125,14 @@ footer{max-width:46rem;margin:0 auto;padding:0 1.2rem 4rem;font-size:.85rem;colo
 <div class="dial"><label for="ltime">Timing</label><select id="ltime"><option value="0.25">1/16</option><option value="0.5">1/8</option><option value="0.75" selected>1/8 dotted</option><option value="1">1/4</option><option value="1.5">1/4 dotted</option><option value="2">1/2</option></select><output id="ltimev" for="ltime"></output></div>
 <div class="dial"><label for="lfb">Feedback</label><input id="lfb" type="range" min="0" max="90" step="1" value="35"><output id="lfbv" for="lfb">35%</output></div>
 <div class="dial"><label for="lmix">Wet/dry</label><input id="lmix" type="range" min="0" max="100" step="1" value="25"><output id="lmixv" for="lmix">25% wet</output></div>
+<p class="m">Note values of this Performance. 60 BPM until the record names a tempo.</p>
 </div>
 <div class="row"><button id="lrec" type="button" disabled>● Record</button><button id="lclear" type="button" disabled>Clear</button><button id="ldl" type="button" disabled>Download</button><button id="lcancel" type="button" disabled>Cancel</button><input id="lup" class="vh" type="file" accept=".json,application/json"><label class="btn" for="lup">Upload dial log</label></div>
-<div id="lconflict" hidden><p id="lconflictmsg"></p><button id="lusetheirs" type="button">Load its Composition</button><button id="lkeepmine" type="button">Keep mine, use only the moves</button><button id="lconfcancel" type="button">Cancel</button></div>
-<div id="llog" hidden><p class="m" id="llogmeta"></p><button id="lreplay" type="button" disabled>▶ Replay moves</button><button id="lforget" type="button">Put the log away</button><p class="m">Replay plays from the first chord and moves the dials as logged. Touch a dial to take it over. Record during a replay to make a new take.</p></div>
-<p class="m" id="lstatus" aria-live="polite">Press Play, then Record when you are ready. A take is a WAV file plus a dial log, up to 10 minutes. Recording starts from the first chord.</p>
+<div id="lconflict" hidden><p id="lconflictmsg"></p><button id="lloadperf" type="button">Load that Performance</button><button id="lconfcancel" type="button">Cancel</button></div>
+<div id="llog" hidden><p class="m" id="llogmeta"></p><button id="lreplay" type="button" disabled>▶ Replay moves</button><button id="lforget" type="button">Put the log away</button><p class="m">Replay starts this Performance and moves the dials as logged. Touch a dial to take it over. Record during a replay to make a new take.</p></div>
+<p class="m" id="lstatus" aria-live="polite">Press Play, then Record when you are ready. A take is a WAV of this Performance through the dials, plus a dial log, up to 10 minutes.</p>
 <div id="ltake" hidden><audio id="ltakeaudio" controls></audio><p class="m" id="ltakemeta"></p></div>
 </section>
-<h3 id="render-h">Rendered</h3>
-<p>Press Perform. The kit fetches the sounds, checks the licenses, and renders it here. A minute or two. Pitch is never shifted.</p>
-<div class="row"><button id="performBtn" type="button" disabled>Perform</button><label class="toggle" id="perform-vis" for="perform-public"><input id="perform-public" type="checkbox"> List it after a day</label></div>
-<div id="perform-turnstile" hidden></div>
-<p class="m" id="perform-status" aria-live="polite">Checking whether Perform is awake…</p>
-<progress id="perform-bar" hidden max="100" value="0"></progress>
-<div id="perform-out" hidden>
-<audio id="perform-audio" controls preload="none"></audio>
-<div class="row"><a class="btn" id="perform-mp3" href="#">MP3</a><a class="btn" id="perform-flac" href="#">FLAC</a><a class="btn" id="perform-record" href="#">Signed record</a><button type="button" id="perform-keep" disabled>Keep</button></div>
-<p class="m" id="perform-claim" hidden></p>
-<p class="m" id="perform-meta"></p>
-</div>
 </section>
 
 <section class="further" id="further">

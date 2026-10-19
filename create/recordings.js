@@ -1,6 +1,7 @@
 // Chord recordings from musicmatter's published index (https://musicmatter.art/netcomposer.json).
 // Lookup key: instrument + root (pitch class) + quality. New instruments show up when the index
 // names them (an instrument field, or sounds/<instrument>/<file>); this file does not list them.
+// A later picker can list instruments() and pass that id to resolve(); until then Play uses the default.
 // No pitch-shift and no time-stretch: a file is used only for its own root and quality.
 // sounds/ bounces are preferred. The full chord set (fullchords/) is the other musicmatter
 // library, used for every other symbol and for a written slash bass. A simple tone plays
@@ -141,15 +142,16 @@
         creator: who.name || credit.name, link: who.link || credit.link, license: man.license || credit.license};
     });
   }
-  function resolve(symbol, bass) {
+  function resolve(symbol, bass, instrumentId) {
     return loadIndex().then(function (cat) {
       var s = splitSym(symbol);
-      if (!s || !cat.defaultId) return null;
+      var id = instrumentId && cat.instruments[instrumentId] ? instrumentId : cat.defaultId;
+      if (!s || !id) return null;
       if (bass !== null && bass !== undefined && bass !== s.pc) return null;
-      var inst = cat.instruments[cat.defaultId];
+      var inst = cat.instruments[id];
       var list = inst && inst.chords[s.pc + '|' + s.quality];
       if (!list || !list.length) return null;
-      var ck = cat.defaultId + '|' + s.pc + '|' + s.quality;
+      var ck = id + '|' + s.pc + '|' + s.quality;
       if (!choice[ck]) choice[ck] = pick(list, cat.credit);
       return choice[ck].then(function (hit) { hit.instrument = inst.id; hit.instrumentName = inst.name; return hit; });
     });
