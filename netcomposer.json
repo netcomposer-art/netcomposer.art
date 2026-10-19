@@ -2719,14 +2719,14 @@
   "create": {
     "status": "live",
     "url": "https://netcomposer.art/create/",
-    "what": "Write a Composition and Performance in the browser. Play sketches the chords from musicmatter.art recordings (sounds/ bounces where the index has that chord, the full chord set for the rest). Press Perform for a hosted render. When that Performance comes back, Live appears under the player and rides that audio. Download composition.md and a plan stub, open a composition.md, share it as a link (the text rides in the URL hash; nothing is stored).",
+    "what": "Write a Composition in the browser, hear it with Play, then write the Performance prompt in the Perform section and press Perform for a hosted render. When that Performance comes back, Live appears under the player and rides that audio. Perform again replaces the result and hides Live until the new render returns. Download composition.md and a plan stub, open a composition.md, share it as a link (the text rides in the URL hash; nothing is stored).",
     "plan_schema": "https://netcomposer.art/create/plan.schema.json",
     "skill": "https://netcomposer.art/create/SKILL.md",
     "skill_text": "https://netcomposer.art/create/SKILL.txt",
     "chords": "https://netcomposer.art/create/chords.json",
     "hosted_render": {
       "status": "preview",
-      "where": "Inside Perform on /create/, above Live. Live stays hidden until a job is done, then sits under the player.",
+      "where": "Inside Perform on /create/: the Performance prompt, then the Perform button, then progress and the player. Live stays hidden until a job is done, then sits under the player. Perform again clears the player and Live until the next render returns.",
       "api": "https://nc-perform-api.psemme.workers.dev",
       "config_value": "API in create/perform.js",
       "turnstile": true,
@@ -2753,7 +2753,7 @@
     },
     "live": {
       "status": "preview",
-      "where": "Under the hosted Performance player on /create/ (#live), hidden until a job is done. Play stays a plain preview.",
+      "where": "Under the hosted Performance player on /create/ (#live), hidden until a job is done, and hidden again when Perform again is pressed until the new render returns. Play stays a plain preview.",
       "what": "A human rides two hacks on the finished Performance audio: low-pass and delay. Record keeps a WAV of that processed audio and a dial log that names the Performance (job id and audio sha). An uploaded dial log restores the moves when that Performance is still reachable.",
       "runs": "in the browser (Web Audio); the Performance audio is fetched from the job (CORS *); nothing from Live is uploaded",
       "hacks": {

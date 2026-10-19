@@ -298,7 +298,7 @@ function record() {
     T.start(function (t, b) { if (REC !== R) return; if (R.firstT === null) R.firstT = t; R.chunks.push(b); R.frames += b.length / 2; });
     later(T0 + MAX_TAKE_S, function () { finish('Ten minutes is the limit for one take; it is ready.'); });
     $('lrec').textContent = '■ Stop'; $('lrec').classList.add('on'); status('Recording this Performance.'); buttons();
-  }).catch(function (e) { buttons(); status('This browser cannot record here (' + (e && e.message || e) + ').'); });
+  }).catch(function () { buttons(); status('This browser cannot record here. Try again in a moment.'); });
 }
 function now() { return +(Math.max(0, AC.currentTime - T0)).toFixed(3); }
 function logEvent(ev) {

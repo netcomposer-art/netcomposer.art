@@ -5,13 +5,24 @@
   function $(id) { return document.getElementById(id); }
   var cfg = null, widget = null, token = null, jobId = null, es = null, pollT = null, busy = false;
 
-  function status(t, warn) { var s = $('perform-status'); s.textContent = t; s.className = warn ? 'm warn' : 'm'; }
+  function status(t, warn) {
+    var clean = soften(t);
+    if (!clean) clean = 'Perform did not answer. The service may be down. Try again in a moment.';
+    var s = $('perform-status');
+    s.textContent = clean;
+    s.className = warn ? 'm warn' : 'm';
+  }
+  function soften(msg) {
+    var t = String(msg || '').replace(/\s+/g, ' ').trim();
+    if (!t || /^HTTP\b/i.test(t) || /\bHTTP Error\b/i.test(t) || /\bHTTP\s*[45]\d\d\b/i.test(t)) return '';
+    return t;
+  }
   function messageFor(code, j) {
-    if (j && j.error) return j.error;
-    if (code === 429) return 'Too many Performs from this network (3 every 10 minutes, 10 a day).';
+    var raw = soften(j && j.error);
+    if (code === 429) return raw || 'Too many Performs from this network (3 every 10 minutes, 10 a day). Try again in a few minutes.';
     if (code === 503) return 'Perform is resting or busy. Try again in a moment.';
     if (!code || code >= 500) return 'Perform did not answer. The service may be down. Try again in a moment.';
-    return 'Perform did not start (' + code + ').';
+    return raw || 'Perform did not start. Try again in a moment.';
   }
   function read(r) {
     return r.text().then(function (t) { try { return JSON.parse(t); } catch (e) { return { error: '' }; } });
@@ -34,11 +45,11 @@
     var bar = $('perform-bar');
     bar.hidden = false; bar.value = j.percent || 0;
     if (j.state === 'done') { stopWatch(); showDone(j); }
-    else if (j.state === 'failed' || j.state === 'rejected') { stopWatch(); fail(j.error || j.state); }
+    else if (j.state === 'failed' || j.state === 'rejected') { stopWatch(); fail(soften(j.error) || 'That Performance did not finish. Try again in a moment.'); }
   }
   function poll(id) {
-    fetch(API + '/api/jobs/' + id).then(function (r) { return r.ok ? r.json() : null; }).then(function (j) {
-      if (!j) { fail('Perform did not answer. The service may be down. Try again in a moment.'); return; }
+    fetch(API + '/api/jobs/' + id).then(function (r) { return read(r).then(function (j) { return r.ok ? j : null; }); }).then(function (j) {
+      if (!j || !j.state) { fail('Perform did not answer. The service may be down. Try again in a moment.'); return; }
       onJob(j);
       if (j.state !== 'done' && j.state !== 'failed' && j.state !== 'rejected') pollT = setTimeout(function () { poll(id); }, 2000);
     }).catch(function () { fail('Perform did not answer. The service may be down. Try again in a moment.'); });
@@ -76,8 +87,11 @@
   function fail(msg) {
     idle();
     $('perform-turnstile').hidden = true;
+    $('perform-bar').hidden = true;
+    $('perform-out').hidden = true;
+    if (window.NCLive) NCLive.hide();
     $('performBtn').textContent = jobId ? 'Perform again' : 'Perform';
-    status(msg || 'That Performance did not finish.', true);
+    status(soften(msg) || 'That Performance did not finish. Try again in a moment.', true);
   }
   function claim(id, value) {
     sessionStorage.setItem('nc-claim:' + id, value);
@@ -152,6 +166,11 @@
     busy = true;
     $('performBtn').disabled = true;
     $('performBtn').textContent = 'Performing…';
+    if (jobId) {
+      $('perform-out').hidden = true;
+      $('perform-bar').hidden = true;
+      if (window.NCLive) NCLive.hide();
+    }
     $('perform-public').disabled = true;
     $('perform-keep').textContent = 'Keep';
     $('perform-keep').disabled = true;
@@ -197,6 +216,12 @@
     });
   }
   $('performBtn').onclick = go;
+  $('perform-edit').onclick = function (e) {
+    e.preventDefault();
+    var box = $('perf');
+    $('perf-box').scrollIntoView({behavior: 'smooth', block: 'center'});
+    box.focus();
+  };
   $('perform-keep').onclick = function () {
     withClaim('keep', {}, function (x) {
       if (!x.ok) { status(x.j.error || 'Could not keep this audio.', true); return; }

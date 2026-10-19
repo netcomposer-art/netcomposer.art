@@ -165,7 +165,7 @@ function start(from) {
     });
   }).catch(function (e) {
     if (my !== gen) return;
-    status('Could not start playback (' + (e && e.message || e) + ').', true);
+    status('Could not start playback. Try again in a moment.', true);
     stop();
   });
 }
@@ -427,5 +427,5 @@ fetch('chords.json').then(function (r) { return r.json(); }).then(function (c) {
   CAT = c; Object.keys(c.chords).forEach(function (k) { QUALS[k.replace(/^[A-G](#|b)?/, '')] = 1; });
   if (!fromHash()) { var s = STARTERS[0]; fill({t: s.title, by: s.composer, c: s.composition, p: s.performance}); }
   refresh(); document.body.setAttribute('data-ready', '1');
-}).catch(function (e) { $('prog').textContent = 'Could not load the chord list (' + e.message + ').'; });
+}).catch(function () { $('prog').textContent = 'Could not load the chord list. Reload the page and try again.'; });
 })();
