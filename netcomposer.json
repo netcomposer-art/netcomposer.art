@@ -2719,7 +2719,7 @@
   "create": {
     "status": "live",
     "url": "https://netcomposer.art/create/",
-    "what": "Write a Composition and Performance in the browser. Play sketches the chords from musicmatter.art recordings (sounds/ bounces where the index has that chord, the full chord set for the rest). Perform offers Live (you at the dials) and a hosted render on the page. Download composition.md and a plan stub, open a composition.md, share it as a link (the text rides in the URL hash; nothing is stored).",
+    "what": "Write a Composition and Performance in the browser. Play sketches the chords from a chosen musicmatter.art instrument (default voicing, then that instrument's alt voicing, then the piano full chord, then a simple tone). Perform offers Live (you at the dials) and a hosted render on the page. Download composition.md and a plan stub, open a composition.md, share it as a link (the text rides in the URL hash; nothing is stored).",
     "plan_schema": "https://netcomposer.art/create/plan.schema.json",
     "skill": "https://netcomposer.art/create/SKILL.md",
     "skill_text": "https://netcomposer.art/create/SKILL.txt",
@@ -2739,17 +2739,18 @@
       "install": "pip install git+https://github.com/netcomposer-art/nc-performer"
     },
     "recordings": {
-      "index": "https://musicmatter.art/netcomposer.json",
+      "index": "https://audio.musicmatter.art/drafts/netcomposer.instruments-preview.json",
+      "index_config": "INDEX in create/recordings.js. This branch uses the draft. Publish points it at https://musicmatter.art/netcomposer.json",
       "audio_base": "https://audio.musicmatter.art/",
       "key": "instrument + root + quality",
-      "default_instrument": "musicmatter (the only instrument in the published index today; a picker would list each instrument id the index names)",
+      "picker": "one control for the whole Play preview; option text is instrument_name from the index",
+      "default_instrument": "musicmatter",
       "creator": "Petrus",
       "license": "CC-BY-SA-4.0",
       "pitch_shift": false,
       "time_stretch": false,
-      "sounds": "bounce takes from the index, when that root and quality exist and the chord has no slash bass",
-      "fullchords": "https://fullchords.musicmatter.art/ for every other symbol in the 420, and for a written slash bass",
-      "sine": "only when neither library has the chord, or the file does not load; only that case is named on the page"
+      "fallback": "chosen instrument's default voicing (gesture bounce); else that instrument's alt voicing; else the piano full chord (fullchords.musicmatter.art); else a sine tone. A slash bass uses an alt voicing whose bass matches, else the piano full chord. A short note names any fallback.",
+      "sine": "only when the chosen instrument and the piano full chord do not load; that chord is named on the page"
     },
     "live": {
       "status": "live",
