@@ -389,7 +389,7 @@ window.addEventListener('hashchange', fromHash);
 window.addEventListener('pagehide', function () { if (persistT) persist(); });
 window.NC = {timeline: timeline, toPlan: toPlan, toMd: toMd, parseMd: parseMd, state: state, raw: raw, fill: fill, findChords: findChords, pickVoicing: pickVoicing, shareUrl: shareUrl,
   fromText: fromText, makeSurprise: makeSurprise, progression: progression, start: start, stop: stop, undo: undo, sched: function () { return SCHED.slice(); },
-  catalog: function () { return CAT; }, PREVIEW_TEMPO: PREVIEW_TEMPO, perform: PERFORM, showPerformance: showPerformance, performStatus: performStatus};
+  catalog: function () { return CAT; }, PREVIEW_TEMPO: PREVIEW_TEMPO, perform: PERFORM, showPerformance: showPerformance, performStatus: performStatus, pushUndo: pushUndo, persist: persist};
 fetch('chords.json').then(function (r) { return r.json(); }).then(function (c) {
   CAT = c; Object.keys(c.chords).forEach(function (k) { QUALS[k.replace(/^[A-G](#|b)?/, '')] = 1; });
   if (!fromHash()) { var s = STARTERS[0]; fill({t: s.title, by: s.composer, c: s.composition, p: s.performance}); }

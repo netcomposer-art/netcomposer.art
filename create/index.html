@@ -29,7 +29,15 @@ pre{white-space:pre;overflow-x:auto;font:inherit;font-size:.8rem;border-left:2px
 code{font:inherit}#shareurl{font-size:.8rem;margin-top:.5rem}#perform-out audio{width:100%;margin:.6rem 0 .2rem}
 .further{margin-top:4.5rem;border-top:1px solid #000;padding-top:.2rem;font-size:.9rem}.further h2{margin-top:1.2rem}.further h3{font-size:.9rem;margin:1.8rem 0 .4rem}.further button{font-size:.85rem}
 footer{max-width:46rem;margin:0 auto;padding:0 1.2rem 4rem;font-size:.85rem;color:#555}
-@media(min-width:760px){body{font-size:17px}main{padding-top:6rem}.two{grid-template-columns:1fr 1fr}}</style>
+@media(min-width:760px){body{font-size:17px}main{padding-top:6rem}.two{grid-template-columns:1fr 1fr}}
+#live .hack{border-left:2px solid #000;padding:.1rem 0 .3rem .8rem;margin:1rem 0}#live .hack h3{font-size:.95rem;margin:.2rem 0 .4rem}
+.dial{display:grid;grid-template-columns:7.5rem 1fr 5.5rem;align-items:center;gap:.6rem;margin:.55rem 0}.dial label{margin:0}.dial input[type=range]{width:100%;height:2rem}
+.dial output{font-size:.85rem;text-align:right;font-variant-numeric:tabular-nums}.dial select{padding:.35rem .5rem;font-size:.9rem}.dial.auto output{text-decoration:underline}
+#lplay{background:#000;color:#fff;min-width:6.5rem}#lplay:disabled{background:#fff}#lrec.on{background:#000;color:#fff}.toggle{display:inline-flex;align-items:center;gap:.4rem;font-size:.95rem;margin:.3rem .4rem}
+.toggle input{width:1.15rem;height:1.15rem;accent-color:#000}#ltake audio{width:100%;margin:.4rem 0 .1rem}
+.vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}#live label.btn{display:inline-block;font-size:.95rem;text-transform:none;letter-spacing:normal;color:#000;margin:.3rem .4rem .3rem 0}#live .vh:focus-visible+label.btn{outline:2px solid #000;outline-offset:2px}
+#llog,#lconflict{border-left:2px solid #000;padding:.1rem 0 .2rem .8rem;margin:.8rem 0}#lconflict p{margin:.2rem 0 .3rem}
+@media(max-width:520px){.dial{grid-template-columns:1fr 4.8rem}.dial label{grid-column:1/-1}}</style>
 </head>
 <body>
 <main>
@@ -70,6 +78,29 @@ footer{max-width:46rem;margin:0 auto;padding:0 1.2rem 4rem;font-size:.85rem;colo
 <p class="m">The link is this page's address: the Composition rides in it (after #), so nothing is stored anywhere.</p>
 </section>
 
+<section id="live">
+<h2 id="live-h">Live</h2>
+<p>Play the Composition above and ride two hacks while it plays. Record a take: the sound and every move of the dials.</p>
+<p class="m" id="lsrc">Plays what is written above: pick a starter, press Surprise me, or Edit as text. Edits land on the next loop.</p>
+<div class="row"><button id="lplay" type="button" disabled>Play</button><label class="toggle"><input id="lloop" type="checkbox" checked> Loop</label></div>
+<div class="hack" id="hack-lp">
+<h3>Low-pass filter</h3>
+<div class="dial"><label for="lcut">Cutoff</label><input id="lcut" type="range" min="0" max="100" step="1" value="0"><output id="lcutv" for="lcut">open</output></div>
+<p class="m">0 is fully open. Turn it up to close the filter and darken the sound.</p>
+</div>
+<div class="hack" id="hack-delay">
+<h3>Delay</h3>
+<div class="dial"><label for="ltime">Timing</label><select id="ltime"><option value="0.25">1/16</option><option value="0.5">1/8</option><option value="0.75" selected>1/8 dotted</option><option value="1">1/4</option><option value="1.5">1/4 dotted</option><option value="2">1/2</option></select><output id="ltimev" for="ltime"></output></div>
+<div class="dial"><label for="lfb">Feedback</label><input id="lfb" type="range" min="0" max="90" step="1" value="35"><output id="lfbv" for="lfb">35%</output></div>
+<div class="dial"><label for="lmix">Wet/dry</label><input id="lmix" type="range" min="0" max="100" step="1" value="25"><output id="lmixv" for="lmix">25% wet</output></div>
+</div>
+<div class="row"><button id="lrec" type="button" disabled>● Record</button><button id="lclear" type="button" disabled>Clear</button><button id="ldl" type="button" disabled>Download</button><button id="lcancel" type="button" disabled>Cancel</button><input id="lup" class="vh" type="file" accept=".json,application/json"><label class="btn" for="lup">Upload dial log</label></div>
+<div id="lconflict" hidden><p id="lconflictmsg"></p><button id="lusetheirs" type="button">Load its Composition</button><button id="lkeepmine" type="button">Keep mine, use only the moves</button><button id="lconfcancel" type="button">Cancel</button></div>
+<div id="llog" hidden><p class="m" id="llogmeta"></p><button id="lreplay" type="button" disabled>▶ Replay moves</button><button id="lforget" type="button">Put the log away</button><p class="m">Replay plays from the first chord and moves the dials as logged. Touch a dial to take it over. Record during a replay to make a new take.</p></div>
+<p class="m" id="lstatus" aria-live="polite">Press Play, then Record when you are ready. A take is a WAV file plus a dial log, up to 10 minutes. Recording starts from the first chord.</p>
+<div id="ltake" hidden><audio id="ltakeaudio" controls></audio><p class="m" id="ltakemeta"></p></div>
+</section>
+
 <section id="perform">
 <h2 id="perform-h">Perform</h2>
 <p>A full-quality Performance, with the same chain as the kit (Rubber Band R3 time-stretch, Dragonfly Hall, true-peak mastering) and its record, will render right on this page soon.</p>
@@ -101,5 +132,6 @@ nc perform composition.md -o out/           # any OpenAI-compatible LLM</pre>
 <footer>— Peter Semmelhack · <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a> · chords: <a href="https://fullchords.musicmatter.art/">full chord set</a>, musicmatter.art</footer>
 <script type="application/json" id="starters">[{"id": "ambient-cm", "name": "Ambient Cm (Peter)", "title": "Cm into Am and F, with a slow C–F–G line (ambient)", "composer": "Peter", "composition": "2 mins - half Cm, Cm7, Cm9. Second half Cm7, Am, F.", "performance": "ambient vibe, no harsh tones, randomly alt between Cm chord structure in first half, build to second half and follow Cm, Am, F pattern. Don't rush it.  Over the top of it all play a slow C, F, G pattern. Include an occasional triplet", "source": "https://netcomposer.art/composition/ambient-cm.md"}, {"id": "bwv846", "name": "BWV 846, harmony only", "title": "The C major Prelude, harmony only (after Bach, BWV 846)", "composer": "Peter (after J. S. Bach; harmony from the When in Rome analysis, CC BY-SA 4.0)", "composition": "35 bars of 4/4 at 69 BPM, one chord per bar, changing on the downbeat: C | Dm7/C | G7/B | C | Am/C | D7/C | G/B | Cmaj7/B | Am7 | D7 | G | C#dim7/G | Dm/F | Bdim7/F | C/E | Fmaj7/E | Dm7 | G7 | C | C7 | Fmaj7 | F#dim7 | Bdim7/Ab | G7 | C/G | G7sus4 | G7 | F#dim7/G | C/G | G7sus4 | G7 | C7 | Dm7/C | G7/C | C", "performance": "Each bar is the same gesture played twice. Even and unhurried, evenly lit, no swells. Let the G pedal (bars 24–31) feel suspended. The last bar is a single held C that rings. A room, not a cathedral.", "source": "https://netcomposer.art/composition/bwv846-harmony-only.md"}, {"id": "night-drive", "name": "Night drive (ninths, altered, half-diminished)", "title": "Night drive", "composer": "", "composition": "1 min 20 s. Fm9, Dbmaj9, Gm7b5, C7b9, twice. 10 seconds per chord.", "performance": "Warm and late at night. Let each chord ring into the next. Soft attacks, nothing bright."}, {"id": "glass-garden", "name": "Glass garden (suspended, add, sixths)", "title": "Glass garden", "composer": "", "composition": "1 min. Ebsus2, Cm-add9, Ab6/9, Bb7sus4, Eb6.", "performance": "Clear and open, like light through glass. Gentle strikes, a little space between chords."}, {"id": "harbor-lights", "name": "Harbor lights (thirteenths, #11, elevenths)", "title": "Harbor lights", "composer": "", "composition": "90 seconds. Dmaj7#11, Bm11, Gmaj13, A13, Dmaj7, then Bm11, Gmaj13, A9sus4, Dmaj9.", "performance": "Slow tide. Wide and calm; let the high notes shimmer."}, {"id": "turn-the-corner", "name": "Turn the corner (altered dominants, minor-major)", "title": "Turn the corner", "composer": "", "composition": "1 min. Em7b5, A7#9, Dm-maj7, Dm6, Bb7#11, A7alt, Dm6/9.", "performance": "Noir. A little tension, never harsh. Hold the last chord."}]</script>
 <script src="app.js"></script>
+<script src="live.js"></script>
 </body>
 </html>
