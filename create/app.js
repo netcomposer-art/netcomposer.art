@@ -296,20 +296,32 @@ var persistT = null;
 function persist() { clearTimeout(persistT); persistT = null; history.replaceState(null, '', location.href.split('#')[0] + '#c=' + b64e(JSON.stringify(raw()))); }
 function persistSoon() { clearTimeout(persistT); persistT = setTimeout(persist, 400); }
 function shareUrl() { persist(); return location.href; }
+function matchStarter(S) {
+  for (var i = 0; i < STARTERS.length; i++) {
+    var s = STARTERS[i];
+    if ((s.title || '') === (S.t || '') && (s.composer || '') === (S.by || '') && (s.composition || '') === (S.c || '') && (s.performance || '') === (S.p || '')) return String(i);
+  }
+  return '';
+}
+var shownStarter = '';
+function rememberStarter(v) { shownStarter = v || ''; var pick = $('starter'); if (pick) pick.value = shownStarter; }
 function fromHash() {
   var m = /[#&]c=([A-Za-z0-9_-]+)/.exec(location.hash); if (!m) return false;
-  try { var S = JSON.parse(b64d(m[1])); fill(S); return true; } catch (e) { status('That share link could not be read.', true); return false; }
+  try { var S = JSON.parse(b64d(m[1])); fill(S); rememberStarter(matchStarter(S)); return true; } catch (e) { status('That share link could not be read.', true); return false; }
 }
 // ---------- undo (Surprise me, a starter, an opened file) ----------
-var UNDO = [];
+var UNDO = [], STARTER_UNDO = [];
 function pushUndo() {
   var S = raw(), top = UNDO[UNDO.length - 1];
-  if (!top || JSON.stringify(top) !== JSON.stringify(S)) UNDO.push(S);
-  if (UNDO.length > 30) UNDO.shift(); $('undo').disabled = false;
+  if (!top || JSON.stringify(top) !== JSON.stringify(S)) { UNDO.push(S); STARTER_UNDO.push(shownStarter); }
+  if (UNDO.length > 30) { UNDO.shift(); STARTER_UNDO.shift(); }
+  $('undo').disabled = false;
 }
 function undo() {
   var S = UNDO.pop(); if (!S) return; var was = active, at = cur;
-  fill(S); persist(); $('undo').disabled = !UNDO.length; status('Back to your previous version.');
+  var choice = STARTER_UNDO.length ? STARTER_UNDO.pop() : '';
+  fill(S); persist(); rememberStarter(choice);
+  $('undo').disabled = !UNDO.length; status('Back to your previous version.');
   if (was) start(at);
 }
 // ---------- read a composition.md into the fields (Open a file). No on-page markdown editor. ----------
@@ -489,6 +501,7 @@ function surprise() {
   var P = makeSurprise(crypto.getRandomValues(new Uint32Array(1))[0] >>> 0); if (!P) return;
   pushUndo();
   fill({t: 'Surprise in ' + P.key + ' ' + P.mode, by: '', c: P.composition, p: P.mood, sd: P.seed});
+  rememberStarter('');
   persist(); $('shareurl').hidden = true; start(0);
   status('Surprise: ' + P.key + ' ' + P.mode + ', ' + P.degrees.join(' ') + ' (seed ' + P.seed + '). Again for another; Undo goes back.');
 }
@@ -503,9 +516,10 @@ var sel = $('starter');
 (function () { var o = document.createElement('option'); o.value = 'blank'; o.textContent = 'Start from scratch (blank page)'; sel.appendChild(o); })();
 STARTERS.forEach(function (s, i) { var o = document.createElement('option'); o.value = i; o.textContent = s.name; sel.appendChild(o); });
 sel.onchange = function () { if (sel.value === '') return;
+  var choice = sel.value;
   pushUndo();
-  if (sel.value === 'blank') { fill({t: '', by: '', c: '', p: ''}); sel.value = ''; persist(); $('shareurl').hidden = true; status('Blank page. Write your Composition and how it should be performed; chord symbols you type show up under Play.'); $('title').focus(); return; }
-  var s = STARTERS[+sel.value]; fill({t: s.title, by: s.composer, c: s.composition, p: s.performance}); sel.value = ''; persist(); };
+  if (choice === 'blank') { fill({t: '', by: '', c: '', p: ''}); rememberStarter('blank'); persist(); $('shareurl').hidden = true; status('Blank page. Write your Composition and how it should be performed; chord symbols you type show up under Play.'); $('title').focus(); return; }
+  var s = STARTERS[+choice]; fill({t: s.title, by: s.composer, c: s.composition, p: s.performance}); rememberStarter(choice); persist(); };
 ['comp', 'perf'].forEach(function (id) { $(id).addEventListener('input', function () {
   if (id === 'perf') noteBurst();
   refresh(); persistSoon(); if (!timeline()) stop(); else restartSoon();
@@ -532,7 +546,7 @@ $('dlmd').onclick = function () { var S = state(); download(slug(S.t) + '.compos
 $('dlplan').onclick = function () { var S = state(), p = toPlan(S); if (!p) { status('Write some chord symbols first.', true); return; } download(slug(S.t) + '.plan.json', JSON.stringify(p, null, 1) + '\n', 'application/json'); };
 $('up').onchange = function (e) {
   var f = e.target.files[0]; if (!f) return;
-  f.text().then(function (t) { pushUndo(); fill(parseMd(t)); persist(); status('Loaded ' + f.name + '. Undo goes back.'); });
+  f.text().then(function (t) { pushUndo(); fill(parseMd(t)); rememberStarter(''); persist(); status('Loaded ' + f.name + '. Undo goes back.'); });
 };
 $('share').onclick = function () {
   var u = shareUrl(); $('shareurl').value = u; $('shareurl').hidden = false; $('shareurl').select();
