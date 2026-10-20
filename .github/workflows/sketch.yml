@@ -1,0 +1,27 @@
+name: Sketch renders
+
+on:
+  pull_request:
+  push:
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: ffmpeg and Chrome
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
+          wget -q -O /tmp/chrome.deb https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+          sudo apt-get install -y /tmp/chrome.deb
+      - name: kit 0.2.0
+        run: python -m pip install "git+https://github.com/netcomposer-art/nc-performer@dd7e28a"
+      - name: Render the downloaded Sketch
+        run: python tests/render_sketch.py

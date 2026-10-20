@@ -82,7 +82,7 @@ function refresh() {
     var s = document.createElement('span'); s.className = 'ch'; s.id = 'ch' + i;
     s.title = c.voicing.map(nn).join(' ') + ' · ' + c.path; s.textContent = prettySym(c.symbol); el.appendChild(s); el.appendChild(document.createTextNode(' '));
   });
-  $('progmeta').textContent = tl.chords.length + ' chords · ' + Math.round(tl.L / PREVIEW_TEMPO) + ' s · ' + (tl.chords[0].dur / PREVIEW_TEMPO).toFixed(1) + ' s each, 2 strikes';
+  $('progmeta').textContent = previewLen(tl.L / PREVIEW_TEMPO);
 }
 
 // ---------- play (WebAudio) ----------
@@ -110,17 +110,16 @@ function instrumentName() {
 function creditSentence() {
   return instrumentName() + ' from musicmatter.art (Petrus, CC BY-SA 4.0).';
 }
+function previewLen(sec) {
+  var s = Math.max(0, Math.round(sec));
+  if (s < 60) return s + ' s';
+  var m = Math.floor(s / 60), r = s % 60;
+  return r ? m + ' min ' + r + ' s' : m + ' min';
+}
 function showCredit() {
-  var s = $('status'), name = instrumentName();
+  var s = $('status');
   s.className = 'm';
   s.textContent = '';
-  s.appendChild(document.createTextNode(name + ' from '));
-  var home = document.createElement('a'); home.href = 'https://musicmatter.art/'; home.textContent = 'musicmatter.art';
-  s.appendChild(home);
-  s.appendChild(document.createTextNode(' (Petrus, '));
-  var lic = document.createElement('a'); lic.href = 'https://creativecommons.org/licenses/by-sa/4.0/'; lic.textContent = 'CC BY-SA 4.0';
-  s.appendChild(lic);
-  s.appendChild(document.createTextNode(').'));
 }
 function fillInstruments(list) {
   var sel = $('inst'), prev = sel.value;
@@ -182,6 +181,8 @@ function sine(v, t0, d, out) {
 }
 function toggle() { if (active) stop(); else start(0); }
 function start(from) {
+  var heard = $('perform-audio');
+  if (heard && !heard.paused) heard.pause();
   stop();
   var tl = timeline(); if (!tl) return;
   AC = AC || new (window.AudioContext || window.webkitAudioContext)(); AC.resume();
@@ -231,9 +232,9 @@ function state() { return {t: $('title').value.trim() || 'Untitled', by: $('by')
 function toMd(S) {
   var d = new Date().toISOString().slice(0, 10);
   return '# ' + S.t + '\n\n**Composer of this Composition:** ' + S.by + ' · **License out:** CC BY-SA 4.0\n' +
-    '**Allowed transforms:** trim, gain, fade, filter, reverb, delay, time_stretch (no pitch-shift)\n\n' +
+    '**Allowed transforms:** trim, gain, fade, filter, reverb, delay (no pitch-shift, no time-stretch)\n\n' +
     '## Composition\n\n' + S.c + '\n\n## Performance\n\n' + S.p + '\n\n## Material rules\n\n' +
-    '- Inputs: CC0, CC BY, CC BY-SA or public domain only.\n- No pitch-shifting. Time-stretch is fine.\n- Output license: CC BY-SA 4.0.\n\n' +
+    '- Inputs: CC0, CC BY, CC BY-SA or public domain only.\n- No pitch-shifting and no time-stretch. Trim and fade instead.\n- Output license: CC BY-SA 4.0.\n\n' +
     '## Credits\n\n- **Composition:** ' + S.by + ' (' + d + '). CC BY-SA 4.0.\n' +
     '- **Chord recordings:** ' + creditSentence() + '\n\n*Written on https://netcomposer.art/create/*\n';
 }
@@ -245,16 +246,21 @@ function toPlan(S) {
     sources[id] = {kind: 'supplier', manifest: CAT.manifest_base + c.path + '.nc.json', pitched: false};
     keys.push({t: +(c.t + 0.3).toFixed(3), source: id, offset_s: 0, dur_s: 4.3, fade_in_s: 0.02, fade_out_s: 2, gain: 0.8, role: 'chord strike (full chord set)'});
     keys.push({t: +(c.t + c.dur / 2 + 0.3).toFixed(3), source: id, offset_s: 0, dur_s: 4.3, fade_in_s: 0.02, fade_out_s: 2, gain: 0.45, role: 'chord restrike (full chord set)'});
-    pad.push({t: i ? Math.max(0, +(c.t - 1.5).toFixed(3)) : 0, source: id, offset_s: 0, src_window_s: [0.05, 3.6], stretch_to_s: +(c.dur + 4).toFixed(3), fade_in_s: i ? 3 : 4.5, fade_out_s: 4, gain: 0.6, role: 'stretched chord pad (time-stretch, no pitch-shift)'});
+    // Same hold as the kit stub: overlapped unaltered copies. No stretch_to_s.
+    var startAt = i ? Math.max(0, +(c.t - 1.5).toFixed(3)) : 0, end = startAt + c.dur + 4, t = startAt;
+    while (t < end - 0.5) {
+      pad.push({t: +t.toFixed(3), source: id, offset_s: 0, dur_s: +Math.min(4, +(end - t).toFixed(3)).toFixed(3), fade_in_s: 0.35, fade_out_s: 0.45, gain: 0.55, role: 'chord pad (unaltered copies, overlapped)'});
+      t += 3.2;
+    }
   });
   return {nc_plan_version: '0.1', id: slug(S.t), title: S.t + ' (sketch)',
     composition: {title: S.t, composer: S.by, file: 'composition.md', words_verbatim: {composition: S.c, performance: S.p}},
-    interpreter: {kind: 'stub', at: new Date().toISOString(), note: 'Sketch from netcomposer.art/create/: chord symbols found in the words, each voiced from the full chord set by voice leading, chord strikes plus a time-stretched pad. Edit it, or let an agent or `nc interpret` write a fuller plan.'},
+    interpreter: {kind: 'stub', at: new Date().toISOString(), note: 'Sketch from netcomposer.art/create/: chord symbols found in the words, each voiced from the full chord set by voice leading, chord strikes plus a pad of overlapped unaltered copies. No pitch-shift and no time-stretch. Edit it, or let an agent or `nc interpret` write a fuller plan.'},
     seed: (SEED && SEED.c === S.c) ? SEED.seed : 1, length_s: +tl.L.toFixed(3), tail_s: 4, pulse_bpm: 60, pitch_tolerance_cents: 15,
     sections: [{id: 'A', start_s: 0, end_s: +tl.L.toFixed(3), harmony: tl.unique.join(' ')}],
     chords: tl.chords.map(function (c) { return {t: c.t, dur: c.dur, symbol: c.symbol, voicing: c.voicing, section: 'A'}; }),
     sources: sources, banks: {},
-    layers: [{id: 'pad', type: 'clips', bus: 'pad', role: 'stretched chord pad', events: pad}, {id: 'keys', type: 'clips', bus: 'keys', role: 'chord strikes', events: keys}],
+    layers: [{id: 'pad', type: 'clips', bus: 'pad', role: 'chord pad from overlapped unaltered copies', events: pad}, {id: 'keys', type: 'clips', bus: 'keys', role: 'chord strikes', events: keys}],
     master: {buses: {pad: {filters: [{type: 'lp', hz: soft ? 2500 : 6000, order: 2}], lufs: -21, pan: 0.05}, keys: {filters: [{type: 'lp', hz: soft ? 3000 : 8000, order: 2}], lufs: -23, pan: -0.08}},
       reverb: {engine: 'dragonfly', send_lu: soft ? 5.3 : 1.7, params: {decay_s: soft ? 6.2 : 2.8}}, hp_hz: 30, high_shelf: {hz: 9000, db: soft ? -4.4 : -0.9}, loudness: {lufs: -17, tp: -1.5}},
     notes: ['Sketch from netcomposer.art/create/: no melody line and no triplets were read from the words; add a "notes" layer by hand or use an interpreter.',
@@ -431,11 +437,11 @@ function commitNotes() {
   if (trimmed !== notesSaved) saveNotes();
   else adoptNotes(trimmed);
 }
-// ---------- Surprise me: an 8-chord progression from a small grammar ----------
+// ---------- Surprise me: a progression from a small grammar, not always the same length ----------
 // Keys per mode are the tonics whose diatonic chords spell cleanly with the chord set's roots (C Db D Eb E F F# G Ab A Bb B).
 // Tokens are scale degrees: [semitones above the tonic, qualities from the full chord set, most likely first].
 // next[a][b] is the weight of moving from a to b: functional motion (ii-V-I, vi-IV-I-V), deceptive cadences,
-// borrowed chords (iv, bVI, bVII, bIII), secondary dominants and chromatic mediants. Chord 8 must lead back to chord 1.
+// borrowed chords (iv, bVI, bVII, bIII), secondary dominants and chromatic mediants. The last chord leads back to chord 1.
 var GRAMMAR = {
   major: {w: 3, keys: [0, 2, 3, 5, 7, 8, 10], tonic: 'I', tok: {
       I: [0, ['maj7', 'add9', '6-9', 'maj9', '6', '']], ii: [2, ['m7', 'm9', 'm11']], iii: [4, ['m7', 'm9']], IV: [5, ['maj7', 'add9', 'maj9', '6-9', 'maj7#11', '']],
@@ -446,29 +452,29 @@ var GRAMMAR = {
       V: {I: 4, vi: 2.5, bVI: 1, IV: 0.6}, vi: {IV: 3, ii: 3, V: 1.5, iii: 0.5, II7: 0.8}, iv: {I: 3, V: 1.2, bVII: 1.5, bVI: 0.7},
       bVI: {bVII: 3, V: 1, IV: 0.8, I: 1.2}, bVII: {I: 3, IV: 1.5, bVI: 0.5}, bIII: {bVI: 1.5, IV: 1, bVII: 1, ii: 0.5},
       I7: {IV: 5}, VI7: {ii: 5}, III7: {vi: 5}, II7: {V: 4}},
-    mood: ['Bright and open; let each chord ring into the next.', 'Warm and unhurried, gentle strikes, a little air between chords.', 'Clear morning light. Soft attacks, long tails.']},
+    mood: ['Bright and open; let each chord ring into the next.', 'Warm and unhurried, gentle strikes, a little air between chords.', 'Clear morning light. Soft attacks, long tails.', 'Bright and quick, then a wide open last chord.', 'Playful. A little push on the strong chords.', 'Spare. Leave air, then let it bloom.']},
   minor: {w: 2.5, keys: [9, 11, 0, 2, 4, 5, 7], tonic: 'i', tok: {
       i: [0, ['m9', 'm7', 'm-add9', 'm11', 'm']], ii0: [2, ['m7b5']], bIII: [3, ['maj7', 'add9', '6-9', 'maj9']], iv: [5, ['m9', 'm7', 'm11', 'm']], v: [7, ['m7', 'm9']],
       V: [7, ['7b9', '7', '7#9', '7b13', '7alt']], bVI: [8, ['maj7', 'add9', 'maj9', 'maj7#11']], bVII: [10, ['', '9', 'add9', '13', '9sus4']], bII: [1, ['maj7']]},
     next: {i: {iv: 3, bVI: 3, bVII: 2.5, bIII: 1.5, ii0: 1, v: 1, V: 0.8}, ii0: {V: 5}, bIII: {bVI: 2, iv: 2, bVII: 1.5, ii0: 0.5},
       iv: {bVII: 2.5, V: 2, i: 1.5, bVI: 0.8, v: 1, ii0: 0.5, bII: 0.4}, v: {bVI: 2, iv: 1.5, i: 1.5}, V: {i: 4, bVI: 2},
       bVI: {bVII: 3, V: 1.5, iv: 1, bIII: 1, i: 1, ii0: 0.7, bII: 0.4}, bVII: {i: 2.5, bIII: 2, bVI: 1, iv: 0.5}, bII: {V: 3, i: 0.5}},
-    mood: ['Dark and patient. Soft attacks, long tails.', 'Night rain. Low and warm, nothing bright.', 'Slow and serious; let the minor ninths breathe.']},
+    mood: ['Dark and patient. Soft attacks, long tails.', 'Night rain. Low and warm, nothing bright.', 'Slow and serious; let the minor ninths breathe.', 'Close and tense, with a long release at the end.', 'Dry and serious. Short attacks.', 'A cold room, one warm chord in the middle.']},
   dorian: {w: 1.5, keys: [2, 4, 5, 7, 9, 10, 0], tonic: 'i', tok: {
       i: [0, ['m9', 'm11', 'm7', 'm6-9', 'm6']], ii: [2, ['m7', 'm9', 'm11']], bIII: [3, ['maj7', 'add9', '6-9']], IV: [5, ['9', '13', '7', '']], v: [7, ['m7', 'm9', 'm11']], bVII: [10, ['add9', '6-9', '', 'maj7']]},
     next: {i: {IV: 4, bVII: 2.5, ii: 1.5, bIII: 1.5, v: 1.2}, IV: {i: 3, bVII: 1.5, v: 1, ii: 0.8}, bVII: {i: 2, IV: 2, bIII: 1, v: 0.6},
       ii: {bIII: 1.5, i: 1, v: 1, IV: 1}, bIII: {IV: 2, bVII: 1.5, ii: 0.8}, v: {bVII: 1.5, i: 1.5, IV: 1, bIII: 1}},
-    mood: ['Cool and floating, a little night air.', 'Easy groove, soft and round; let the major IV glow.', 'Smoky and slow. Gentle strikes.']},
+    mood: ['Cool and floating, a little night air.', 'Easy groove, soft and round; let the major IV glow.', 'Smoky and slow. Gentle strikes.', 'A walking pulse, nothing glossy.', 'Modal and open, the major IV as the light.', 'Restless, then it settles.']},
   lydian: {w: 1.5, keys: [5, 7, 8, 10, 0, 1, 3], tonic: 'I', tok: {
       I: [0, ['maj7#11', 'maj9', 'maj7', '6-9', 'maj13', 'add9']], II: [2, ['', 'add9', '6']], iii: [4, ['m7']], V: [7, ['maj7', 'add9', 'maj9', '']], vi: [9, ['m7', 'm9']], vii: [11, ['m7', 'm']], bVI: [8, ['maj7', 'add9']]},
     next: {I: {II: 4, V: 1.5, vi: 1.5, vii: 1, iii: 1, bVI: 0.5}, II: {I: 3, V: 1, vi: 1, iii: 1.2, vii: 1}, V: {I: 2, II: 1.5, vi: 1.5},
       vi: {II: 2, V: 1.5, vii: 1, I: 0.8}, iii: {II: 1.5, vi: 1.5, V: 1}, vii: {I: 1.5, vi: 1, II: 1}, bVI: {I: 1.5, V: 0.8}},
-    mood: ['Bright and weightless; let the #11 shimmer.', 'Wide open sky. Slow, clear, a little wonder.', 'Floating, unhurried; let the high notes ring.']},
+    mood: ['Bright and weightless; let the #11 shimmer.', 'Wide open sky. Slow, clear, a little wonder.', 'Floating, unhurried; let the high notes ring.', 'Glassy and strange. Let the #11 stay.', 'High and clear, almost weightless.', 'A slow lift, brighter than it starts.']},
   mixolydian: {w: 1.5, keys: [7, 9, 10, 0, 2, 3, 5], tonic: 'I', tok: {
       I: [0, ['add9', '6-9', '', '13', '9']], ii: [2, ['m7', 'm9']], IV: [5, ['', 'maj7', 'add9', '6-9', '6']], v: [7, ['m7', 'm9', 'm11']], vi: [9, ['m7', 'm9']], bVII: [10, ['', 'add9', '6-9', 'maj7', '6']]},
     next: {I: {bVII: 4, IV: 2.5, v: 1.5, vi: 0.8, ii: 0.8}, bVII: {IV: 3, I: 2.5, v: 0.8, vi: 0.5}, IV: {I: 3, bVII: 1.5, v: 1.2, ii: 0.5},
       v: {IV: 2, bVII: 1.5, vi: 1, I: 1}, vi: {IV: 2, v: 1, bVII: 1, ii: 1}, ii: {v: 1.5, IV: 1, bVII: 1}},
-    mood: ['Easy and sunlit, a slow sway.', 'Open road at dusk. Warm, unhurried.', 'Relaxed and bright; let the flat seven hang.']}
+    mood: ['Easy and sunlit, a slow sway.', 'Open road at dusk. Warm, unhurried.', 'Relaxed and bright; let the flat seven hang.', 'A stomp, then it loosens.', 'Folk and wide. The flat seven stays.', 'Sunny, a little dusty.']}
 };
 var QW = [5, 4, 3, 2, 1.5, 1];
 var PRETTY = {'6-9': '6/9', 'm6-9': 'm6/9', 'm-add9': 'madd9'};
@@ -478,39 +484,61 @@ function rng(seed) {   // mulberry32
   return function () { a = (a + 0x6D2B79F5) >>> 0; var t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
 }
 function wpick(r, items) { var tot = 0, i; for (i = 0; i < items.length; i++) tot += items[i][1]; var x = r() * tot; for (i = 0; i < items.length; i++) { x -= items[i][1]; if (x < 0) return items[i][0]; } return items[items.length - 1][0]; }
+var SHAPES = [
+  ['30 seconds.', 'Once, close together.'],
+  ['45 seconds.', 'One pass.'],
+  ['1 min.', 'Unhurried.'],
+  ['1 min 20 s.', 'Let the last chord hang.'],
+  ['90 seconds.', 'Two breaths.'],
+  ['2 min.', 'Room to ring.'],
+  ['2 min 30 s.', 'Long and wide.'],
+  ['3 min.', 'A long take.'],
+  ['4 min.', 'Slow, and longer than it looks.']
+];
 function progression(seed) {
-  var r = rng(seed), modes = Object.keys(GRAMMAR), mode = wpick(r, modes.map(function (m) { return [m, GRAMMAR[m].w]; })), G = GRAMMAR[mode], key = G.keys[Math.floor(r() * G.keys.length)], seq;
+  var r = rng(seed), modes = Object.keys(GRAMMAR), mode = wpick(r, modes.map(function (m) { return [m, GRAMMAR[m].w]; })), G = GRAMMAR[mode], key = G.keys[Math.floor(r() * G.keys.length)];
+  var count = wpick(r, [[4, 2], [5, 2.2], [6, 2.4], [8, 2.6], [10, 1.5], [12, 1.1]]);
+  var shape = SHAPES[Math.floor(r() * SHAPES.length)], seq = null, built = false;
   for (var tries = 0; tries < 500; tries++) {
     seq = [G.tonic];
-    for (var i = 1; i < 7; i++) {
-      var nx = G.next[seq[i - 1]], opts = [];
+    for (var i = 1; i < count - 1; i++) {
+      var nx = G.next[seq[i - 1]] || {}, opts = [];
       Object.keys(nx).forEach(function (k) {
         var w = nx[k], n = seq.filter(function (x) { return x === k; }).length;
-        if (n >= 2) w *= 0.05; if (i === 4 && k === G.tonic) w *= 2.5;
-        if (i >= 3 && k === seq[i - 2] && seq[i - 1] === seq[i - 3]) w *= 0.05;   // no A B A B see-saw   // chord 5 often returns home: two 4-chord phrases
+        if (n >= 2) w *= 0.05;
+        if (i === Math.floor(count / 2) && k === G.tonic) w *= 2.2;
+        if (i >= 3 && k === seq[i - 2] && seq[i - 1] === seq[i - 3]) w *= 0.05;
         opts.push([k, w]);
       });
+      if (!opts.length) { seq = null; break; }
       seq.push(wpick(r, opts));
     }
-    var last = [], nx7 = G.next[seq[6]];
-    Object.keys(nx7).forEach(function (k) { var back = (G.next[k] || {})[G.tonic] || 0; if (k !== G.tonic && back > 0 && seq.filter(function (x) { return x === k; }).length < 2 && !(k === seq[5] && seq[6] === seq[4])) last.push([k, nx7[k] * back * back]); });
+    if (!seq || seq.length !== count - 1) continue;
+    var last = [], prev = seq[seq.length - 1], nxL = G.next[prev] || {};
+    Object.keys(nxL).forEach(function (k) {
+      var back = (G.next[k] || {})[G.tonic] || 0;
+      if (k !== G.tonic && back > 0 && seq.filter(function (x) { return x === k; }).length < 2 && !(seq.length >= 3 && k === seq[seq.length - 2] && seq[seq.length - 1] === seq[seq.length - 3])) last.push([k, nxL[k] * back * back]);
+    });
     if (!last.length) continue;
     seq.push(wpick(r, last));
     var most = Math.max.apply(null, seq.map(function (x) { return seq.filter(function (y) { return y === x; }).length; }));
-    if (new Set(seq).size >= 4 && most <= 3) break;
+    var need = Math.min(count <= 5 ? 3 : 4, count - 1);
+    if (new Set(seq).size >= need && most <= Math.max(2, Math.ceil(count / 3))) { built = true; break; }
   }
-  var memo = {}, syms = seq.map(function (tk) {
-    var d = G.tok[tk], q = (memo[tk] && r() < 0.65) ? memo[tk] : wpick(r, d[1].map(function (x, j) { return [x, QW[j] || 1]; }));
+  if (!built) return null;
+  var stick = 0.35 + r() * 0.45, memo = {}, syms = seq.map(function (tk) {
+    var d = G.tok[tk], q = (memo[tk] && r() < stick) ? memo[tk] : wpick(r, d[1].map(function (x, j) { return [x, QW[j] || 1]; }));
     memo[tk] = memo[tk] || q; return SPELL[(key + d[0]) % 12] + q;
   });
   return {seed: seed >>> 0, key: SPELL[key], mode: mode, degrees: seq, chords: syms, pretty: syms.map(prettySym),
-    mood: G.mood[Math.floor(r() * G.mood.length)]};
+    shape: shape[0], tail: shape[1], mood: G.mood[Math.floor(r() * G.mood.length)]};
 }
 // every symbol must read back through the page's own lookup and have a recorded voicing; otherwise try the next seed
 function makeSurprise(seed) {
-  for (var k = 0; k < 50; k++, seed = (seed + 0x9E3779B9) >>> 0) {
-    var P = progression(seed), c = '2 min 8 s. ' + P.pretty.join(', ') + '. Twice through.', f = findChords(c);
-    if (f.length === 8 && f.every(function (x, i) { return x.sym === P.chords[i] && pickVoicing(x.sym, null, x.bass); })) { P.composition = c; return P; }
+  for (var k = 0; k < 80; k++, seed = (seed + 0x9E3779B9) >>> 0) {
+    var P = progression(seed); if (!P) continue;
+    var c = P.shape + ' ' + P.pretty.join(', ') + '. ' + P.tail, f = findChords(c);
+    if (f.length === P.chords.length && f.every(function (x, i) { return x.sym === P.chords[i] && pickVoicing(x.sym, null, x.bass); })) { P.composition = c; return P; }
   }
   return null;
 }
@@ -523,7 +551,7 @@ function surprise() {
   fill({t: 'Surprise in ' + P.key + ' ' + P.mode, by: '', c: P.composition, p: P.mood, sd: P.seed});
   rememberStarter('');
   persist(); $('shareurl').hidden = true;
-  status('Surprise: ' + P.key + ' ' + P.mode + ', ' + P.degrees.join(' ') + ' (seed ' + P.seed + '). Again for another; Undo goes back.');
+  status('Surprise: ' + P.key + ' ' + P.mode + ', ' + P.chords.length + ' chords, ' + P.shape.replace(/\.$/, '') + '. Again for another; Undo goes back.');
 }
 
 // ---------- perform (a hosted render drops in here later: performBtn -> render -> #perform-audio + #perform-record) ----------
@@ -557,6 +585,7 @@ $('perf').addEventListener('keydown', function (e) {
   else if (e.key === 'Escape' && $('perf').value !== notesSaved) { e.preventDefault(); cancelNotes(); }
 });
 $('spd').oninput = function () { $('spdv').textContent = (+$('spd').value).toFixed(1) + '×'; restartSoon(); };
+if ($('perf-box') && $('perf-box').tagName === 'DETAILS') $('perf-box').addEventListener('toggle', function () { if ($('perf-box').open) growNotes(); });
 $('inst').addEventListener('change', function () { $('sinenote').hidden = true; showCredit(); if (active) restartSoon(); });
 window.MM.loadIndex().then(function (cat) { fillInstruments(window.MM.instruments(cat)); }).catch(function () {
   $('inst').disabled = true;
