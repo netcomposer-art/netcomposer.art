@@ -548,6 +548,13 @@
       },
       "text": "https://netcomposer.art/composition/ambient-cm.md",
       "sha256": "0d9e75b91b02f907407f6f8fda068c79e33ee1b8caf86b6ec27eb15c5ae0739c",
+      "prior": [
+        {
+          "sha256": "70f714dcf1b6eef79451a1814095e4a8b05018417e5e1521971c6eadb2b49697",
+          "text": "https://netcomposer.art/composition/prior/ambient-cm.md",
+          "note": "The text pinned by records/ambient-cm-perf02.json and records/ambient-cm-perf03.json."
+        }
+      ],
       "length_s": 120,
       "pulse_bpm": 60,
       "harmony": {
@@ -711,6 +718,13 @@
       "composer": "Peter",
       "text": "https://netcomposer.art/composition/bwv846-harmony-only.md",
       "sha256": "8a96bb68f0bbf2b37890fd99f24325ecf0195783265431a8249f070621e6b37f",
+      "prior": [
+        {
+          "sha256": "f63acadc04937a289a2f51c96386a0ae92de8f7fba00c69a16a038632b9b43d5",
+          "text": "https://netcomposer.art/composition/prior/bwv846-harmony-only.md",
+          "note": "The text pinned by the four published BWV 846 performance records."
+        }
+      ],
       "meter": "4/4",
       "bars": 35,
       "tempo_bpm": 69,

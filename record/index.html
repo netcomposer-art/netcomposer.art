@@ -41,7 +41,7 @@ body{max-width:60rem}pre{background:#fff;border-left:2px solid #000;padding-left
 <p><code>performance</code> holds what was played and how; <code>sounds_used</code> holds every input; <code>summary</code> holds the counts; <code>record_hash</code>, <code>signature</code> and <code>amendments</code> hold integrity.</p>
 
 <h3>2. Which Composition</h3>
-<p>The record names the Composition file the Performer read and pins it by sha256, so a changed text cannot pass as the same input. (The copy published on this site carries the name amendment, so its own checksum differs; netcomposer.json lists it.)</p>
+<p>The record names the Composition file the Performer read and pins it by sha256, so a changed text cannot pass as the same input. Later copies of that file have a different checksum. The pinned text is kept, and netcomposer.json lists it under <code>prior</code> next to the current sha256.</p>
 <pre>"composition_ref": {
  &quot;composition_id&quot;: &quot;compositions/bach_bwv846_prelude_progression.md&quot;,
  &quot;sha256&quot;: &quot;f63acadc04937a289a2f51c96386a0ae92de8f7fba00c69a16a038632b9b43d5&quot;,
