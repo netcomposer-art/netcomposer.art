@@ -162,6 +162,7 @@
     clearRecord();
     $('perform-record-view').hidden = false;
     $('perform-record-view').appendChild(node('p', 'm', 'The signed record did not load. Try again in a moment.'));
+    $('perform-sources').open = true;
   }
   function showRecord(rec, id) {
     var view = $('perform-record-view');
@@ -219,6 +220,7 @@
       view.appendChild(note);
     }
     view.appendChild(node('p', 'm', 'Peter Semmelhack'));
+    if (p.title) $('perform-title').textContent = p.title;
     recordText = JSON.stringify(rec, null, 1) + '\n';
     recordName = (id || 'performance') + '.record.json';
     $('perform-json-pre').textContent = recordText;
@@ -292,13 +294,18 @@
     var flac = f.flac || (API + '/api/jobs/' + id + '/files/performance.flac');
     var rec = f.record || (API + '/records/' + id + '.json');
     var page = f.page || (API + '/records/' + id);
-    $('perform-audio').src = mp3;
+    var audio = $('perform-audio');
+    audio.crossOrigin = 'anonymous';
+    audio.src = mp3;
+    $('perform-title').textContent = (window.NC && NC.state && NC.state().t) || 'Performance';
+    $('perform-sources').open = false;
     $('perform-mp3').href = mp3;
     $('perform-flac').href = flac;
     $('perform-record').href = page;
     $('perform-record').target = '_blank';
     $('perform-record').rel = 'noopener';
     $('perform-out').hidden = false;
+    $('perform-bar').hidden = true;
     $('perform-bar').value = 100;
     $('perform-keep').textContent = 'Keep';
     $('perform-kept').hidden = true;

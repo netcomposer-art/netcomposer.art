@@ -496,7 +496,7 @@ function surprise() {
 // ---------- perform (a hosted render drops in here later: performBtn -> render -> #perform-audio + #perform-record) ----------
 var PERFORM = {available: false};
 function performStatus(t, warn) { var s = $('perform-status'); s.textContent = t; s.className = warn ? 'm warn' : 'm'; }
-function showPerformance(audioUrl, recordUrl) { $('perform-audio').src = audioUrl; $('perform-record').href = recordUrl; $('perform-out').hidden = false; }
+function showPerformance(audioUrl, recordUrl) { var a = $('perform-audio'); a.crossOrigin = 'anonymous'; a.src = audioUrl; $('perform-record').href = recordUrl; $('perform-out').hidden = false; }
 
 // ---------- wire up ----------
 var sel = $('starter');

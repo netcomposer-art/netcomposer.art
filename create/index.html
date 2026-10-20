@@ -33,7 +33,7 @@ button:disabled{color:#999;border-color:#999;cursor:default}button:focus-visible
 #perf{min-height:8.5rem;max-height:70vh;overflow:auto;resize:vertical}#notes-status{min-height:1.2em}
 input[type=range]{width:9rem;accent-color:#000}input[type=file]{font:inherit;font-size:.85rem;max-width:100%}
 pre{white-space:pre;overflow-x:auto;font:inherit;font-size:.8rem;border-left:2px solid #000;padding:.1rem 0 .1rem .8rem;margin:.6rem 0}
-code{font:inherit;overflow-wrap:anywhere;word-break:break-word}#shareurl{font-size:.8rem;margin-top:.5rem}#perform-out audio{width:100%;margin:.6rem 0 .2rem}#perf-box{scroll-margin-top:1.2rem}
+code{font:inherit;overflow-wrap:anywhere;word-break:break-word}#shareurl{font-size:.8rem;margin-top:.5rem}#perform-out audio{width:100%;margin:.35rem 0 .15rem}#perform-out #perform-title{font-size:1.05rem;margin:.85rem 0 .1rem;overflow-wrap:anywhere}#perform-sources{margin:.85rem 0 .2rem}#perform-sources>summary,#live-take>summary{cursor:pointer}#live{margin:.1rem 0 .15rem}#perf-box{scroll-margin-top:1.2rem}
 #perform-record-view{margin-top:1.1rem;border-top:1px solid #000;padding-top:.3rem;max-width:100%;font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;font-weight:400}
 #perform-record-view h3{font-size:.95rem;font-weight:600;margin:1.15rem 0 .35rem;border-bottom:1px solid #000;padding-bottom:.15rem}
 #perform-record-view .rec-row{display:grid;grid-template-columns:8.2rem minmax(0,1fr);gap:.15rem .8rem;margin:.28rem 0}
@@ -48,7 +48,7 @@ footer{max-width:46rem;margin:0 auto;padding:0 1.2rem 4rem;font-size:.85rem;colo
 #performBtn{background:#000;color:#fff;min-width:6.5rem}#performBtn:disabled{background:#fff;color:#999}#perform-bar{width:min(100%,28rem);height:.5rem;margin:.35rem 0;accent-color:#000}#perform-turnstile{margin:.5rem 0}#perform-vis{text-transform:none;letter-spacing:normal;color:#000;font-size:.95rem;display:inline-flex;margin:0}#perform h3{font-size:.95rem;margin:1.8rem 0 .4rem}#live .hack{border-left:2px solid #000;padding:.1rem 0 .3rem .8rem;margin:1rem 0}#live .hack h3{font-size:.95rem;margin:.2rem 0 .4rem}
 .dial{display:grid;grid-template-columns:7.5rem 1fr 5.5rem;align-items:center;gap:.6rem;margin:.55rem 0}.dial label{margin:0}.dial input[type=range]{width:100%;height:2rem}
 .dial output{font-size:.85rem;text-align:right;font-variant-numeric:tabular-nums}.dial select{padding:.35rem .5rem;font-size:.9rem}.dial.auto output{text-decoration:underline}
-#lplay{background:#000;color:#fff;min-width:6.5rem}#lplay:disabled{background:#fff}#lrec.on{background:#000;color:#fff}.toggle{display:inline-flex;align-items:center;gap:.4rem;font-size:.95rem;margin:.3rem .4rem}
+#lrec.on{background:#000;color:#fff}.toggle{display:inline-flex;align-items:center;gap:.4rem;font-size:.95rem;margin:.3rem .4rem}
 .toggle input{width:1.15rem;height:1.15rem;accent-color:#000}#ltake audio{width:100%;margin:.4rem 0 .1rem}
 .vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}#live label.btn{display:inline-block;font-size:.95rem;text-transform:none;letter-spacing:normal;color:#000;margin:.3rem .4rem .3rem 0}#live .vh:focus-visible+label.btn{outline:2px solid #000;outline-offset:2px}
 #llog,#lconflict{border-left:2px solid #000;padding:.1rem 0 .2rem .8rem;margin:.8rem 0}#lconflict p{margin:.2rem 0 .3rem}
@@ -105,25 +105,10 @@ footer{max-width:46rem;margin:0 auto;padding:0 1.2rem 4rem;font-size:.85rem;colo
 <p class="m" id="perform-status" aria-live="polite">Checking whether Perform is awake…</p>
 <progress id="perform-bar" hidden max="100" value="0"></progress>
 <div id="perform-out" hidden>
-<audio id="perform-audio" controls preload="none"></audio>
-<div class="row"><a class="btn" id="perform-mp3" href="#">MP3</a><a class="btn" id="perform-flac" href="#">FLAC</a><a class="btn" id="perform-record" href="#" target="_blank" rel="noopener">Signed record</a><button type="button" id="perform-keep" disabled>Keep</button></div>
-<p class="m" id="perform-keep-note">Keep holds the audio past 90 days. It stays unlisted.</p>
-<p class="m" id="perform-kept" hidden></p>
-<p class="m" id="perform-claim" hidden></p>
-<p class="m" id="perform-meta"></p>
-<div id="perform-record-view" hidden></div>
-<details id="perform-json" hidden>
-<summary>Show signed JSON</summary>
-<div class="row"><button type="button" id="perform-json-copy">Copy</button><button type="button" id="perform-json-dl">Download</button></div>
-<pre id="perform-json-pre" tabindex="0"></pre>
-</details>
-<p class="m"><a href="#perf-box" id="perform-edit">Change the prompt</a>, then press Perform again. Or ride the dials below.</p>
-</div>
+<h3 id="perform-title"></h3>
+<audio id="perform-audio" controls preload="metadata" crossorigin="anonymous"></audio>
 <section id="live" hidden>
-<h3 id="live-h">Live</h3>
-<p>You at the dials. Your Performance loops; ride two hacks while it plays.</p>
-<p class="m" id="lsrc"></p>
-<div class="row"><button id="lplay" type="button" disabled>Play</button><label class="toggle"><input id="lloop" type="checkbox" checked> Loop</label></div>
+<label class="toggle" for="lloop"><input id="lloop" type="checkbox" checked> Loop</label>
 <div class="hack" id="hack-lp">
 <h3>Low-pass filter</h3>
 <div class="dial"><label for="lcut">Cutoff</label><input id="lcut" type="range" min="0" max="100" step="1" value="0"><output id="lcutv" for="lcut">open</output></div>
@@ -136,12 +121,34 @@ footer{max-width:46rem;margin:0 auto;padding:0 1.2rem 4rem;font-size:.85rem;colo
 <div class="dial"><label for="lmix">Wet/dry</label><input id="lmix" type="range" min="0" max="100" step="1" value="25"><output id="lmixv" for="lmix">25% wet</output></div>
 <p class="m">Note values of this Performance. 60 BPM until the record names a tempo.</p>
 </div>
+<p class="m" id="lstatus" aria-live="polite"></p>
+</section>
+<div class="row"><button type="button" id="perform-keep" disabled>Keep</button></div>
+<p class="m" id="perform-keep-note">Keep holds the audio past 90 days. It stays unlisted.</p>
+<p class="m" id="perform-kept" hidden></p>
+<details id="perform-sources">
+<summary>Record &amp; sources</summary>
+<div class="row"><a class="btn" id="perform-mp3" href="#">MP3</a><a class="btn" id="perform-flac" href="#">FLAC</a><a class="btn" id="perform-record" href="#" target="_blank" rel="noopener">Signed record</a></div>
+<p class="m" id="perform-claim" hidden></p>
+<p class="m" id="perform-meta"></p>
+<p class="m" id="lsrc"></p>
+<div id="perform-record-view" hidden></div>
+<details id="perform-json" hidden>
+<summary>Show signed JSON</summary>
+<div class="row"><button type="button" id="perform-json-copy">Copy</button><button type="button" id="perform-json-dl">Download</button></div>
+<pre id="perform-json-pre" tabindex="0"></pre>
+</details>
+<details id="live-take">
+<summary>Record a take</summary>
 <div class="row"><button id="lrec" type="button" disabled>● Record</button><button id="lclear" type="button" disabled>Clear</button><button id="ldl" type="button" disabled>Download</button><button id="lcancel" type="button" disabled>Cancel</button><input id="lup" class="vh" type="file" accept=".json,application/json"><label class="btn" for="lup">Upload dial log</label></div>
 <div id="lconflict" hidden><p id="lconflictmsg"></p><button id="lloadperf" type="button">Load that Performance</button><button id="lconfcancel" type="button">Cancel</button></div>
 <div id="llog" hidden><p class="m" id="llogmeta"></p><button id="lreplay" type="button" disabled>▶ Replay moves</button><button id="lforget" type="button">Put the log away</button><p class="m">Replay starts this Performance and moves the dials as logged. Touch a dial to take it over. Record during a replay to make a new take.</p></div>
-<p class="m" id="lstatus" aria-live="polite">Press Play, then Record when you are ready. A take is a WAV of this Performance through the dials, plus a dial log, up to 10 minutes.</p>
+<p class="m">A take is a WAV of this Performance through the dials, plus a dial log, up to 10 minutes.</p>
 <div id="ltake" hidden><audio id="ltakeaudio" controls></audio><p class="m" id="ltakemeta"></p></div>
-</section>
+</details>
+<p class="m"><a href="#perf-box" id="perform-edit">Change the prompt</a>, then press Perform again.</p>
+</details>
+</div>
 </section>
 
 <section class="further" id="further">
