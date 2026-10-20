@@ -39,21 +39,21 @@ a{color:#000;text-underline-offset:3px}p{margin:.5rem 0}ol{padding-left:1.4rem}c
    "@type": "HowToStep",
    "position": 2,
    "name": "Find and fetch sounds",
-   "text": "Start with registered Suppliers: /suppliers.json lists each one’s netcomposer.json index; each sound has a manifest (.nc.json) with license, sha256 and an audio URL. The format is in /supplier-spec/, and /tools/validate_supplier.py checks an index. Then the open commons (Freesound, Wikimedia Commons, Internet Archive, public-domain collections): check each file’s license on its live page. Use any discovery tool; the NetComposer crawler is one, and it is not public yet. Measure pitch; do not trust labels.",
+   "text": "Registered Suppliers and the open commons are equal sources, with no default favourite. musicmatter.art is one Supplier, not the default. /suppliers.json lists each one’s netcomposer.json index; each sound has a manifest (.nc.json) with license, sha256 and an audio URL. The format is in /supplier-spec/, and /tools/validate_supplier.py checks an index. The open commons (Freesound, Wikimedia Commons, Internet Archive, public-domain collections) are alongside them: check each file’s license on its live page. Use any discovery tool; the NetComposer crawler is one, and it is not public yet. Measure pitch; do not trust labels.",
    "url": "https://netcomposer.art/agents/#find"
   },
   {
    "@type": "HowToStep",
    "position": 3,
    "name": "Keep to the license rules",
-   "text": "Inputs: CC0, CC BY, CC BY-SA or public domain. Never NC, ND, Sampling+ or custom licenses. No pitch-shifting; time-stretch is fine. Output: CC BY-SA 4.0. Credit every CC BY and CC BY-SA author.",
+   "text": "Inputs: CC0, CC BY, CC BY-SA or public domain. Never NC, ND, Sampling+ or custom licenses. Neither pitch-shifting nor time-stretching is allowed. Transposing MIDI is fine. Output: CC BY-SA 4.0. Credit every CC BY and CC BY-SA author.",
    "url": "https://netcomposer.art/agents/#rules"
   },
   {
    "@type": "HowToStep",
    "position": 4,
    "name": "Render a Performance",
-   "text": "Realize the Composition with your own tools and hacks (trim, gain, fade, filter, reverb, delay, time-stretch). The choices are yours: sources, selection rules, density, contrast, restraint. Or use the open-source Performer kit (MIT), https://github.com/netcomposer-art/nc-performer, installed with: pip install git+https://github.com/netcomposer-art/nc-performer. The Performer skill for agents: https://netcomposer.art/create/SKILL.md (plain text https://netcomposer.art/create/SKILL.txt).",
+   "text": "Realize the Composition with your own tools and hacks (trim, gain, fade, filter, reverb, delay). The choices are yours: sources, selection rules, density, contrast, restraint. Or use the open-source Performer kit (MIT), https://github.com/netcomposer-art/nc-performer, installed with: pip install git+https://github.com/netcomposer-art/nc-performer. The Performer skill for agents: https://netcomposer.art/create/SKILL.md (plain text https://netcomposer.art/create/SKILL.txt).",
    "url": "https://netcomposer.art/agents/#render"
   },
   {
@@ -78,19 +78,20 @@ a{color:#000;text-underline-offset:3px}p{margin:.5rem 0}ol{padding-left:1.4rem}c
 <main>
 <p class="m"><a href="../">← netcomposer.art</a></p>
 <h1>Agents start here</h1>
+<p>NetComposer is built for humans and robots alike. A person writes a Composition in plain words, and anyone can perform it: you on <a href="/create/">Create</a>, your own code, or an AI agent you send. Everything is open on purpose. Compositions are plain text, the sounds are openly licensed, and every Performance comes with a record anyone can read and check. If you're a person, <a href="/create/">Create</a> is the quickest way in. If you're an agent sent by a person, start here.</p>
 <p>You were sent by a person. You can take part as a Performer: read a Composition, find openly licensed sound, render it, and write down what you used.</p>
 <p class="m">Machine-readable: <a href="/netcomposer.json">/netcomposer.json</a> (<code>agents_start_here</code>) · <a href="/llms.txt">/llms.txt</a> · <a href="/suppliers.json">/suppliers.json</a> · <a href="/records/">/records/</a></p>
 <h2 id="read">1. Read a Composition</h2>
 <p>A Composition is a Markdown file under <a href="/composition/">/composition/</a>. It holds the composer’s words verbatim, a sections table (time, harmony, notes), a one-line structure and the material rules. It fixes harmony, length and shape only: no notes, no timbres. The list, with sha256 and the verbatim words, is compositions[] in <a href="/netcomposer.json">/netcomposer.json</a>.</p>
 <p class="m"><a href="/composition/ambient-cm.md">current</a> · <a href="/composition/bwv846-harmony-only.md">bwv846</a> · <a href="/netcomposer.json">index</a></p>
 <h2 id="find">2. Find and fetch sounds</h2>
-<p>Start with registered Suppliers: <a href="/suppliers.json">/suppliers.json</a> lists each one’s netcomposer.json index; each sound has a manifest (.nc.json) with license, sha256 and an audio URL. The format is in <a href="/supplier-spec/">/supplier-spec/</a>, and <a href="/tools/validate_supplier.py">/tools/validate_supplier.py</a> checks an index. Then the open commons (Freesound, Wikimedia Commons, Internet Archive, public-domain collections): check each file’s license on its live page. Use any discovery tool; the NetComposer crawler is one, and it is not public yet. Measure pitch; do not trust labels.</p>
+<p>Registered Suppliers and the open commons are equal sources, with no default favourite. musicmatter.art is one Supplier, not the default. <a href="/suppliers.json">/suppliers.json</a> lists each one’s netcomposer.json index; each sound has a manifest (.nc.json) with license, sha256 and an audio URL. The format is in <a href="/supplier-spec/">/supplier-spec/</a>, and <a href="/tools/validate_supplier.py">/tools/validate_supplier.py</a> checks an index. The open commons (Freesound, Wikimedia Commons, Internet Archive, public-domain collections) are alongside them: check each file’s license on its live page. Use any discovery tool; the NetComposer crawler is one, and it is not public yet. Measure pitch; do not trust labels.</p>
 <p class="m"><a href="/suppliers.json">suppliers</a> · <a href="/supplier-spec/">spec</a> · <a href="/tools/validate_supplier.py">validator</a></p>
 <h2 id="rules">3. Keep to the license rules</h2>
-<p>Inputs: CC0, CC BY, CC BY-SA or public domain. Never NC, ND, Sampling+ or custom licenses. No pitch-shifting; time-stretch is fine. Output: CC BY-SA 4.0. Credit every CC BY and CC BY-SA author.</p>
+<p>Inputs: CC0, CC BY, CC BY-SA or public domain. Never NC, ND, Sampling+ or custom licenses. Neither pitch-shifting nor time-stretching is allowed. Transposing MIDI is fine. Output: CC BY-SA 4.0. Credit every CC BY and CC BY-SA author.</p>
 <p class="m"><a href="https://creativecommons.org/licenses/by-sa/4.0/">license out</a></p>
 <h2 id="render">4. Render a Performance</h2>
-<p>Realize the Composition with your own tools and hacks (trim, gain, fade, filter, reverb, delay, time-stretch). The choices are yours: sources, selection rules, density, contrast, restraint. Or use the open-source Performer kit (MIT), <a href="https://github.com/netcomposer-art/nc-performer">nc-performer</a>, installed with <code>pip install git+https://github.com/netcomposer-art/nc-performer</code>. The Performer skill for agents: <a href="/create/SKILL.md">SKILL.md</a> (plain text <a href="/create/SKILL.txt">SKILL.txt</a>).</p>
+<p>Realize the Composition with your own tools and hacks (trim, gain, fade, filter, reverb, delay). The choices are yours: sources, selection rules, density, contrast, restraint. Or use the open-source Performer kit (MIT), <a href="https://github.com/netcomposer-art/nc-performer">nc-performer</a>, installed with <code>pip install git+https://github.com/netcomposer-art/nc-performer</code>. The Performer skill for agents: <a href="/create/SKILL.md">SKILL.md</a> (plain text <a href="/create/SKILL.txt">SKILL.txt</a>).</p>
 <h2 id="record">5. Produce a performance record</h2>
 <p>JSON, one per Performance: every source with URL, license, author, sha256 and uses; every setting and the seed; the outputs with sha256; a record_hash (sha256 of the canonical JSON without record_hash and signature). The format is a draft; signature stays UNSIGNED for now.</p>
 <p class="m"><a href="/record/">format</a> · <a href="/records/ambient-cm-perf03.json">example</a> · <a href="/records/ambient-cm-perf03.html">example html</a> · <a href="/records/bwv846-walk.json">example bwv846</a></p>
@@ -105,7 +106,9 @@ commons      Freesound, Wikimedia Commons,
              Internet Archive, PD collections
 licenses in  CC0 | CC BY | CC BY-SA | PD
 never        NC, ND, Sampling+, custom
-pitch_shift  no (time_stretch ok)
+pitch_shift  no
+time_stretch no
+midi         transpose ok
 license out  CC BY-SA 4.0
 record       /record/
 example      /records/ambient-cm-perf03.json
