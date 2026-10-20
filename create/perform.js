@@ -101,12 +101,26 @@
     s.appendChild(node('span', 'story-line', head));
     foundLines(j).forEach(function (line) { s.appendChild(node('span', 'story-line', line)); });
   }
+  function footSources(sounds) {
+    var el = $('foot-src');
+    if (!el) return;
+    var names = [], seen = {};
+    (Array.isArray(sounds) ? sounds : []).forEach(function (s) {
+      if (!s || typeof s !== 'object') return;
+      var name = asOrigin(s.source) || asOrigin(s.supplier);
+      if (!name || seen[name]) return;
+      seen[name] = 1;
+      names.push(name);
+    });
+    el.textContent = names.length ? names.join(', ') : 'sounds from openly licensed sources';
+  }
   function clearTake() {
     take = null;
     takeHeard = false;
     var bar = $('src-time');
     if (bar) { bar.hidden = true; bar.textContent = ''; }
     showTrim('');
+    footSources([]);
   }
   function armTake(rec) {
     take = null;
@@ -356,6 +370,7 @@
       view.appendChild(note);
     }
     view.appendChild(node('p', 'm', 'Peter Semmelhack'));
+    footSources(sounds);
     armTake(rec);
     if (p.title) $('perform-title').textContent = p.title;
     recordText = JSON.stringify(rec, null, 1) + '\n';

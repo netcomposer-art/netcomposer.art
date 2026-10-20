@@ -82,7 +82,7 @@ function refresh() {
     var s = document.createElement('span'); s.className = 'ch'; s.id = 'ch' + i;
     s.title = c.voicing.map(nn).join(' ') + ' · ' + c.path; s.textContent = prettySym(c.symbol); el.appendChild(s); el.appendChild(document.createTextNode(' '));
   });
-  $('progmeta').textContent = tl.chords.length + ' chords · ' + Math.round(tl.L / PREVIEW_TEMPO) + ' s · ' + (tl.chords[0].dur / PREVIEW_TEMPO).toFixed(1) + ' s each, 2 strikes';
+  $('progmeta').textContent = previewLen(tl.L / PREVIEW_TEMPO);
 }
 
 // ---------- play (WebAudio) ----------
@@ -110,17 +110,16 @@ function instrumentName() {
 function creditSentence() {
   return instrumentName() + ' from musicmatter.art (Petrus, CC BY-SA 4.0).';
 }
+function previewLen(sec) {
+  var s = Math.max(0, Math.round(sec));
+  if (s < 60) return s + ' s';
+  var m = Math.floor(s / 60), r = s % 60;
+  return r ? m + ' min ' + r + ' s' : m + ' min';
+}
 function showCredit() {
-  var s = $('status'), name = instrumentName();
+  var s = $('status');
   s.className = 'm';
   s.textContent = '';
-  s.appendChild(document.createTextNode(name + ' from '));
-  var home = document.createElement('a'); home.href = 'https://musicmatter.art/'; home.textContent = 'musicmatter.art';
-  s.appendChild(home);
-  s.appendChild(document.createTextNode(' (Petrus, '));
-  var lic = document.createElement('a'); lic.href = 'https://creativecommons.org/licenses/by-sa/4.0/'; lic.textContent = 'CC BY-SA 4.0';
-  s.appendChild(lic);
-  s.appendChild(document.createTextNode(').'));
 }
 function fillInstruments(list) {
   var sel = $('inst'), prev = sel.value;
