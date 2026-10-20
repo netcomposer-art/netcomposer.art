@@ -389,7 +389,7 @@ function fill(S) {
 function b64e(s) { return btoa(unescape(encodeURIComponent(s))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); }
 function b64d(s) { s = s.replace(/-/g, '+').replace(/_/g, '/'); while (s.length % 4) s += '='; return decodeURIComponent(escape(atob(s))); }
 // The work in progress lives in the page address (#c=…): written as you edit, read on load.
-// A visit with no #c= starts empty. There is no localStorage. Share links, a refresh of a page that already has #c=, and any record link that uses that hash still fill the fields.
+// A visit with no #c= starts empty. The Composition is not stored. Share links, a refresh of a page that already has #c=, and any record link that uses that hash still fill the fields. The only localStorage key is nc_tester, for a hidden tester pass.
 function raw() { var S = {t: $('title').value, by: $('by').value, c: $('comp').value, p: $('perf').value}; if (SEED && SEED.c === S.c) S.sd = SEED.seed; return S; }
 var persistT = null;
 function persist() { clearTimeout(persistT); persistT = null; history.replaceState(null, '', location.href.split('#')[0] + '#c=' + b64e(JSON.stringify(raw()))); }
