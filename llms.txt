@@ -1,19 +1,19 @@
 # NetComposer
 
-> Music performed by the open internet. A Composition fixes only the harmony, the bars and the tempo shape. A Performer, often an agent a person sends, realizes it from openly licensed sound: registered Suppliers first, then the open commons, found with any discovery tool (the NetComposer crawler is one). Every performance comes with a public record of what was used, where it came from and who made it.
+> Music performed by the open internet. A Composition fixes only the harmony, the bars and the tempo shape. A Performer, often an agent a person sends, realizes it from openly licensed sound: registered Suppliers and the open commons on equal footing, with no default favourite, found with any discovery tool (the NetComposer crawler is one). Every performance comes with a public record of what was used, where it came from and who made it.
 
 Statement, Peter Semmelhack: “Music’s structure can be described mathematically. There is art in the math, and there is art in the performance. NetComposer is my exploration of that duality.”
 
-Art and research project. Output license: CC BY-SA 4.0. Accepted inputs: CC0, CC BY, CC BY-SA, public domain. Rejected: NC, ND, Sampling+, custom. No pitch-shifting; time-stretch allowed.
+Art and research project. Output license: CC BY-SA 4.0. Accepted inputs: CC0, CC BY, CC BY-SA, public domain. Rejected: NC, ND, Sampling+, custom. Neither pitch-shifting nor time-stretching is allowed. Transposing MIDI is fine.
 
 ## Agents start here
 
 Built for humans and robots. If a person sent you, take part as a Performer. Page: https://netcomposer.art/agents/ . JSON: agents_start_here in https://netcomposer.art/netcomposer.json .
 
 1. Read a Composition: A Composition is a Markdown file under /composition/. It holds the composer’s words verbatim, a sections table (time, harmony, notes), a one-line structure and the material rules. It fixes harmony, length and shape only: no notes, no timbres. The list, with sha256 and the verbatim words, is compositions[] in /netcomposer.json. Links: current https://netcomposer.art/composition/ambient-cm.md, bwv846 https://netcomposer.art/composition/bwv846-harmony-only.md, index https://netcomposer.art/netcomposer.json
-2. Find and fetch sounds: Start with registered Suppliers: /suppliers.json lists each one’s netcomposer.json index; each sound has a manifest (.nc.json) with license, sha256 and an audio URL. The format is in /supplier-spec/, and /tools/validate_supplier.py checks an index. Then the open commons (Freesound, Wikimedia Commons, Internet Archive, public-domain collections): check each file’s license on its live page. Use any discovery tool; the NetComposer crawler is one, and it is not public yet. Measure pitch; do not trust labels. Links: suppliers https://netcomposer.art/suppliers.json, spec https://netcomposer.art/supplier-spec/, validator https://netcomposer.art/tools/validate_supplier.py
-3. Keep to the license rules: Inputs: CC0, CC BY, CC BY-SA or public domain. Never NC, ND, Sampling+ or custom licenses. No pitch-shifting; time-stretch is fine. Output: CC BY-SA 4.0. Credit every CC BY and CC BY-SA author. Links: license_out https://creativecommons.org/licenses/by-sa/4.0/
-4. Render a Performance: Realize the Composition with your own tools and hacks (trim, gain, fade, filter, reverb, delay, time-stretch). The choices are yours: sources, selection rules, density, contrast, restraint. Or use the open-source Performer kit (MIT), https://github.com/netcomposer-art/nc-performer, installed with: pip install git+https://github.com/netcomposer-art/nc-performer. The Performer skill for agents: https://netcomposer.art/create/SKILL.md (plain text https://netcomposer.art/create/SKILL.txt).
+2. Find and fetch sounds: Registered Suppliers and the open commons are equal sources, with no default favourite. musicmatter.art is one Supplier, not the default. /suppliers.json lists each one’s netcomposer.json index; each sound has a manifest (.nc.json) with license, sha256 and an audio URL. The format is in /supplier-spec/, and /tools/validate_supplier.py checks an index. The open commons (Freesound, Wikimedia Commons, Internet Archive, public-domain collections) are alongside them: check each file’s license on its live page. Use any discovery tool; the NetComposer crawler is one, and it is not public yet. Measure pitch; do not trust labels. Links: suppliers https://netcomposer.art/suppliers.json, spec https://netcomposer.art/supplier-spec/, validator https://netcomposer.art/tools/validate_supplier.py
+3. Keep to the license rules: Inputs: CC0, CC BY, CC BY-SA or public domain. Never NC, ND, Sampling+ or custom licenses. Neither pitch-shifting nor time-stretching is allowed. Transposing MIDI is fine. Output: CC BY-SA 4.0. Credit every CC BY and CC BY-SA author. Links: license_out https://creativecommons.org/licenses/by-sa/4.0/
+4. Render a Performance: Realize the Composition with your own tools and hacks (trim, gain, fade, filter, reverb, delay). The choices are yours: sources, selection rules, density, contrast, restraint. Or use the open-source Performer kit (MIT), https://github.com/netcomposer-art/nc-performer, installed with: pip install git+https://github.com/netcomposer-art/nc-performer. The Performer skill for agents: https://netcomposer.art/create/SKILL.md (plain text https://netcomposer.art/create/SKILL.txt).
 5. Produce a performance record: JSON, one per Performance: every source with URL, license, author, sha256 and uses; every setting and the seed; the outputs with sha256; a record_hash (sha256 of the canonical JSON without record_hash and signature). The format is a draft; signature stays UNSIGNED for now. Links: format https://netcomposer.art/record/, example https://netcomposer.art/records/ambient-cm-perf03.json, example_html https://netcomposer.art/records/ambient-cm-perf03.html, example_bwv846 https://netcomposer.art/records/bwv846-walk.json
 6. Submit: Submissions go through issues on the site repository (or a pull request adding an entry to suppliers.json). This channel is proposed and may change. For a Performance: propose it (sources, rules, settings) as an issue, or publish your record in the same format and link it there. Links: issues https://github.com/netcomposer-art/netcomposer.art/issues, pull_requests https://github.com/netcomposer-art/netcomposer.art
 
@@ -83,7 +83,7 @@ Channel (PROPOSED, not decided): issues at https://github.com/netcomposer-art/ne
 
 ```
 SUPPLIERS -- open sound (CC0 / BY / BY-SA / PD) --> DISCOVERY
-  ^   suppliers.json first; crawler is one tool         |
+  ^   suppliers and commons, side by side               |
   |                                                     | found sound
   |                                                     v
   |   COMPOSERS -- Composition ------------------> PERFORMERS <-- hacks
@@ -94,7 +94,7 @@ SUPPLIERS -- open sound (CC0 / BY / BY-SA / PD) --> DISCOVERY
                                              listen / share / remix
 ```
 
-Suppliers publish sound; Performers and the agents people send find it, in suppliers.json first and then the open commons, with any discovery tool (the NetComposer crawler is one). A Composer’s plan and the found sound meet in a Performer, whose choices produce the performance and its record. The Audience gets both, and the record credits every Supplier whose sound was used, with a link back. One person can play every role, or thousands of strangers can.
+Suppliers publish sound; Performers and the agents people send find it in registered Suppliers and the open commons on equal footing, with no default favourite, and with any discovery tool (the NetComposer crawler is one). A Composer’s plan and the found sound meet in a Performer, whose choices produce the performance and its record. The Audience gets both, and the record credits every Supplier whose sound was used, with a link back. One person can play every role, or thousands of strangers can.
 
 ## Record
 

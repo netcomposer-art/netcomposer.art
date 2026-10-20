@@ -3,7 +3,7 @@
 **Composer of this Composition:** Peter · **License out:** CC BY-SA 4.0
 **Meter:** 4/4 · **Tempo:** quarter note ≈ 69 BPM (tolerance ±3) · **Length:** 35 bars, about 2 minutes
 **Directionality:** 0.3 (stay close to the chords; textures are welcome if the harmony is right)
-**Allowed transforms:** trim, gain, fade, time_stretch
+**Allowed transforms:** trim, gain, fade (no pitch-shift, no time-stretch)
 
 ## Prose
 

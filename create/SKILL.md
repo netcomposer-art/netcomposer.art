@@ -15,7 +15,7 @@ local agents). It follows https://netcomposer.art/agents/. Published at https://
 
 1. Inputs only **CC0, CC BY, CC BY-SA or public domain**. Never NC, ND, Sampling+ or custom licenses.
    Check each license on the sound's **live page or manifest**, not from a search result or memory.
-2. **No pitch-shifting and no time-stretch.** Hold a chord by overlapping unaltered copies. Trim and fade.
+2. **Neither pitch-shifting nor time-stretching is allowed.** Transposing MIDI is fine. Hold a chord by overlapping unaltered copies. Trim and fade.
 3. **Measure pitch**; do not trust file names or tags. Use a sound for a note only if it measures as
    that note (within about 15 cents).
 4. Output license **CC BY-SA 4.0**. Credit every CC BY and CC BY-SA author by name.
@@ -77,12 +77,13 @@ nc perform composition.md -o out/           # or any OpenAI-compatible LLM via N
 
 **By hand** (any tools), in this order:
 
-1. Fetch each sound. Suppliers first: https://netcomposer.art/suppliers.json -> the Supplier's index ->
-   the manifest (license, sha256, audio URL). Check the sha256. Then the open commons (Freesound,
-   Wikimedia Commons, Internet Archive, public-domain collections); read the license on the live page.
+1. Fetch each sound. Registered Suppliers and the open commons are equal, with no default favourite.
+   musicmatter.art is one Supplier, not the default. https://netcomposer.art/suppliers.json -> the Supplier's index ->
+   the manifest (license, sha256, audio URL). Check the sha256. The open commons (Freesound,
+   Wikimedia Commons, Internet Archive, public-domain collections) sit alongside them; read the license on the live page.
    Freesound originals need OAuth2; the public HQ previews are fine, say so in the record.
 2. Measure every pitched sound (pYIN or similar; FFT for bells). Drop any that is not the note.
-3. Place, trim and fade (never pitch-shift, never time-stretch), filter, add delay and reverb. Name the reverb tool and its
+3. Place, trim and fade, filter, add delay and reverb. Do not pitch-shift or time-stretch. Transposing MIDI is fine. Name the reverb tool and its
    version in the record; a convolution impulse response is an input like any other (license, author, sha256).
 4. Master to -17 LUFS integrated, true peak <= -1 dBTP: linear gain, then a true-peak limiter (4x oversampled)
    only where a peak would pass the ceiling. Avoid ffmpeg `loudnorm`: it can switch to dynamic mode on its own. Write FLAC

@@ -234,7 +234,7 @@ function toMd(S) {
   return '# ' + S.t + '\n\n**Composer of this Composition:** ' + S.by + ' · **License out:** CC BY-SA 4.0\n' +
     '**Allowed transforms:** trim, gain, fade, filter, reverb, delay (no pitch-shift, no time-stretch)\n\n' +
     '## Composition\n\n' + S.c + '\n\n## Performance\n\n' + S.p + '\n\n## Material rules\n\n' +
-    '- Inputs: CC0, CC BY, CC BY-SA or public domain only.\n- No pitch-shifting and no time-stretch. Trim and fade instead.\n- Output license: CC BY-SA 4.0.\n\n' +
+    '- Inputs: CC0, CC BY, CC BY-SA or public domain only.\n- Neither pitch-shifting nor time-stretching is allowed. Transposing MIDI is fine.\n- Output license: CC BY-SA 4.0.\n\n' +
     '## Credits\n\n- **Composition:** ' + S.by + ' (' + d + '). CC BY-SA 4.0.\n' +
     '- **Chord recordings:** ' + creditSentence() + '\n\n*Written on https://netcomposer.art/create/*\n';
 }

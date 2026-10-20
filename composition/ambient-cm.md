@@ -3,7 +3,7 @@
 **Composer of this Composition:** Peter · **License out:** CC BY-SA 4.0
 **Meter:** free / ambient (performer pulse: quarter note = 60 BPM) · **Length:** about 2 minutes
 **Directionality:** 0.4 (keep the chords and the C–F–G line; timbre, voicing and pacing are the Performer's)
-**Allowed transforms:** trim, gain, fade, filter, reverb, delay, time_stretch (no pitch-shift)
+**Allowed transforms:** trim, gain, fade, filter, reverb, delay (no pitch-shift, no time-stretch)
 
 ## Composer's words (verbatim)
 
@@ -34,7 +34,7 @@ harsh or bright, no clipping. Don't rush it.
 ## Material rules
 
 - Inputs: CC0, CC BY, CC BY-SA or public domain only. Peter's own musicmatter.art sounds are preferred.
-- No pitch-shifting. Time-stretch is fine.
+- Neither pitch-shifting nor time-stretching is allowed. Transposing MIDI is fine.
 - Output license: CC BY-SA 4.0.
 
 ## Credits
