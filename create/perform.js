@@ -965,9 +965,10 @@
     }, function () { gatherStopped(); });
   }
   function post(S, tok) {
+    // The Play instrument picker is only the chord preview. Do not send it.
+    // The ensemble comes from the performance prompt, or the server picks one.
     var body = {
       title: S.t, composer: S.by, composition: S.c, performance: S.p,
-      instrument: instrumentHint() || undefined,
       visibility: $('perform-public').checked ? 'public' : 'unlisted',
       turnstile_token: tok || undefined,
       perform_again: !!jobId
@@ -1252,14 +1253,9 @@
     heard.addEventListener('play', function () { stopPreview(); takeHeard = true; if (window.NC && NC.stop) NC.stop(); followTake(); });
     ['timeupdate', 'seeked', 'pause', 'ended'].forEach(function (ev) { heard.addEventListener(ev, followTake); });
   }
-  function instrumentHint() {
-    if (!window.NC || !NC.instrument) return '';
-    var text = String(NC.instrument() || '').trim();
-    return /^[A-Za-z0-9][A-Za-z0-9 ._-]{0,39}$/.test(text) ? text : '';
-  }
   var playBtn = $('play');
   if (playBtn) playBtn.addEventListener('click', stopPreview);
-  window.NCPerform = { api: API, messageFor: messageFor, go: go, post: post, showDone: showDone, fail: fail, audioMiss: audioMiss, showRecord: showRecord, foundLines: foundLines, showStory: showStory, seed: function () { return serverSeed; }, instrumentHint: instrumentHint };
+  window.NCPerform = { api: API, messageFor: messageFor, go: go, post: post, showDone: showDone, fail: fail, audioMiss: audioMiss, showRecord: showRecord, foundLines: foundLines, showStory: showStory, seed: function () { return serverSeed; } };
   var booted = false;
   var wait = setInterval(function () {
     if (!document.body.getAttribute('data-ready') || booted) return;
