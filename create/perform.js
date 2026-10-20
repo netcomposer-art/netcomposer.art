@@ -4,6 +4,10 @@
   var API = 'https://nc-perform-api.psemme.workers.dev';
   function $(id) { return document.getElementById(id); }
   var cfg = null, widget = null, token = null, jobId = null, es = null, pollT = null, busy = false, running = false, alive = 0, stopping = false, cancelOk = true;
+  var gatherOn = false, gatherId = '', gatherClaim = '', gatherJobId = '', gatherSounds = null, phase = '', gatherGen = 0, gatherAbort = null;
+  var preview = new Audio(), previewBtn = null;
+  preview.preload = 'none';
+  preview.addEventListener('ended', function () { stopPreview(); });
 
   function status(t, warn) {
     var clean = soften(t);
@@ -29,9 +33,26 @@
   }
   function idle() {
     busy = false;
-    $('performBtn').disabled = !(cfg && cfg.perform_enabled);
-    $('performBtn').textContent = jobId ? 'Perform again' : 'Perform';
     $('perform-public').disabled = false;
+    syncActions();
+  }
+  function syncActions() {
+    var gBtn = $('gatherBtn'), pBtn = $('performBtn'), again = $('gather-again'), box = $('gather-box');
+    var on = !!(cfg && cfg.perform_enabled);
+    var has = !!(gatherSounds && gatherSounds.length);
+    if (gBtn) {
+      gBtn.hidden = !gatherOn || has || phase === 'perform';
+      gBtn.disabled = !on || busy || phase === 'gather';
+      gBtn.textContent = phase === 'gather' ? 'Gathering…' : 'Gather';
+    }
+    if (again) {
+      again.hidden = !gatherOn || !has;
+      again.disabled = !on || busy;
+    }
+    if (box) box.hidden = !has || phase === 'gather';
+    pBtn.hidden = gatherOn && !has && phase !== 'perform';
+    pBtn.disabled = !on || busy || (gatherOn && !has && phase !== 'perform');
+    pBtn.textContent = (phase === 'perform' && busy) ? 'Performing…' : (jobId ? 'Perform again' : 'Perform');
   }
   function stopWatch() {
     if (pollT) { clearTimeout(pollT); pollT = null; }
@@ -239,30 +260,42 @@
   function ended(state) {
     return state === 'done' || state === 'failed' || state === 'rejected' || state === 'cancelled' || state === 'canceled' || state === 'stopped';
   }
-  function poll(id) {
+  function poll(id, handler) {
     var mine = alive;
+    var on = handler || onJob;
     fetch(API + '/api/jobs/' + id).then(function (r) { return read(r).then(function (j) { return r.ok ? j : null; }); }).then(function (j) {
       if (mine !== alive) return;
-      if (!j || !j.state) { fail('Perform did not answer. The service may be down. Try again in a moment.'); return; }
-      onJob(j);
-      if (!ended(j.state) && mine === alive) pollT = setTimeout(function () { if (mine === alive) poll(id); }, 2000);
-    }).catch(function () { if (mine === alive) fail('Perform did not answer. The service may be down. Try again in a moment.'); });
+      if (!j || !j.state) {
+        if (phase === 'gather') gatherFail('Gather did not finish. Try again in a moment.');
+        else fail('Perform did not answer. The service may be down. Try again in a moment.');
+        return;
+      }
+      on(j);
+      if (!ended(j.state) && mine === alive) pollT = setTimeout(function () { if (mine === alive) poll(id, on); }, 2000);
+    }).catch(function () {
+      if (mine !== alive) return;
+      if (phase === 'gather') gatherFail('Gather did not finish. Try again in a moment.');
+      else fail('Perform did not answer. The service may be down. Try again in a moment.');
+    });
   }
-  function watch(id) {
+  function watch(id, handler) {
     stopWatch();
     var mine = alive;
-    if (!window.EventSource) { poll(id); return; }
+    var on = handler || onJob;
+    if (!window.EventSource) { poll(id, on); return; }
     es = new EventSource(API + '/api/jobs/' + id + '/events');
     es.onmessage = function (ev) {
       if (mine !== alive) return;
-      try { onJob(JSON.parse(ev.data)); } catch (e) {}
+      try { on(JSON.parse(ev.data)); } catch (e) {}
     };
-    es.onerror = function () { if (mine !== alive) return; if (es && es.readyState === 2) { stopWatch(); poll(id); } };
+    es.onerror = function () { if (mine !== alive) return; if (es && es.readyState === 2) { stopWatch(); poll(id, on); } };
   }
   function showStop() {
     var btn = $('perform-stop');
     if (!btn) return;
-    if (!cancelOk || !running || !jobId) { btn.hidden = true; return; }
+    if (!cancelOk) { btn.hidden = true; return; }
+    if (phase === 'gather') { btn.hidden = false; if (!stopping) btn.disabled = false; return; }
+    if (!running || !jobId) { btn.hidden = true; return; }
     btn.hidden = false;
     if (!stopping) btn.disabled = false;
   }
@@ -575,6 +608,7 @@
   function showDone(j) {
     alive++;
     running = false;
+    phase = (gatherOn && gatherSounds && gatherSounds.length) ? 'collection' : '';
     hideStop();
     var gen = ++viewGen;
     takeSeed(j);
@@ -643,6 +677,7 @@
     stopping = false;
     hideStop();
     viewGen++;
+    phase = (gatherOn && gatherSounds && gatherSounds.length) ? 'collection' : '';
     idle();
     clearTake();
     $('perform-turnstile').hidden = true;
@@ -651,7 +686,6 @@
     $('live').hidden = true;
     clearRecord();
     if (window.NCLive) NCLive.hide();
-    $('performBtn').textContent = jobId ? 'Perform again' : 'Perform';
     status(soften(msg) || 'That Performance did not finish. Try again in a moment.', true);
   }
   function audioMiss(msg) {
@@ -664,17 +698,285 @@
     el.hidden = false;
     el.textContent = 'Keep key, shown once: ' + value + ' — this tab remembers it.';
   }
+  // Provisional gather contract. Change this block when the real shape arrives.
+  // Probe: POST /api/gather {probe:true}. A finished handler should no-op that body.
+  // 404 or a network failure means gather is absent, so Perform stays one-shot.
+  // Any other status, including 400, means the route exists. The probe body is ignored.
+  var GATHER = {
+    probeBody: function () { return { probe: true }; },
+    request: function (S, tok, excludeId) {
+      var body = { composition: S.c, prompt: S.p || '' };
+      if (tok) body.turnstile = tok;
+      if (excludeId) body.exclude_gather_id = excludeId;
+      return body;
+    },
+    performExtras: function (body, id, claim, prompt) {
+      body.gather_id = id;
+      body.claim_token = claim || '';
+      body.prompt = prompt || '';
+    },
+    collection: function (raw) {
+      if (!raw || typeof raw !== 'object') return null;
+      var sounds = Array.isArray(raw.sounds) ? raw.sounds : (raw.result && Array.isArray(raw.result.sounds) ? raw.result.sounds : null);
+      if (!sounds || !sounds.length) return null;
+      var id = raw.gather_id || raw.id || '';
+      if (!id) return null;
+      return {
+        id: String(id),
+        claim: raw.claim_token || '',
+        sounds: sounds.map(function (s) {
+          s = s || {};
+          var supplier = s.supplier, credit = s.credit || '';
+          if (supplier && typeof supplier === 'object') {
+            credit = credit || supplier.credit || '';
+            supplier = supplier.display_name || supplier.name || supplier.title || '';
+          }
+          return {
+            title: String(s.title || s.name || 'Sound'),
+            supplier: String(supplier || ''),
+            license: String(s.license || ''),
+            url: String(s.url || ''),
+            credit: String(credit || '')
+          };
+        })
+      };
+    }
+  };
+  function stopPreview() {
+    try { preview.pause(); } catch (e) {}
+    try { preview.removeAttribute('src'); preview.load(); } catch (e2) {}
+    if (previewBtn) { previewBtn.textContent = 'Listen'; previewBtn = null; }
+  }
+  function paintGather(sounds) {
+    var list = $('gather-list');
+    if (!list) return;
+    stopPreview();
+    list.textContent = '';
+    (sounds || []).forEach(function (s) {
+      var li = document.createElement('li');
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.textContent = 'Listen';
+      if (!s.url) btn.disabled = true;
+      btn.onclick = function () { togglePreview(btn, s.url); };
+      var title = document.createElement('span');
+      title.className = 'g-title';
+      title.textContent = s.title || 'Sound';
+      var who = s.supplier || s.credit || '';
+      if (s.supplier && s.credit) li.title = s.credit;
+      var meta = document.createElement('span');
+      meta.className = 'm g-meta';
+      meta.textContent = [who, s.license].filter(Boolean).join(' · ');
+      li.appendChild(btn);
+      li.appendChild(title);
+      li.appendChild(meta);
+      list.appendChild(li);
+    });
+  }
+  function togglePreview(btn, url) {
+    if (!url) return;
+    if (previewBtn === btn) { stopPreview(); return; }
+    stopPreview();
+    if (window.NC && NC.stop) NC.stop();
+    var heard = $('perform-audio');
+    if (heard && !heard.paused) { try { heard.pause(); } catch (e) {} }
+    previewBtn = btn;
+    btn.textContent = 'End';
+    preview.src = url;
+    var play = preview.play();
+    if (play && play.catch) play.catch(function () { if (previewBtn === btn) stopPreview(); });
+  }
+  function wordsOk() {
+    if (!window.NC) return null;
+    if (NC.commitNotes) NC.commitNotes();
+    var S = NC.state();
+    if (!S.c) { status('Write a Composition first.', true); return null; }
+    var max = (cfg && cfg.max_words) || 4000, words = S.c + '\n' + S.p;
+    if (words.length > max) { status('Those words are ' + words.length + ' characters. The limit is ' + max + '.', true); return null; }
+    return S;
+  }
+  function gatherMessage(code) {
+    if (code === 429) return 'Too many requests from this network. Try again in a few minutes.';
+    if (code === 503) return 'Perform is resting or busy. Try again in a moment.';
+    return 'Gather did not finish. Try again in a moment.';
+  }
+  function gatherFail(msg) {
+    alive++;
+    stopWatch();
+    gatherJobId = '';
+    running = false;
+    stopping = false;
+    hideStop();
+    $('perform-turnstile').hidden = true;
+    $('perform-bar').hidden = true;
+    phase = (gatherSounds && gatherSounds.length) ? 'collection' : '';
+    idle();
+    status(soften(msg) || 'Gather did not finish. Try again in a moment.', true);
+  }
+  function gatherStopped() {
+    alive++;
+    stopWatch();
+    gatherJobId = '';
+    running = false;
+    stopping = false;
+    hideStop();
+    $('perform-turnstile').hidden = true;
+    $('perform-bar').hidden = true;
+    phase = (gatherSounds && gatherSounds.length) ? 'collection' : '';
+    idle();
+    status('Stopped.');
+  }
+  function acceptGather(raw) {
+    if (phase !== 'gather' || stopping) return false;
+    var col = GATHER.collection(raw);
+    if (!col) return false;
+    gatherId = col.id;
+    if (col.claim) gatherClaim = col.claim;
+    if (gatherClaim) { try { sessionStorage.setItem('nc-claim:' + gatherId, gatherClaim); } catch (e) {} }
+    gatherSounds = col.sounds;
+    gatherJobId = '';
+    phase = 'collection';
+    running = false;
+    stopping = false;
+    hideStop();
+    $('perform-turnstile').hidden = true;
+    $('perform-bar').hidden = true;
+    paintGather(gatherSounds);
+    idle();
+    status('Gathered.');
+    return true;
+  }
+  function onGatherJob(j) {
+    if (!j || phase !== 'gather' || stopping) return;
+    if (j.state === 'done') {
+      stopWatch();
+      if (acceptGather(j)) return;
+      var id = j.gather_id || j.id || gatherJobId;
+      if (!id) { gatherFail('Gather did not finish. Try again in a moment.'); return; }
+      fetch(API + '/api/gather/' + encodeURIComponent(id)).then(function (r) {
+        if (phase !== 'gather' || stopping) return null;
+        if (!r.ok) { gatherFail('Gather did not finish. Try again in a moment.'); return null; }
+        return read(r);
+      }).then(function (body) {
+        if (!body || phase !== 'gather' || stopping) return;
+        if (!acceptGather(body)) gatherFail('Gather did not finish. Try again in a moment.');
+      }).catch(function () {
+        if (phase === 'gather' && !stopping) gatherFail('Gather did not finish. Try again in a moment.');
+      });
+      return;
+    }
+    if (j.state === 'failed' || j.state === 'rejected') { stopWatch(); gatherFail('Gather did not finish. Try again in a moment.'); return; }
+    if (j.state === 'cancelled' || j.state === 'canceled' || j.state === 'stopped') { stopWatch(); stopped(); return; }
+    if (j.stage || j.stage_line) showStory(j);
+    else status('Gathering…');
+    var bar = $('perform-bar');
+    if (typeof j.percent === 'number') { bar.hidden = false; bar.value = j.percent; }
+    else bar.hidden = true;
+    showStop();
+  }
+  function postGather(S, tok, excludeId, mine) {
+    var ctrl = typeof AbortController === 'function' ? new AbortController() : null;
+    gatherAbort = ctrl;
+    return fetch(API + '/api/gather', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(GATHER.request(S, tok, excludeId)),
+      signal: ctrl ? ctrl.signal : undefined
+    }).then(function (r) {
+      if (gatherAbort === ctrl) gatherAbort = null;
+      if (mine !== gatherGen || phase !== 'gather') return;
+      if (r.status === 404) {
+        gatherOn = false;
+        phase = 'perform';
+        syncActions();
+        return post(S, tok);
+      }
+      return read(r).then(function (j) {
+        if (mine !== gatherGen || phase !== 'gather') return;
+        token = null;
+        if (widget != null && window.turnstile) { try { window.turnstile.reset(widget); } catch (e) {} }
+        if (!r.ok) { gatherFail(gatherMessage(r.status)); return; }
+        if (acceptGather(j)) return;
+        if (j && j.id && j.state) {
+          gatherJobId = j.id;
+          if (j.claim_token) {
+            gatherClaim = j.claim_token;
+            try { sessionStorage.setItem('nc-claim:' + j.id, j.claim_token); } catch (e) {}
+          }
+          watch(j.id, onGatherJob);
+          onGatherJob(j);
+          return;
+        }
+        gatherFail('Gather did not finish. Try again in a moment.');
+      });
+    }, function (err) {
+      if (gatherAbort === ctrl) gatherAbort = null;
+      if (mine !== gatherGen || phase !== 'gather') return;
+      if (err && err.name === 'AbortError') return;
+      gatherFail('Gather did not finish. Try again in a moment.');
+    });
+  }
+  function gather(again) {
+    if (busy || !gatherOn || !window.NC) return;
+    var S = wordsOk();
+    if (!S) return;
+    stopPreview();
+    var exclude = again ? gatherId : '';
+    alive++;
+    phase = 'gather';
+    busy = true;
+    gatherJobId = '';
+    stopping = false;
+    hideStop();
+    $('perform-bar').hidden = true;
+    var mine = ++gatherGen;
+    syncActions();
+    showStop();
+    status('Gathering…');
+    $('perform-public').disabled = true;
+    askToken().then(function (tok) {
+      if (mine !== gatherGen) return;
+      status('Gathering…');
+      return postGather(S, tok, exclude, mine);
+    }).catch(function (e) {
+      if (mine !== gatherGen) return;
+      gatherFail(e && e.message ? e.message : 'Gather did not finish. Try again in a moment.');
+    });
+  }
+  function cancelGather() {
+    if (stopping || phase !== 'gather') return;
+    stopping = true;
+    var btn = $('perform-stop');
+    if (btn) btn.disabled = true;
+    gatherGen++;
+    alive++;
+    if (gatherAbort) { try { gatherAbort.abort(); } catch (e) {} gatherAbort = null; }
+    stopWatch();
+    var id = gatherJobId;
+    var tokenNow = id && (sessionStorage.getItem('nc-claim:' + id) || gatherClaim);
+    if (!id || !tokenNow) { gatherStopped(); return; }
+    fetch(API + '/api/jobs/' + encodeURIComponent(id) + '/cancel', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ claim_token: tokenNow })
+    }).then(function (r) {
+      if (r.status === 404) cancelOk = false;
+      gatherStopped();
+    }, function () { gatherStopped(); });
+  }
   function post(S, tok) {
+    var body = {
+      title: S.t, composer: S.by, composition: S.c, performance: S.p,
+      instrument: instrumentHint() || undefined,
+      visibility: $('perform-public').checked ? 'public' : 'unlisted',
+      turnstile_token: tok || undefined,
+      perform_again: !!jobId
+    };
+    if (gatherOn && gatherId) GATHER.performExtras(body, gatherId, gatherClaim, S.p);
     return fetch(API + '/api/perform', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        title: S.t, composer: S.by, composition: S.c, performance: S.p,
-        instrument: instrumentHint() || undefined,
-        visibility: $('perform-public').checked ? 'public' : 'unlisted',
-        turnstile_token: tok || undefined,
-        perform_again: !!jobId
-      })
+      body: JSON.stringify(body)
     }).then(function (r) { return read(r).then(function (j) { return { ok: r.ok, status: r.status, j: j }; }); }, function () {
       return { ok: false, status: 0, j: {} };
     }).then(function (x) {
@@ -699,11 +1001,13 @@
   // Cancel shape, until the Performer publishes another: POST /api/jobs/<id>/cancel { claim_token }.
   // A 404 means this API has no cancel yet, so Stop hides and the job keeps going.
   function stopped() {
+    if (phase === 'gather') { gatherStopped(); return; }
     alive++;
     running = false;
     stopping = false;
     hideStop();
     viewGen++;
+    phase = (gatherOn && gatherSounds && gatherSounds.length) ? 'collection' : '';
     idle();
     clearTake();
     $('perform-turnstile').hidden = true;
@@ -716,6 +1020,7 @@
     status('Stopped.');
   }
   function cancelJob() {
+    if (phase === 'gather') { cancelGather(); return; }
     if (stopping || !running || !jobId) return;
     var tokenNow = sessionStorage.getItem('nc-claim:' + jobId);
     if (!tokenNow) {
@@ -783,21 +1088,20 @@
   }
   function go() {
     if (busy || !window.NC) return;
-    if (NC.commitNotes) NC.commitNotes();
-    var S = NC.state();
-    if (!S.c) { status('Write a Composition first.', true); return; }
-    var max = (cfg && cfg.max_words) || 4000, words = S.c + '\n' + S.p;
-    if (words.length > max) { status('Those words are ' + words.length + ' characters. The limit is ' + max + '.', true); return; }
+    if (gatherOn && !gatherId) return;
+    var S = wordsOk();
+    if (!S) return;
+    stopPreview();
     alive++;
     running = false;
     hideStop();
     viewGen++;
     clearTake();
+    phase = 'perform';
     busy = true;
     dropKeptFiles();
     if (window.NCLive && NCLive.prime) NCLive.prime();
-    $('performBtn').disabled = true;
-    $('performBtn').textContent = 'Performing…';
+    syncActions();
     if (jobId) {
       $('perform-out').hidden = true;
       $('perform-bar').hidden = true;
@@ -836,8 +1140,20 @@
       if (!j || busy) return;
       if (j.state === 'done') showDone(j);
       else if (j.state === 'failed' || j.state === 'rejected') fail(j.error || j.state);
-      else { busy = true; running = true; $('performBtn').disabled = true; $('performBtn').textContent = 'Performing…'; $('perform-public').disabled = true; onJob(j); watch(id); }
+      else { busy = true; running = true; phase = 'perform'; $('perform-public').disabled = true; syncActions(); onJob(j); watch(id); }
     }).catch(function () {});
+  }
+  function probeGather() {
+    var ctrl = typeof AbortController === 'function' ? new AbortController() : null;
+    return fetch(API + '/api/gather', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(GATHER.probeBody()),
+      signal: ctrl ? ctrl.signal : undefined
+    }).then(function (r) {
+      if (r.body && r.body.cancel) { try { r.body.cancel(); } catch (e) {} }
+      gatherOn = r.status !== 404;
+    }, function () { gatherOn = false; });
   }
   function boot() {
     fetch(API + '/api/config').then(function (r) {
@@ -845,16 +1161,26 @@
       return r.json();
     }).then(function (c) {
       cfg = c;
-      if (!c.perform_enabled) { $('performBtn').disabled = true; status('Perform is resting until tomorrow.', true); return; }
-      $('performBtn').disabled = false;
-      if ($('perform-out').hidden) status('Ready.');
-      resume();
+      if (!c.perform_enabled) {
+        gatherOn = false;
+        syncActions();
+        status('Perform is resting until tomorrow.', true);
+        return;
+      }
+      return probeGather().then(function () {
+        syncActions();
+        if ($('perform-out').hidden) status('Ready.');
+        resume();
+      });
     }).catch(function () {
-      $('performBtn').disabled = true;
+      gatherOn = false;
+      syncActions();
       status('Perform did not answer. The service may be down. Try again in a moment.', true);
     });
   }
   $('performBtn').onclick = go;
+  if ($('gatherBtn')) $('gatherBtn').onclick = function () { gather(false); };
+  if ($('gather-again')) $('gather-again').onclick = function () { gather(true); };
   if ($('perform-stop')) $('perform-stop').onclick = cancelJob;
   $('perform-edit').onclick = function (e) {
     e.preventDefault();
@@ -923,7 +1249,7 @@
   });
   var heard = $('perform-audio');
   if (heard) {
-    heard.addEventListener('play', function () { takeHeard = true; if (window.NC && NC.stop) NC.stop(); followTake(); });
+    heard.addEventListener('play', function () { stopPreview(); takeHeard = true; if (window.NC && NC.stop) NC.stop(); followTake(); });
     ['timeupdate', 'seeked', 'pause', 'ended'].forEach(function (ev) { heard.addEventListener(ev, followTake); });
   }
   function instrumentHint() {
@@ -931,6 +1257,8 @@
     var text = String(NC.instrument() || '').trim();
     return /^[A-Za-z0-9][A-Za-z0-9 ._-]{0,39}$/.test(text) ? text : '';
   }
+  var playBtn = $('play');
+  if (playBtn) playBtn.addEventListener('click', stopPreview);
   window.NCPerform = { api: API, messageFor: messageFor, go: go, post: post, showDone: showDone, fail: fail, audioMiss: audioMiss, showRecord: showRecord, foundLines: foundLines, showStory: showStory, seed: function () { return serverSeed; }, instrumentHint: instrumentHint };
   var booted = false;
   var wait = setInterval(function () {
