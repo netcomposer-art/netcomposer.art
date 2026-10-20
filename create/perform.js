@@ -39,19 +39,21 @@
   function syncActions() {
     var gBtn = $('gatherBtn'), pBtn = $('performBtn'), again = $('gather-again'), box = $('gather-box');
     var on = !!(cfg && cfg.perform_enabled);
+    var chords = !!(window.NC && NC.timeline && NC.timeline());
+    var can = on && chords;
     var has = !!(gatherSounds && gatherSounds.length);
     if (gBtn) {
       gBtn.hidden = !gatherOn || has || phase === 'perform';
-      gBtn.disabled = !on || busy || phase === 'gather';
+      gBtn.disabled = !can || busy || phase === 'gather';
       gBtn.textContent = phase === 'gather' ? 'Gathering…' : 'Gather';
     }
     if (again) {
       again.hidden = !gatherOn || !has;
-      again.disabled = !on || busy;
+      again.disabled = !can || busy;
     }
     if (box) box.hidden = !has || phase === 'gather';
     pBtn.hidden = gatherOn && !has && phase !== 'perform';
-    pBtn.disabled = !on || busy || (gatherOn && !has && phase !== 'perform');
+    pBtn.disabled = !can || busy || (gatherOn && !has && phase !== 'perform');
     pBtn.textContent = (phase === 'perform' && busy) ? 'Performing…' : (jobId ? 'Perform again' : 'Perform');
   }
   function stopWatch() {
@@ -918,6 +920,7 @@
   }
   function gather(again) {
     if (busy || !gatherOn || !window.NC) return;
+    if (!(NC.timeline && NC.timeline())) return;
     var S = wordsOk();
     if (!S) return;
     stopPreview();
@@ -1089,6 +1092,7 @@
   }
   function go() {
     if (busy || !window.NC) return;
+    if (!(NC.timeline && NC.timeline())) return;
     if (gatherOn && !gatherId) return;
     var S = wordsOk();
     if (!S) return;
@@ -1255,7 +1259,7 @@
   }
   var playBtn = $('play');
   if (playBtn) playBtn.addEventListener('click', stopPreview);
-  window.NCPerform = { api: API, messageFor: messageFor, go: go, post: post, showDone: showDone, fail: fail, audioMiss: audioMiss, showRecord: showRecord, foundLines: foundLines, showStory: showStory, seed: function () { return serverSeed; } };
+  window.NCPerform = { api: API, messageFor: messageFor, go: go, post: post, showDone: showDone, fail: fail, audioMiss: audioMiss, showRecord: showRecord, foundLines: foundLines, showStory: showStory, seed: function () { return serverSeed; }, sync: syncActions };
   var booted = false;
   var wait = setInterval(function () {
     if (!document.body.getAttribute('data-ready') || booted) return;
