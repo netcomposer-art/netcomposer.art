@@ -101,31 +101,52 @@
     s.appendChild(node('span', 'story-line', head));
     foundLines(j).forEach(function (line) { s.appendChild(node('span', 'story-line', line)); });
   }
+  function sourceCredit(s) {
+    var sup = s && s.supplier;
+    if (!sup || typeof sup !== 'object') return null;
+    var name = String(sup.display_name || sup.name || '').trim();
+    var href = String(sup.primary_link || sup.url || sup.link || '').trim();
+    if (!/^https?:\/\//i.test(href)) href = '';
+    if (!name && !href) return null;
+    return {name: name || href, href: href, key: sup.registry_id != null && sup.registry_id !== '' ? 'id:' + sup.registry_id : (href || name).toLowerCase()};
+  }
   function footSources(sounds) {
     var el = $('foot-src');
     if (!el) return;
-    var names = [], seen = {};
+    el.textContent = '';
+    var seen = {}, items = [];
     (Array.isArray(sounds) ? sounds : []).forEach(function (s) {
-      if (!s || typeof s !== 'object') return;
-      var name = asOrigin(s.source) || asOrigin(s.supplier);
-      if (!name || seen[name]) return;
-      seen[name] = 1;
-      names.push(name);
+      var c = sourceCredit(s);
+      if (!c || seen[c.key]) return;
+      seen[c.key] = 1;
+      items.push(c);
     });
-    el.textContent = names.length ? names.join(', ') : 'sounds from openly licensed sources';
+    if (!items.length) { el.textContent = 'sounds from openly licensed sources'; return; }
+    items.forEach(function (c, i) {
+      if (i) el.appendChild(document.createTextNode(', '));
+      if (!c.href) { el.appendChild(document.createTextNode(c.name)); return; }
+      var a = document.createElement('a');
+      a.href = c.href;
+      a.textContent = c.name;
+      el.appendChild(a);
+    });
+  }
+  function clearStrip() {
+    var bar = $('src-time'), lanes = $('src-lanes'), now = $('src-now');
+    if (bar) bar.hidden = true;
+    if (lanes) lanes.textContent = '';
+    if (now) now.textContent = '';
   }
   function clearTake() {
     take = null;
     takeHeard = false;
-    var bar = $('src-time');
-    if (bar) { bar.hidden = true; bar.textContent = ''; }
+    clearStrip();
     showTrim('');
     footSources([]);
   }
   function armTake(rec) {
     take = null;
-    var bar = $('src-time');
-    if (bar) { bar.hidden = true; bar.textContent = ''; }
+    clearStrip();
     if (!rec || typeof rec !== 'object') return;
     var p = rec.performance || {};
     var timeline = Array.isArray(p.timeline) ? p.timeline : [];
@@ -152,11 +173,14 @@
       groups[id].spans.push(sp);
     });
     take = {timeline: timeline, groups: groups, order: order, duration: dur};
-    if (!bar || !order.length) return;
-    bar.hidden = false;
+    var lanes = $('src-lanes');
+    if (!lanes || !order.length) return;
+    $('src-time').hidden = false;
     order.forEach(function (id) {
-      var g = groups[id], lane = node('div', 'src-lane'), name = node('div', 'src-name', g.label), track = node('div', 'src-track');
-      name.title = g.label;
+      var g = groups[id], lane = node('div', 'src-lane'), track = node('div', 'src-track');
+      lane.title = g.label;
+      lane.setAttribute('aria-label', g.label);
+      lane.addEventListener('click', function () { var now = $('src-now'); if (now) now.textContent = g.label; });
       g.spans.forEach(function (sp) {
         var mark = node('div', 'src-span');
         mark.style.left = (100 * sp.at / dur) + '%';
@@ -167,16 +191,30 @@
       head.style.left = '0%';
       track.appendChild(head);
       g.head = head;
-      lane.appendChild(name);
       lane.appendChild(track);
-      bar.appendChild(lane);
+      lanes.appendChild(lane);
     });
+  }
+  function soundsAt(t) {
+    if (!take) return '';
+    var names = [], seen = {}, i;
+    take.order.forEach(function (id) {
+      var g = take.groups[id], on = false;
+      for (i = 0; i < g.spans.length; i++) {
+        var sp = g.spans[i];
+        if (t >= sp.at && t < sp.at + sp.len) { on = true; break; }
+      }
+      if (on && g.label && !seen[g.label]) { seen[g.label] = 1; names.push(g.label); }
+    });
+    return names.join(' · ');
   }
   function followTake() {
     if (!take || !takeHeard) return;
     var audio = $('perform-audio');
     if (!audio) return;
     var t = audio.currentTime || 0;
+    var now = $('src-now');
+    if (now) now.textContent = soundsAt(t);
     var idx = -1, i, c;
     for (i = 0; i < take.timeline.length; i++) {
       c = take.timeline[i];
