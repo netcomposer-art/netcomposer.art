@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Contact — NetComposer</title>
+<meta name="description" content="Questions, ideas or collaborations? Write to Peter Semmelhack.">
+<link rel="canonical" href="https://netcomposer.art/contact/">
+<link rel="license" href="https://creativecommons.org/licenses/by-sa/4.0/">
+<style>
+*{box-sizing:border-box}html{-webkit-text-size-adjust:100%}
+body{margin:0;color:#000;background:#fff;font:16px/1.65 ui-monospace,Menlo,Consolas,"DejaVu Sans Mono",monospace}
+main{max-width:46rem;margin:0 auto;padding:2.5rem 1.2rem 2rem}
+h1{font-size:1.4rem;margin:0}a{color:#000;text-underline-offset:3px}p{margin:.5rem 0}.m{color:#555}
+label{display:block;font-size:.8rem;letter-spacing:.08em;text-transform:uppercase;color:#555;margin:1.2rem 0 .3rem}
+input[type=text],input[type=email],textarea{width:100%;font:inherit;font-size:16px;color:#000;background:#fff;border:1px solid #000;border-radius:0;padding:.55rem .6rem}
+textarea{min-height:9rem;resize:vertical;line-height:1.5}
+input:focus,textarea:focus,button:focus-visible{outline:2px solid #000;outline-offset:2px}
+button{font:inherit;font-size:.95rem;color:#fff;background:#000;border:1px solid #000;border-radius:0;padding:.5rem .9rem;margin:1.1rem 0 .3rem;cursor:pointer}
+button:disabled{color:#999;background:#fff;border-color:#999;cursor:default}
+#contact-turnstile{margin:.9rem 0 .1rem;min-height:0}
+#status{min-height:1.4em;margin:.2rem 0 .4rem}
+.vh{position:absolute;left:0;top:0;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+.vh input{width:1px;height:1px;padding:0;border:0;margin:0;overflow:hidden}
+footer.site{max-width:46rem;margin:0 auto;padding:0 1.2rem 3rem;margin-top:1rem;font-size:12px;border-top:1px solid #000;padding-top:.6rem}
+@media(min-width:760px){body{font-size:17px}main{padding-top:4rem}}
+</style>
+</head>
+<body>
+<main>
+<p class="m"><a href="../">← netcomposer.art</a></p>
+<h1>Contact</h1>
+<p>Questions, ideas or collaborations? Write to me.</p>
+<p id="off" hidden>The contact form isn't switched on yet.</p>
+<form id="form" hidden>
+<label for="name">Name (optional)</label>
+<input id="name" name="name" type="text" autocomplete="name" maxlength="100">
+<label for="email">Email</label>
+<input id="email" name="email" type="email" autocomplete="email" required maxlength="200">
+<label for="message">Message</label>
+<textarea id="message" name="message" required maxlength="5000"></textarea>
+<div class="vh" aria-hidden="true">
+<label for="website">Website</label>
+<input id="website" name="website" type="text" tabindex="-1" autocomplete="off">
+</div>
+<div id="contact-turnstile"></div>
+<button id="send" type="submit">Send</button>
+<p id="status" role="status" aria-live="polite"></p>
+</form>
+</main>
+<footer class="site">
+<p>For agents: <a href="/netcomposer.json">/netcomposer.json</a> · <a href="/llms.txt">/llms.txt</a> · <a href="/suppliers.json">/suppliers.json</a> · <a href="/record/">/record/</a> · every record is raw JSON under <a href="/records/">/records/</a> · <a href="/contact/">Contact</a>.</p>
+</footer>
+<script>
+(function () {
+  var API = 'https://nc-perform-api.psemme.workers.dev';
+  var form = document.getElementById('form');
+  var off = document.getElementById('off');
+  var status = document.getElementById('status');
+  var send = document.getElementById('send');
+  var cfg = null;
+  var widget = null;
+  var token = null;
+  var busy = false;
+
+  function say(text) { status.textContent = text || ''; }
+
+  function messageFor(code, body) {
+    var api = body && typeof body.error === 'string' ? body.error.trim() : '';
+    if (code === 400) return api || 'Check the email and the message.';
+    if (code === 403) return api || 'The bot check failed. Reload the page and try again.';
+    if (code === 429) return api || 'Too many messages. Wait a minute and try again.';
+    if (code === 502) return api || 'Could not send the message.';
+    if (code === 503) return 'The contact form isn\'t available right now.';
+    return 'Could not send the message.';
+  }
+
+  function turnstileApi() {
+    var t = window.turnstile;
+    return t && typeof t.render === 'function' ? t : null;
+  }
+
+  function loadTurnstile() {
+    if (turnstileApi()) return Promise.resolve();
+    return new Promise(function (ok, no) {
+      var s = document.createElement('script');
+      s.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
+      s.async = true;
+      s.onload = function () { ok(); };
+      s.onerror = function () { no(); };
+      document.head.appendChild(s);
+    });
+  }
+
+  function mountWidget() {
+    var key = cfg && cfg.turnstile_sitekey;
+    if (!key) return;
+    loadTurnstile().then(function () {
+      var api = turnstileApi();
+      if (!api) throw new Error('script');
+      widget = api.render(document.getElementById('contact-turnstile'), {
+        sitekey: key,
+        callback: function (t) { token = t; },
+        'expired-callback': function () { token = null; },
+        'error-callback': function () { token = null; }
+      });
+    }).catch(function () { say('The bot check did not load.'); });
+  }
+
+  function resetWidget() {
+    token = null;
+    var api = turnstileApi();
+    if (widget != null && api) {
+      try { api.reset(widget); } catch (e) {}
+    }
+  }
+
+  function clearFields() {
+    document.getElementById('name').value = '';
+    document.getElementById('email').value = '';
+    document.getElementById('message').value = '';
+    document.getElementById('website').value = '';
+    resetWidget();
+  }
+
+  form.addEventListener('submit', function (ev) {
+    ev.preventDefault();
+    if (busy) return;
+    var email = document.getElementById('email').value.trim();
+    var message = document.getElementById('message').value.trim();
+    if (!email || !message) { say('Email and message are required.'); return; }
+    if (cfg && cfg.turnstile_sitekey && cfg.turnstile_required && !token) {
+      say('The bot check isn\'t finished yet.');
+      return;
+    }
+    busy = true;
+    send.disabled = true;
+    say('Sending…');
+    fetch(API + '/api/contact', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: document.getElementById('name').value,
+        email: email,
+        message: message,
+        website: document.getElementById('website').value,
+        turnstile_token: token || ''
+      })
+    }).then(function (r) {
+      return r.text().then(function (t) {
+        var j = {};
+        if (t) { try { j = JSON.parse(t); } catch (e) {} }
+        return { ok: r.ok, status: r.status, j: j };
+      });
+    }, function () {
+      return { ok: false, status: 0, j: {} };
+    }).then(function (x) {
+      if (x.ok && x.j && x.j.ok === true) {
+        clearFields();
+        say('Sent. Thanks, I\'ll be in touch.');
+        return;
+      }
+      resetWidget();
+      say(messageFor(x.status, x.j));
+    }).then(function () {
+      busy = false;
+      send.disabled = false;
+    });
+  });
+
+  fetch(API + '/api/config').then(function (r) {
+    if (!r.ok) throw new Error('config');
+    return r.json();
+  }).then(function (c) {
+    cfg = c && typeof c === 'object' ? c : {};
+    if (cfg.contact !== true) { off.hidden = false; return; }
+    form.hidden = false;
+    mountWidget();
+  }).catch(function () { off.hidden = false; });
+})();
+</script>
+</body>
+</html>
