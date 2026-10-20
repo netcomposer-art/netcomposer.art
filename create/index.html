@@ -24,6 +24,7 @@ a{color:#000;text-underline-offset:3px}p{margin:.85rem 0}.m{color:#555;font-size
 label{display:block;font-size:.8rem;letter-spacing:.08em;text-transform:uppercase;color:#555;margin:1.05rem 0 .4rem}
 input[type=text],textarea,select{width:100%;font:inherit;font-size:16px;color:#000;background:#fff;border:1px solid #000;border-radius:0;padding:.55rem .6rem}
 textarea{min-height:4.4rem;resize:vertical;line-height:1.5;background:#fafafa;cursor:text}textarea:hover{background:#fff}
+#comp::placeholder,#perf::placeholder{color:#999;opacity:1}
 input[type=text]:focus,textarea:focus,select:focus{outline:2px solid #000;outline-offset:2px;background:#fff}
 select{appearance:none;-webkit-appearance:none;background:#fff}#inst{width:auto;min-width:8.5rem;max-width:100%;padding:.45rem .6rem}label.inlbl{display:inline;margin:0;font-size:.85rem;letter-spacing:normal;text-transform:none;color:#555}
 button,.btn{font:inherit;font-size:.95rem;color:#000;background:#fff;border:1px solid #000;border-radius:0;padding:.5rem .9rem;margin:.3rem .4rem .3rem 0;cursor:pointer}
@@ -31,7 +32,7 @@ button:disabled{color:#999;border-color:#999;cursor:default}button:focus-visible
 .row{display:flex;flex-wrap:wrap;align-items:center;gap:.2rem .6rem}.two{display:grid;grid-template-columns:1fr;gap:0 1rem}
 .pick{display:flex;flex-wrap:wrap;gap:.5rem;align-items:stretch}.pick select{flex:1;min-width:0}.pick button{margin:0;white-space:nowrap}
 #progcap{margin:.15rem 0 .35rem;font-size:.8rem;letter-spacing:.08em;text-transform:uppercase;color:#555}
-#prog{margin:.15rem 0 .1rem;line-height:1.65}#comp{min-height:calc(7.5em + 1.1rem + 2px)}.ch{display:inline-block;border-bottom:2px solid transparent;padding:0 .06rem;margin:0 .4rem .15rem 0}.ch.on{border-bottom-color:#000;font-weight:bold}
+#prog{margin:.15rem 0 .1rem;line-height:1.65}#prog.empty{min-height:1.65em}#prog.empty::before{content:'—';color:#ccc}#comp{min-height:calc(7.5em + 1.1rem + 2px)}.ch{display:inline-block;border-bottom:2px solid transparent;padding:0 .06rem;margin:0 .4rem .15rem 0}.ch.on{border-bottom-color:#000;font-weight:bold}
 #perf{min-height:5.5rem;max-height:70vh;overflow:auto;resize:vertical}#notes-status{min-height:1.2em}
 details.fold{margin:1.8rem 0}details.fold>summary{cursor:pointer;color:#555;font-size:.85rem}
 #status:empty,#progmeta:empty,#lstatus:empty,#src-now:empty{display:none}
@@ -57,7 +58,7 @@ code{font:inherit;overflow-wrap:anywhere;word-break:break-word}#shareurl{font-si
 #perform-json{margin:.8rem 0;font-family:ui-monospace,Menlo,Consolas,"DejaVu Sans Mono",monospace}#perform-json pre{white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word;overflow-x:hidden;max-width:100%;font-family:ui-monospace,Menlo,Consolas,"DejaVu Sans Mono",monospace}
 #perform-keep-note,#perform-kept{margin:.15rem 0 .4rem}
 .further{margin-top:4.8rem;border-top:0;padding-top:0;font-size:.9rem}.further h3{font-size:.9rem;margin:1.6rem 0 .4rem}.further button{font-size:.85rem}
-footer{max-width:46rem;margin:0 auto;padding:1.2rem 1.5rem 4rem;font-size:.85rem;color:#555}
+footer{max-width:46rem;margin:0 auto;padding:1.2rem 1.5rem 4rem;font-size:.85rem;color:#555}#foot-tester{color:#ccc;margin-left:.7rem}
 @media(min-width:760px){body{font-size:18px}main{padding:3rem 1.5rem 6rem}.two{grid-template-columns:1fr 1fr}}
 #performBtn,#gatherBtn{background:#000;color:#fff;min-width:6.5rem}#performBtn:disabled,#gatherBtn:disabled{background:#fff;color:#999}#perform-bar{width:min(100%,28rem);height:.5rem;margin:.35rem 0;accent-color:#000}#perform-turnstile{margin:.5rem 0}#perform-vis{text-transform:none;letter-spacing:normal;color:#000;font-size:.95rem;display:inline-flex;margin:0}#perform h3{font-size:.95rem;margin:1.8rem 0 .4rem}#live .hack{border-left:2px solid #000;padding:.2rem 0 .5rem .8rem;margin:2.4rem 0}#live .hack h3{font-size:.95rem;margin:.2rem 0 .5rem}
 .dial{display:grid;grid-template-columns:7.5rem 1fr 5.5rem;align-items:center;gap:.6rem;margin:.85rem 0}.dial label{margin:0}.dial input[type=range]{width:100%;height:2rem}
@@ -78,7 +79,7 @@ footer{max-width:46rem;margin:0 auto;padding:1.2rem 1.5rem 4rem;font-size:.85rem
 <label for="starter">Start from</label>
 <div class="pick"><select id="starter"><option value="">Choose a starter…</option></select><button id="surprise" type="button" title="A new progression: another key, mood, length and shape">Surprise me</button><button id="undo" type="button" hidden>Undo</button></div>
 <label for="comp">Composition elements</label>
-<textarea id="comp" rows="5" placeholder="Harmony, length and shape. e.g. 2 mins - half Cm, Cm7, Cm9. Second half Cm7, Am, F."></textarea>
+<textarea id="comp" rows="5" placeholder="Input your chord instructions here."></textarea>
 </section>
 
 <section id="play-s">
@@ -97,7 +98,7 @@ footer{max-width:46rem;margin:0 auto;padding:1.2rem 1.5rem 4rem;font-size:.85rem
 <p>Played with real recorded sounds. Every take is different.</p>
 <div id="perf-box">
 <label for="perf">Performance prompt</label>
-<textarea id="perf" placeholder="How should it be played? e.g. Bright and open; let each chord ring into the next."></textarea>
+<textarea id="perf" placeholder="Describe how it should be performed (optional)."></textarea>
 <div class="row" role="group" aria-label="Performance prompt">
 <button id="notes-save" type="button" disabled aria-keyshortcuts="Control+Enter Meta+Enter">Save</button>
 <button id="notes-undo" type="button" disabled aria-keyshortcuts="Control+Z Meta+Z">Undo</button>
@@ -191,7 +192,7 @@ nc perform composition.md -o out/           # any OpenAI-compatible LLM</pre>
 <p class="m">Submissions go through issues on the site repository (or a pull request adding an entry to suppliers.json). This channel is proposed and may change. <a href="https://github.com/netcomposer-art/netcomposer.art/issues">Issues</a>.</p>
 </details>
 </main>
-<footer>— Peter Semmelhack · <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a> · <span id="foot-src">sounds from openly licensed sources</span></footer>
+<footer>— Peter Semmelhack · <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a> · <span id="foot-src">sounds from openly licensed sources</span><span id="foot-tester" hidden>tester</span></footer>
 <script type="application/json" id="starters">
 [
   {

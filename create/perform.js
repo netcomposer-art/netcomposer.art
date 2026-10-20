@@ -3,6 +3,69 @@
   'use strict';
   var API = 'https://nc-perform-api.psemme.workers.dev';
   function $(id) { return document.getElementById(id); }
+  function testerToken() {
+    try { return localStorage.getItem('nc_tester') || ''; } catch (e) { return ''; }
+  }
+  function paintTester() {
+    var el = $('foot-tester');
+    if (!el) return;
+    var on = !!testerToken();
+    el.hidden = !on;
+    el.textContent = on ? 'tester' : '';
+  }
+  // ?tester=<token> is a hidden pass. Store it, then drop it from the address
+  // so a copied link or the back button does not carry it. ?tester=off clears it.
+  (function takeTester() {
+    var params;
+    try { params = new URLSearchParams(location.search); } catch (e) { paintTester(); return; }
+    if (!params.has('tester')) { paintTester(); return; }
+    var value = String(params.get('tester') || '').replace(/[\r\n]/g, '').trim();
+    try {
+      if (!value || value === 'off') localStorage.removeItem('nc_tester');
+      else localStorage.setItem('nc_tester', value);
+    } catch (e) {}
+    params.delete('tester');
+    var q = params.toString();
+    try { history.replaceState(null, '', location.pathname + (q ? '?' + q : '') + location.hash); } catch (e2) {}
+    paintTester();
+  })();
+  function apiHeaders() {
+    var h = { 'Content-Type': 'application/json' };
+    var pass = testerToken();
+    if (pass) h['X-NC-Tester'] = pass;
+    return h;
+  }
+  function localClock(d) {
+    if (!d || isNaN(d.getTime())) return '';
+    var h = d.getHours(), m = d.getMinutes(), ap = h < 12 ? 'AM' : 'PM';
+    h = h % 12;
+    if (!h) h = 12;
+    return h + ':' + (m < 10 ? '0' : '') + m + ' ' + ap;
+  }
+  function limitWhen(j) {
+    if (!j || typeof j !== 'object') return null;
+    var iso = j.retry_at || j.retry_after_at || '';
+    if (!iso && typeof j.retry_after === 'string') iso = j.retry_after;
+    if (!iso && typeof j.retry_after_s === 'string' && isNaN(Number(j.retry_after_s))) iso = j.retry_after_s;
+    if (iso) {
+      var parsed = Date.parse(iso);
+      if (!isNaN(parsed)) return new Date(parsed);
+    }
+    var sec = null;
+    if (typeof j.retry_after_s === 'number') sec = j.retry_after_s;
+    else if (typeof j.retry_after_s === 'string' && j.retry_after_s.trim() !== '' && !isNaN(Number(j.retry_after_s))) sec = Number(j.retry_after_s);
+    else if (typeof j.retry_after === 'number') sec = j.retry_after;
+    if (sec == null || !isFinite(sec) || sec < 0) {
+      if (j.error && typeof j.error === 'object') return limitWhen(j.error);
+      return null;
+    }
+    return new Date(Date.now() + sec * 1000);
+  }
+  function limitMessage(j) {
+    var when = limitWhen(j);
+    var clock = when ? localClock(when) : '';
+    return clock ? 'Daily limit reached. Try again after ' + clock + '.' : '';
+  }
   var cfg = null, widget = null, token = null, jobId = null, es = null, pollT = null, busy = false, running = false, alive = 0, stopping = false, cancelOk = true;
   var gatherOn = false, gatherId = '', gatherClaim = '', gatherJobId = '', gatherSounds = null, phase = '', gatherGen = 0, gatherAbort = null;
   var preview = new Audio(), previewBtn = null;
@@ -22,6 +85,8 @@
     return t;
   }
   function messageFor(code, j) {
+    var limited = limitMessage(j);
+    if (limited) return limited;
     var raw = soften(j && j.error);
     if (code === 429) return raw || 'Too many Performs from this network (3 every 10 minutes, 10 a day). Try again in a few minutes.';
     if (code === 503) return 'Perform is resting or busy. Try again in a moment.';
@@ -39,19 +104,21 @@
   function syncActions() {
     var gBtn = $('gatherBtn'), pBtn = $('performBtn'), again = $('gather-again'), box = $('gather-box');
     var on = !!(cfg && cfg.perform_enabled);
+    var chords = !!(window.NC && NC.timeline && NC.timeline());
+    var can = on && chords;
     var has = !!(gatherSounds && gatherSounds.length);
     if (gBtn) {
       gBtn.hidden = !gatherOn || has || phase === 'perform';
-      gBtn.disabled = !on || busy || phase === 'gather';
+      gBtn.disabled = !can || busy || phase === 'gather';
       gBtn.textContent = phase === 'gather' ? 'Gathering…' : 'Gather';
     }
     if (again) {
       again.hidden = !gatherOn || !has;
-      again.disabled = !on || busy;
+      again.disabled = !can || busy;
     }
     if (box) box.hidden = !has || phase === 'gather';
     pBtn.hidden = gatherOn && !has && phase !== 'perform';
-    pBtn.disabled = !on || busy || (gatherOn && !has && phase !== 'perform');
+    pBtn.disabled = !can || busy || (gatherOn && !has && phase !== 'perform');
     pBtn.textContent = (phase === 'perform' && busy) ? 'Performing…' : (jobId ? 'Perform again' : 'Perform');
   }
   function stopWatch() {
@@ -250,7 +317,7 @@
     if (!j) return;
     takeSeed(j);
     if (j.state === 'done') { stopWatch(); showDone(j); return; }
-    if (j.state === 'failed' || j.state === 'rejected') { stopWatch(); fail(soften(j.error) || 'That Performance did not finish. Try again in a moment.'); return; }
+    if (j.state === 'failed' || j.state === 'rejected') { stopWatch(); fail(limitMessage(j) || soften(j.error) || 'That Performance did not finish. Try again in a moment.'); return; }
     if (j.state === 'cancelled' || j.state === 'canceled' || j.state === 'stopped') { stopWatch(); stopped(); return; }
     showStory(j);
     var bar = $('perform-bar');
@@ -795,8 +862,11 @@
     if (words.length > max) { status('Those words are ' + words.length + ' characters. The limit is ' + max + '.', true); return null; }
     return S;
   }
-  function gatherMessage(code) {
-    if (code === 429) return 'Too many requests from this network. Try again in a few minutes.';
+  function gatherMessage(code, j) {
+    var limited = limitMessage(j);
+    if (limited) return limited;
+    var raw = soften(j && (typeof j.error === 'string' ? j.error : ''));
+    if (code === 429) return raw || 'Too many requests from this network. Try again in a few minutes.';
     if (code === 503) return 'Perform is resting or busy. Try again in a moment.';
     return 'Gather did not finish. Try again in a moment.';
   }
@@ -865,7 +935,7 @@
       });
       return;
     }
-    if (j.state === 'failed' || j.state === 'rejected') { stopWatch(); gatherFail('Gather did not finish. Try again in a moment.'); return; }
+    if (j.state === 'failed' || j.state === 'rejected') { stopWatch(); gatherFail(limitMessage(j) || 'Gather did not finish. Try again in a moment.'); return; }
     if (j.state === 'cancelled' || j.state === 'canceled' || j.state === 'stopped') { stopWatch(); stopped(); return; }
     if (j.stage || j.stage_line) showStory(j);
     else status('Gathering…');
@@ -879,7 +949,7 @@
     gatherAbort = ctrl;
     return fetch(API + '/api/gather', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: apiHeaders(),
       body: JSON.stringify(GATHER.request(S, tok, excludeId)),
       signal: ctrl ? ctrl.signal : undefined
     }).then(function (r) {
@@ -895,7 +965,7 @@
         if (mine !== gatherGen || phase !== 'gather') return;
         token = null;
         if (widget != null && window.turnstile) { try { window.turnstile.reset(widget); } catch (e) {} }
-        if (!r.ok) { gatherFail(gatherMessage(r.status)); return; }
+        if (!r.ok) { gatherFail(gatherMessage(r.status, j)); return; }
         if (acceptGather(j)) return;
         if (j && j.id && j.state) {
           gatherJobId = j.id;
@@ -918,6 +988,7 @@
   }
   function gather(again) {
     if (busy || !gatherOn || !window.NC) return;
+    if (!(NC.timeline && NC.timeline())) return;
     var S = wordsOk();
     if (!S) return;
     stopPreview();
@@ -976,7 +1047,7 @@
     if (gatherOn && gatherId) GATHER.performExtras(body, gatherId, gatherClaim, S.p);
     return fetch(API + '/api/perform', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: apiHeaders(),
       body: JSON.stringify(body)
     }).then(function (r) { return read(r).then(function (j) { return { ok: r.ok, status: r.status, j: j }; }); }, function () {
       return { ok: false, status: 0, j: {} };
@@ -1089,6 +1160,7 @@
   }
   function go() {
     if (busy || !window.NC) return;
+    if (!(NC.timeline && NC.timeline())) return;
     if (gatherOn && !gatherId) return;
     var S = wordsOk();
     if (!S) return;
@@ -1148,7 +1220,7 @@
     var ctrl = typeof AbortController === 'function' ? new AbortController() : null;
     return fetch(API + '/api/gather', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: apiHeaders(),
       body: JSON.stringify(GATHER.probeBody()),
       signal: ctrl ? ctrl.signal : undefined
     }).then(function (r) {
@@ -1255,7 +1327,7 @@
   }
   var playBtn = $('play');
   if (playBtn) playBtn.addEventListener('click', stopPreview);
-  window.NCPerform = { api: API, messageFor: messageFor, go: go, post: post, showDone: showDone, fail: fail, audioMiss: audioMiss, showRecord: showRecord, foundLines: foundLines, showStory: showStory, seed: function () { return serverSeed; } };
+  window.NCPerform = { api: API, messageFor: messageFor, go: go, post: post, showDone: showDone, fail: fail, audioMiss: audioMiss, showRecord: showRecord, foundLines: foundLines, showStory: showStory, seed: function () { return serverSeed; }, sync: syncActions };
   var booted = false;
   var wait = setInterval(function () {
     if (!document.body.getAttribute('data-ready') || booted) return;

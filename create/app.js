@@ -159,7 +159,8 @@ function slug(s) { return (s || 'untitled').toLowerCase().replace(/[^a-z0-9]+/g,
 function refresh() {
   var tl = CAT && timeline(), el = $('prog');
   if (!CAT) { el.textContent = 'Loading the chord set…'; return; }
-  if (!tl) { $('progmeta').textContent = ''; el.textContent = 'No chord symbols found yet. Write them like Cm, Am7, F#dim7, Bb7sus4, G/B.'; $('play').disabled = true; return; }
+  if (!tl) { $('progmeta').textContent = ''; el.textContent = ''; el.classList.add('empty'); $('play').disabled = true; if (window.NCPerform && NCPerform.sync) NCPerform.sync(); return; }
+  el.classList.remove('empty');
   $('play').disabled = false;
   el.innerHTML = '';
   tl.chords.forEach(function (c, i) {
@@ -167,6 +168,7 @@ function refresh() {
     s.title = c.voicing.map(nn).join(' ') + ' · ' + c.path; s.textContent = prettySym(c.symbol); el.appendChild(s); el.appendChild(document.createTextNode(' '));
   });
   $('progmeta').textContent = previewLen(tl.L);
+  if (window.NCPerform && NCPerform.sync) NCPerform.sync();
 }
 
 // ---------- play (WebAudio) ----------
@@ -386,7 +388,8 @@ function fill(S) {
 // ---------- share ----------
 function b64e(s) { return btoa(unescape(encodeURIComponent(s))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); }
 function b64d(s) { s = s.replace(/-/g, '+').replace(/_/g, '/'); while (s.length % 4) s += '='; return decodeURIComponent(escape(atob(s))); }
-// The work in progress lives in the page address (#c=…): written as you edit, read on load. No storage, no server.
+// The work in progress lives in the page address (#c=…): written as you edit, read on load.
+// A visit with no #c= starts empty. The Composition is not stored. Share links, a refresh of a page that already has #c=, and any record link that uses that hash still fill the fields. The only localStorage key is nc_tester, for a hidden tester pass.
 function raw() { var S = {t: $('title').value, by: $('by').value, c: $('comp').value, p: $('perf').value}; if (SEED && SEED.c === S.c) S.sd = SEED.seed; return S; }
 var persistT = null;
 function persist() { clearTimeout(persistT); persistT = null; history.replaceState(null, '', location.href.split('#')[0] + '#c=' + b64e(JSON.stringify(raw()))); }
@@ -656,6 +659,7 @@ sel.onchange = function () { if (sel.value === '') return;
   if (id === 'perf') noteBurst();
   refresh(); persistSoon(); if (!timeline()) stop(); else restartSoon();
 }); });
+$('comp').addEventListener('blur', function () { refresh(); });
 ['title', 'by'].forEach(function (id) { $(id).addEventListener('input', persistSoon); });
 $('play').onclick = toggle;
 $('surprise').onclick = surprise;
@@ -694,7 +698,7 @@ window.NC = {timeline: timeline, toPlan: toPlan, toMd: toMd, parseMd: parseMd, s
   PREVIEW_TEMPO: PREVIEW_TEMPO, perform: PERFORM, showPerformance: showPerformance, performStatus: performStatus, pushUndo: pushUndo, persist: persist, commitNotes: commitNotes, growNotes: growNotes};
 fetch('chords.json').then(function (r) { return r.json(); }).then(function (c) {
   CAT = c; Object.keys(c.chords).forEach(function (k) { QUALS[k.replace(/^[A-G](#|b)?/, '')] = 1; });
-  if (!fromHash()) { var s = STARTERS[0]; fill({t: s.title, by: s.composer, c: s.composition, p: s.performance}); }
-  refresh(); document.body.setAttribute('data-ready', '1');
+  if (!fromHash()) refresh();
+  document.body.setAttribute('data-ready', '1');
 }).catch(function () { $('prog').textContent = 'Could not load the chord list. Reload the page and try again.'; });
 })();
