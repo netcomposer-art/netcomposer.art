@@ -92,13 +92,46 @@ function wirePlayer(a) {
     if (REC && !a.loop) finish('The Performance ended; the take is ready.');
     else buttons();
   });
-  a.addEventListener('error', function () {
-    if (!a.getAttribute('src') || a !== player() || !PERF) return;
+  a.addEventListener('error', function () { retryAudio(a); });
+  a.addEventListener('loadedmetadata', function () { audioSettled(a); });
+}
+function cleanAudioUrl(a) {
+  var raw = (PERF && PERF.audioUrl) || (a && a.getAttribute('src')) || '';
+  return String(raw).replace(/([?&])_=\d+/, '').replace(/[?&]$/, '');
+}
+function audioSettled(a) {
+  if (!a) return;
+  if (a._ncTimer) { clearTimeout(a._ncTimer); a._ncTimer = null; }
+  a._ncTryAt = 0;
+  a._ncDelay = 1000;
+  if (a === player() && PERF && a.getAttribute('src')) $('live').hidden = false;
+}
+function retryAudio(a) {
+  if (!a || !a.getAttribute('src') || a !== player() || !PERF) return;
+  if (!a._ncTryAt) a._ncTryAt = Date.now();
+  if (Date.now() - a._ncTryAt >= 60000) {
     $('live').hidden = true;
     var msg = 'This Performance came back, but its audio did not load into the player.';
     status(msg);
     if (window.NCPerform && NCPerform.audioMiss) NCPerform.audioMiss(msg);
-  });
+    return;
+  }
+  var delay = a._ncDelay || 1000;
+  a._ncDelay = Math.min(delay * 2, 8000);
+  var gen = openGen;
+  var waitMs = Math.min(delay, Math.max(0, 60000 - (Date.now() - a._ncTryAt)));
+  if (a._ncTimer) clearTimeout(a._ncTimer);
+  a._ncTimer = setTimeout(function () {
+    a._ncTimer = null;
+    if (gen !== openGen || a !== player() || !PERF) return;
+    var url = cleanAudioUrl(a);
+    var bust = url + (url.indexOf('?') >= 0 ? '&' : '?') + '_=' + Date.now();
+    $('live').hidden = false;
+    a.removeAttribute('src');
+    try { a.load(); } catch (e) {}
+    a.src = bust;
+    try { a.load(); } catch (e) {}
+  }, waitMs);
 }
 // One MediaElementSource per element. A new Performance gets a new element so the
 // new src is actually in the graph (Safari will not retarget the old node).
@@ -351,14 +384,8 @@ function open(desc) {
   var a = player();
   a.loop = $('lloop').checked;
   if (my !== openGen) return Promise.resolve(false);
-  if (a.error) {
-    $('live').hidden = true;
-    var broken = 'This Performance came back, but its audio did not load into the player.';
-    status(broken);
-    if (window.NCPerform && NCPerform.audioMiss) NCPerform.audioMiss(broken);
-    return Promise.resolve(false);
-  }
   $('live').hidden = false;
+  if (a.error) retryAudio(a);
   label(); noteRecord(PERF.record); rememberSha(url, id); buttons();
   status('');
   return Promise.resolve(true);
