@@ -37,8 +37,9 @@ details.fold{margin:1.8rem 0}details.fold>summary{cursor:pointer;color:#555;font
 #status:empty,#progmeta:empty,#lstatus:empty,#src-now:empty{display:none}
 #perform-out{margin-top:3.2rem}
 #perform-line{display:flex;flex-wrap:wrap;align-items:baseline;gap:.15rem .7rem}#perform-status.story{display:flex;flex-direction:column;gap:.12rem}
-#perform-stop{font:inherit;font-size:.85rem;line-height:inherit;color:#555;background:transparent;border:0;border-radius:0;padding:0;margin:0;min-width:0;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
-#perform-stop:hover{color:#000}#perform-stop:disabled{color:#999;background:transparent;border:0;cursor:default}
+#perform-stop,#gather-again,#gather-list button{font:inherit;font-size:.85rem;line-height:inherit;color:#555;background:transparent;border:0;border-radius:0;padding:0;margin:0;min-width:0;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+#perform-stop:hover,#gather-again:hover,#gather-list button:hover{color:#000}#perform-stop:disabled,#gather-again:disabled,#gather-list button:disabled{color:#999;background:transparent;border:0;cursor:default}
+#gather-box{margin:1.5rem 0 .2rem}#gather-list{list-style:none;margin:0;padding:0}#gather-list li{margin:0 0 1.25rem;line-height:1.45}#gather-list .g-title{margin-left:.65rem}#gather-list .g-meta{display:block;margin:.12rem 0 0}
 #perform-trim{color:#666;font-size:.8rem;margin:.05rem 0 .35rem}
 #src-time{margin:1.7rem 0 1.6rem}.src-lane{position:relative;margin:.85rem 0;padding:.4rem 0;cursor:pointer}
 .src-track{position:relative;height:2px;background:#eee}.src-span{position:absolute;top:0;height:100%;background:#000}
@@ -58,7 +59,7 @@ code{font:inherit;overflow-wrap:anywhere;word-break:break-word}#shareurl{font-si
 .further{margin-top:4.8rem;border-top:0;padding-top:0;font-size:.9rem}.further h3{font-size:.9rem;margin:1.6rem 0 .4rem}.further button{font-size:.85rem}
 footer{max-width:46rem;margin:0 auto;padding:1.2rem 1.5rem 4rem;font-size:.85rem;color:#555}
 @media(min-width:760px){body{font-size:18px}main{padding:3rem 1.5rem 6rem}.two{grid-template-columns:1fr 1fr}}
-#performBtn{background:#000;color:#fff;min-width:6.5rem}#performBtn:disabled{background:#fff;color:#999}#perform-bar{width:min(100%,28rem);height:.5rem;margin:.35rem 0;accent-color:#000}#perform-turnstile{margin:.5rem 0}#perform-vis{text-transform:none;letter-spacing:normal;color:#000;font-size:.95rem;display:inline-flex;margin:0}#perform h3{font-size:.95rem;margin:1.8rem 0 .4rem}#live .hack{border-left:2px solid #000;padding:.2rem 0 .5rem .8rem;margin:2.4rem 0}#live .hack h3{font-size:.95rem;margin:.2rem 0 .5rem}
+#performBtn,#gatherBtn{background:#000;color:#fff;min-width:6.5rem}#performBtn:disabled,#gatherBtn:disabled{background:#fff;color:#999}#perform-bar{width:min(100%,28rem);height:.5rem;margin:.35rem 0;accent-color:#000}#perform-turnstile{margin:.5rem 0}#perform-vis{text-transform:none;letter-spacing:normal;color:#000;font-size:.95rem;display:inline-flex;margin:0}#perform h3{font-size:.95rem;margin:1.8rem 0 .4rem}#live .hack{border-left:2px solid #000;padding:.2rem 0 .5rem .8rem;margin:2.4rem 0}#live .hack h3{font-size:.95rem;margin:.2rem 0 .5rem}
 .dial{display:grid;grid-template-columns:7.5rem 1fr 5.5rem;align-items:center;gap:.6rem;margin:.85rem 0}.dial label{margin:0}.dial input[type=range]{width:100%;height:2rem}
 .dial output{font-size:.85rem;text-align:right;font-variant-numeric:tabular-nums}.dial select{padding:.35rem .5rem;font-size:.9rem}.dial.auto output{text-decoration:underline}
 #lrec.on{background:#000;color:#fff}.toggle{display:inline-flex;align-items:center;gap:.4rem;font-size:.95rem;margin:.3rem .4rem}
@@ -104,7 +105,10 @@ footer{max-width:46rem;margin:0 auto;padding:1.2rem 1.5rem 4rem;font-size:.85rem
 <span class="m" id="notes-status" role="status" aria-live="polite"></span>
 </div>
 </div>
-<div class="row"><button id="performBtn" type="button" disabled>Perform</button><label class="toggle" id="perform-vis" for="perform-public"><input id="perform-public" type="checkbox"> List it after a day</label></div>
+<div id="gather-box" hidden>
+<ul id="gather-list"></ul>
+</div>
+<div class="row"><button id="gatherBtn" type="button" hidden disabled>Gather</button><button id="performBtn" type="button" disabled>Perform</button><button type="button" id="gather-again" hidden>Gather again</button><label class="toggle" id="perform-vis" for="perform-public"><input id="perform-public" type="checkbox"> List it after a day</label></div>
 <div id="perform-turnstile" hidden></div>
 <p class="m" id="perform-line"><span id="perform-status" aria-live="polite">Checking whether Perform is awake…</span><button type="button" id="perform-stop" hidden>Stop</button></p>
 <progress id="perform-bar" hidden max="100" value="0"></progress>
