@@ -629,9 +629,9 @@
   $('performBtn').onclick = go;
   $('perform-edit').onclick = function (e) {
     e.preventDefault();
-    var box = $('perf');
-    $('perf-box').open = true;
-    $('perf-box').scrollIntoView({behavior: 'smooth', block: 'center'});
+    var box = $('perf'), fold = $('perf-box');
+    if (fold && typeof fold.open === 'boolean') fold.open = true;
+    (fold || box).scrollIntoView({behavior: 'smooth', block: 'center'});
     box.focus();
   };
   $('perform-keep').onclick = function () {

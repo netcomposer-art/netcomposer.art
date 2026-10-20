@@ -92,20 +92,20 @@ footer{max-width:46rem;margin:0 auto;padding:1.2rem 1.5rem 4rem;font-size:.85rem
 <section id="perform">
 <h2 id="perform-h">Perform</h2>
 <p>Played with real recorded sounds. Every take is different.</p>
-<div class="row"><button id="performBtn" type="button" disabled>Perform</button><label class="toggle" id="perform-vis" for="perform-public"><input id="perform-public" type="checkbox"> List it after a day</label></div>
-<div id="perform-turnstile" hidden></div>
-<p class="m" id="perform-status" aria-live="polite">Checking whether Perform is awake…</p>
-<progress id="perform-bar" hidden max="100" value="0"></progress>
-<details class="fold" id="perf-box">
-<summary id="perf-sum">Performance notes</summary>
-<textarea id="perf" aria-labelledby="perf-sum" placeholder="How it should sound. e.g. warm and late at night, let each chord ring."></textarea>
-<div class="row" role="group" aria-label="Performance notes">
+<div id="perf-box">
+<label for="perf">Performance prompt</label>
+<textarea id="perf" placeholder="How should it be played? e.g. Bright and open; let each chord ring into the next."></textarea>
+<div class="row" role="group" aria-label="Performance prompt">
 <button id="notes-save" type="button" disabled aria-keyshortcuts="Control+Enter Meta+Enter">Save</button>
 <button id="notes-undo" type="button" disabled aria-keyshortcuts="Control+Z Meta+Z">Undo</button>
 <button id="notes-cancel" type="button" disabled aria-keyshortcuts="Escape">Cancel</button>
 <span class="m" id="notes-status" role="status" aria-live="polite"></span>
 </div>
-</details>
+</div>
+<div class="row"><button id="performBtn" type="button" disabled>Perform</button><label class="toggle" id="perform-vis" for="perform-public"><input id="perform-public" type="checkbox"> List it after a day</label></div>
+<div id="perform-turnstile" hidden></div>
+<p class="m" id="perform-status" aria-live="polite">Checking whether Perform is awake…</p>
+<progress id="perform-bar" hidden max="100" value="0"></progress>
 <details class="fold" id="piece-more">
 <summary>Title, speed, link</summary>
 <label for="title">Title</label><input id="title" type="text" autocomplete="off">

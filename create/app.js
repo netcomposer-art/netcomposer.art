@@ -585,7 +585,7 @@ $('perf').addEventListener('keydown', function (e) {
   else if (e.key === 'Escape' && $('perf').value !== notesSaved) { e.preventDefault(); cancelNotes(); }
 });
 $('spd').oninput = function () { $('spdv').textContent = (+$('spd').value).toFixed(1) + '×'; restartSoon(); };
-$('perf-box').addEventListener('toggle', function () { if ($('perf-box').open) growNotes(); });
+if ($('perf-box') && $('perf-box').tagName === 'DETAILS') $('perf-box').addEventListener('toggle', function () { if ($('perf-box').open) growNotes(); });
 $('inst').addEventListener('change', function () { $('sinenote').hidden = true; showCredit(); if (active) restartSoon(); });
 window.MM.loadIndex().then(function (cat) { fillInstruments(window.MM.instruments(cat)); }).catch(function () {
   $('inst').disabled = true;
