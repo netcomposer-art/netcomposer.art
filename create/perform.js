@@ -122,6 +122,7 @@
     if (again) {
       again.hidden = !gatherOn || !has;
       again.disabled = !can || busy;
+      again.textContent = phase === 'gather' ? 'Gathering…' : 'Gather again';
     }
     if (box) box.hidden = !(has || (phase === 'gather' && gatherLive.length));
     pBtn.hidden = gatherOn && !has && phase !== 'perform';
@@ -933,7 +934,13 @@
     request: function (S, tok, excludeId) {
       var body = { composition: S.c, prompt: S.p || '' };
       if (tok) body.turnstile_token = tok;
-      if (excludeId) body.exclude_gather_id = excludeId;
+      if (excludeId) {
+        body.exclude_gather_id = excludeId;
+        var claim = '';
+        try { claim = sessionStorage.getItem('nc-claim:' + excludeId) || ''; } catch (e) {}
+        if (!claim) claim = gatherClaim || '';
+        if (claim) body.claim_token = claim;
+      }
       return body;
     },
     performExtras: function (body, id, claim, prompt) {
@@ -1751,7 +1758,6 @@
       return read(r).then(function (j) {
         if (mine !== gatherGen || phase !== 'gather') return;
         token = null;
-        if (widget != null && window.turnstile) { try { window.turnstile.reset(widget); } catch (e) {} }
         if (!r.ok) { gatherFail(gatherMessage(r.status, j)); return; }
         if (acceptGather(j)) return;
         if (j && j.id && j.state) {
@@ -1937,34 +1943,42 @@
       document.head.appendChild(s);
     });
   }
-  var tokenWait = null;
+  var tokenWait = null, askGen = 0;
   function askToken() {
     if (!cfg || !cfg.turnstile_required) return Promise.resolve('');
-    // Each Gather and each Save spends the token. Do not reuse one.
+    // Each Gather and each Save spends the token. Do not reuse one. reset()
+    // after Gather can return without a callback, so render a new widget.
     token = null;
+    var gen = ++askGen;
     var box = $('perform-turnstile');
     box.hidden = false;
-    status('One check, then it starts.');
+    if (!(phase === 'gather' && gatherSounds && gatherSounds.length)) status('One check, then it starts.');
     return loadTurnstile().then(function () {
       return new Promise(function (ok, no) {
-        tokenWait = { ok: ok, no: no };
-        if (widget == null) {
-          widget = window.turnstile.render(box, {
-            sitekey: cfg.turnstile_sitekey,
-            callback: function (t) {
-              token = t;
-              var wait = tokenWait;
-              tokenWait = null;
-              if (wait) wait.ok(t);
-            },
-            'error-callback': function () {
-              var wait = tokenWait;
-              tokenWait = null;
-              if (wait) wait.no(new Error('The bot check did not load. This address may need to be added to the NC Perform widget.'));
-            },
-            'expired-callback': function () { token = null; }
-          });
-        } else window.turnstile.reset(widget);
+        if (gen !== askGen) return;
+        if (widget != null) {
+          try { window.turnstile.remove(widget); } catch (e) {}
+          widget = null;
+        }
+        box.textContent = '';
+        tokenWait = { ok: ok, no: no, gen: gen };
+        widget = window.turnstile.render(box, {
+          sitekey: cfg.turnstile_sitekey,
+          callback: function (t) {
+            if (gen !== askGen) return;
+            token = t;
+            var wait = tokenWait;
+            tokenWait = null;
+            if (wait && wait.gen === gen) wait.ok(t);
+          },
+          'error-callback': function () {
+            if (gen !== askGen) return;
+            var wait = tokenWait;
+            tokenWait = null;
+            if (wait && wait.gen === gen) wait.no(new Error('The bot check did not load. This address may need to be added to the NC Perform widget.'));
+          },
+          'expired-callback': function () { if (gen === askGen) token = null; }
+        });
       });
     });
   }
