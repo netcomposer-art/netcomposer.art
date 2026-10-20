@@ -30,7 +30,7 @@ button,.btn{font:inherit;font-size:.95rem;color:#000;background:#fff;border:1px 
 button:disabled{color:#999;border-color:#999;cursor:default}button:focus-visible,.btn:focus-visible,summary:focus-visible{outline:2px solid #000;outline-offset:2px}#play{background:#000;color:#fff;min-width:6.5rem}#play:disabled{background:#999;border-color:#999}
 .row{display:flex;flex-wrap:wrap;align-items:center;gap:.2rem .6rem}.two{display:grid;grid-template-columns:1fr;gap:0 1rem}
 .pick{display:flex;flex-wrap:wrap;gap:.5rem;align-items:stretch}.pick select{flex:1;min-width:0}.pick button{margin:0;white-space:nowrap}
-#progcap{margin:0}
+#progcap{margin:.15rem 0 .35rem;font-size:.8rem;letter-spacing:.08em;text-transform:uppercase;color:#555}
 #prog{margin:.15rem 0 .1rem;line-height:1.65;font-size:1.45rem}.ch{display:inline-block;border-bottom:2px solid transparent;padding:0 .06rem;margin:0 .4rem .15rem 0}.ch.on{border-bottom-color:#000;font-weight:bold}
 #perf{min-height:5.5rem;max-height:70vh;overflow:auto;resize:vertical}#notes-status{min-height:1.2em}
 details.fold{margin:1.8rem 0}details.fold>summary{cursor:pointer;color:#555;font-size:.85rem}
@@ -74,12 +74,13 @@ footer{max-width:46rem;margin:0 auto;padding:1.2rem 1.5rem 4rem;font-size:.85rem
 <h2 id="write-h">Write</h2>
 <label for="starter">Start from</label>
 <div class="pick"><select id="starter"><option value="">Choose a starter…</option></select><button id="surprise" type="button" title="A new progression: another key, mood, length and shape">Surprise me</button><button id="undo" type="button" hidden>Undo</button></div>
-<textarea id="comp" aria-label="Composition" placeholder="Harmony, length and shape. e.g. 2 mins - half Cm, Cm7, Cm9. Second half Cm7, Am, F."></textarea>
+<label for="comp">Composition elements</label>
+<textarea id="comp" placeholder="Harmony, length and shape. e.g. 2 mins - half Cm, Cm7, Cm9. Second half Cm7, Am, F."></textarea>
 </section>
 
 <section id="play-s">
 <h2 id="play-h">Play</h2>
-<p id="progcap" class="vh">chords</p>
+<p id="progcap">chords</p>
 <div id="prog" aria-live="polite" aria-labelledby="progcap">Loading the chord set…</div>
 <p class="m" id="progmeta"></p>
 <div class="row" id="playrow"><button id="play" type="button" disabled>Play</button>
