@@ -5,6 +5,7 @@
   function $(id) { return document.getElementById(id); }
   var cfg = null, widget = null, token = null, jobId = null, es = null, pollT = null, busy = false, running = false, alive = 0, stopping = false, cancelOk = true;
   var gatherOn = false, gatherId = '', gatherClaim = '', gatherJobId = '', gatherSounds = null, phase = '', gatherGen = 0, gatherAbort = null;
+  var gatherNames = [], gatherLive = [], playerJob = '', assembleTimer = null, warmAsked = false, warmSent = false;
   var preview = new Audio(), previewBtn = null;
   preview.preload = 'none';
   preview.addEventListener('ended', function () { stopPreview(); });
@@ -49,10 +50,12 @@
       again.hidden = !gatherOn || !has;
       again.disabled = !on || busy;
     }
-    if (box) box.hidden = !has || phase === 'gather';
+    if (box) box.hidden = !(has || (phase === 'gather' && gatherLive.length));
     pBtn.hidden = gatherOn && !has && phase !== 'perform';
     pBtn.disabled = !on || busy || (gatherOn && !has && phase !== 'perform');
-    pBtn.textContent = (phase === 'perform' && busy) ? 'Performing…' : (jobId ? 'Perform again' : 'Perform');
+    if (phase === 'perform' && busy && !playerJob) pBtn.textContent = (gatherOn && gatherId) ? 'Assembling…' : 'Performing…';
+    else if (phase === 'perform' && busy) pBtn.textContent = 'Perform';
+    else pBtn.textContent = jobId ? 'Perform again' : 'Perform';
   }
   function stopWatch() {
     if (pollT) { clearTimeout(pollT); pollT = null; }
@@ -252,6 +255,12 @@
     if (j.state === 'done') { stopWatch(); showDone(j); return; }
     if (j.state === 'failed' || j.state === 'rejected') { stopWatch(); fail(soften(j.error) || 'That Performance did not finish. Try again in a moment.'); return; }
     if (j.state === 'cancelled' || j.state === 'canceled' || j.state === 'stopped') { stopWatch(); stopped(); return; }
+    if (fromCollection()) {
+      if (previewSignaled(j) || (j.files && j.files.mp3)) armPlayer(j);
+      else if (!playerJob) { status('Assembling…'); showStop(); }
+      $('perform-bar').hidden = true;
+      return;
+    }
     showStory(j);
     var bar = $('perform-bar');
     bar.hidden = false; bar.value = j.percent || 0;
@@ -606,6 +615,7 @@
     return once();
   }
   function showDone(j) {
+    if (fromCollection() || playerJob) { showAssembly(j); return; }
     alive++;
     running = false;
     phase = (gatherOn && gatherSounds && gatherSounds.length) ? 'collection' : '';
@@ -671,11 +681,60 @@
       applyKept(m);
     }).catch(function () {});
   }
+  function showAssembly(j) {
+    alive++;
+    running = false;
+    phase = (gatherSounds && gatherSounds.length) ? 'collection' : '';
+    hideStop();
+    stopAssembleProbe();
+    var gen = ++viewGen;
+    takeSeed(j);
+    if (j && Object.prototype.hasOwnProperty.call(j, 'trimmed')) showTrim(trimText(j.trimmed));
+    dropKeptFiles();
+    if (j && j.id) jobId = j.id;
+    idle();
+    keeping = false;
+    var u = fileUrls(j);
+    var already = playerJob === u.id && !$('perform-out').hidden;
+    if (!already) {
+      clearRecord();
+      clearStrip();
+      if (window.NCLive) NCLive.hide();
+      armPlayer(j);
+    } else {
+      $('perform-mp3').href = u.mp3;
+      $('perform-flac').href = u.flac;
+      $('perform-record').href = u.page;
+    }
+    $('perform-bar').hidden = true;
+    $('perform-bar').value = 100;
+    $('perform-keep').disabled = !sessionStorage.getItem('nc-claim:' + u.id);
+    retryFetch(u.rec, gen).then(function (r) {
+      if (gen !== viewGen) return null;
+      if (!r) { recordMiss(); return null; }
+      return r.text();
+    }).then(function (t) {
+      if (gen !== viewGen || t == null) return;
+      try { showRecord(JSON.parse(t), u.id); } catch (e) { recordMiss(); }
+      if (gen !== viewGen) return;
+      var meta = $('perform-meta');
+      if (meta) meta.textContent = 'Unlisted audio is kept 90 days unless you press Keep. Listed audio waits a day, then joins the feed.';
+    }).catch(function () { if (gen === viewGen) recordMiss(); });
+    retryFetch(u.meta, gen).then(function (r) {
+      if (gen !== viewGen || !r) return null;
+      return r.json();
+    }).then(function (m) {
+      if (gen !== viewGen || !m || !m.keep) return;
+      applyKept(m);
+    }).catch(function () {});
+  }
   function fail(msg) {
     alive++;
     running = false;
     stopping = false;
     hideStop();
+    stopAssembleProbe();
+    playerJob = '';
     viewGen++;
     phase = (gatherOn && gatherSounds && gatherSounds.length) ? 'collection' : '';
     idle();
@@ -698,10 +757,65 @@
     el.hidden = false;
     el.textContent = 'Keep key, shown once: ' + value + ' — this tab remembers it.';
   }
-  // Provisional gather contract. Change this block when the real shape arrives.
+  // Provisional raw-assembly contract. Change this block when the final shape arrives.
   // Probe: POST /api/gather {probe:true}. A finished handler should no-op that body.
   // 404 or a network failure means gather is absent, so Perform stays one-shot.
   // Any other status, including 400, means the route exists. The probe body is ignored.
+  //
+  // Gather job events (and the job poll) may include found_sounds as each chord is found:
+  //   { chord, title, supplier, license, preview }
+  // chord is the 1-based position in the composition. chord_index is accepted as 0-based.
+  // preview may also be named preview_url or url. supplier may be a string or { display_name }.
+  // license may be a string. The page keeps one faint row per chord still pending and
+  // paints arrivals in chord order. A finished gather is state "done" with sounds,
+  // result.sounds, or found_sounds, plus gather_id (or id) and claim_token.
+  //
+  // Perform places that collection in order, level-matched, with no further processing.
+  // The page says "Assembling…" and opens the player as soon as preview.mp3 is ready:
+  // preview_ready, files.mp3, or preview_mp3 on an event, or the file answering at
+  // /api/jobs/<id>/files/preview.mp3. The record and sources fill in after state "done".
+  //
+  // Pre-warm: if /api/config includes warm_url (absolute, or a path on this API),
+  // the first focus of the Composition field sends one GET. No warm_url means no request.
+  function fromCollection() { return !!(gatherOn && gatherId); }
+  function num(v) {
+    if (typeof v === 'number' && isFinite(v)) return v;
+    if (typeof v === 'string' && v.trim() !== '' && !isNaN(+v)) return +v;
+    return null;
+  }
+  function soundOf(s) {
+    s = s || {};
+    var supplier = s.supplier, credit = s.credit || '';
+    if (supplier && typeof supplier === 'object') {
+      credit = credit || supplier.credit || '';
+      supplier = supplier.display_name || supplier.name || supplier.title || '';
+    }
+    var license = s.license;
+    if (license && typeof license === 'object') license = license.name || licenseLabel(license.id || '') || '';
+    var chord = num(s.chord != null ? s.chord : s.chord_position);
+    var index = num(s.chord_index);
+    var slot = chord != null && chord >= 1 ? chord - 1 : (index != null && index >= 0 ? index : -1);
+    return {
+      slot: slot,
+      symbol: String(s.symbol || s.chord_symbol || '').trim(),
+      title: String(s.title || s.name || '').trim(),
+      supplier: String(supplier || ''),
+      license: String(license || ''),
+      url: String(s.preview || s.preview_url || s.url || ''),
+      credit: String(credit || '')
+    };
+  }
+  function foundList(j) {
+    if (!j || j.found_sounds == null) return [];
+    var v = j.found_sounds;
+    if (Array.isArray(v)) return v;
+    if (typeof v !== 'object') return [];
+    return Object.keys(v).map(function (k) {
+      var item = v[k], chord = num(k);
+      if (item && typeof item === 'object') return chord != null && item.chord == null && item.chord_index == null ? Object.assign({ chord: chord }, item) : item;
+      return { title: item, chord: chord };
+    });
+  }
   var GATHER = {
     probeBody: function () { return { probe: true }; },
     request: function (S, tok, excludeId) {
@@ -718,47 +832,150 @@
     collection: function (raw) {
       if (!raw || typeof raw !== 'object') return null;
       var sounds = Array.isArray(raw.sounds) ? raw.sounds : (raw.result && Array.isArray(raw.result.sounds) ? raw.result.sounds : null);
+      if (!sounds) { var found = foundList(raw); if (found.length) sounds = found; }
       if (!sounds || !sounds.length) return null;
       var id = raw.gather_id || raw.id || '';
       if (!id) return null;
       return {
         id: String(id),
         claim: raw.claim_token || '',
-        sounds: sounds.map(function (s) {
-          s = s || {};
-          var supplier = s.supplier, credit = s.credit || '';
-          if (supplier && typeof supplier === 'object') {
-            credit = credit || supplier.credit || '';
-            supplier = supplier.display_name || supplier.name || supplier.title || '';
-          }
-          return {
-            title: String(s.title || s.name || 'Sound'),
-            supplier: String(supplier || ''),
-            license: String(s.license || ''),
-            url: String(s.url || ''),
-            credit: String(credit || '')
-          };
+        sounds: sounds.map(soundOf).sort(function (a, b) {
+          if (a.slot < 0 && b.slot < 0) return 0;
+          if (a.slot < 0) return 1;
+          if (b.slot < 0) return -1;
+          return a.slot - b.slot;
         })
       };
     }
   };
+  function fileUrls(j) {
+    var id = (j && j.id) || jobId || '';
+    var f = (j && j.files) || {};
+    var mp3 = f.mp3 || (j && (j.preview_mp3 || j.preview_url)) || '';
+    if (!mp3 && id) mp3 = API + '/api/jobs/' + encodeURIComponent(id) + '/files/preview.mp3';
+    return {
+      id: id,
+      mp3: mp3,
+      flac: f.flac || (id ? API + '/api/jobs/' + encodeURIComponent(id) + '/files/performance.flac' : ''),
+      rec: f.record || (id ? API + '/records/' + encodeURIComponent(id) + '.json' : ''),
+      page: f.page || (id ? API + '/records/' + encodeURIComponent(id) : ''),
+      meta: id ? API + '/api/jobs/' + encodeURIComponent(id) + '/files/meta.json' : ''
+    };
+  }
+  function previewSignaled(j) {
+    if (!j) return false;
+    if (j.preview_ready === true) return true;
+    if (j.preview_mp3 || j.preview_url) return true;
+    return !!(j.files && j.files.mp3);
+  }
+  function stopAssembleProbe() {
+    if (assembleTimer) { clearTimeout(assembleTimer); assembleTimer = null; }
+  }
+  function armPlayer(j) {
+    var u = fileUrls(j);
+    if (!u.id || !u.mp3) return;
+    if (playerJob === u.id && !$('perform-out').hidden) {
+      syncActions();
+      return;
+    }
+    playerJob = u.id;
+    stopAssembleProbe();
+    var audio = $('perform-audio');
+    audio.crossOrigin = 'anonymous';
+    $('perform-title').textContent = (window.NC && NC.state && NC.state().t) || 'Performance';
+    $('perform-sources').open = false;
+    $('perform-mp3').href = u.mp3;
+    $('perform-flac').href = u.flac;
+    $('perform-record').href = u.page;
+    $('perform-record').target = '_blank';
+    $('perform-record').rel = 'noopener';
+    $('perform-out').hidden = false;
+    $('perform-bar').hidden = true;
+    $('perform-keep').textContent = 'Keep';
+    $('perform-kept').hidden = true;
+    keepNote();
+    $('perform-keep').disabled = !sessionStorage.getItem('nc-claim:' + u.id);
+    $('perform-meta').textContent = 'The record is still arriving.';
+    hideStop();
+    var s = $('perform-status');
+    s.className = 'm';
+    s.textContent = '';
+    try { audio.src = u.mp3; } catch (e) {}
+    if (window.NCLive) { try { NCLive.open({ id: u.id, flac: u.flac, mp3: u.mp3, record: u.rec }); } catch (e2) {} }
+    syncActions();
+  }
+  function probePreview(gen) {
+    if (gen !== viewGen || playerJob || !jobId || phase !== 'perform' || !fromCollection()) return;
+    var url = API + '/api/jobs/' + encodeURIComponent(jobId) + '/files/preview.mp3';
+    fetch(url, { method: 'GET', headers: { Range: 'bytes=0-0' }, cache: 'no-store' }).then(function (r) {
+      if (r.body && r.body.cancel) { try { r.body.cancel(); } catch (e) {} }
+      if (gen !== viewGen || playerJob) return;
+      if (r.ok || r.status === 206) armPlayer({ id: jobId, preview_ready: true, files: { mp3: url } });
+      else assembleTimer = setTimeout(function () { probePreview(gen); }, 700);
+    }, function () {
+      if (gen === viewGen && !playerJob) assembleTimer = setTimeout(function () { probePreview(gen); }, 700);
+    });
+  }
+  function warmUrl() {
+    if (!cfg) return '';
+    var w = cfg.warm_url || cfg.warmup_url || '';
+    if (!w && typeof cfg.warmup === 'string') w = cfg.warmup;
+    if (!w && cfg.warmup && typeof cfg.warmup === 'object') w = cfg.warmup.url || cfg.warmup.href || '';
+    if (!w && typeof cfg.warm === 'string') w = cfg.warm;
+    w = String(w || '').trim();
+    if (!w) return '';
+    if (/^https?:\/\//i.test(w)) return w;
+    if (w.charAt(0) === '/') return API + w;
+    return '';
+  }
+  function prewarm() {
+    warmAsked = true;
+    if (warmSent || !cfg) return;
+    var url = warmUrl();
+    if (!url) { warmSent = true; return; }
+    warmSent = true;
+    fetch(url, { method: 'GET', cache: 'no-store' }).then(function (r) {
+      if (r.body && r.body.cancel) { try { r.body.cancel(); } catch (e) {} }
+    }).catch(function () {});
+  }
   function stopPreview() {
     try { preview.pause(); } catch (e) {}
     try { preview.removeAttribute('src'); preview.load(); } catch (e2) {}
     if (previewBtn) { previewBtn.textContent = 'Listen'; previewBtn = null; }
   }
-  function paintGather(sounds) {
+  function paintGather(sounds, keep) {
     var list = $('gather-list');
     if (!list) return;
-    stopPreview();
+    var playing = '';
+    if (keep && preview.getAttribute('src')) playing = preview.getAttribute('src');
+    else stopPreview();
     list.textContent = '';
+    if (!keep) previewBtn = null;
+    var still = null;
     (sounds || []).forEach(function (s) {
       var li = document.createElement('li');
+      if (s.symbol) {
+        var chord = document.createElement('span');
+        chord.className = 'g-chord';
+        chord.textContent = s.symbol;
+        li.appendChild(chord);
+      }
+      if (s.pending) {
+        li.className = 'pending';
+        var wait = document.createElement('span');
+        wait.className = 'g-wait';
+        wait.textContent = '—';
+        li.appendChild(wait);
+        if (s.symbol) li.setAttribute('aria-label', s.symbol + ', still gathering');
+        list.appendChild(li);
+        return;
+      }
       var btn = document.createElement('button');
       btn.type = 'button';
       btn.textContent = 'Listen';
       if (!s.url) btn.disabled = true;
       btn.onclick = function () { togglePreview(btn, s.url); };
+      if (playing && s.url && playing === s.url) { btn.textContent = 'End'; still = btn; }
       var title = document.createElement('span');
       title.className = 'g-title';
       title.textContent = s.title || 'Sound';
@@ -766,12 +983,57 @@
       if (s.supplier && s.credit) li.title = s.credit;
       var meta = document.createElement('span');
       meta.className = 'm g-meta';
-      meta.textContent = [who, s.license].filter(Boolean).join(' · ');
+      meta.textContent = [who, licenseLabel(s.license) || s.license].filter(Boolean).join(' · ');
       li.appendChild(btn);
       li.appendChild(title);
       li.appendChild(meta);
       list.appendChild(li);
     });
+    previewBtn = still;
+    if (playing && !still) stopPreview();
+  }
+  function chordNames() {
+    var tl = window.NC && NC.timeline && NC.timeline();
+    if (!tl || !tl.chords) return [];
+    return tl.chords.map(function (c) { return c.symbol || ''; });
+  }
+  function openGatherList() {
+    gatherNames = chordNames();
+    gatherLive = gatherNames.map(function () { return null; });
+    paintLive();
+  }
+  function paintLive() {
+    paintGather(gatherLive.map(function (s, i) {
+      if (s) return s;
+      return { pending: true, symbol: gatherNames[i] || '' };
+    }), true);
+  }
+  function mergeFound(j) {
+    var items = foundList(j);
+    if (!items.length || phase !== 'gather') return;
+    if (!gatherLive.length) openGatherList();
+    items.forEach(function (raw) {
+      var s = soundOf(raw);
+      if (!s.title && !s.url) return;
+      var slot = s.slot, i;
+      if (slot < 0) {
+        for (i = 0; i < gatherLive.length; i++) if (!gatherLive[i]) { slot = i; break; }
+        if (slot < 0) slot = gatherLive.length;
+      }
+      while (gatherLive.length <= slot) { gatherLive.push(null); gatherNames.push(''); }
+      if (s.symbol) gatherNames[slot] = s.symbol;
+      else s.symbol = gatherNames[slot] || '';
+      gatherLive[slot] = s;
+    });
+    paintLive();
+  }
+  function restoreGather() {
+    gatherLive = [];
+    if (gatherSounds && gatherSounds.length) paintGather(gatherSounds);
+    else {
+      var list = $('gather-list');
+      if (list) list.textContent = '';
+    }
   }
   function togglePreview(btn, url) {
     if (!url) return;
@@ -810,6 +1072,7 @@
     $('perform-turnstile').hidden = true;
     $('perform-bar').hidden = true;
     phase = (gatherSounds && gatherSounds.length) ? 'collection' : '';
+    restoreGather();
     idle();
     status(soften(msg) || 'Gather did not finish. Try again in a moment.', true);
   }
@@ -823,6 +1086,7 @@
     $('perform-turnstile').hidden = true;
     $('perform-bar').hidden = true;
     phase = (gatherSounds && gatherSounds.length) ? 'collection' : '';
+    restoreGather();
     idle();
     status('Stopped.');
   }
@@ -833,7 +1097,12 @@
     gatherId = col.id;
     if (col.claim) gatherClaim = col.claim;
     if (gatherClaim) { try { sessionStorage.setItem('nc-claim:' + gatherId, gatherClaim); } catch (e) {} }
-    gatherSounds = col.sounds;
+    gatherSounds = col.sounds.map(function (s, i) {
+      var slot = s.slot >= 0 ? s.slot : i;
+      if (!s.symbol && gatherNames[slot]) s.symbol = gatherNames[slot];
+      return s;
+    });
+    gatherLive = [];
     gatherJobId = '';
     phase = 'collection';
     running = false;
@@ -867,11 +1136,9 @@
     }
     if (j.state === 'failed' || j.state === 'rejected') { stopWatch(); gatherFail('Gather did not finish. Try again in a moment.'); return; }
     if (j.state === 'cancelled' || j.state === 'canceled' || j.state === 'stopped') { stopWatch(); stopped(); return; }
-    if (j.stage || j.stage_line) showStory(j);
-    else status('Gathering…');
-    var bar = $('perform-bar');
-    if (typeof j.percent === 'number') { bar.hidden = false; bar.value = j.percent; }
-    else bar.hidden = true;
+    mergeFound(j);
+    status('Gathering…');
+    $('perform-bar').hidden = true;
     showStop();
   }
   function postGather(S, tok, excludeId, mine) {
@@ -929,6 +1196,7 @@
     stopping = false;
     hideStop();
     $('perform-bar').hidden = true;
+    openGatherList();
     var mine = ++gatherGen;
     syncActions();
     showStop();
@@ -991,12 +1259,19 @@
       $('perform-turnstile').hidden = true;
       $('perform-out').hidden = true;
       if (window.NCLive) NCLive.hide();
-      $('perform-bar').hidden = false;
-      $('perform-bar').value = 0;
+      playerJob = '';
       running = true;
-      status(x.j.position ? 'Queued · position ' + x.j.position : 'Queued…');
+      if (fromCollection()) {
+        $('perform-bar').hidden = true;
+        status('Assembling…');
+      } else {
+        $('perform-bar').hidden = false;
+        $('perform-bar').value = 0;
+        status(x.j.position ? 'Queued · position ' + x.j.position : 'Queued…');
+      }
       showStop();
       watch(jobId);
+      if (fromCollection()) probePreview(viewGen);
     });
   }
   // Cancel shape, until the Performer publishes another: POST /api/jobs/<id>/cancel { claim_token }.
@@ -1007,6 +1282,8 @@
     running = false;
     stopping = false;
     hideStop();
+    stopAssembleProbe();
+    playerJob = '';
     viewGen++;
     phase = (gatherOn && gatherSounds && gatherSounds.length) ? 'collection' : '';
     idle();
@@ -1100,8 +1377,14 @@
     clearTake();
     phase = 'perform';
     busy = true;
+    playerJob = '';
+    stopAssembleProbe();
     dropKeptFiles();
     if (window.NCLive && NCLive.prime) NCLive.prime();
+    if (fromCollection()) {
+      status('Assembling…');
+      $('perform-bar').hidden = true;
+    }
     syncActions();
     if (jobId) {
       $('perform-out').hidden = true;
@@ -1162,6 +1445,7 @@
       return r.json();
     }).then(function (c) {
       cfg = c;
+      if (warmAsked) prewarm();
       if (!c.perform_enabled) {
         gatherOn = false;
         syncActions();
@@ -1179,6 +1463,8 @@
       status('Perform did not answer. The service may be down. Try again in a moment.', true);
     });
   }
+  var compField = $('comp');
+  if (compField) compField.addEventListener('focus', prewarm);
   $('performBtn').onclick = go;
   if ($('gatherBtn')) $('gatherBtn').onclick = function () { gather(false); };
   if ($('gather-again')) $('gather-again').onclick = function () { gather(true); };
