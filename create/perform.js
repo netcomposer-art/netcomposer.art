@@ -4,7 +4,7 @@
   var API = 'https://nc-perform-api.psemme.workers.dev';
   function $(id) { return document.getElementById(id); }
   var cfg = null, widget = null, token = null, jobId = null, es = null, pollT = null, busy = false, running = false, alive = 0, stopping = false, cancelOk = true;
-  var gatherOn = false, gatherId = '', gatherClaim = '', gatherJobId = '', gatherSounds = null, phase = '', gatherGen = 0, gatherAbort = null;
+  var gatherOn = false, gatherId = '', gatherClaim = '', gatherJobId = '', gatherSounds = null, gatherClock = null, phase = '', gatherGen = 0, gatherAbort = null;
   var gatherNames = [], gatherLive = [], playerJob = '', assembleTimer = null, warmAsked = false, warmSent = false;
   var clipBuffers = {}, clipJobs = {}, decodeCtx = null, localPlan = null, localUrl = '', asmGen = 0;
   function testerToken() {
@@ -606,7 +606,7 @@
       return read(r).then(function (j) { return {ok: r.ok, j: j}; });
     }, function () { return {ok: false, j: {}}; });
   }
-  function keepFail(msg) {
+  function keepFail(msg, plain) {
     keeping = false;
     var local = !!(localPlan && browserAssembly());
     $('perform-keep').textContent = local ? 'Save' : 'Keep';
@@ -616,9 +616,9 @@
       quiet.className = 'm';
       quiet.textContent = '';
     }
-    var clean = soften(msg);
+    var clean = plain ? String(msg || '').replace(/\s+/g, ' ').trim() : soften(msg);
     var line = clean || (local ? 'Could not save this Performance. Try again in a moment.' : 'Could not keep this Performance. Try again in a moment.');
-    if (clean && !/try again/i.test(clean)) line = clean + ' Try again in a moment.';
+    if (!plain && clean && !/try again/i.test(clean)) line = clean + ' Try again in a moment.';
     showKept(line, true);
     keepNote();
   }
@@ -793,52 +793,29 @@
     el.hidden = false;
     el.textContent = 'Keep key, shown once: ' + value + ' — this tab remembers it.';
   }
-  // Provisional raw-assembly contract. Change this block when the final shape arrives.
-  // Probe: POST /api/gather {probe:true}. A finished handler should no-op that body.
+  // Assembly plan v1 (nc-performer ffd68ce). Probe: POST /api/gather {probe:true}.
   // 404 or a network failure means gather is absent, so Perform stays one-shot.
-  // Any other status, including 400, means the route exists. The probe body is ignored.
   //
-  // Gather job events (and the job poll) may include found_sounds as each chord is found:
-  //   { chord, title, supplier, license, preview }
-  // chord is the 1-based position in the composition. chord_index is accepted as 0-based.
-  // preview may also be named preview_url or url. supplier may be a string or { display_name }.
-  // license may be a string. The page keeps one faint row per chord still pending and
-  // paints arrivals in chord order. A finished gather is state "done" with sounds,
-  // result.sounds, or found_sounds, plus gather_id (or id) and claim_token.
+  // found_sounds rows are {chord, id, title, supplier, license, preview_url, symbol}.
+  // chord is the 0-based position. The clip is GET /api/jobs/{gather_id}/audio/{id}.
+  // A finished gather includes sounds, claim_token, and clock (null means organic).
+  // preview_ready plus files.mp3 opens the server-path player before the record.
+  // The first focus of Composition sends GET /api/warm.
   //
-  // Perform places that collection in order, level-matched. The Live dials are the
-  // processing, and in this browser they run on the cached clips.
   // When /api/config advertises browser_assembly, or assembly "browser", Perform
-  // plays that take here. Save is the only offline render. Otherwise the page says
-  // "Assembling…" and opens the player as soon as preview.mp3 is ready: preview_ready,
-  // files.mp3, or preview_mp3 on an event, or the file at /api/jobs/<id>/files/preview.mp3.
-  // The record and sources fill in after state "done". The button stays Keep on that path.
-  //
-  // Each clip stays decoded in memory, and its bytes stay in IndexedDB and Cache
-  // Storage, both named nc-clips and keyed by clip_id. A reload reads those bytes
-  // and does not fetch the clip again. Order is memory, IndexedDB, Cache Storage, network.
-  //
-  // Browser plan, until the server publishes the duration rule and test vectors:
-  //   { gather_id, seed, entries: [{ pos, chord, clip_id, at_s, len_s, gain_db, fade_in_ms, fade_out_ms }], total_s }
-  // Written bracket lengths are used when the composition gives them. Otherwise each
-  // slot is seeded rubato with a 1.25 s floor (mulberry32; a resting length drifts,
-  // then a small wobble). Clips are trimmed to the slot and never stretched. Gain
-  // is gain_db, or -18 minus registry LUFS. Fades are 8 ms.
-  // The player clock is a silent file of total_s. The clips are BufferSources into
-  // the Live graph, so a dial move is an AudioParam change. Take state is
-  // { version: 1, plan, chain } and chain is the Live nodes with their params.
-  // Save posts multipart /api/save, or cfg.save_url: take, audio (WAV, 40 MiB cap),
-  // gather_id, claim_token, listed, title?, turnstile_token?, and X-NC-Tester when stored.
-  //
-  // Pre-warm: if /api/config includes warm_url (absolute, or a path on this API),
-  // the first focus of the Composition field sends one GET. No warm_url means no request.
+  // plays the cached clips here. clock.slots is the grid when clock.written is set.
+  // Otherwise NCAssembly.chordSlots places one section of the gathered chords.
+  // len_s is at most the clip's duration_s. Fades are 12 ms. gain_db is copied.
+  // Save posts multipart /api/keep-take: gather_id, claim_token, take_state, audio,
+  // title?, listed?, turnstile_token. take_state is {nc_take_version:'1', plan, processing}.
+  // 200 done shows the page. 202 queued is polled. 400 rejected is shown as sent.
   function fromCollection() { return !!(gatherOn && gatherId); }
   function num(v) {
     if (typeof v === 'number' && isFinite(v)) return v;
     if (typeof v === 'string' && v.trim() !== '' && !isNaN(+v)) return +v;
     return null;
   }
-  function soundOf(s) {
+  function soundOf(s, gid) {
     s = s || {};
     var supplier = s.supplier, credit = s.credit || '';
     if (supplier && typeof supplier === 'object') {
@@ -847,27 +824,42 @@
     }
     var license = s.license;
     if (license && typeof license === 'object') license = license.name || licenseLabel(license.id || '') || '';
+    var pos = num(s.pos);
     var chord = num(s.chord != null ? s.chord : s.chord_position);
     var index = num(s.chord_index);
-    var slot = chord != null && chord >= 1 ? chord - 1 : (index != null && index >= 0 ? index : -1);
+    var slot = pos != null && pos >= 0 ? pos : (chord != null && chord >= 0 ? chord : (index != null && index >= 0 ? index : -1));
     var loud = s.loudness;
-    var lufs = num(s.lufs != null ? s.lufs : (loud && typeof loud === 'object' ? (loud.lufs != null ? loud.lufs : loud.integrated) : loud));
-    var cache = s.cache_url || s.clip_url || s.audio_url || '';
-    if (!cache && s.cache && typeof s.cache === 'object') cache = s.cache.url || '';
-    if (!cache && typeof s.cache === 'string') cache = s.cache;
+    var lufs = num(s.loudness_lufs != null ? s.loudness_lufs : (s.lufs != null ? s.lufs : (loud && typeof loud === 'object' ? (loud.lufs != null ? loud.lufs : loud.integrated) : loud)));
+    var id = String(s.clip_id || s.id || s.key || '').trim();
+    var audio = absoluteApi(s.preview_url || s.url || s.preview || '');
+    if (!audio && id) audio = jobAudio(id, gid);
     return {
       slot: slot,
       symbol: String(s.symbol || s.chord_symbol || '').trim(),
       title: String(s.title || s.name || '').trim(),
       supplier: String(supplier || ''),
       license: String(license || ''),
-      url: String(s.preview || s.preview_url || s.url || ''),
-      cache: String(cache || ''),
-      clip_id: String(s.clip_id || s.id || s.key || '').trim(),
+      url: audio,
+      cache: audio,
+      clip_id: id,
       lufs: lufs,
       gain_db: num(s.gain_db),
+      duration_s: num(s.duration_s),
+      start_s: num(s.start_s) || 0,
       credit: String(credit || '')
     };
+  }
+  function absoluteApi(url) {
+    url = String(url || '').trim();
+    if (!url) return '';
+    if (/^https?:\/\//i.test(url)) return url;
+    if (url.charAt(0) === '/') return API + url;
+    return '';
+  }
+  function jobAudio(id, gid) {
+    gid = gid || gatherId || gatherJobId;
+    if (!gid || !id) return '';
+    return API + '/api/jobs/' + encodeURIComponent(gid) + '/audio/' + encodeURIComponent(id);
   }
   function foundList(j) {
     if (!j || j.found_sounds == null) return [];
@@ -903,7 +895,8 @@
       return {
         id: String(id),
         claim: raw.claim_token || '',
-        sounds: sounds.map(soundOf).sort(function (a, b) {
+        clock: raw.clock === undefined ? null : raw.clock,
+        sounds: sounds.map(function (row) { return soundOf(row, String(id)); }).sort(function (a, b) {
           if (a.slot < 0 && b.slot < 0) return 0;
           if (a.slot < 0) return 1;
           if (b.slot < 0) return -1;
@@ -915,8 +908,8 @@
   function fileUrls(j) {
     var id = (j && j.id) || jobId || '';
     var f = (j && j.files) || {};
-    var mp3 = f.mp3 || (j && (j.preview_mp3 || j.preview_url)) || '';
-    if (!mp3 && id) mp3 = API + '/api/jobs/' + encodeURIComponent(id) + '/files/preview.mp3';
+    var mp3 = f.mp3 || '';
+    if (!mp3 && j && j.preview_ready && id) mp3 = API + '/api/jobs/' + encodeURIComponent(id) + '/files/preview.mp3';
     return {
       id: id,
       mp3: mp3,
@@ -929,7 +922,6 @@
   function previewSignaled(j) {
     if (!j) return false;
     if (j.preview_ready === true) return true;
-    if (j.preview_mp3 || j.preview_url) return true;
     return !!(j.files && j.files.mp3);
   }
   function stopAssembleProbe() {
@@ -980,25 +972,11 @@
       if (gen === viewGen && !playerJob) assembleTimer = setTimeout(function () { probePreview(gen); }, 700);
     });
   }
-  function warmUrl() {
-    if (!cfg) return '';
-    var w = cfg.warm_url || cfg.warmup_url || '';
-    if (!w && typeof cfg.warmup === 'string') w = cfg.warmup;
-    if (!w && cfg.warmup && typeof cfg.warmup === 'object') w = cfg.warmup.url || cfg.warmup.href || '';
-    if (!w && typeof cfg.warm === 'string') w = cfg.warm;
-    w = String(w || '').trim();
-    if (!w) return '';
-    if (/^https?:\/\//i.test(w)) return w;
-    if (w.charAt(0) === '/') return API + w;
-    return '';
-  }
   function prewarm() {
     warmAsked = true;
-    if (warmSent || !cfg) return;
-    var url = warmUrl();
-    if (!url) { warmSent = true; return; }
+    if (warmSent) return;
     warmSent = true;
-    fetch(url, { method: 'GET', cache: 'no-store' }).then(function (r) {
+    fetch(API + '/api/warm', { method: 'GET', cache: 'no-store' }).then(function (r) {
       if (r.body && r.body.cancel) { try { r.body.cancel(); } catch (e) {} }
     }).catch(function () {});
   }
@@ -1125,33 +1103,25 @@
     if (!browserAssembly()) return;
     (sounds || []).forEach(function (s) { if (s && (s.cache || s.url)) loadClip(s); });
   }
-  function mulberry32(seed) {
-    var a = seed >>> 0;
-    return function () {
-      a |= 0; a = a + 0x6D2B79F5 | 0;
-      var t = Math.imul(a ^ a >>> 15, 1 | a);
-      t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
-      return ((t ^ t >>> 14) >>> 0) / 4294967296;
-    };
+  function pieceWords() {
+    var comp = ($('comp') && $('comp').value) || '';
+    var perf = ($('perf') && $('perf').value) || '';
+    return comp + '\n' + perf;
   }
-  function rubato(seed, n) {
-    var rnd = mulberry32(seed), rest = 2.6, out = [], i, len;
-    for (i = 0; i < n; i++) {
-      rest = Math.max(1.7, Math.min(4.4, rest + (rnd() - 0.5) * 0.9));
-      len = rest * (0.86 + rnd() * 0.28);
-      if (len < 1.25) len = 1.25;
-      out.push(+len.toFixed(3));
+  function planSlots(n, seed) {
+    var clock = gatherClock, slots, asm = window.NCAssembly;
+    if (clock && clock.written && clock.slots && clock.slots.length === n) {
+      return clock.slots.map(function (s) { return { t: +(+s.t).toFixed(3), dur: +(+s.dur).toFixed(3) }; });
     }
-    return out;
-  }
-  function slotLengths(n, seed) {
-    var tl = window.NC && NC.timeline && NC.timeline();
-    if (tl && tl.written && tl.chords && tl.chords.length === n) return tl.chords.map(function (c) { return c.dur; });
-    return rubato(seed, n);
+    if (!asm) return [];
+    var words = pieceWords();
+    var seconds = asm.takeSeconds(words);
+    var pulse = asm.statedPulse(words);
+    return asm.chordSlots([{ count: n, seconds: seconds }], seed, pulse, pulse ? asm.broadenBars(words) : 0);
   }
   function gainFor(s) {
-    if (s && s.gain_db != null && isFinite(s.gain_db)) return Math.max(-24, Math.min(12, s.gain_db));
-    if (s && s.lufs != null && isFinite(s.lufs)) return Math.max(-24, Math.min(12, -18 - s.lufs));
+    if (s && s.gain_db != null && isFinite(s.gain_db)) return +(+s.gain_db).toFixed(2);
+    if (s && s.lufs != null && isFinite(s.lufs)) return +(-20 - s.lufs).toFixed(2);
     return 0;
   }
   function drawSeed() {
@@ -1160,25 +1130,28 @@
     else a[0] = (Math.random() * 0x100000000) >>> 0;
     return a[0] || 1;
   }
-  function buildPlan(seed) {
-    var sounds = gatherSounds || [], n = sounds.length, durs = slotLengths(n, seed), entries = [], t = 0, i, len, at;
+  function buildPlan(seed, bufs) {
+    var sounds = gatherSounds || [], n = sounds.length, slots = planSlots(n, seed), entries = [], i, slot, len, cap, end = 0;
     for (i = 0; i < n; i++) {
-      len = +(+durs[i]).toFixed(3);
-      if (!isFinite(len) || len <= 0) len = 1.25;
-      at = +t.toFixed(3);
+      slot = slots[i] || { t: end, dur: 1.25 };
+      len = +(+slot.dur).toFixed(3);
+      cap = sounds[i].duration_s;
+      if (!(cap > 0) && bufs && bufs[i]) cap = Math.max(0, bufs[i].duration - (sounds[i].start_s || 0));
+      if (cap > 0 && len > cap + 0.001) len = Math.floor(cap * 1000) / 1000;
+      if (!(len > 0)) len = Math.min(slot.dur, 0.1);
       entries.push({
-        pos: i + 1,
+        pos: i,
         chord: sounds[i].symbol || gatherNames[i] || '',
-        clip_id: sounds[i].clip_id || ('clip-' + (i + 1)),
-        at_s: at,
-        len_s: len,
-        gain_db: +gainFor(sounds[i]).toFixed(2),
-        fade_in_ms: 8,
-        fade_out_ms: 8
+        clip_id: sounds[i].clip_id || ('c' + i),
+        at_s: +(+slot.t).toFixed(3),
+        len_s: +len.toFixed(3),
+        gain_db: gainFor(sounds[i]),
+        fade_in_ms: 12,
+        fade_out_ms: 12
       });
-      t = +(t + len).toFixed(3);
+      end = +(+slot.t + +slot.dur).toFixed(3);
     }
-    return { gather_id: gatherId, seed: seed, entries: entries, total_s: t };
+    return { nc_assembly_version: '1', gather_id: gatherId, seed: seed, entries: entries, total_s: end };
   }
   function silenceWav(seconds) {
     var rate = 8000, n = Math.max(1, Math.round((seconds || 0) * rate)), dataLen = n * 2;
@@ -1197,9 +1170,10 @@
         buffer: sound && clipBuffers[clipKey(sound)],
         at: e.at_s,
         len: e.len_s,
+        origin: sound && sound.start_s > 0 ? sound.start_s : 0,
         gainDb: e.gain_db || 0,
-        fadeIn: (e.fade_in_ms != null ? e.fade_in_ms : 8) / 1000,
-        fadeOut: (e.fade_out_ms != null ? e.fade_out_ms : 8) / 1000
+        fadeIn: (e.fade_in_ms != null ? e.fade_in_ms : 12) / 1000,
+        fadeOut: (e.fade_out_ms != null ? e.fade_out_ms : 12) / 1000
       };
     });
   }
@@ -1315,12 +1289,12 @@
     busy = true;
     syncActions();
     if (window.NCLive && NCLive.prime) NCLive.prime();
-    var plan = buildPlan(drawSeed());
+    var seed = drawSeed();
     return Promise.all((gatherSounds || []).map(loadClip)).then(function (bufs) {
       if (gen !== asmGen) return;
       if (!bufs.length || bufs.some(function (b) { return !b; })) throw new Error('clip');
       phase = (gatherSounds && gatherSounds.length) ? 'collection' : '';
-      revealTake(plan);
+      revealTake(buildPlan(seed, bufs));
       idle();
     }).catch(function () {
       if (gen !== asmGen) return;
@@ -1332,7 +1306,7 @@
   function showSaved(j) {
     keeping = false;
     j = j || {};
-    var href = j.page || j.url || j.share || j.record_url || '';
+    var href = j.page_url || j.page || j.record_url || j.url || j.share || '';
     if (!href && typeof j.record === 'string') href = j.record;
     if (!href && j.id) href = API + '/records/' + encodeURIComponent(j.id);
     $('perform-keep').textContent = 'Saved';
@@ -1355,7 +1329,59 @@
     }
     if (j.record && typeof j.record === 'object') { try { showRecord(j.record, j.id || ''); } catch (e) {} }
   }
-  var SAVE_CAP = 40 * 1024 * 1024;
+  var SAVE_CAP = 40 * 1024 * 1024, STATE_CAP = 64 * 1024;
+  function processingOf(list) {
+    var params = {}, names = [];
+    (list || []).forEach(function (node) {
+      if (!node) return;
+      if (node.type) names.push(String(node.type));
+      if (!node.params) return;
+      Object.keys(node.params).forEach(function (key) { params[key] = node.params[key]; });
+    });
+    if (!names.length) names = ['lowpass', 'delay'];
+    return { chain: names, params: params };
+  }
+  function takeBody(plan, chain) {
+    return {
+      nc_take_version: '1',
+      plan: {
+        nc_assembly_version: '1',
+        gather_id: plan.gather_id,
+        seed: plan.seed,
+        entries: plan.entries,
+        total_s: plan.total_s
+      },
+      processing: processingOf(chain)
+    };
+  }
+  function rejectionText(j) {
+    j = j || {};
+    if (j.errors && j.errors.length) return j.errors.join(' ');
+    return j.error || '';
+  }
+  function pollSaved(j) {
+    var url = (j && j.poll) || '';
+    if (url && url.charAt(0) === '/') url = API + url;
+    if (!url && j && j.id) url = API + '/api/jobs/' + encodeURIComponent(j.id);
+    var tries = 0;
+    function once() {
+      if (!url) { keepFail('Could not save this Performance. Try again in a moment.'); return; }
+      tries++;
+      fetch(url, { cache: 'no-store' }).then(function (r) {
+        return read(r).then(function (body) { return { ok: r.ok, body: body }; });
+      }, function () { return { ok: false, body: {} }; }).then(function (x) {
+        var b = (x && x.body) || {}, state = b.status || b.state;
+        if (state === 'done') { showSaved(b); return; }
+        if (state === 'rejected' || state === 'failed' || state === 'cancelled') {
+          keepFail(rejectionText(b) || 'Could not save this Performance.', true);
+          return;
+        }
+        if (tries > 40) { keepFail('Could not save this Performance. Try again in a moment.'); return; }
+        setTimeout(once, 700);
+      });
+    }
+    once();
+  }
   function saveLocal() {
     if (keeping || !localPlan || !window.NCLive || !NCLive.renderBuffers) return;
     keeping = true;
@@ -1368,17 +1394,34 @@
     askToken().then(function (tok) {
       s.className = 'm';
       s.textContent = 'Saving…';
-      var state = { version: 1, plan: localPlan, chain: NCLive.chain ? NCLive.chain() : [] };
-      return NCLive.renderBuffers({ entries: clipEntries(localPlan), total: localPlan.total_s, chain: state.chain }).then(function (blob) {
+      var chain = NCLive.chain ? NCLive.chain() : [];
+      return NCLive.renderBuffers({ entries: clipEntries(localPlan), total: localPlan.total_s, chain: chain }).then(function (out) {
+        var blob = out && out.blob ? out.blob : out;
+        var rendered = out && out.total_s ? +(+out.total_s).toFixed(3) : localPlan.total_s;
+        var musical = +(+localPlan.total_s).toFixed(3);
+        var total = Math.abs(rendered - musical) > 0.5 ? Math.min(180, rendered) : musical;
         if (!blob || blob.size > SAVE_CAP) {
           keepFail('That take is over 40 MB, so it was not sent. Try again with a shorter one.');
           return null;
         }
+        var plan = {
+          nc_assembly_version: '1',
+          gather_id: localPlan.gather_id,
+          seed: localPlan.seed,
+          entries: localPlan.entries,
+          total_s: +(+total).toFixed(3)
+        };
+        var state = takeBody(plan, chain);
+        var json = JSON.stringify(state);
+        if (json.length > STATE_CAP) {
+          keepFail('That take state is over 64 KB, so it was not sent.');
+          return null;
+        }
         var fd = new FormData();
-        fd.append('take', JSON.stringify(state));
-        fd.append('audio', blob, 'take.wav');
         fd.append('gather_id', gatherId || '');
         fd.append('claim_token', gatherClaim || '');
+        fd.append('take_state', json);
+        fd.append('audio', blob, 'take.wav');
         fd.append('listed', $('perform-public').checked ? 'true' : 'false');
         var title = window.NC && NC.state ? NC.state().t : '';
         if (title) fd.append('title', title);
@@ -1386,14 +1429,16 @@
         var headers = {};
         var pass = testerToken();
         if (pass) headers['X-NC-Tester'] = pass;
-        return fetch((cfg && cfg.save_url) || (API + '/api/save'), {
-          method: 'POST', headers: headers, body: fd
-        }).then(function (r) { return read(r).then(function (j) { return { ok: r.ok, j: j }; }); }, function () { return { ok: false, j: {} }; });
+        return fetch(API + '/api/keep-take', { method: 'POST', headers: headers, body: fd }).then(function (r) {
+          return read(r).then(function (body) { return { status: r.status, ok: r.ok, j: body }; });
+        }, function () { return { status: 0, ok: false, j: {} }; });
       });
     }).then(function (x) {
       if (!x) return;
-      if (!x.ok) { keepFail(x.j && x.j.error); return; }
-      showSaved(x.j);
+      if (x.status === 400 || (x.j && x.j.code === 'rejected')) { keepFail(rejectionText(x.j), true); return; }
+      if (x.status === 202 || (x.j && x.j.status === 'queued')) { pollSaved(x.j); return; }
+      if (x.ok && x.j && (x.j.status === 'done' || x.j.state === 'done' || x.j.page_url || x.j.record_url)) { showSaved(x.j); return; }
+      keepFail(rejectionText(x.j), !!(x.j && x.j.error));
     }).catch(function () { keepFail(''); });
   }
   function stopPreview() {
@@ -1562,6 +1607,7 @@
     var col = GATHER.collection(raw);
     if (!col) return false;
     gatherId = col.id;
+    gatherClock = col.clock;
     if (col.claim) gatherClaim = col.claim;
     if (gatherClaim) { try { sessionStorage.setItem('nc-claim:' + gatherId, gatherClaim); } catch (e) {} }
     gatherSounds = col.sounds.map(function (s, i) {

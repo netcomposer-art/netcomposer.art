@@ -273,7 +273,9 @@ function stopClips() {
 function placeClip(ctx, dest, entry, when, offset) {
   var buf = entry.buffer;
   if (!buf) return null;
-  var slot = Math.min(entry.len, buf.duration);
+  var origin = entry.origin > 0 ? entry.origin : 0;
+  var room = Math.max(0, buf.duration - origin);
+  var slot = Math.min(entry.len, room);
   var end = entry.at + slot;
   if (end <= offset + 0.001) return null;
   var skip = Math.max(0, offset - entry.at);
@@ -281,8 +283,8 @@ function placeClip(ctx, dest, entry, when, offset) {
   if (!(playLen > 0.001)) return null;
   var src = ctx.createBufferSource(), g = ctx.createGain();
   var lin = Math.pow(10, (entry.gainDb || 0) / 20);
-  var fin = Math.min(entry.fadeIn || 0.008, playLen / 2);
-  var fout = Math.min(entry.fadeOut || 0.008, playLen / 2);
+  var fin = Math.min(entry.fadeIn || 0.012, playLen / 2);
+  var fout = Math.min(entry.fadeOut || 0.012, playLen / 2);
   var t0 = when + Math.max(0, entry.at - offset);
   var stopAt = t0 + playLen;
   src.buffer = buf;
@@ -295,7 +297,7 @@ function placeClip(ctx, dest, entry, when, offset) {
   g.gain.setValueAtTime(lin, Math.max(t0 + 0.002, stopAt - fout));
   g.gain.linearRampToValueAtTime(0, stopAt);
   src.connect(g); g.connect(dest);
-  src.start(t0, skip, playLen);
+  src.start(t0, origin + skip, playLen);
   return { src: src, gain: g };
 }
 function scheduleClips(spec) {
@@ -329,7 +331,9 @@ function renderBuffers(spec) {
   });
   var rate = 48000;
   var tail = S.wet > 0.001 ? Math.min(3, Math.max(0.2, (S.delay_s || 0) * 4)) : 0.05;
-  var total = (spec.total || 0) + tail;
+  var musical = spec.total || 0;
+  if (musical + tail > 180) tail = Math.max(0, 180 - musical);
+  var total = musical + tail;
   var off = new (window.OfflineAudioContext || window.webkitOfflineAudioContext)(2, Math.max(1, Math.ceil(total * rate)), rate);
   var bus = off.createGain();
   (spec.entries || []).forEach(function (entry) { placeClip(off, bus, entry, 0, 0); });
@@ -352,7 +356,7 @@ function renderBuffers(spec) {
       for (i = 0; i < rendered.length; i++) if (Math.abs(data[ch][i]) > peak) peak = Math.abs(data[ch][i]);
     }
     if (peak > limit) { var g = limit / peak; for (ch = 0; ch < data.length; ch++) for (i = 0; i < rendered.length; i++) data[ch][i] *= g; }
-    return pcmWav(rendered);
+    return { blob: pcmWav(rendered), total_s: +(rendered.length / rendered.sampleRate).toFixed(3) };
   });
 }
 // ---------- the WAV tap: 16-bit stereo PCM straight from the master bus ----------
