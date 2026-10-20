@@ -10,7 +10,6 @@ var TAIL_S = 3, LEAD_S = 0.05, MAX_TAKE_S = 600, MAX_LOG_BYTES = 5e6, LOG_VERSIO
 var DIALS = {cutoff: 'lcut', delay_timing: 'ltime', feedback: 'lfb', wet: 'lmix'};
 var AC = null, G = null, live = false, gen = 0, T0 = 0, timers = [], sources = [], SRC = null, EL = null, armFollow = false;
 var PERF = null;    // the Performance in the dials: {id, buffer, sha, audioUrl, audioFile, record, bpm, tempoSource, creditName}
-var dialed = false; // true once a sound dial moves; loop alone does not count. Untouched Keep stores the original.
 var openGen = 0;
 var REC = null;     // a take in progress: {log, frames, chunks, firstT, stopping}
 var TAKE = null;    // the finished take: {blob, log, url}
@@ -32,6 +31,11 @@ function settings() {
   var o = $('ltime').options[$('ltime').selectedIndex];
   return {cutoff: +$('lcut').value, cutoff_hz: cutoffHz(+$('lcut').value), delay_timing: o.textContent, delay_beats: +o.value, delay_s: +delayS().toFixed(4),
           feedback: +$('lfb').value / 100, wet: +$('lmix').value / 100, loop: $('lloop').checked};
+}
+// Neutral is the original render: filter open, delay silent. Timing and feedback stay parked at 1/8 dotted and 35% until wet is raised. Loop does not change the sound.
+function adjusted() {
+  var S = settings();
+  return S.cutoff !== 0 || S.wet !== 0 || S.delay_beats !== 0.75 || Math.round(S.feedback * 100) !== 35;
 }
 function dialEvent(d) {
   var S = settings(), ev = {dial: d};
@@ -367,8 +371,7 @@ function hide() {
   resetDials(); buttons();
 }
 function resetDials() {
-  dialed = false;
-  $('lcut').value = 0; $('ltime').value = '0.75'; $('lfb').value = 35; $('lmix').value = 25; $('lloop').checked = true;
+  $('lcut').value = 0; $('ltime').value = '0.75'; $('lfb').value = 35; $('lmix').value = 0; $('lloop').checked = true;
   var a = player(); if (a) a.loop = true;
   readouts(); if (G) apply(true);
 }
@@ -634,7 +637,6 @@ $('lconfcancel').onclick = function () { PENDING = null; $('lconflict').hidden =
 $('lforget').onclick = forget;
 Object.keys(DIALS).forEach(function (d) {
   $(DIALS[d]).addEventListener('input', function () {
-    dialed = true;
     if (AC && AC.state === 'suspended') AC.resume();
     if (FOLLOW && !OVERRIDE[d]) { OVERRIDE[d] = true; status('You took over ' + d.replace('_', ' ') + '; the log keeps the other dials.'); }
     readouts(); apply(false); logEvent(dialEvent(d));
@@ -647,7 +649,7 @@ $('lloop').addEventListener('change', function () {
 $('play').addEventListener('click', function () { if (live || !player().paused) stop('The preview took over.'); });
 readouts(); buttons();
 window.NCLive = {settings: settings, cutoffHz: cutoffHz, validate: validate, open: open, hide: hide, level: level, bands: bands, prime: prime, render: render,
-  dialed: function () { return dialed; },
+  adjusted: adjusted,
   performanceId: function () { return PERF && PERF.id; },
   player: function () { return player(); },
   take: function () { return TAKE && {bytes: TAKE.blob.size, log: TAKE.log}; }, recording: function () { return !!REC; },

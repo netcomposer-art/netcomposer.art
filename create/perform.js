@@ -534,7 +534,7 @@
       keepFail('This tab does not have the keep key for this Performance.');
       return;
     }
-    var moved = !!(window.NCLive && NCLive.dialed && NCLive.dialed());
+    var moved = !!(window.NCLive && NCLive.adjusted && NCLive.adjusted());
     keeping = true;
     $('perform-keep').disabled = true;
     $('perform-kept').hidden = true;
