@@ -30,7 +30,11 @@
         "text": "A Composition is a Markdown file under /composition/. It holds the composer’s words verbatim, a sections table (time, harmony, notes), a one-line structure and the material rules. It fixes harmony, length and shape only: no notes, no timbres. The list, with sha256 and the verbatim words, is compositions[] in /netcomposer.json.",
         "links": {
           "current": "https://netcomposer.art/composition/ambient-cm.md",
+          "ambient": "https://netcomposer.art/composition/ambient-cm.md",
           "bwv846": "https://netcomposer.art/composition/bwv846-harmony-only.md",
+          "bwv847": "https://netcomposer.art/composition/bwv847-harmony-only.md",
+          "bwv853": "https://netcomposer.art/composition/bwv853-harmony-only.md",
+          "bwv862": "https://netcomposer.art/composition/bwv862-harmony-only.md",
           "index": "https://netcomposer.art/netcomposer.json"
         }
       },
@@ -717,12 +721,17 @@
       "title": "The C major Prelude, harmony only (after Bach, BWV 846)",
       "composer": "Peter",
       "text": "https://netcomposer.art/composition/bwv846-harmony-only.md",
-      "sha256": "8a96bb68f0bbf2b37890fd99f24325ecf0195783265431a8249f070621e6b37f",
+      "sha256": "315551592c9723c061a3c212d05cf83092b5909f5c751ee3fba1e0fc98ce29fa",
       "prior": [
         {
           "sha256": "f63acadc04937a289a2f51c96386a0ae92de8f7fba00c69a16a038632b9b43d5",
           "text": "https://netcomposer.art/composition/prior/bwv846-harmony-only.md",
           "note": "The text pinned by the four published BWV 846 performance records."
+        },
+        {
+          "sha256": "8a96bb68f0bbf2b37890fd99f24325ecf0195783265431a8249f070621e6b37f",
+          "text": "https://netcomposer.art/composition/prior/bwv846-harmony-only-20261017.md",
+          "note": "The text published before the breathing revision. Composer display Peter; time-stretch already removed."
         }
       ],
       "meter": "4/4",
@@ -2610,6 +2619,75 @@
           "license": "CC-BY-SA-4.0"
         }
       ]
+    },
+    {
+      "id": "bwv847-harmony-only",
+      "title": "The C minor Prelude, harmony only (after Bach, BWV 847)",
+      "composer": "Peter",
+      "text": "https://netcomposer.art/composition/bwv847-harmony-only.md",
+      "sha256": "61cedbd2626987d4fe13827635b1750e9184d87909b356fb3fec6d5bdc4a332e",
+      "meter": "4/4",
+      "bars": 38,
+      "tempo_bpm": 80,
+      "license": "CC-BY-SA-4.0",
+      "based_on": [
+        {
+          "what": "J.S. Bach, Prelude in C minor, BWV 847 (1722)",
+          "license": "Public domain"
+        },
+        {
+          "what": "When in Rome harmonic analysis, Mark Gotham et al., commit 1c61fe4",
+          "uri": "https://github.com/MarkGotham/When-in-Rome",
+          "license": "CC-BY-SA-4.0"
+        }
+      ],
+      "performances": []
+    },
+    {
+      "id": "bwv853-harmony-only",
+      "title": "The E♭ minor Prelude, harmony only (after Bach, BWV 853)",
+      "composer": "Peter",
+      "text": "https://netcomposer.art/composition/bwv853-harmony-only.md",
+      "sha256": "4f36125c541c8b5ebe2b73d8aee8e3c7f935b47a3145fc194d012c5e33992e75",
+      "meter": "3/2",
+      "bars": 40,
+      "tempo_bpm": 84,
+      "license": "CC-BY-SA-4.0",
+      "based_on": [
+        {
+          "what": "J.S. Bach, Prelude in E-flat minor, BWV 853 (1722)",
+          "license": "Public domain"
+        },
+        {
+          "what": "When in Rome harmonic analysis, Mark Gotham et al., commit 1c61fe4",
+          "uri": "https://github.com/MarkGotham/When-in-Rome",
+          "license": "CC-BY-SA-4.0"
+        }
+      ],
+      "performances": []
+    },
+    {
+      "id": "bwv862-harmony-only",
+      "title": "The A♭ major Prelude, harmony only (after Bach, BWV 862)",
+      "composer": "Peter",
+      "text": "https://netcomposer.art/composition/bwv862-harmony-only.md",
+      "sha256": "5cce8db19b88ceceacc3ec703d313592034145a0eba1c9ec6cfec823b3a7d694",
+      "meter": "3/4",
+      "bars": 44,
+      "tempo_bpm": 80,
+      "license": "CC-BY-SA-4.0",
+      "based_on": [
+        {
+          "what": "J.S. Bach, Prelude in A-flat major, BWV 862 (1722)",
+          "license": "Public domain"
+        },
+        {
+          "what": "When in Rome harmonic analysis, Mark Gotham et al., commit 1c61fe4",
+          "uri": "https://github.com/MarkGotham/When-in-Rome",
+          "license": "CC-BY-SA-4.0"
+        }
+      ],
+      "performances": []
     }
   ],
   "suppliers": [
