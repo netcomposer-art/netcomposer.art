@@ -155,9 +155,10 @@ footer{max-width:46rem;margin:0 auto;padding:0 1.2rem 4rem;font-size:.85rem;colo
 
 <section class="further" id="further">
 <h2 id="further-h">Take it further</h2>
+<p>A Composition is words, not a recording, so anyone can perform it, and each Performance comes out different. This page is just one Performer. Take your Composition away and perform it yourself with the open-source kit, hand it to an AI agent, or build your own Performer. Every take uses openly licensed sounds and keeps a record of where each sound came from, so the music can travel, branch and stay credited.</p>
 <h3 id="download">Download</h3>
-<div class="row"><button id="dlmd" type="button">composition.md</button><button id="dlplan" type="button">plan stub (plan.json)</button></div>
-<p class="m">The plan stub has the chords, their voicings and the sounds; a Performer or an agent fills in the rest. <a href="plan.schema.json">Schema</a>.</p>
+<div class="row"><button id="dlmd" type="button">composition.md</button><button id="dlplan" type="button">sketch (plan.json)</button></div>
+<p class="m">The Sketch has the chords, their voicings and the sounds; a Performer or an agent fills in the rest. <a href="plan.schema.json">Schema</a>.</p>
 <h3 id="upload">Open a file</h3>
 <input id="up" type="file" accept=".md,.markdown,.txt,text/markdown,text/plain" aria-label="Open a composition.md">
 <p class="m">Open a composition.md: one made here, or a published one (<a href="../composition/ambient-cm.md">ambient Cm</a>, <a href="../composition/bwv846-harmony-only.md">BWV 846</a>).</p>
@@ -166,7 +167,7 @@ footer{max-width:46rem;margin:0 auto;padding:0 1.2rem 4rem;font-size:.85rem;colo
 nc perform composition.md --stub -o out/    # no LLM
 nc render --plan plan.json -o out/          # your own plan
 nc perform composition.md -o out/           # any OpenAI-compatible LLM</pre>
-<p class="m">The kit is open source (MIT): <a href="https://github.com/netcomposer-art/nc-performer">github.com/netcomposer-art/nc-performer</a>. It needs Python 3.10+ and ffmpeg with the rubberband filter. The default reverb hack is Dragonfly Hall: add <code>pip install pedalboard</code> and Dragonfly Reverb (<code>apt install dragonfly-reverb</code>, or its VST3). Without them the kit uses its synthetic hall, and the record says which reverb ran.</p>
+<p class="m">The kit is open source (MIT): <a href="https://github.com/netcomposer-art/nc-performer">github.com/netcomposer-art/nc-performer</a>. It needs Python 3.10+ and ffmpeg. The default reverb hack is Dragonfly Hall: add <code>pip install pedalboard</code> and Dragonfly Reverb (<code>apt install dragonfly-reverb</code>, or its VST3). Without them the kit uses its synthetic hall, and the record says which reverb ran.</p>
 <h3 id="agent">With an agent</h3>
 <p class="m">Grok, ChatGPT, Claude, others: give it the composition.md and the skill, <a href="SKILL.md">SKILL.md</a> (plain text: <a href="SKILL.txt">SKILL.txt</a>). It writes plan.json, renders, writes the <a href="../record/">record</a>. More on <a href="../agents/">Agents start here</a>.</p>
 <h3 id="submit">Submit</h3>

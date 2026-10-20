@@ -226,7 +226,7 @@ function go(chords, from, speed, out, fn) {
 function restartSoon() { if (!active) return; clearTimeout(restartT); var at = cur; restartT = setTimeout(function () { if (active) start(at); }, 700); }
 function status(t, warn) { var s = $('status'); s.textContent = t; s.className = warn ? 'm warn' : 'm'; }
 
-// ---------- composition.md, plan stub ----------
+// ---------- composition.md, sketch (plan.json) ----------
 function state() { return {t: $('title').value.trim() || 'Untitled', by: $('by').value.trim() || 'anonymous', c: $('comp').value.trim(), p: $('perf').value.trim()}; }
 function toMd(S) {
   var d = new Date().toISOString().slice(0, 10);
@@ -247,9 +247,9 @@ function toPlan(S) {
     keys.push({t: +(c.t + c.dur / 2 + 0.3).toFixed(3), source: id, offset_s: 0, dur_s: 4.3, fade_in_s: 0.02, fade_out_s: 2, gain: 0.45, role: 'chord restrike (full chord set)'});
     pad.push({t: i ? Math.max(0, +(c.t - 1.5).toFixed(3)) : 0, source: id, offset_s: 0, src_window_s: [0.05, 3.6], stretch_to_s: +(c.dur + 4).toFixed(3), fade_in_s: i ? 3 : 4.5, fade_out_s: 4, gain: 0.6, role: 'stretched chord pad (time-stretch, no pitch-shift)'});
   });
-  return {nc_plan_version: '0.1', id: slug(S.t), title: S.t + ' (stub performance)',
+  return {nc_plan_version: '0.1', id: slug(S.t), title: S.t + ' (sketch)',
     composition: {title: S.t, composer: S.by, file: 'composition.md', words_verbatim: {composition: S.c, performance: S.p}},
-    interpreter: {kind: 'stub', at: new Date().toISOString(), note: 'Plan stub from netcomposer.art/create/: chord symbols found in the words, each voiced from the full chord set by voice leading, chord strikes plus a time-stretched pad. Edit it, or let an agent or `nc interpret` write a fuller plan.'},
+    interpreter: {kind: 'stub', at: new Date().toISOString(), note: 'Sketch from netcomposer.art/create/: chord symbols found in the words, each voiced from the full chord set by voice leading, chord strikes plus a time-stretched pad. Edit it, or let an agent or `nc interpret` write a fuller plan.'},
     seed: (SEED && SEED.c === S.c) ? SEED.seed : 1, length_s: +tl.L.toFixed(3), tail_s: 4, pulse_bpm: 60, pitch_tolerance_cents: 15,
     sections: [{id: 'A', start_s: 0, end_s: +tl.L.toFixed(3), harmony: tl.unique.join(' ')}],
     chords: tl.chords.map(function (c) { return {t: c.t, dur: c.dur, symbol: c.symbol, voicing: c.voicing, section: 'A'}; }),
@@ -257,7 +257,7 @@ function toPlan(S) {
     layers: [{id: 'pad', type: 'clips', bus: 'pad', role: 'stretched chord pad', events: pad}, {id: 'keys', type: 'clips', bus: 'keys', role: 'chord strikes', events: keys}],
     master: {buses: {pad: {filters: [{type: 'lp', hz: soft ? 2500 : 6000, order: 2}], lufs: -21, pan: 0.05}, keys: {filters: [{type: 'lp', hz: soft ? 3000 : 8000, order: 2}], lufs: -23, pan: -0.08}},
       reverb: {engine: 'dragonfly', send_lu: soft ? 5.3 : 1.7, params: {decay_s: soft ? 6.2 : 2.8}}, hp_hz: 30, high_shelf: {hz: 9000, db: soft ? -4.4 : -0.9}, loudness: {lufs: -17, tp: -1.5}},
-    notes: ['Stub plan from netcomposer.art/create/: no melody line and no triplets were read from the words; add a "notes" layer by hand or use an interpreter.',
+    notes: ['Sketch from netcomposer.art/create/: no melody line and no triplets were read from the words; add a "notes" layer by hand or use an interpreter.',
       'Play instrument: ' + creditSentence()].concat(
       (SEED && SEED.c === S.c) ? ['Progression from Surprise me: ' + SEED.key + ' ' + SEED.mode + ', seed ' + SEED.seed + ' (also the render seed).'] : [])};
 }
