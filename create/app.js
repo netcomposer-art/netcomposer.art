@@ -226,7 +226,7 @@ function go(chords, from, speed, out, fn) {
 function restartSoon() { if (!active) return; clearTimeout(restartT); var at = cur; restartT = setTimeout(function () { if (active) start(at); }, 700); }
 function status(t, warn) { var s = $('status'); s.textContent = t; s.className = warn ? 'm warn' : 'm'; }
 
-// ---------- composition.md, plan stub ----------
+// ---------- composition.md, sketch (plan.json) ----------
 function state() { return {t: $('title').value.trim() || 'Untitled', by: $('by').value.trim() || 'anonymous', c: $('comp').value.trim(), p: $('perf').value.trim()}; }
 function toMd(S) {
   var d = new Date().toISOString().slice(0, 10);
@@ -247,9 +247,9 @@ function toPlan(S) {
     keys.push({t: +(c.t + c.dur / 2 + 0.3).toFixed(3), source: id, offset_s: 0, dur_s: 4.3, fade_in_s: 0.02, fade_out_s: 2, gain: 0.45, role: 'chord restrike (full chord set)'});
     pad.push({t: i ? Math.max(0, +(c.t - 1.5).toFixed(3)) : 0, source: id, offset_s: 0, src_window_s: [0.05, 3.6], stretch_to_s: +(c.dur + 4).toFixed(3), fade_in_s: i ? 3 : 4.5, fade_out_s: 4, gain: 0.6, role: 'stretched chord pad (time-stretch, no pitch-shift)'});
   });
-  return {nc_plan_version: '0.1', id: slug(S.t), title: S.t + ' (stub performance)',
+  return {nc_plan_version: '0.1', id: slug(S.t), title: S.t + ' (sketch)',
     composition: {title: S.t, composer: S.by, file: 'composition.md', words_verbatim: {composition: S.c, performance: S.p}},
-    interpreter: {kind: 'stub', at: new Date().toISOString(), note: 'Plan stub from netcomposer.art/create/: chord symbols found in the words, each voiced from the full chord set by voice leading, chord strikes plus a time-stretched pad. Edit it, or let an agent or `nc interpret` write a fuller plan.'},
+    interpreter: {kind: 'stub', at: new Date().toISOString(), note: 'Sketch from netcomposer.art/create/: chord symbols found in the words, each voiced from the full chord set by voice leading, chord strikes plus a time-stretched pad. Edit it, or let an agent or `nc interpret` write a fuller plan.'},
     seed: (SEED && SEED.c === S.c) ? SEED.seed : 1, length_s: +tl.L.toFixed(3), tail_s: 4, pulse_bpm: 60, pitch_tolerance_cents: 15,
     sections: [{id: 'A', start_s: 0, end_s: +tl.L.toFixed(3), harmony: tl.unique.join(' ')}],
     chords: tl.chords.map(function (c) { return {t: c.t, dur: c.dur, symbol: c.symbol, voicing: c.voicing, section: 'A'}; }),
@@ -257,7 +257,7 @@ function toPlan(S) {
     layers: [{id: 'pad', type: 'clips', bus: 'pad', role: 'stretched chord pad', events: pad}, {id: 'keys', type: 'clips', bus: 'keys', role: 'chord strikes', events: keys}],
     master: {buses: {pad: {filters: [{type: 'lp', hz: soft ? 2500 : 6000, order: 2}], lufs: -21, pan: 0.05}, keys: {filters: [{type: 'lp', hz: soft ? 3000 : 8000, order: 2}], lufs: -23, pan: -0.08}},
       reverb: {engine: 'dragonfly', send_lu: soft ? 5.3 : 1.7, params: {decay_s: soft ? 6.2 : 2.8}}, hp_hz: 30, high_shelf: {hz: 9000, db: soft ? -4.4 : -0.9}, loudness: {lufs: -17, tp: -1.5}},
-    notes: ['Stub plan from netcomposer.art/create/: no melody line and no triplets were read from the words; add a "notes" layer by hand or use an interpreter.',
+    notes: ['Sketch from netcomposer.art/create/: no melody line and no triplets were read from the words; add a "notes" layer by hand or use an interpreter.',
       'Play instrument: ' + creditSentence()].concat(
       (SEED && SEED.c === S.c) ? ['Progression from Surprise me: ' + SEED.key + ' ' + SEED.mode + ', seed ' + SEED.seed + ' (also the render seed).'] : [])};
 }
@@ -286,7 +286,13 @@ function parseMd(txt) {
   }
   return {t: title, by: by, c: c, p: p || ''};
 }
-function fill(S) { $('title').value = S.t || ''; $('by').value = S.by || ''; $('comp').value = S.c || ''; $('perf').value = S.p || ''; SEED = S.sd ? surpriseInfo(S.sd, S.c) : null; stop(); refresh(); adoptNotes($('perf').value); }
+function fill(S) {
+  var was = active, at = cur;
+  $('title').value = S.t || ''; $('by').value = S.by || ''; $('comp').value = S.c || ''; $('perf').value = S.p || '';
+  SEED = S.sd ? surpriseInfo(S.sd, S.c) : null;
+  stop(); refresh(); adoptNotes($('perf').value);
+  if (was) start(at);
+}
 // ---------- share ----------
 function b64e(s) { return btoa(unescape(encodeURIComponent(s))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); }
 function b64d(s) { s = s.replace(/-/g, '+').replace(/_/g, '/'); while (s.length % 4) s += '='; return decodeURIComponent(escape(atob(s))); }
@@ -296,21 +302,47 @@ var persistT = null;
 function persist() { clearTimeout(persistT); persistT = null; history.replaceState(null, '', location.href.split('#')[0] + '#c=' + b64e(JSON.stringify(raw()))); }
 function persistSoon() { clearTimeout(persistT); persistT = setTimeout(persist, 400); }
 function shareUrl() { persist(); return location.href; }
+function matchStarter(S) {
+  for (var i = 0; i < STARTERS.length; i++) {
+    var s = STARTERS[i];
+    if ((s.title || '') === (S.t || '') && (s.composer || '') === (S.by || '') && (s.composition || '') === (S.c || '') && (s.performance || '') === (S.p || '')) return String(i);
+  }
+  return '';
+}
+var shownStarter = '';
+function rememberStarter(v) { shownStarter = v || ''; var pick = $('starter'); if (pick) pick.value = shownStarter; }
 function fromHash() {
   var m = /[#&]c=([A-Za-z0-9_-]+)/.exec(location.hash); if (!m) return false;
-  try { var S = JSON.parse(b64d(m[1])); fill(S); return true; } catch (e) { status('That share link could not be read.', true); return false; }
+  try { var S = JSON.parse(b64d(m[1])); fill(S); rememberStarter(matchStarter(S)); return true; } catch (e) { status('That share link could not be read.', true); return false; }
 }
-// ---------- undo (Surprise me, a starter, an opened file) ----------
-var UNDO = [];
-function pushUndo() {
+// ---------- undo ----------
+// The top Undo button is only for Surprise me. Starters and opened files still
+// land on the stack (so a later Surprise can step back through them) but they
+// do not reveal the button. It hides again once every Surprise is undone.
+var UNDO = [], STARTER_UNDO = [], SURPRISE_UNDO = [], surpriseDepth = 0;
+function syncUndoBtn() {
+  var show = surpriseDepth > 0;
+  $('undo').hidden = !show;
+  $('undo').disabled = !show;
+}
+function pushUndo(fromSurprise) {
   var S = raw(), top = UNDO[UNDO.length - 1];
-  if (!top || JSON.stringify(top) !== JSON.stringify(S)) UNDO.push(S);
-  if (UNDO.length > 30) UNDO.shift(); $('undo').disabled = false;
+  if (!top || JSON.stringify(top) !== JSON.stringify(S)) {
+    UNDO.push(S); STARTER_UNDO.push(shownStarter); SURPRISE_UNDO.push(!!fromSurprise);
+    if (fromSurprise) surpriseDepth++;
+  }
+  if (UNDO.length > 30) {
+    UNDO.shift(); STARTER_UNDO.shift();
+    if (SURPRISE_UNDO.shift()) surpriseDepth = Math.max(0, surpriseDepth - 1);
+  }
+  syncUndoBtn();
 }
 function undo() {
-  var S = UNDO.pop(); if (!S) return; var was = active, at = cur;
-  fill(S); persist(); $('undo').disabled = !UNDO.length; status('Back to your previous version.');
-  if (was) start(at);
+  var S = UNDO.pop(); if (!S) return;
+  var choice = STARTER_UNDO.length ? STARTER_UNDO.pop() : '';
+  if (SURPRISE_UNDO.length && SURPRISE_UNDO.pop()) surpriseDepth = Math.max(0, surpriseDepth - 1);
+  fill(S); persist(); rememberStarter(choice);
+  syncUndoBtn(); status('Back to your previous version.');
 }
 // ---------- read a composition.md into the fields (Open a file). No on-page markdown editor. ----------
 function fromText(txt) {
@@ -487,9 +519,10 @@ function surpriseInfo(seed, c) { var P = makeSurprise(seed); return P && P.compo
 function surprise() {
   if (!CAT) return;
   var P = makeSurprise(crypto.getRandomValues(new Uint32Array(1))[0] >>> 0); if (!P) return;
-  pushUndo();
+  pushUndo(true);
   fill({t: 'Surprise in ' + P.key + ' ' + P.mode, by: '', c: P.composition, p: P.mood, sd: P.seed});
-  persist(); $('shareurl').hidden = true; start(0);
+  rememberStarter('');
+  persist(); $('shareurl').hidden = true;
   status('Surprise: ' + P.key + ' ' + P.mode + ', ' + P.degrees.join(' ') + ' (seed ' + P.seed + '). Again for another; Undo goes back.');
 }
 
@@ -503,16 +536,17 @@ var sel = $('starter');
 (function () { var o = document.createElement('option'); o.value = 'blank'; o.textContent = 'Start from scratch (blank page)'; sel.appendChild(o); })();
 STARTERS.forEach(function (s, i) { var o = document.createElement('option'); o.value = i; o.textContent = s.name; sel.appendChild(o); });
 sel.onchange = function () { if (sel.value === '') return;
+  var choice = sel.value;
   pushUndo();
-  if (sel.value === 'blank') { fill({t: '', by: '', c: '', p: ''}); sel.value = ''; persist(); $('shareurl').hidden = true; status('Blank page. Write your Composition and how it should be performed; chord symbols you type show up under Play.'); $('title').focus(); return; }
-  var s = STARTERS[+sel.value]; fill({t: s.title, by: s.composer, c: s.composition, p: s.performance}); sel.value = ''; persist(); };
+  if (choice === 'blank') { fill({t: '', by: '', c: '', p: ''}); rememberStarter('blank'); persist(); $('shareurl').hidden = true; status('Blank page. Write your Composition and how it should be performed; chord symbols you type show up under Play.'); $('title').focus(); return; }
+  var s = STARTERS[+choice]; fill({t: s.title, by: s.composer, c: s.composition, p: s.performance}); rememberStarter(choice); persist(); };
 ['comp', 'perf'].forEach(function (id) { $(id).addEventListener('input', function () {
   if (id === 'perf') noteBurst();
   refresh(); persistSoon(); if (!timeline()) stop(); else restartSoon();
 }); });
 ['title', 'by'].forEach(function (id) { $(id).addEventListener('input', persistSoon); });
 $('play').onclick = toggle;
-$('surprise').onclick = surprise; $('surprise2').onclick = surprise;
+$('surprise').onclick = surprise;
 $('undo').onclick = undo;
 $('notes-save').onclick = saveNotes;
 $('notes-undo').onclick = undoNotes;
@@ -532,7 +566,7 @@ $('dlmd').onclick = function () { var S = state(); download(slug(S.t) + '.compos
 $('dlplan').onclick = function () { var S = state(), p = toPlan(S); if (!p) { status('Write some chord symbols first.', true); return; } download(slug(S.t) + '.plan.json', JSON.stringify(p, null, 1) + '\n', 'application/json'); };
 $('up').onchange = function (e) {
   var f = e.target.files[0]; if (!f) return;
-  f.text().then(function (t) { pushUndo(); fill(parseMd(t)); persist(); status('Loaded ' + f.name + '. Undo goes back.'); });
+  f.text().then(function (t) { pushUndo(); fill(parseMd(t)); rememberStarter(''); persist(); status('Loaded ' + f.name + '.'); });
 };
 $('share').onclick = function () {
   var u = shareUrl(); $('shareurl').value = u; $('shareurl').hidden = false; $('shareurl').select();

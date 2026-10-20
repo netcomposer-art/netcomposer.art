@@ -28,8 +28,9 @@ select{appearance:none;-webkit-appearance:none;background:#fff}#inst{width:auto;
 button,.btn{font:inherit;font-size:.95rem;color:#000;background:#fff;border:1px solid #000;border-radius:0;padding:.5rem .9rem;margin:.3rem .4rem .3rem 0;cursor:pointer}
 button:disabled{color:#999;border-color:#999;cursor:default}button:focus-visible,.btn:focus-visible,summary:focus-visible{outline:2px solid #000;outline-offset:2px}#play{background:#000;color:#fff;min-width:6.5rem}#play:disabled{background:#999;border-color:#999}
 .row{display:flex;flex-wrap:wrap;align-items:center;gap:.2rem .6rem}.two{display:grid;grid-template-columns:1fr;gap:0 1rem}
-.pick{display:flex;gap:.5rem;align-items:stretch}.pick select{flex:1;min-width:0}.pick button{margin:0;white-space:nowrap}
-#prog{margin:.9rem 0 .2rem;line-height:2.1}.ch{display:inline-block;border-bottom:2px solid transparent;padding:0 .1rem}.ch.on{border-bottom-color:#000;font-weight:bold}
+.pick{display:flex;flex-wrap:wrap;gap:.5rem;align-items:stretch}.pick select{flex:1;min-width:0}.pick button{margin:0;white-space:nowrap}
+#progcap{margin:.9rem 0 .15rem;font-size:.8rem;letter-spacing:.08em;text-transform:uppercase;color:#555}
+#prog{margin:0 0 .2rem;line-height:2.1}.ch{display:inline-block;border-bottom:2px solid transparent;padding:0 .1rem}.ch.on{border-bottom-color:#000;font-weight:bold}
 #perf{min-height:8.5rem;max-height:70vh;overflow:auto;resize:vertical}#notes-status{min-height:1.2em}
 input[type=range]{width:9rem;accent-color:#000}input[type=file]{font:inherit;font-size:.85rem;max-width:100%}
 pre{white-space:pre;overflow-x:auto;font:inherit;font-size:.8rem;border-left:2px solid #000;padding:.1rem 0 .1rem .8rem;margin:.6rem 0}
@@ -64,19 +65,20 @@ footer{max-width:46rem;margin:0 auto;padding:0 1.2rem 4rem;font-size:.85rem;colo
 <section id="write">
 <h2 id="write-h">Write</h2>
 <label for="starter">Start from</label>
-<div class="pick"><select id="starter"><option value="">Choose a starter…</option></select><button id="surprise" type="button" title="A new 8-chord progression in a random key and mode">Surprise me</button><button id="undo" type="button" disabled>Undo</button></div>
+<div class="pick"><select id="starter"><option value="">Choose a starter…</option></select><button id="surprise" type="button" title="A new 8-chord progression in a random key and mode">Surprise me</button><button id="undo" type="button" hidden>Undo</button></div>
 <label for="title">Title</label><input id="title" type="text" autocomplete="off">
 <label for="by">Composer</label><input id="by" type="text" autocomplete="off" placeholder="your name">
-<label for="comp">Composition</label>
+<label for="comp">Composition elements</label>
 <textarea id="comp" placeholder="Harmony, length and shape. e.g. 2 mins - half Cm, Cm7, Cm9. Second half Cm7, Am, F."></textarea>
 <p class="m">Chords as symbols: Cm, Am7, Bb7sus4, F#dim7, Ebmaj9, A7alt, G/B. Any of the 420 in the full chord set.</p>
 </section>
 
 <section id="play-s">
 <h2 id="play-h">Play</h2>
-<div id="prog" aria-live="polite">Loading the chord set…</div>
+<p id="progcap">chords</p>
+<div id="prog" aria-live="polite" aria-labelledby="progcap">Loading the chord set…</div>
 <p class="m" id="progmeta"></p>
-<div class="row" id="playrow"><button id="play" type="button" disabled>Play</button><button id="surprise2" type="button">Surprise me</button>
+<div class="row" id="playrow"><button id="play" type="button" disabled>Play</button>
 <label class="inlbl" for="inst">Instrument</label><select id="inst" aria-label="Instrument"></select>
 <span class="m">speed <input id="spd" type="range" min="1" max="4" step="0.5" value="1" aria-label="speed"> <span id="spdv">1.0×</span></span></div>
 <p class="m" id="instnote">A missing chord plays another voicing of this instrument, then piano, then a simple tone.</p>
@@ -84,7 +86,7 @@ footer{max-width:46rem;margin:0 auto;padding:0 1.2rem 4rem;font-size:.85rem;colo
 <p class="m" id="sinenote" hidden></p>
 <div class="row"><button id="share" type="button">Copy link</button></div>
 <input id="shareurl" type="text" readonly hidden aria-label="Share link">
-<p class="m">The link is this page's address: the Composition rides in it (after #), so nothing is stored anywhere.</p>
+<p class="m">This link holds your whole Composition. Nothing is saved on our side.</p>
 </section>
 
 <section id="perform">
@@ -153,9 +155,10 @@ footer{max-width:46rem;margin:0 auto;padding:0 1.2rem 4rem;font-size:.85rem;colo
 
 <section class="further" id="further">
 <h2 id="further-h">Take it further</h2>
+<p>A Composition is words, not a recording, so anyone can perform it, and each Performance comes out different. This page is just one Performer. Take your Composition away and perform it yourself with the open-source kit, hand it to an AI agent, or build your own Performer. Every take uses openly licensed sounds and keeps a record of where each sound came from, so the music can travel, branch and stay credited.</p>
 <h3 id="download">Download</h3>
-<div class="row"><button id="dlmd" type="button">composition.md</button><button id="dlplan" type="button">plan stub (plan.json)</button></div>
-<p class="m">The plan stub has the chords, their voicings and the sounds; a Performer or an agent fills in the rest. <a href="plan.schema.json">Schema</a>.</p>
+<div class="row"><button id="dlmd" type="button">composition.md</button><button id="dlplan" type="button">sketch (plan.json)</button></div>
+<p class="m">The Sketch has the chords, their voicings and the sounds; a Performer or an agent fills in the rest. <a href="plan.schema.json">Schema</a>.</p>
 <h3 id="upload">Open a file</h3>
 <input id="up" type="file" accept=".md,.markdown,.txt,text/markdown,text/plain" aria-label="Open a composition.md">
 <p class="m">Open a composition.md: one made here, or a published one (<a href="../composition/ambient-cm.md">ambient Cm</a>, <a href="../composition/bwv846-harmony-only.md">BWV 846</a>).</p>
@@ -164,7 +167,7 @@ footer{max-width:46rem;margin:0 auto;padding:0 1.2rem 4rem;font-size:.85rem;colo
 nc perform composition.md --stub -o out/    # no LLM
 nc render --plan plan.json -o out/          # your own plan
 nc perform composition.md -o out/           # any OpenAI-compatible LLM</pre>
-<p class="m">The kit is open source (MIT): <a href="https://github.com/netcomposer-art/nc-performer">github.com/netcomposer-art/nc-performer</a>. It needs Python 3.10+ and ffmpeg with the rubberband filter. The default reverb hack is Dragonfly Hall: add <code>pip install pedalboard</code> and Dragonfly Reverb (<code>apt install dragonfly-reverb</code>, or its VST3). Without them the kit uses its synthetic hall, and the record says which reverb ran.</p>
+<p class="m">The kit is open source (MIT): <a href="https://github.com/netcomposer-art/nc-performer">github.com/netcomposer-art/nc-performer</a>. It needs Python 3.10+ and ffmpeg. The default reverb hack is Dragonfly Hall: add <code>pip install pedalboard</code> and Dragonfly Reverb (<code>apt install dragonfly-reverb</code>, or its VST3). Without them the kit uses its synthetic hall, and the record says which reverb ran.</p>
 <h3 id="agent">With an agent</h3>
 <p class="m">Grok, ChatGPT, Claude, others: give it the composition.md and the skill, <a href="SKILL.md">SKILL.md</a> (plain text: <a href="SKILL.txt">SKILL.txt</a>). It writes plan.json, renders, writes the <a href="../record/">record</a>. More on <a href="../agents/">Agents start here</a>.</p>
 <h3 id="submit">Submit</h3>
