@@ -351,18 +351,18 @@
   function poll(id, handler) {
     var mine = alive;
     var on = handler || onJob;
-    fetch(API + '/api/jobs/' + id).then(function (r) { return read(r).then(function (j) { return r.ok ? j : null; }); }).then(function (j) {
+    fetch(API + '/api/jobs/' + id).then(function (r) { return read(r).then(function (j) { return { ok: r.ok, status: r.status, j: j }; }); }).then(function (x) {
       if (mine !== alive) return;
-      if (!j || !j.state) {
-        if (phase === 'gather') gatherFail('Gather did not finish. Try again in a moment.');
+      if (!x || !x.ok || !x.j || !x.j.state) {
+        if (phase === 'gather') gatherFail(gatherNote(x && !x.ok ? '[status ' + x.status + ']' : '[result unreadable]', x));
         else fail('Perform did not answer. The service may be down. Try again in a moment.');
         return;
       }
-      on(j);
-      if (!ended(j.state) && mine === alive) pollT = setTimeout(function () { if (mine === alive) poll(id, on); }, 2000);
-    }).catch(function () {
+      on(x.j);
+      if (!ended(x.j.state) && mine === alive) pollT = setTimeout(function () { if (mine === alive) poll(id, on); }, 2000);
+    }).catch(function (err) {
       if (mine !== alive) return;
-      if (phase === 'gather') gatherFail('Gather did not finish. Try again in a moment.');
+      if (phase === 'gather') gatherFail(gatherNote('[network]', err));
       else fail('Perform did not answer. The service may be down. Try again in a moment.');
     });
   }
@@ -1636,7 +1636,19 @@
       var host = typeof j.hostname === 'string' && j.hostname ? ' (' + j.hostname + ')' : '';
       return (raw || 'The bot check failed. Reload the page and try again.') + ' [' + errors + ']' + host;
     }
-    return 'Gather did not finish. Try again in a moment.';
+    try { console.warn('Gather [status ' + (code || 0) + ']', j); } catch (e) {}
+    return raw || soften(j && typeof j.reason === 'string' ? j.reason : '') || ('[status ' + (code || 0) + ']');
+  }
+  function gatherNote(tag, payload) {
+    try { console.warn('Gather ' + tag, payload); } catch (e) {}
+    var src = payload;
+    if (payload && payload.j && typeof payload.j === 'object') src = payload.j;
+    else if (payload && payload.body && typeof payload.body === 'object') src = payload.body;
+    var reason = '';
+    if (src && typeof src.error === 'string') reason = src.error;
+    else if (src && typeof src.reason === 'string') reason = src.reason;
+    reason = soften(reason);
+    return reason || tag;
   }
   function gatherFail(msg) {
     alive++;
@@ -1650,7 +1662,7 @@
     phase = (gatherSounds && gatherSounds.length) ? 'collection' : '';
     restoreGather();
     idle();
-    status(soften(msg) || 'Gather did not finish. Try again in a moment.', true);
+    status(soften(msg) || '[job failed]', true);
   }
   function gatherStopped() {
     alive++;
@@ -1699,20 +1711,20 @@
       stopWatch();
       if (acceptGather(j)) return;
       var id = j.gather_id || j.id || gatherJobId;
-      if (!id) { gatherFail('Gather did not finish. Try again in a moment.'); return; }
+      if (!id) { gatherFail(gatherNote('[result unreadable]', j)); return; }
       fetch(API + '/api/gather/' + encodeURIComponent(id)).then(function (r) {
         if (phase !== 'gather' || stopping) return null;
-        if (!r.ok) { gatherFail('Gather did not finish. Try again in a moment.'); return null; }
-        return read(r);
-      }).then(function (body) {
-        if (!body || phase !== 'gather' || stopping) return;
-        if (!acceptGather(body)) gatherFail('Gather did not finish. Try again in a moment.');
-      }).catch(function () {
-        if (phase === 'gather' && !stopping) gatherFail('Gather did not finish. Try again in a moment.');
+        return read(r).then(function (body) { return { ok: r.ok, status: r.status, body: body }; });
+      }).then(function (x) {
+        if (!x || phase !== 'gather' || stopping) return;
+        if (!x.ok) { gatherFail(gatherNote('[status ' + x.status + ']', x.body)); return; }
+        if (!acceptGather(x.body)) gatherFail(gatherNote('[result unreadable]', x.body));
+      }).catch(function (err) {
+        if (phase === 'gather' && !stopping) gatherFail(gatherNote('[network]', err));
       });
       return;
     }
-    if (j.state === 'failed' || j.state === 'rejected') { stopWatch(); gatherFail(limitMessage(j) || 'Gather did not finish. Try again in a moment.'); return; }
+    if (j.state === 'failed' || j.state === 'rejected') { stopWatch(); gatherFail(limitMessage(j) || gatherNote('[job failed]', j)); return; }
     if (j.state === 'cancelled' || j.state === 'canceled' || j.state === 'stopped') { stopWatch(); stopped(); return; }
     mergeFound(j);
     status('Gathering…');
@@ -1752,13 +1764,13 @@
           onGatherJob(j);
           return;
         }
-        gatherFail('Gather did not finish. Try again in a moment.');
+        gatherFail(gatherNote('[result unreadable]', j));
       });
     }, function (err) {
       if (gatherAbort === ctrl) gatherAbort = null;
       if (mine !== gatherGen || phase !== 'gather') return;
       if (err && err.name === 'AbortError') return;
-      gatherFail('Gather did not finish. Try again in a moment.');
+      gatherFail(gatherNote('[network]', err));
     });
   }
   function gather(again) {
@@ -1787,7 +1799,8 @@
       return postGather(S, tok, exclude, mine);
     }).catch(function (e) {
       if (mine !== gatherGen) return;
-      gatherFail(e && e.message ? e.message : 'Gather did not finish. Try again in a moment.');
+      gatherFail(e && e.message ? e.message : gatherNote('[network]', e));
+      if (e && e.message) { try { console.warn('Gather [network]', e); } catch (err) {} }
     });
   }
   function cancelGather() {
@@ -2009,14 +2022,31 @@
       done({ ok: false, j: {} });
     });
   }
+  function dropStaleJob() {
+    try { sessionStorage.removeItem('nc-perform-job'); } catch (e) {}
+    jobId = null;
+    var out = $('perform-out');
+    if (out) out.hidden = true;
+  }
   function resume() {
     var id = sessionStorage.getItem('nc-perform-job');
     if (!id) return;
     jobId = id;
-    fetch(API + '/api/jobs/' + id).then(function (r) { return r.ok ? r.json() : null; }).then(function (j) {
+    fetch(API + '/api/jobs/' + id, { cache: 'no-store' }).then(function (r) {
+      if (r.status === 404) { dropStaleJob(); return null; }
+      return r.ok ? r.json() : null;
+    }).then(function (j) {
       if (!j || busy) return;
-      if (j.state === 'done') showDone(j);
-      else if (j.state === 'failed' || j.state === 'rejected') fail(j.error || j.state);
+      if (j.state === 'done') {
+        var file = (j.files && j.files.mp3) || (API + '/api/jobs/' + (j.id || id) + '/files/preview.mp3');
+        return fetch(file, { method: 'GET', cache: 'no-store', headers: { Range: 'bytes=0-0' } }).then(function (r) {
+          if (r.body && r.body.cancel) { try { r.body.cancel(); } catch (e) {} }
+          if (busy) return;
+          if (r.status === 404) { dropStaleJob(); return; }
+          showDone(j);
+        }, function () { if (!busy) showDone(j); });
+      }
+      if (j.state === 'failed' || j.state === 'rejected') fail(j.error || j.state);
       else { busy = true; running = true; phase = 'perform'; $('perform-public').disabled = true; syncActions(); onJob(j); watch(id); }
     }).catch(function () {});
   }
