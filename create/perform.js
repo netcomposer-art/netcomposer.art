@@ -197,16 +197,15 @@
   }
   function soundsAt(t) {
     if (!take) return '';
-    var names = [], seen = {}, i;
+    var best = '', bestAt = -1, i;
     take.order.forEach(function (id) {
-      var g = take.groups[id], on = false;
+      var g = take.groups[id];
       for (i = 0; i < g.spans.length; i++) {
         var sp = g.spans[i];
-        if (t >= sp.at && t < sp.at + sp.len) { on = true; break; }
+        if (t >= sp.at && t < sp.at + sp.len && sp.at >= bestAt && g.label) { bestAt = sp.at; best = g.label; }
       }
-      if (on && g.label && !seen[g.label]) { seen[g.label] = 1; names.push(g.label); }
     });
-    return names.join(' · ');
+    return best;
   }
   function followTake() {
     if (!take || !takeHeard) return;
