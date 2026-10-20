@@ -927,7 +927,7 @@
     probeBody: function () { return { probe: true }; },
     request: function (S, tok, excludeId) {
       var body = { composition: S.c, prompt: S.p || '' };
-      if (tok) body.turnstile = tok;
+      if (tok) body.turnstile_token = tok;
       if (excludeId) body.exclude_gather_id = excludeId;
       return body;
     },
@@ -1914,22 +1914,34 @@
       document.head.appendChild(s);
     });
   }
+  var tokenWait = null;
   function askToken() {
     if (!cfg || !cfg.turnstile_required) return Promise.resolve('');
-    if (token) return Promise.resolve(token);
+    // Each Gather and each Save spends the token. Do not reuse one.
+    token = null;
     var box = $('perform-turnstile');
     box.hidden = false;
     status('One check, then it starts.');
     return loadTurnstile().then(function () {
       return new Promise(function (ok, no) {
-        var opts = {
-          sitekey: cfg.turnstile_sitekey,
-          callback: function (t) { token = t; ok(t); },
-          'error-callback': function () { no(new Error('The bot check did not load. This address may need to be added to the NC Perform widget.')); },
-          'expired-callback': function () { token = null; }
-        };
-        if (widget == null) widget = window.turnstile.render(box, opts);
-        else window.turnstile.reset(widget);
+        tokenWait = { ok: ok, no: no };
+        if (widget == null) {
+          widget = window.turnstile.render(box, {
+            sitekey: cfg.turnstile_sitekey,
+            callback: function (t) {
+              token = t;
+              var wait = tokenWait;
+              tokenWait = null;
+              if (wait) wait.ok(t);
+            },
+            'error-callback': function () {
+              var wait = tokenWait;
+              tokenWait = null;
+              if (wait) wait.no(new Error('The bot check did not load. This address may need to be added to the NC Perform widget.'));
+            },
+            'expired-callback': function () { token = null; }
+          });
+        } else window.turnstile.reset(widget);
       });
     });
   }
@@ -2007,6 +2019,7 @@
       signal: ctrl ? ctrl.signal : undefined
     }).then(function (r) {
       if (r.body && r.body.cancel) { try { r.body.cancel(); } catch (e) {} }
+      // A probe has no token, so Turnstile answers 403. Only 404 means Gather is absent.
       gatherOn = r.status !== 404;
     }, function () { gatherOn = false; });
   }
