@@ -67,7 +67,9 @@
     return clock ? 'Daily limit reached. Try again after ' + clock + '.' : '';
   }
   var cfg = null, widget = null, token = null, jobId = null, es = null, pollT = null, busy = false, running = false, alive = 0, stopping = false, cancelOk = true;
-  var gatherOn = false, gatherId = '', gatherClaim = '', gatherJobId = '', gatherSounds = null, phase = '', gatherGen = 0, gatherAbort = null;
+  var gatherOn = false, gatherId = '', gatherClaim = '', gatherJobId = '', gatherSounds = null, gatherClock = null, phase = '', gatherGen = 0, gatherAbort = null;
+  var gatherNames = [], gatherLive = [], playerJob = '', assembleTimer = null, warmAsked = false, warmSent = false;
+  var clipBuffers = {}, clipJobs = {}, decodeCtx = null, localPlan = null, localUrl = '', asmGen = 0;
   var preview = new Audio(), previewBtn = null;
   preview.preload = 'none';
   preview.addEventListener('ended', function () { stopPreview(); });
@@ -116,10 +118,12 @@
       again.hidden = !gatherOn || !has;
       again.disabled = !can || busy;
     }
-    if (box) box.hidden = !has || phase === 'gather';
+    if (box) box.hidden = !(has || (phase === 'gather' && gatherLive.length));
     pBtn.hidden = gatherOn && !has && phase !== 'perform';
     pBtn.disabled = !can || busy || (gatherOn && !has && phase !== 'perform');
-    pBtn.textContent = (phase === 'perform' && busy) ? 'Performing…' : (jobId ? 'Perform again' : 'Perform');
+    if (phase === 'perform' && busy && !playerJob) pBtn.textContent = (gatherOn && gatherId) ? 'Assembling…' : 'Performing…';
+    else if (phase === 'perform' && busy) pBtn.textContent = 'Perform';
+    else pBtn.textContent = (jobId || localPlan) ? 'Perform again' : 'Perform';
   }
   function stopWatch() {
     if (pollT) { clearTimeout(pollT); pollT = null; }
@@ -225,10 +229,16 @@
     if (lanes) lanes.textContent = '';
     if (now) now.textContent = '';
   }
+  function clearPlanView() {
+    var list = $('plan-src'), seed = $('plan-seed');
+    if (list) { list.textContent = ''; list.hidden = true; }
+    if (seed) { seed.textContent = ''; seed.hidden = true; }
+  }
   function clearTake() {
     take = null;
     takeHeard = false;
     clearStrip();
+    clearPlanView();
     showTrim('');
     footSources([]);
   }
@@ -319,6 +329,12 @@
     if (j.state === 'done') { stopWatch(); showDone(j); return; }
     if (j.state === 'failed' || j.state === 'rejected') { stopWatch(); fail(limitMessage(j) || soften(j.error) || 'That Performance did not finish. Try again in a moment.'); return; }
     if (j.state === 'cancelled' || j.state === 'canceled' || j.state === 'stopped') { stopWatch(); stopped(); return; }
+    if (fromCollection()) {
+      if (previewSignaled(j) || (j.files && j.files.mp3)) armPlayer(j);
+      else if (!playerJob) { status('Assembling…'); showStop(); }
+      $('perform-bar').hidden = true;
+      return;
+    }
     showStory(j);
     var bar = $('perform-bar');
     bar.hidden = false; bar.value = j.percent || 0;
@@ -545,8 +561,15 @@
   }
   function keepNote() {
     var note = $('perform-keep-note');
-    if ($('perform-keep').textContent.indexOf('Kept') === 0) { note.hidden = true; return; }
+    var label = $('perform-keep').textContent;
+    if (label.indexOf('Kept') === 0 || label.indexOf('Saved') === 0) { note.hidden = true; return; }
     note.hidden = false;
+    if (localPlan && browserAssembly()) {
+      note.textContent = $('perform-public').checked
+        ? 'Listing it makes this public after a day. Save stores the sound you hear.'
+        : 'Save stores the sound you hear. It stays unlisted.';
+      return;
+    }
     note.textContent = $('perform-public').checked
       ? 'Listing it makes this public after a day, and keeps the audio. Keep itself does not list it.'
       : 'Keep holds the audio past 90 days. It stays unlisted.';
@@ -634,13 +657,19 @@
       return read(r).then(function (j) { return {ok: r.ok, j: j}; });
     }, function () { return {ok: false, j: {}}; });
   }
-  function keepFail(msg) {
+  function keepFail(msg, plain) {
     keeping = false;
-    $('perform-keep').textContent = 'Keep';
-    $('perform-keep').disabled = !sessionStorage.getItem('nc-claim:' + jobId);
-    var clean = soften(msg);
-    var line = clean || 'Could not keep this Performance. Try again in a moment.';
-    if (clean && !/try again/i.test(clean)) line = clean + ' Try again in a moment.';
+    var local = !!(localPlan && browserAssembly());
+    $('perform-keep').textContent = local ? 'Save' : 'Keep';
+    $('perform-keep').disabled = !(localPlan && gatherClaim) && !sessionStorage.getItem('nc-claim:' + jobId);
+    if (local) {
+      var quiet = $('perform-status');
+      quiet.className = 'm';
+      quiet.textContent = '';
+    }
+    var clean = plain ? String(msg || '').replace(/\s+/g, ' ').trim() : soften(msg);
+    var line = clean || (local ? 'Could not save this Performance. Try again in a moment.' : 'Could not keep this Performance. Try again in a moment.');
+    if (!plain && clean && !/try again/i.test(clean)) line = clean + ' Try again in a moment.';
     showKept(line, true);
     keepNote();
   }
@@ -673,6 +702,7 @@
     return once();
   }
   function showDone(j) {
+    if (fromCollection() || playerJob) { showAssembly(j); return; }
     alive++;
     running = false;
     phase = (gatherOn && gatherSounds && gatherSounds.length) ? 'collection' : '';
@@ -738,11 +768,60 @@
       applyKept(m);
     }).catch(function () {});
   }
+  function showAssembly(j) {
+    alive++;
+    running = false;
+    phase = (gatherSounds && gatherSounds.length) ? 'collection' : '';
+    hideStop();
+    stopAssembleProbe();
+    var gen = ++viewGen;
+    takeSeed(j);
+    if (j && Object.prototype.hasOwnProperty.call(j, 'trimmed')) showTrim(trimText(j.trimmed));
+    dropKeptFiles();
+    if (j && j.id) jobId = j.id;
+    idle();
+    keeping = false;
+    var u = fileUrls(j);
+    var already = playerJob === u.id && !$('perform-out').hidden;
+    if (!already) {
+      clearRecord();
+      clearStrip();
+      if (window.NCLive) NCLive.hide();
+      armPlayer(j);
+    } else {
+      $('perform-mp3').href = u.mp3;
+      $('perform-flac').href = u.flac;
+      $('perform-record').href = u.page;
+    }
+    $('perform-bar').hidden = true;
+    $('perform-bar').value = 100;
+    $('perform-keep').disabled = !sessionStorage.getItem('nc-claim:' + u.id);
+    retryFetch(u.rec, gen).then(function (r) {
+      if (gen !== viewGen) return null;
+      if (!r) { recordMiss(); return null; }
+      return r.text();
+    }).then(function (t) {
+      if (gen !== viewGen || t == null) return;
+      try { showRecord(JSON.parse(t), u.id); } catch (e) { recordMiss(); }
+      if (gen !== viewGen) return;
+      var meta = $('perform-meta');
+      if (meta) meta.textContent = 'Unlisted audio is kept 90 days unless you press Keep. Listed audio waits a day, then joins the feed.';
+    }).catch(function () { if (gen === viewGen) recordMiss(); });
+    retryFetch(u.meta, gen).then(function (r) {
+      if (gen !== viewGen || !r) return null;
+      return r.json();
+    }).then(function (m) {
+      if (gen !== viewGen || !m || !m.keep) return;
+      applyKept(m);
+    }).catch(function () {});
+  }
   function fail(msg) {
     alive++;
     running = false;
     stopping = false;
     hideStop();
+    stopAssembleProbe();
+    playerJob = '';
     viewGen++;
     phase = (gatherOn && gatherSounds && gatherSounds.length) ? 'collection' : '';
     idle();
@@ -765,10 +844,85 @@
     el.hidden = false;
     el.textContent = 'Keep key, shown once: ' + value + ' — this tab remembers it.';
   }
-  // Provisional gather contract. Change this block when the real shape arrives.
-  // Probe: POST /api/gather {probe:true}. A finished handler should no-op that body.
+  // Assembly plan v1 (nc-performer ffd68ce). Probe: POST /api/gather {probe:true}.
   // 404 or a network failure means gather is absent, so Perform stays one-shot.
-  // Any other status, including 400, means the route exists. The probe body is ignored.
+  //
+  // found_sounds rows are {chord, id, title, supplier, license, preview_url, symbol}.
+  // chord is the 0-based position. The clip is GET /api/jobs/{gather_id}/audio/{id}.
+  // A finished gather includes sounds, claim_token, and clock (null means organic).
+  // preview_ready plus files.mp3 opens the server-path player before the record.
+  // The first focus of Composition sends GET /api/warm.
+  //
+  // When /api/config advertises browser_assembly, or assembly "browser", Perform
+  // plays the cached clips here. clock.slots is the grid when clock.written is set.
+  // Otherwise NCAssembly.chordSlots places one section of the gathered chords.
+  // len_s is at most the clip's duration_s. Fades are 12 ms. gain_db is copied.
+  // Save posts multipart /api/keep-take: gather_id, claim_token, take_state, audio,
+  // title?, listed?, turnstile_token. take_state is {nc_take_version:'1', plan, processing}.
+  // 200 done shows the page. 202 queued is polled. 400 rejected is shown as sent.
+  function fromCollection() { return !!(gatherOn && gatherId); }
+  function num(v) {
+    if (typeof v === 'number' && isFinite(v)) return v;
+    if (typeof v === 'string' && v.trim() !== '' && !isNaN(+v)) return +v;
+    return null;
+  }
+  function soundOf(s, gid) {
+    s = s || {};
+    var supplier = s.supplier, credit = s.credit || '';
+    if (supplier && typeof supplier === 'object') {
+      credit = credit || supplier.credit || '';
+      supplier = supplier.display_name || supplier.name || supplier.title || '';
+    }
+    var license = s.license;
+    if (license && typeof license === 'object') license = license.name || licenseLabel(license.id || '') || '';
+    var pos = num(s.pos);
+    var chord = num(s.chord != null ? s.chord : s.chord_position);
+    var index = num(s.chord_index);
+    var slot = pos != null && pos >= 0 ? pos : (chord != null && chord >= 0 ? chord : (index != null && index >= 0 ? index : -1));
+    var loud = s.loudness;
+    var lufs = num(s.loudness_lufs != null ? s.loudness_lufs : (s.lufs != null ? s.lufs : (loud && typeof loud === 'object' ? (loud.lufs != null ? loud.lufs : loud.integrated) : loud)));
+    var id = String(s.clip_id || s.id || s.key || '').trim();
+    var audio = absoluteApi(s.preview_url || s.url || s.preview || '');
+    if (!audio && id) audio = jobAudio(id, gid);
+    return {
+      slot: slot,
+      symbol: String(s.symbol || s.chord_symbol || '').trim(),
+      title: String(s.title || s.name || '').trim(),
+      supplier: String(supplier || ''),
+      license: String(license || ''),
+      url: audio,
+      cache: audio,
+      clip_id: id,
+      lufs: lufs,
+      gain_db: num(s.gain_db),
+      duration_s: num(s.duration_s),
+      start_s: num(s.start_s) || 0,
+      credit: String(credit || '')
+    };
+  }
+  function absoluteApi(url) {
+    url = String(url || '').trim();
+    if (!url) return '';
+    if (/^https?:\/\//i.test(url)) return url;
+    if (url.charAt(0) === '/') return API + url;
+    return '';
+  }
+  function jobAudio(id, gid) {
+    gid = gid || gatherId || gatherJobId;
+    if (!gid || !id) return '';
+    return API + '/api/jobs/' + encodeURIComponent(gid) + '/audio/' + encodeURIComponent(id);
+  }
+  function foundList(j) {
+    if (!j || j.found_sounds == null) return [];
+    var v = j.found_sounds;
+    if (Array.isArray(v)) return v;
+    if (typeof v !== 'object') return [];
+    return Object.keys(v).map(function (k) {
+      var item = v[k], chord = num(k);
+      if (item && typeof item === 'object') return chord != null && item.chord == null && item.chord_index == null ? Object.assign({ chord: chord }, item) : item;
+      return { title: item, chord: chord };
+    });
+  }
   var GATHER = {
     probeBody: function () { return { probe: true }; },
     request: function (S, tok, excludeId) {
@@ -785,47 +939,597 @@
     collection: function (raw) {
       if (!raw || typeof raw !== 'object') return null;
       var sounds = Array.isArray(raw.sounds) ? raw.sounds : (raw.result && Array.isArray(raw.result.sounds) ? raw.result.sounds : null);
+      if (!sounds) { var found = foundList(raw); if (found.length) sounds = found; }
       if (!sounds || !sounds.length) return null;
       var id = raw.gather_id || raw.id || '';
       if (!id) return null;
       return {
         id: String(id),
         claim: raw.claim_token || '',
-        sounds: sounds.map(function (s) {
-          s = s || {};
-          var supplier = s.supplier, credit = s.credit || '';
-          if (supplier && typeof supplier === 'object') {
-            credit = credit || supplier.credit || '';
-            supplier = supplier.display_name || supplier.name || supplier.title || '';
-          }
-          return {
-            title: String(s.title || s.name || 'Sound'),
-            supplier: String(supplier || ''),
-            license: String(s.license || ''),
-            url: String(s.url || ''),
-            credit: String(credit || '')
-          };
+        clock: raw.clock === undefined ? null : raw.clock,
+        sounds: sounds.map(function (row) { return soundOf(row, String(id)); }).sort(function (a, b) {
+          if (a.slot < 0 && b.slot < 0) return 0;
+          if (a.slot < 0) return 1;
+          if (b.slot < 0) return -1;
+          return a.slot - b.slot;
         })
       };
     }
   };
+  function fileUrls(j) {
+    var id = (j && j.id) || jobId || '';
+    var f = (j && j.files) || {};
+    var mp3 = f.mp3 || '';
+    if (!mp3 && j && j.preview_ready && id) mp3 = API + '/api/jobs/' + encodeURIComponent(id) + '/files/preview.mp3';
+    return {
+      id: id,
+      mp3: mp3,
+      flac: f.flac || (id ? API + '/api/jobs/' + encodeURIComponent(id) + '/files/performance.flac' : ''),
+      rec: f.record || (id ? API + '/records/' + encodeURIComponent(id) + '.json' : ''),
+      page: f.page || (id ? API + '/records/' + encodeURIComponent(id) : ''),
+      meta: id ? API + '/api/jobs/' + encodeURIComponent(id) + '/files/meta.json' : ''
+    };
+  }
+  function previewSignaled(j) {
+    if (!j) return false;
+    if (j.preview_ready === true) return true;
+    return !!(j.files && j.files.mp3);
+  }
+  function stopAssembleProbe() {
+    if (assembleTimer) { clearTimeout(assembleTimer); assembleTimer = null; }
+  }
+  function armPlayer(j) {
+    var u = fileUrls(j);
+    if (!u.id || !u.mp3) return;
+    if (playerJob === u.id && !$('perform-out').hidden) {
+      syncActions();
+      return;
+    }
+    playerJob = u.id;
+    stopAssembleProbe();
+    var audio = $('perform-audio');
+    audio.crossOrigin = 'anonymous';
+    $('perform-title').textContent = (window.NC && NC.state && NC.state().t) || 'Performance';
+    $('perform-sources').open = false;
+    $('perform-mp3').href = u.mp3;
+    $('perform-flac').href = u.flac;
+    $('perform-record').href = u.page;
+    $('perform-record').target = '_blank';
+    $('perform-record').rel = 'noopener';
+    $('perform-out').hidden = false;
+    $('perform-bar').hidden = true;
+    $('perform-keep').textContent = 'Keep';
+    $('perform-kept').hidden = true;
+    keepNote();
+    $('perform-keep').disabled = !sessionStorage.getItem('nc-claim:' + u.id);
+    $('perform-meta').textContent = 'The record is still arriving.';
+    hideStop();
+    var s = $('perform-status');
+    s.className = 'm';
+    s.textContent = '';
+    try { audio.src = u.mp3; } catch (e) {}
+    if (window.NCLive) { try { NCLive.open({ id: u.id, flac: u.flac, mp3: u.mp3, record: u.rec }); } catch (e2) {} }
+    syncActions();
+  }
+  function probePreview(gen) {
+    if (gen !== viewGen || playerJob || !jobId || phase !== 'perform' || !fromCollection()) return;
+    var url = API + '/api/jobs/' + encodeURIComponent(jobId) + '/files/preview.mp3';
+    fetch(url, { method: 'GET', headers: { Range: 'bytes=0-0' }, cache: 'no-store' }).then(function (r) {
+      if (r.body && r.body.cancel) { try { r.body.cancel(); } catch (e) {} }
+      if (gen !== viewGen || playerJob) return;
+      if (r.ok || r.status === 206) armPlayer({ id: jobId, preview_ready: true, files: { mp3: url } });
+      else assembleTimer = setTimeout(function () { probePreview(gen); }, 700);
+    }, function () {
+      if (gen === viewGen && !playerJob) assembleTimer = setTimeout(function () { probePreview(gen); }, 700);
+    });
+  }
+  function prewarm() {
+    warmAsked = true;
+    if (warmSent) return;
+    warmSent = true;
+    fetch(API + '/api/warm', { method: 'GET', cache: 'no-store' }).then(function (r) {
+      if (r.body && r.body.cancel) { try { r.body.cancel(); } catch (e) {} }
+    }).catch(function () {});
+  }
+  function browserAssembly() {
+    return !!(cfg && (cfg.browser_assembly === true || cfg.assembly === 'browser'));
+  }
+  var clipDbPromise = null;
+  function clipDb() {
+    if (clipDbPromise) return clipDbPromise;
+    clipDbPromise = new Promise(function (ok, no) {
+      if (!window.indexedDB) { no(new Error('idb')); return; }
+      var req = indexedDB.open('nc-clips', 1);
+      req.onupgradeneeded = function () {
+        var db = req.result;
+        if (!db.objectStoreNames.contains('clips')) db.createObjectStore('clips', { keyPath: 'clip_id' });
+      };
+      req.onsuccess = function () { ok(req.result); };
+      req.onerror = function () { no(req.error || new Error('idb')); };
+    });
+    clipDbPromise.catch(function () { clipDbPromise = null; });
+    return clipDbPromise;
+  }
+  function idbGet(id) {
+    return clipDb().then(function (db) {
+      return new Promise(function (ok) {
+        try {
+          var tx = db.transaction('clips', 'readonly');
+          var req = tx.objectStore('clips').get(id);
+          req.onsuccess = function () { ok(req.result || null); };
+          req.onerror = function () { ok(null); };
+        } catch (e) { ok(null); }
+      });
+    }).catch(function () { return null; });
+  }
+  function idbPut(row) {
+    return clipDb().then(function (db) {
+      return new Promise(function (ok) {
+        try {
+          var tx = db.transaction('clips', 'readwrite');
+          tx.objectStore('clips').put(row);
+          tx.oncomplete = function () { ok(true); };
+          tx.onerror = function () { ok(false); };
+        } catch (e) { ok(false); }
+      });
+    }).catch(function () { return false; });
+  }
+  function clipPath(id) { return location.origin + '/nc-clip/' + encodeURIComponent(id); }
+  function cacheGet(id) {
+    if (!window.caches) return Promise.resolve(null);
+    return caches.open('nc-clips').then(function (cache) {
+      return cache.match(clipPath(id));
+    }).then(function (res) {
+      return res ? res.arrayBuffer() : null;
+    }).catch(function () { return null; });
+  }
+  function cachePut(id, bytes, type) {
+    if (!window.caches) return Promise.resolve(false);
+    return caches.open('nc-clips').then(function (cache) {
+      return cache.put(clipPath(id), new Response(bytes.slice(0), { headers: { 'Content-Type': type || 'audio/wav' } }));
+    }).then(function () { return true; }).catch(function () { return false; });
+  }
+  function asBuffer(bytes) {
+    if (!bytes) return null;
+    if (bytes instanceof ArrayBuffer) return bytes;
+    if (bytes.buffer) return bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength);
+    return null;
+  }
+  function rememberBytes(id, bytes, type) {
+    var raw = asBuffer(bytes);
+    if (!id || !raw) return Promise.resolve();
+    var kind = type || 'audio/wav';
+    return Promise.all([idbPut({ clip_id: id, bytes: raw.slice(0), type: kind }), cachePut(id, raw, kind)]);
+  }
+  function audioCtx() {
+    if (window.NCLive && NCLive.prime) {
+      try { return NCLive.prime(); } catch (e) {}
+    }
+    if (!decodeCtx) decodeCtx = new (window.AudioContext || window.webkitAudioContext)();
+    return decodeCtx;
+  }
+  function decodeBytes(raw) {
+    var copy = raw.slice(0);
+    return audioCtx().decodeAudioData(copy);
+  }
+  function clipKey(s) { return (s && (s.clip_id || s.cache || s.url)) || ''; }
+  function loadClip(s) {
+    var key = clipKey(s), url = s && (s.cache || s.url), id = s && s.clip_id;
+    if (!key || !url) return Promise.resolve(null);
+    if (clipBuffers[key]) return Promise.resolve(clipBuffers[key]);
+    if (clipJobs[key]) return clipJobs[key];
+    clipJobs[key] = Promise.resolve().then(function () {
+      return id ? idbGet(id) : null;
+    }).then(function (row) {
+      var stored = row && asBuffer(row.bytes);
+      if (stored) return { bytes: stored, type: row.type || '' };
+      if (!id) return null;
+      return cacheGet(id).then(function (cached) {
+        if (!cached) return null;
+        rememberBytes(id, cached, 'audio/wav');
+        return { bytes: cached, type: '' };
+      });
+    }).then(function (hit) {
+      if (hit && hit.bytes) return hit;
+      return fetch(url, { mode: 'cors' }).then(function (r) {
+        if (!r.ok) throw new Error('clip');
+        var type = (r.headers.get('Content-Type') || 'audio/wav').split(';')[0];
+        return r.arrayBuffer().then(function (raw) {
+          var keep = id ? rememberBytes(id, raw, type) : Promise.resolve();
+          return keep.then(function () { return { bytes: raw, type: type }; });
+        });
+      });
+    }).then(function (pack) {
+      return decodeBytes(pack.bytes).then(function (buf) {
+        clipBuffers[key] = buf;
+        return buf;
+      });
+    }).catch(function () {
+      delete clipJobs[key];
+      return null;
+    });
+    return clipJobs[key];
+  }
+  function preloadClips(sounds) {
+    if (!browserAssembly()) return;
+    (sounds || []).forEach(function (s) { if (s && (s.cache || s.url)) loadClip(s); });
+  }
+  function pieceWords() {
+    var comp = ($('comp') && $('comp').value) || '';
+    var perf = ($('perf') && $('perf').value) || '';
+    return comp + '\n' + perf;
+  }
+  function planSlots(n, seed) {
+    var clock = gatherClock, slots, asm = window.NCAssembly;
+    if (clock && clock.written && clock.slots && clock.slots.length === n) {
+      return clock.slots.map(function (s) { return { t: +(+s.t).toFixed(3), dur: +(+s.dur).toFixed(3) }; });
+    }
+    if (!asm) return [];
+    var words = pieceWords();
+    var seconds = asm.takeSeconds(words);
+    var pulse = asm.statedPulse(words);
+    return asm.chordSlots([{ count: n, seconds: seconds }], seed, pulse, pulse ? asm.broadenBars(words) : 0);
+  }
+  function gainFor(s) {
+    if (s && s.gain_db != null && isFinite(s.gain_db)) return +(+s.gain_db).toFixed(2);
+    if (s && s.lufs != null && isFinite(s.lufs)) return +(-20 - s.lufs).toFixed(2);
+    return 0;
+  }
+  function drawSeed() {
+    var a = new Uint32Array(1);
+    if (window.crypto && crypto.getRandomValues) crypto.getRandomValues(a);
+    else a[0] = (Math.random() * 0x100000000) >>> 0;
+    return a[0] || 1;
+  }
+  function buildPlan(seed, bufs) {
+    var sounds = gatherSounds || [], n = sounds.length, slots = planSlots(n, seed), entries = [], i, slot, len, cap, end = 0;
+    for (i = 0; i < n; i++) {
+      slot = slots[i] || { t: end, dur: 1.25 };
+      len = +(+slot.dur).toFixed(3);
+      cap = sounds[i].duration_s;
+      if (!(cap > 0) && bufs && bufs[i]) cap = Math.max(0, bufs[i].duration - (sounds[i].start_s || 0));
+      if (cap > 0 && len > cap + 0.001) len = Math.floor(cap * 1000) / 1000;
+      if (!(len > 0)) len = Math.min(slot.dur, 0.1);
+      entries.push({
+        pos: i,
+        chord: sounds[i].symbol || gatherNames[i] || '',
+        clip_id: sounds[i].clip_id || ('c' + i),
+        at_s: +(+slot.t).toFixed(3),
+        len_s: +len.toFixed(3),
+        gain_db: gainFor(sounds[i]),
+        fade_in_ms: 12,
+        fade_out_ms: 12
+      });
+      end = +(+slot.t + +slot.dur).toFixed(3);
+    }
+    return { nc_assembly_version: '1', gather_id: gatherId, seed: seed, entries: entries, total_s: end };
+  }
+  function silenceWav(seconds) {
+    var rate = 8000, n = Math.max(1, Math.round((seconds || 0) * rate)), dataLen = n * 2;
+    var ab = new ArrayBuffer(44 + dataLen), v = new DataView(ab), k;
+    function str(at, s) { for (k = 0; k < s.length; k++) v.setUint8(at + k, s.charCodeAt(k)); }
+    str(0, 'RIFF'); v.setUint32(4, 36 + dataLen, true); str(8, 'WAVE'); str(12, 'fmt ');
+    v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true);
+    v.setUint32(24, rate, true); v.setUint32(28, rate * 2, true); v.setUint16(32, 2, true); v.setUint16(34, 16, true);
+    str(36, 'data'); v.setUint32(40, dataLen, true);
+    return new Blob([ab], { type: 'audio/wav' });
+  }
+  function clipEntries(plan) {
+    return (plan.entries || []).map(function (e, i) {
+      var sound = gatherSounds[i];
+      return {
+        buffer: sound && clipBuffers[clipKey(sound)],
+        at: e.at_s,
+        len: e.len_s,
+        origin: sound && sound.start_s > 0 ? sound.start_s : 0,
+        gainDb: e.gain_db || 0,
+        fadeIn: (e.fade_in_ms != null ? e.fade_in_ms : 12) / 1000,
+        fadeOut: (e.fade_out_ms != null ? e.fade_out_ms : 12) / 1000
+      };
+    });
+  }
+  function driveClips() {
+    if (!localPlan || !window.NCLive || !NCLive.scheduleClips) return;
+    var audio = $('perform-audio');
+    if (!audio || audio.paused) return;
+    NCLive.scheduleClips({ entries: clipEntries(localPlan), offset: audio.currentTime || 0 });
+  }
+  function watchPlayer(audio) {
+    if (!audio || audio._ncWatch) return;
+    audio._ncWatch = true;
+    audio.addEventListener('play', function () {
+      stopPreview();
+      takeHeard = true;
+      if (window.NC && NC.stop) NC.stop();
+      followTake();
+      driveClips();
+    });
+    audio.addEventListener('seeked', function () {
+      followTake();
+      if (!audio.paused) driveClips();
+    });
+    audio.addEventListener('pause', function () {
+      followTake();
+      if (localPlan && window.NCLive && NCLive.stopClips) NCLive.stopClips();
+    });
+    audio.addEventListener('ended', function () {
+      followTake();
+      if (localPlan && window.NCLive && NCLive.stopClips) NCLive.stopClips();
+    });
+    audio.addEventListener('timeupdate', followTake);
+  }
+  function planAsRecord(plan) {
+    return {
+      performance: {
+        duration_s: plan.total_s,
+        timeline: plan.entries.map(function (e, i) {
+          return { chord_index: i, start_s: e.at_s, end_s: +(e.at_s + e.len_s).toFixed(3), symbol: e.chord };
+        })
+      },
+      sounds_used: plan.entries.map(function (e, i) {
+        var s = gatherSounds[i] || {};
+        return { key: e.clip_id, title: (s.title || e.chord || 'Sound'), source: s.supplier || '', spans: [{ at_s: e.at_s, len_s: e.len_s, key: e.clip_id }] };
+      })
+    };
+  }
+  function paintPlan(plan) {
+    var list = $('plan-src'), seedEl = $('plan-seed');
+    if (!list) return;
+    list.textContent = '';
+    list.hidden = false;
+    plan.entries.forEach(function (e, i) {
+      var s = gatherSounds[i] || {};
+      var li = document.createElement('li');
+      var chord = document.createElement('span');
+      chord.className = 'g-chord';
+      chord.textContent = e.chord || '';
+      var line = document.createElement('span');
+      line.textContent = [s.title || 'Sound', s.supplier, licenseLabel(s.license) || s.license].filter(Boolean).join(' · ');
+      var when = document.createElement('span');
+      when.className = 'm';
+      when.textContent = ' ' + e.at_s.toFixed(1) + 's';
+      li.dataset.at = String(e.at_s);
+      li.dataset.len = String(e.len_s);
+      li.appendChild(chord);
+      li.appendChild(line);
+      li.appendChild(when);
+      list.appendChild(li);
+    });
+    if (seedEl) { seedEl.hidden = false; seedEl.textContent = 'Seed ' + plan.seed; }
+  }
+  function revealTake(plan) {
+    var blob = silenceWav(plan.total_s);
+    if (localUrl) { try { URL.revokeObjectURL(localUrl); } catch (e) {} }
+    localUrl = URL.createObjectURL(blob);
+    localPlan = plan;
+    playerJob = gatherId + '-' + plan.seed;
+    $('perform-title').textContent = (window.NC && NC.state && NC.state().t) || 'Performance';
+    $('perform-sources').open = false;
+    $('perform-mp3').removeAttribute('href');
+    $('perform-flac').removeAttribute('href');
+    $('perform-record').href = '#';
+    $('perform-out').hidden = false;
+    $('perform-bar').hidden = true;
+    $('perform-keep').textContent = 'Save';
+    $('perform-keep').disabled = !gatherClaim;
+    $('perform-kept').hidden = true;
+    keeping = false;
+    keepNote();
+    $('perform-meta').textContent = 'In this browser until you Save.';
+    hideStop();
+    var s = $('perform-status');
+    s.className = 'm';
+    s.textContent = '';
+    armTake(planAsRecord(plan));
+    paintPlan(plan);
+    if (window.NCLive && NCLive.stopClips) NCLive.stopClips();
+    if (window.NCLive && NCLive.prime) NCLive.prime();
+    if (window.NCLive) {
+      try { NCLive.open({ id: playerJob, only: [localUrl], mp3: localUrl, force: true }); } catch (e2) {}
+    }
+    var audio = $('perform-audio');
+    watchPlayer(audio);
+    if (audio && !audio.getAttribute('src')) { try { audio.src = localUrl; } catch (e3) {} }
+    var play = audio && audio.play && audio.play();
+    if (play && play.catch) play.catch(function () {});
+    syncActions();
+  }
+  function playAssembly() {
+    var gen = ++asmGen;
+    stopPreview();
+    busy = true;
+    syncActions();
+    if (window.NCLive && NCLive.prime) NCLive.prime();
+    var seed = drawSeed();
+    return Promise.all((gatherSounds || []).map(loadClip)).then(function (bufs) {
+      if (gen !== asmGen) return;
+      if (!bufs.length || bufs.some(function (b) { return !b; })) throw new Error('clip');
+      phase = (gatherSounds && gatherSounds.length) ? 'collection' : '';
+      revealTake(buildPlan(seed, bufs));
+      idle();
+    }).catch(function () {
+      if (gen !== asmGen) return;
+      phase = (gatherSounds && gatherSounds.length) ? 'collection' : '';
+      idle();
+      status('Could not assemble that take. Try again in a moment.', true);
+    });
+  }
+  function showSaved(j) {
+    keeping = false;
+    j = j || {};
+    var href = j.page_url || j.page || j.record_url || j.url || j.share || '';
+    if (!href && typeof j.record === 'string') href = j.record;
+    if (!href && j.id) href = API + '/records/' + encodeURIComponent(j.id);
+    $('perform-keep').textContent = 'Saved';
+    $('perform-keep').disabled = true;
+    $('perform-keep-note').hidden = true;
+    $('perform-meta').textContent = 'Saved on the Performer.';
+    var s = $('perform-status');
+    s.className = 'm';
+    s.textContent = '';
+    var box = $('perform-kept');
+    box.textContent = '';
+    box.className = 'm';
+    box.hidden = false;
+    box.appendChild(node('span', '', 'Saved. '));
+    if (href) {
+      box.appendChild(extLink(href, href));
+      $('perform-record').href = href;
+      $('perform-record').target = '_blank';
+      $('perform-record').rel = 'noopener';
+    }
+    if (j.record && typeof j.record === 'object') { try { showRecord(j.record, j.id || ''); } catch (e) {} }
+  }
+  var SAVE_CAP = 40 * 1024 * 1024, STATE_CAP = 64 * 1024;
+  function processingOf(list) {
+    var params = {}, names = [];
+    (list || []).forEach(function (node) {
+      if (!node) return;
+      if (node.type) names.push(String(node.type));
+      if (!node.params) return;
+      Object.keys(node.params).forEach(function (key) { params[key] = node.params[key]; });
+    });
+    if (!names.length) names = ['lowpass', 'delay'];
+    return { chain: names, params: params };
+  }
+  function takeBody(plan, chain) {
+    return {
+      nc_take_version: '1',
+      plan: {
+        nc_assembly_version: '1',
+        gather_id: plan.gather_id,
+        seed: plan.seed,
+        entries: plan.entries,
+        total_s: plan.total_s
+      },
+      processing: processingOf(chain)
+    };
+  }
+  function rejectionText(j) {
+    j = j || {};
+    if (j.errors && j.errors.length) return j.errors.join(' ');
+    return j.error || '';
+  }
+  function pollSaved(j) {
+    var url = (j && j.poll) || '';
+    if (url && url.charAt(0) === '/') url = API + url;
+    if (!url && j && j.id) url = API + '/api/jobs/' + encodeURIComponent(j.id);
+    var tries = 0;
+    function once() {
+      if (!url) { keepFail('Could not save this Performance. Try again in a moment.'); return; }
+      tries++;
+      fetch(url, { cache: 'no-store' }).then(function (r) {
+        return read(r).then(function (body) { return { ok: r.ok, body: body }; });
+      }, function () { return { ok: false, body: {} }; }).then(function (x) {
+        var b = (x && x.body) || {}, state = b.status || b.state;
+        if (state === 'done') { showSaved(b); return; }
+        if (state === 'rejected' || state === 'failed' || state === 'cancelled') {
+          keepFail(rejectionText(b) || 'Could not save this Performance.', true);
+          return;
+        }
+        if (tries > 40) { keepFail('Could not save this Performance. Try again in a moment.'); return; }
+        setTimeout(once, 700);
+      });
+    }
+    once();
+  }
+  function saveLocal() {
+    if (keeping || !localPlan || !window.NCLive || !NCLive.renderBuffers) return;
+    keeping = true;
+    $('perform-keep').disabled = true;
+    $('perform-keep').textContent = 'Saving…';
+    $('perform-kept').hidden = true;
+    var s = $('perform-status');
+    s.className = 'm';
+    s.textContent = 'Saving…';
+    askToken().then(function (tok) {
+      s.className = 'm';
+      s.textContent = 'Saving…';
+      var chain = NCLive.chain ? NCLive.chain() : [];
+      return NCLive.renderBuffers({ entries: clipEntries(localPlan), total: localPlan.total_s, chain: chain }).then(function (out) {
+        var blob = out && out.blob ? out.blob : out;
+        var rendered = out && out.total_s ? +(+out.total_s).toFixed(3) : localPlan.total_s;
+        var musical = +(+localPlan.total_s).toFixed(3);
+        var total = Math.abs(rendered - musical) > 0.5 ? Math.min(180, rendered) : musical;
+        if (!blob || blob.size > SAVE_CAP) {
+          keepFail('That take is over 40 MB, so it was not sent. Try again with a shorter one.');
+          return null;
+        }
+        var plan = {
+          nc_assembly_version: '1',
+          gather_id: localPlan.gather_id,
+          seed: localPlan.seed,
+          entries: localPlan.entries,
+          total_s: +(+total).toFixed(3)
+        };
+        var state = takeBody(plan, chain);
+        var json = JSON.stringify(state);
+        if (json.length > STATE_CAP) {
+          keepFail('That take state is over 64 KB, so it was not sent.');
+          return null;
+        }
+        var fd = new FormData();
+        fd.append('gather_id', gatherId || '');
+        fd.append('claim_token', gatherClaim || '');
+        fd.append('take_state', json);
+        fd.append('audio', blob, 'take.wav');
+        fd.append('listed', $('perform-public').checked ? 'true' : 'false');
+        var title = window.NC && NC.state ? NC.state().t : '';
+        if (title) fd.append('title', title);
+        if (tok) fd.append('turnstile_token', tok);
+        var headers = {};
+        var pass = testerToken();
+        if (pass) headers['X-NC-Tester'] = pass;
+        return fetch(API + '/api/keep-take', { method: 'POST', headers: headers, body: fd }).then(function (r) {
+          return read(r).then(function (body) { return { status: r.status, ok: r.ok, j: body }; });
+        }, function () { return { status: 0, ok: false, j: {} }; });
+      });
+    }).then(function (x) {
+      if (!x) return;
+      if (x.status === 400 || (x.j && x.j.code === 'rejected')) { keepFail(rejectionText(x.j), true); return; }
+      if (x.status === 202 || (x.j && x.j.status === 'queued')) { pollSaved(x.j); return; }
+      if (x.ok && x.j && (x.j.status === 'done' || x.j.state === 'done' || x.j.page_url || x.j.record_url)) { showSaved(x.j); return; }
+      keepFail(rejectionText(x.j), !!(x.j && x.j.error));
+    }).catch(function () { keepFail(''); });
+  }
   function stopPreview() {
     try { preview.pause(); } catch (e) {}
     try { preview.removeAttribute('src'); preview.load(); } catch (e2) {}
     if (previewBtn) { previewBtn.textContent = 'Listen'; previewBtn = null; }
   }
-  function paintGather(sounds) {
+  function paintGather(sounds, keep) {
     var list = $('gather-list');
     if (!list) return;
-    stopPreview();
+    var playing = '';
+    if (keep && preview.getAttribute('src')) playing = preview.getAttribute('src');
+    else stopPreview();
     list.textContent = '';
+    if (!keep) previewBtn = null;
+    var still = null;
     (sounds || []).forEach(function (s) {
       var li = document.createElement('li');
+      if (s.symbol) {
+        var chord = document.createElement('span');
+        chord.className = 'g-chord';
+        chord.textContent = s.symbol;
+        li.appendChild(chord);
+      }
+      if (s.pending) {
+        li.className = 'pending';
+        var wait = document.createElement('span');
+        wait.className = 'g-wait';
+        wait.textContent = '—';
+        li.appendChild(wait);
+        if (s.symbol) li.setAttribute('aria-label', s.symbol + ', still gathering');
+        list.appendChild(li);
+        return;
+      }
       var btn = document.createElement('button');
       btn.type = 'button';
       btn.textContent = 'Listen';
       if (!s.url) btn.disabled = true;
       btn.onclick = function () { togglePreview(btn, s.url); };
+      if (playing && s.url && playing === s.url) { btn.textContent = 'End'; still = btn; }
       var title = document.createElement('span');
       title.className = 'g-title';
       title.textContent = s.title || 'Sound';
@@ -833,12 +1537,66 @@
       if (s.supplier && s.credit) li.title = s.credit;
       var meta = document.createElement('span');
       meta.className = 'm g-meta';
-      meta.textContent = [who, s.license].filter(Boolean).join(' · ');
+      meta.textContent = [who, licenseLabel(s.license) || s.license].filter(Boolean).join(' · ');
       li.appendChild(btn);
       li.appendChild(title);
       li.appendChild(meta);
       list.appendChild(li);
     });
+    previewBtn = still;
+    if (playing && !still) stopPreview();
+  }
+  function chordNames() {
+    var tl = window.NC && NC.timeline && NC.timeline();
+    if (!tl || !tl.chords) return [];
+    return tl.chords.map(function (c) { return c.symbol || ''; });
+  }
+  function compositionChords() {
+    var text = $('comp') && $('comp').value;
+    if (window.NC && NC.findChords && text) {
+      var found = NC.findChords(text);
+      if (found && found.length) return found.map(function (c) { return c.sym; });
+    }
+    return chordNames();
+  }
+  function openGatherList() {
+    gatherNames = compositionChords();
+    gatherLive = gatherNames.map(function () { return null; });
+    paintLive();
+  }
+  function paintLive() {
+    paintGather(gatherLive.map(function (s, i) {
+      if (s) return s;
+      return { pending: true, symbol: gatherNames[i] || '' };
+    }), true);
+  }
+  function mergeFound(j) {
+    var items = foundList(j);
+    if (!items.length || phase !== 'gather') return;
+    if (!gatherLive.length) openGatherList();
+    items.forEach(function (raw) {
+      var s = soundOf(raw);
+      if (!s.title && !s.url) return;
+      var slot = s.slot, i;
+      if (slot < 0) {
+        for (i = 0; i < gatherLive.length; i++) if (!gatherLive[i]) { slot = i; break; }
+        if (slot < 0) slot = gatherLive.length;
+      }
+      while (gatherLive.length <= slot) { gatherLive.push(null); gatherNames.push(''); }
+      if (s.symbol) gatherNames[slot] = s.symbol;
+      else s.symbol = gatherNames[slot] || '';
+      gatherLive[slot] = s;
+    });
+    paintLive();
+    preloadClips(gatherLive.filter(Boolean));
+  }
+  function restoreGather() {
+    gatherLive = [];
+    if (gatherSounds && gatherSounds.length) paintGather(gatherSounds);
+    else {
+      var list = $('gather-list');
+      if (list) list.textContent = '';
+    }
   }
   function togglePreview(btn, url) {
     if (!url) return;
@@ -880,6 +1638,7 @@
     $('perform-turnstile').hidden = true;
     $('perform-bar').hidden = true;
     phase = (gatherSounds && gatherSounds.length) ? 'collection' : '';
+    restoreGather();
     idle();
     status(soften(msg) || 'Gather did not finish. Try again in a moment.', true);
   }
@@ -893,6 +1652,7 @@
     $('perform-turnstile').hidden = true;
     $('perform-bar').hidden = true;
     phase = (gatherSounds && gatherSounds.length) ? 'collection' : '';
+    restoreGather();
     idle();
     status('Stopped.');
   }
@@ -901,9 +1661,15 @@
     var col = GATHER.collection(raw);
     if (!col) return false;
     gatherId = col.id;
+    gatherClock = col.clock;
     if (col.claim) gatherClaim = col.claim;
     if (gatherClaim) { try { sessionStorage.setItem('nc-claim:' + gatherId, gatherClaim); } catch (e) {} }
-    gatherSounds = col.sounds;
+    gatherSounds = col.sounds.map(function (s, i) {
+      var slot = s.slot >= 0 ? s.slot : i;
+      if (!s.symbol && gatherNames[slot]) s.symbol = gatherNames[slot];
+      return s;
+    });
+    gatherLive = [];
     gatherJobId = '';
     phase = 'collection';
     running = false;
@@ -912,6 +1678,7 @@
     $('perform-turnstile').hidden = true;
     $('perform-bar').hidden = true;
     paintGather(gatherSounds);
+    preloadClips(gatherSounds);
     idle();
     status('Gathered.');
     return true;
@@ -937,11 +1704,9 @@
     }
     if (j.state === 'failed' || j.state === 'rejected') { stopWatch(); gatherFail(limitMessage(j) || 'Gather did not finish. Try again in a moment.'); return; }
     if (j.state === 'cancelled' || j.state === 'canceled' || j.state === 'stopped') { stopWatch(); stopped(); return; }
-    if (j.stage || j.stage_line) showStory(j);
-    else status('Gathering…');
-    var bar = $('perform-bar');
-    if (typeof j.percent === 'number') { bar.hidden = false; bar.value = j.percent; }
-    else bar.hidden = true;
+    mergeFound(j);
+    status('Gathering…');
+    $('perform-bar').hidden = true;
     showStop();
   }
   function postGather(S, tok, excludeId, mine) {
@@ -1000,6 +1765,7 @@
     stopping = false;
     hideStop();
     $('perform-bar').hidden = true;
+    openGatherList();
     var mine = ++gatherGen;
     syncActions();
     showStop();
@@ -1062,12 +1828,19 @@
       $('perform-turnstile').hidden = true;
       $('perform-out').hidden = true;
       if (window.NCLive) NCLive.hide();
-      $('perform-bar').hidden = false;
-      $('perform-bar').value = 0;
+      playerJob = '';
       running = true;
-      status(x.j.position ? 'Queued · position ' + x.j.position : 'Queued…');
+      if (fromCollection()) {
+        $('perform-bar').hidden = true;
+        status('Assembling…');
+      } else {
+        $('perform-bar').hidden = false;
+        $('perform-bar').value = 0;
+        status(x.j.position ? 'Queued · position ' + x.j.position : 'Queued…');
+      }
       showStop();
       watch(jobId);
+      if (fromCollection()) probePreview(viewGen);
     });
   }
   // Cancel shape, until the Performer publishes another: POST /api/jobs/<id>/cancel { claim_token }.
@@ -1078,6 +1851,8 @@
     running = false;
     stopping = false;
     hideStop();
+    stopAssembleProbe();
+    playerJob = '';
     viewGen++;
     phase = (gatherOn && gatherSounds && gatherSounds.length) ? 'collection' : '';
     idle();
@@ -1165,6 +1940,7 @@
     var S = wordsOk();
     if (!S) return;
     stopPreview();
+    if (browserAssembly() && gatherSounds && gatherSounds.length) { playAssembly(); return; }
     alive++;
     running = false;
     hideStop();
@@ -1172,8 +1948,14 @@
     clearTake();
     phase = 'perform';
     busy = true;
+    playerJob = '';
+    stopAssembleProbe();
     dropKeptFiles();
     if (window.NCLive && NCLive.prime) NCLive.prime();
+    if (fromCollection()) {
+      status('Assembling…');
+      $('perform-bar').hidden = true;
+    }
     syncActions();
     if (jobId) {
       $('perform-out').hidden = true;
@@ -1234,6 +2016,7 @@
       return r.json();
     }).then(function (c) {
       cfg = c;
+      if (warmAsked) prewarm();
       if (!c.perform_enabled) {
         gatherOn = false;
         syncActions();
@@ -1251,6 +2034,8 @@
       status('Perform did not answer. The service may be down. Try again in a moment.', true);
     });
   }
+  var compField = $('comp');
+  if (compField) compField.addEventListener('focus', prewarm);
   $('performBtn').onclick = go;
   if ($('gatherBtn')) $('gatherBtn').onclick = function () { gather(false); };
   if ($('gather-again')) $('gather-again').onclick = function () { gather(true); };
@@ -1263,7 +2048,9 @@
     box.focus();
   };
   $('perform-keep').onclick = function () {
-    if (keeping || $('perform-keep').textContent.indexOf('Kept') === 0) return;
+    var label = $('perform-keep').textContent;
+    if (keeping || label.indexOf('Kept') === 0 || label.indexOf('Saved') === 0) return;
+    if (localPlan && browserAssembly()) { saveLocal(); return; }
     if (!jobId || !sessionStorage.getItem('nc-claim:' + jobId)) {
       keepFail('This tab does not have the keep key for this Performance.');
       return;

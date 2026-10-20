@@ -40,7 +40,8 @@ details.fold{margin:1.8rem 0}details.fold>summary{cursor:pointer;color:#555;font
 #perform-line{display:flex;flex-wrap:wrap;align-items:baseline;gap:.15rem .7rem}#perform-status.story{display:flex;flex-direction:column;gap:.12rem}
 #perform-stop,#gather-again,#gather-list button{font:inherit;font-size:.85rem;line-height:inherit;color:#555;background:transparent;border:0;border-radius:0;padding:0;margin:0;min-width:0;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
 #perform-stop:hover,#gather-again:hover,#gather-list button:hover{color:#000}#perform-stop:disabled,#gather-again:disabled,#gather-list button:disabled{color:#999;background:transparent;border:0;cursor:default}
-#gather-box{margin:1.5rem 0 .2rem}#gather-list{list-style:none;margin:0;padding:0}#gather-list li{margin:0 0 1.25rem;line-height:1.45}#gather-list .g-title{margin-left:.65rem}#gather-list .g-meta{display:block;margin:.12rem 0 0}
+#gather-box{margin:1.8rem 0 .4rem}#gather-list{list-style:none;margin:0;padding:0}#gather-list li{margin:0 0 1.7rem;line-height:1.45}#gather-list .g-chord,#plan-src .g-chord{display:block;margin:0 0 .2rem;color:#555}#gather-list .g-title{margin-left:.65rem}#gather-list .g-meta{display:block;margin:.15rem 0 0}#gather-list li.pending,#gather-list li.pending .g-chord,#gather-list li.pending .g-wait{color:#ccc}
+#plan-src{list-style:none;margin:.2rem 0 1.4rem;padding:0}#plan-src li{margin:0 0 1.15rem;line-height:1.45}#plan-seed{color:#bbb;margin:-.4rem 0 1.2rem}
 #perform-trim{color:#666;font-size:.8rem;margin:.05rem 0 .35rem}
 #src-time{margin:1.7rem 0 1.6rem}.src-lane{position:relative;margin:.85rem 0;padding:.4rem 0;cursor:pointer}
 .src-track{position:relative;height:2px;background:#eee}.src-span{position:absolute;top:0;height:100%;background:#000}
@@ -95,7 +96,7 @@ footer{max-width:46rem;margin:0 auto;padding:1.2rem 1.5rem 4rem;font-size:.85rem
 
 <section id="perform">
 <h2 id="perform-h">Perform</h2>
-<p>Played with real recorded sounds. Every take is different.</p>
+<p>One openly licensed recording for each chord, placed in order and level-matched. No further processing.</p>
 <div id="perf-box">
 <label for="perf">Performance prompt</label>
 <textarea id="perf" placeholder="Describe how it should be performed (optional)."></textarea>
@@ -129,6 +130,8 @@ footer{max-width:46rem;margin:0 auto;padding:1.2rem 1.5rem 4rem;font-size:.85rem
 <audio id="perform-audio" controls preload="metadata" crossorigin="anonymous"></audio>
 <p class="m" id="perform-trim" hidden></p>
 <div id="src-time" hidden><div id="src-lanes"></div><p class="m" id="src-now"></p></div>
+<ul id="plan-src" hidden></ul>
+<p class="m" id="plan-seed" hidden></p>
 <section id="live" hidden>
 <label class="toggle" for="lloop"><input id="lloop" type="checkbox" checked> Loop</label>
 <div class="hack" id="hack-lp">
@@ -227,6 +230,7 @@ nc perform composition.md -o out/           # any OpenAI-compatible LLM</pre>
 <script src="recordings.js"></script>
 <script src="app.js"></script>
 <script src="live.js"></script>
+<script src="assembly.js"></script>
 <script src="perform.js"></script>
 </body>
 </html>

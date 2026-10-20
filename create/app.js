@@ -149,7 +149,7 @@ function timeline() {
     out.push({t: +t.toFixed(3), dur: +d.toFixed(3), symbol: c.sym, bass: c.bass, path: v[0], voicing: v[1]});
     t += d;
   });
-  return {L: L, chords: out, unique: found.map(function (c) { return c.sym; })};
+  return {L: L, chords: out, unique: found.map(function (c) { return c.sym; }), written: !!written};
 }
 var NAMES = ['C', 'C#', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab', 'A', 'Bb', 'B'];
 function nn(m) { return NAMES[m % 12] + (Math.floor(m / 12) - 1); }
