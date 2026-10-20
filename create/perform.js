@@ -3,7 +3,7 @@
   'use strict';
   var API = 'https://nc-perform-api.psemme.workers.dev';
   function $(id) { return document.getElementById(id); }
-  var cfg = null, widget = null, token = null, jobId = null, es = null, pollT = null, busy = false;
+  var cfg = null, widget = null, token = null, jobId = null, es = null, pollT = null, busy = false, running = false, alive = 0, stopping = false, cancelOk = true;
 
   function status(t, warn) {
     var clean = soften(t);
@@ -228,25 +228,49 @@
   function onJob(j) {
     if (!j) return;
     takeSeed(j);
-    if (j.state !== 'done' && j.state !== 'failed' && j.state !== 'rejected') showStory(j);
+    if (j.state === 'done') { stopWatch(); showDone(j); return; }
+    if (j.state === 'failed' || j.state === 'rejected') { stopWatch(); fail(soften(j.error) || 'That Performance did not finish. Try again in a moment.'); return; }
+    if (j.state === 'cancelled' || j.state === 'canceled' || j.state === 'stopped') { stopWatch(); stopped(); return; }
+    showStory(j);
     var bar = $('perform-bar');
     bar.hidden = false; bar.value = j.percent || 0;
-    if (j.state === 'done') { stopWatch(); showDone(j); }
-    else if (j.state === 'failed' || j.state === 'rejected') { stopWatch(); fail(soften(j.error) || 'That Performance did not finish. Try again in a moment.'); }
+    showStop();
+  }
+  function ended(state) {
+    return state === 'done' || state === 'failed' || state === 'rejected' || state === 'cancelled' || state === 'canceled' || state === 'stopped';
   }
   function poll(id) {
+    var mine = alive;
     fetch(API + '/api/jobs/' + id).then(function (r) { return read(r).then(function (j) { return r.ok ? j : null; }); }).then(function (j) {
+      if (mine !== alive) return;
       if (!j || !j.state) { fail('Perform did not answer. The service may be down. Try again in a moment.'); return; }
       onJob(j);
-      if (j.state !== 'done' && j.state !== 'failed' && j.state !== 'rejected') pollT = setTimeout(function () { poll(id); }, 2000);
-    }).catch(function () { fail('Perform did not answer. The service may be down. Try again in a moment.'); });
+      if (!ended(j.state) && mine === alive) pollT = setTimeout(function () { if (mine === alive) poll(id); }, 2000);
+    }).catch(function () { if (mine === alive) fail('Perform did not answer. The service may be down. Try again in a moment.'); });
   }
   function watch(id) {
     stopWatch();
+    var mine = alive;
     if (!window.EventSource) { poll(id); return; }
     es = new EventSource(API + '/api/jobs/' + id + '/events');
-    es.onmessage = function (ev) { try { onJob(JSON.parse(ev.data)); } catch (e) {} };
-    es.onerror = function () { if (es && es.readyState === 2) { stopWatch(); poll(id); } };
+    es.onmessage = function (ev) {
+      if (mine !== alive) return;
+      try { onJob(JSON.parse(ev.data)); } catch (e) {}
+    };
+    es.onerror = function () { if (mine !== alive) return; if (es && es.readyState === 2) { stopWatch(); poll(id); } };
+  }
+  function showStop() {
+    var btn = $('perform-stop');
+    if (!btn) return;
+    if (!cancelOk || !running || !jobId) { btn.hidden = true; return; }
+    btn.hidden = false;
+    if (!stopping) btn.disabled = false;
+  }
+  function hideStop() {
+    var btn = $('perform-stop');
+    if (!btn) return;
+    btn.hidden = true;
+    btn.disabled = false;
   }
   var recordText = '', recordName = 'performance.record.json', keeping = false, viewGen = 0, keptBlobs = [];
   function node(tag, cls, text) {
@@ -549,6 +573,9 @@
     return once();
   }
   function showDone(j) {
+    alive++;
+    running = false;
+    hideStop();
     var gen = ++viewGen;
     takeSeed(j);
     if (j && Object.prototype.hasOwnProperty.call(j, 'trimmed')) showTrim(trimText(j.trimmed));
@@ -611,6 +638,10 @@
     }).catch(function () {});
   }
   function fail(msg) {
+    alive++;
+    running = false;
+    stopping = false;
+    hideStop();
     viewGen++;
     idle();
     clearTake();
@@ -659,8 +690,65 @@
       if (window.NCLive) NCLive.hide();
       $('perform-bar').hidden = false;
       $('perform-bar').value = 0;
+      running = true;
       status(x.j.position ? 'Queued · position ' + x.j.position : 'Queued…');
+      showStop();
       watch(jobId);
+    });
+  }
+  // Cancel shape, until the Performer publishes another: POST /api/jobs/<id>/cancel { claim_token }.
+  // A 404 means this API has no cancel yet, so Stop hides and the job keeps going.
+  function stopped() {
+    alive++;
+    running = false;
+    stopping = false;
+    hideStop();
+    viewGen++;
+    idle();
+    clearTake();
+    $('perform-turnstile').hidden = true;
+    $('perform-bar').hidden = true;
+    $('perform-out').hidden = true;
+    $('live').hidden = true;
+    clearRecord();
+    if (window.NCLive) NCLive.hide();
+    try { sessionStorage.removeItem('nc-perform-job'); } catch (e) {}
+    status('Stopped.');
+  }
+  function cancelJob() {
+    if (stopping || !running || !jobId) return;
+    var tokenNow = sessionStorage.getItem('nc-claim:' + jobId);
+    if (!tokenNow) {
+      status('This tab does not have the keep key for this Performance.', true);
+      showStop();
+      return;
+    }
+    stopping = true;
+    $('perform-stop').disabled = true;
+    fetch(API + '/api/jobs/' + encodeURIComponent(jobId) + '/cancel', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ claim_token: tokenNow })
+    }).then(function (r) {
+      if (r.status === 404) {
+        cancelOk = false;
+        stopping = false;
+        hideStop();
+        return null;
+      }
+      return read(r).then(function (j) {
+        stopping = false;
+        if (!r.ok) {
+          showStop();
+          status(soften(j && j.error) || 'Could not stop. Try again in a moment.', true);
+          return;
+        }
+        stopped();
+      });
+    }, function () {
+      stopping = false;
+      showStop();
+      status('Could not stop. Try again in a moment.', true);
     });
   }
   function loadTurnstile() {
@@ -700,6 +788,9 @@
     if (!S.c) { status('Write a Composition first.', true); return; }
     var max = (cfg && cfg.max_words) || 4000, words = S.c + '\n' + S.p;
     if (words.length > max) { status('Those words are ' + words.length + ' characters. The limit is ' + max + '.', true); return; }
+    alive++;
+    running = false;
+    hideStop();
     viewGen++;
     clearTake();
     busy = true;
@@ -745,7 +836,7 @@
       if (!j || busy) return;
       if (j.state === 'done') showDone(j);
       else if (j.state === 'failed' || j.state === 'rejected') fail(j.error || j.state);
-      else { busy = true; $('performBtn').disabled = true; $('performBtn').textContent = 'Performing…'; $('perform-public').disabled = true; onJob(j); watch(id); }
+      else { busy = true; running = true; $('performBtn').disabled = true; $('performBtn').textContent = 'Performing…'; $('perform-public').disabled = true; onJob(j); watch(id); }
     }).catch(function () {});
   }
   function boot() {
@@ -764,6 +855,7 @@
     });
   }
   $('performBtn').onclick = go;
+  if ($('perform-stop')) $('perform-stop').onclick = cancelJob;
   $('perform-edit').onclick = function (e) {
     e.preventDefault();
     var box = $('perf'), fold = $('perf-box');

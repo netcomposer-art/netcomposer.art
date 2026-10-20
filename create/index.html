@@ -36,7 +36,9 @@ button:disabled{color:#999;border-color:#999;cursor:default}button:focus-visible
 details.fold{margin:1.8rem 0}details.fold>summary{cursor:pointer;color:#555;font-size:.85rem}
 #status:empty,#progmeta:empty,#lstatus:empty,#src-now:empty{display:none}
 #perform-out{margin-top:3.2rem}
-#perform-status.story{display:flex;flex-direction:column;gap:.12rem}
+#perform-line{display:flex;flex-wrap:wrap;align-items:baseline;gap:.15rem .7rem}#perform-status.story{display:flex;flex-direction:column;gap:.12rem}
+#perform-stop{font:inherit;font-size:.85rem;line-height:inherit;color:#555;background:transparent;border:0;border-radius:0;padding:0;margin:0;min-width:0;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+#perform-stop:hover{color:#000}#perform-stop:disabled{color:#999;background:transparent;border:0;cursor:default}
 #perform-trim{color:#666;font-size:.8rem;margin:.05rem 0 .35rem}
 #src-time{margin:1.7rem 0 1.6rem}.src-lane{position:relative;margin:.85rem 0;padding:.4rem 0;cursor:pointer}
 .src-track{position:relative;height:2px;background:#eee}.src-span{position:absolute;top:0;height:100%;background:#000}
@@ -104,7 +106,7 @@ footer{max-width:46rem;margin:0 auto;padding:1.2rem 1.5rem 4rem;font-size:.85rem
 </div>
 <div class="row"><button id="performBtn" type="button" disabled>Perform</button><label class="toggle" id="perform-vis" for="perform-public"><input id="perform-public" type="checkbox"> List it after a day</label></div>
 <div id="perform-turnstile" hidden></div>
-<p class="m" id="perform-status" aria-live="polite">Checking whether Perform is awake…</p>
+<p class="m" id="perform-line"><span id="perform-status" aria-live="polite">Checking whether Perform is awake…</span><button type="button" id="perform-stop" hidden>Stop</button></p>
 <progress id="perform-bar" hidden max="100" value="0"></progress>
 <details class="fold" id="piece-more">
 <summary>Title, speed, link</summary>
