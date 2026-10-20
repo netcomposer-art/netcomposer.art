@@ -520,6 +520,34 @@
     showKept(line, true);
     keepNote();
   }
+  var LANDING_MS = 60000;
+  function retryFetch(url, gen) {
+    var started = Date.now(), delay = 1000;
+    function later(then) {
+      if (gen !== viewGen) return Promise.resolve(null);
+      var left = LANDING_MS - (Date.now() - started);
+      if (left <= 0) return Promise.resolve(null);
+      var waitMs = Math.min(delay, left);
+      delay = Math.min(delay * 2, 8000);
+      return new Promise(function (resolve) { setTimeout(resolve, waitMs); }).then(then);
+    }
+    function once() {
+      if (gen !== viewGen) return Promise.resolve(null);
+      var ctrl = typeof AbortController === 'function' ? new AbortController() : null;
+      var kill = ctrl ? setTimeout(function () { try { ctrl.abort(); } catch (e) {} }, 15000) : null;
+      return fetch(url, {cache: 'no-store', signal: ctrl ? ctrl.signal : undefined}).then(function (r) {
+        if (kill) clearTimeout(kill);
+        if (gen !== viewGen) return null;
+        if (r.ok) return r;
+        return later(once);
+      }, function () {
+        if (kill) clearTimeout(kill);
+        if (gen !== viewGen) return null;
+        return later(once);
+      });
+    }
+    return once();
+  }
   function showDone(j) {
     var gen = ++viewGen;
     takeSeed(j);
@@ -533,8 +561,11 @@
     var flac = f.flac || (API + '/api/jobs/' + id + '/files/performance.flac');
     var rec = f.record || (API + '/records/' + id + '.json');
     var page = f.page || (API + '/records/' + id);
+    var metaUrl = API + '/api/jobs/' + id + '/files/meta.json';
     var audio = $('perform-audio');
     audio.crossOrigin = 'anonymous';
+    audio.removeAttribute('src');
+    try { audio.load(); } catch (e) {}
     takeHeard = false;
     $('perform-title').textContent = (window.NC && NC.state && NC.state().t) || 'Performance';
     $('perform-sources').open = false;
@@ -550,16 +581,31 @@
     $('perform-kept').hidden = true;
     keepNote();
     clearRecord();
-    if (window.NCLive) NCLive.open({id: id, flac: flac, mp3: mp3, record: rec});
+    clearStrip();
+    if (window.NCLive) NCLive.hide();
     $('perform-keep').disabled = !sessionStorage.getItem('nc-claim:' + id);
-    status('Done. CC BY-SA 4.0. Pitch was not shifted.');
+    var landing = 'The files are still landing.';
+    status(landing);
     $('perform-meta').textContent = 'Unlisted audio is kept 90 days unless you press Keep. Listed audio waits a day, then joins the feed.';
-    fetch(rec).then(function (r) { return r.text().then(function (t) { return { ok: r.ok, t: t }; }); }).then(function (x) {
+    retryFetch(mp3, gen).then(function (r) {
       if (gen !== viewGen) return;
-      if (!x.ok) { recordMiss(); return; }
-      try { showRecord(JSON.parse(x.t), id); } catch (e) { recordMiss(); }
+      if (!r) { audioMiss(); return; }
+      if (r.body && r.body.cancel) { try { r.body.cancel(); } catch (e) {} }
+      if (window.NCLive) NCLive.open({id: id, flac: flac, mp3: mp3, record: rec});
+      status('Done. CC BY-SA 4.0. Pitch was not shifted.');
+    });
+    retryFetch(rec, gen).then(function (r) {
+      if (gen !== viewGen) return null;
+      if (!r) { recordMiss(); return null; }
+      return r.text();
+    }).then(function (t) {
+      if (gen !== viewGen || t == null) return;
+      try { showRecord(JSON.parse(t), id); } catch (e) { recordMiss(); }
     }).catch(function () { if (gen === viewGen) recordMiss(); });
-    fetch(API + '/api/jobs/' + id + '/files/meta.json').then(function (r) { return r.ok ? r.json() : null; }).then(function (m) {
+    retryFetch(metaUrl, gen).then(function (r) {
+      if (gen !== viewGen || !r) return null;
+      return r.json();
+    }).then(function (m) {
       if (gen !== viewGen || !m || !m.keep) return;
       applyKept(m);
     }).catch(function () {});
@@ -710,7 +756,7 @@
       cfg = c;
       if (!c.perform_enabled) { $('performBtn').disabled = true; status('Perform is resting until tomorrow.', true); return; }
       $('performBtn').disabled = false;
-      status('Ready.');
+      if ($('perform-out').hidden) status('Ready.');
       resume();
     }).catch(function () {
       $('performBtn').disabled = true;

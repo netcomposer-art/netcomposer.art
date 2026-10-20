@@ -31,7 +31,7 @@ button:disabled{color:#999;border-color:#999;cursor:default}button:focus-visible
 .row{display:flex;flex-wrap:wrap;align-items:center;gap:.2rem .6rem}.two{display:grid;grid-template-columns:1fr;gap:0 1rem}
 .pick{display:flex;flex-wrap:wrap;gap:.5rem;align-items:stretch}.pick select{flex:1;min-width:0}.pick button{margin:0;white-space:nowrap}
 #progcap{margin:.15rem 0 .35rem;font-size:.8rem;letter-spacing:.08em;text-transform:uppercase;color:#555}
-#prog{margin:.15rem 0 .1rem;line-height:1.65;font-size:1.45rem}.ch{display:inline-block;border-bottom:2px solid transparent;padding:0 .06rem;margin:0 .4rem .15rem 0}.ch.on{border-bottom-color:#000;font-weight:bold}
+#prog{margin:.15rem 0 .1rem;line-height:1.65}#comp{min-height:calc(7.5em + 1.1rem + 2px)}.ch{display:inline-block;border-bottom:2px solid transparent;padding:0 .06rem;margin:0 .4rem .15rem 0}.ch.on{border-bottom-color:#000;font-weight:bold}
 #perf{min-height:5.5rem;max-height:70vh;overflow:auto;resize:vertical}#notes-status{min-height:1.2em}
 details.fold{margin:1.8rem 0}details.fold>summary{cursor:pointer;color:#555;font-size:.85rem}
 #status:empty,#progmeta:empty,#lstatus:empty,#src-now:empty{display:none}
@@ -75,7 +75,7 @@ footer{max-width:46rem;margin:0 auto;padding:1.2rem 1.5rem 4rem;font-size:.85rem
 <label for="starter">Start from</label>
 <div class="pick"><select id="starter"><option value="">Choose a starter…</option></select><button id="surprise" type="button" title="A new progression: another key, mood, length and shape">Surprise me</button><button id="undo" type="button" hidden>Undo</button></div>
 <label for="comp">Composition elements</label>
-<textarea id="comp" placeholder="Harmony, length and shape. e.g. 2 mins - half Cm, Cm7, Cm9. Second half Cm7, Am, F."></textarea>
+<textarea id="comp" rows="5" placeholder="Harmony, length and shape. e.g. 2 mins - half Cm, Cm7, Cm9. Second half Cm7, Am, F."></textarea>
 </section>
 
 <section id="play-s">
@@ -172,7 +172,7 @@ footer{max-width:46rem;margin:0 auto;padding:1.2rem 1.5rem 4rem;font-size:.85rem
 <p class="m">The Sketch has the chords, their voicings and the sounds; a Performer or an agent fills in the rest. <a href="plan.schema.json">Schema</a>.</p>
 <h3 id="upload">Open a file</h3>
 <input id="up" type="file" accept=".md,.markdown,.txt,text/markdown,text/plain" aria-label="Open a composition.md">
-<p class="m">Open a composition.md: one made here, or a published one (<a href="../composition/bwv846-harmony-only.md">C major</a>, <a href="../composition/bwv847-harmony-only.md">C minor</a>, <a href="../composition/bwv853-harmony-only.md">E♭ minor</a>, <a href="../composition/bwv862-harmony-only.md">A♭ major</a>).</p>
+<p class="m">Open a composition.md: one made here, or a published one (<a href="../composition/bwv846-harmony-only.md">C major</a>, <a href="../composition/canon-d.md">Canon</a>, <a href="../composition/blues-a.md">blues</a>, <a href="../composition/bwv847-harmony-only.md">C minor</a>, <a href="../composition/bwv853-harmony-only.md">E♭ minor</a>, <a href="../composition/bwv862-harmony-only.md">A♭ major</a>).</p>
 <h3 id="kit">With the Performer kit 0.2.0 (Python, ffmpeg)</h3>
 <pre>pip install git+https://github.com/netcomposer-art/nc-performer
 nc perform composition.md --stub -o out/    # no LLM
@@ -186,7 +186,37 @@ nc perform composition.md -o out/           # any OpenAI-compatible LLM</pre>
 </details>
 </main>
 <footer>— Peter Semmelhack · <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a> · <span id="foot-src">sounds from openly licensed sources</span></footer>
-<script type="application/json" id="starters">[{"id": "bwv846", "name": "C major Prelude, harmony only", "title": "The C major Prelude, harmony only (after Bach, BWV 846)", "composer": "Peter", "composition": "35 bars of 4/4 at 69 BPM. 4/4 · 69 BPM · [1 bar C][1 bar Dm7/C][1 bar G7/B][1 bar C][1 bar Am/C][1 bar D7/C][1 bar G/B][1 bar Cmaj7/B][1 bar Am7][1 bar D7][1 bar G][1 bar C#dim7/G][1 bar Dm/F][1 bar Bdim7/F][1 bar C/E][1 bar Fmaj7/E][1 bar Dm7][1 bar G7][1 bar C][1 bar C7][1 bar Fmaj7][1 bar F#dim7][1 bar Bdim7/Ab][1 bar G7][1 bar C/G][1 bar G7sus4][1 bar G7][1 bar F#dim7/G][1 bar C/G][1 bar G7sus4][1 bar G7][1 bar C7][1 bar Dm7/C][1 bar G7/C][1 bar C]", "performance": "Unhurried, but let it breathe: some bars linger, some move on, and light and shade are welcome. The harmony does all the work.", "source": "https://netcomposer.art/composition/bwv846-harmony-only.md"}, {"id": "bwv847", "name": "C minor Prelude, harmony only", "title": "The C minor Prelude, harmony only (after Bach, BWV 847)", "composer": "Peter", "composition": "38 bars of 4/4 at 80 BPM. 4/4 · 80 BPM · at bar 28, 120 BPM · at bar 34, 40 BPM · at bar 35, 96 BPM · [1 bar Cm][1 bar Fm/C][1 bar Bdim7/C][1 bar Cm][1 bar Ab/C][1 bar D7/C][1 bar Gm/Bb][1 bar C7/Bb][1 bar Fm/Ab][1 bar Bb7/Ab][1 bar Eb/G][1 bar Abmaj7/C][1 bar Bb7/D][1 bar Eb][1 bar F7/Eb][1 bar Bdim7/D][1 bar Bdim7/C][1 bar Cm7/Bb][1 bar Fm7/Ab][1 bar F#dim7/A][1 bar Cm/G][1 bar F#dim7/G][1 bar Cm/G][1 bar Abmaj7/G][1 bar G7b9][1 bar Abmaj7/G][1 bar F#dim7/G][1 bar Am7b5/G][1 bar F#dim7/G][1 bar G7/F][1 bar Cm/Eb][1 bar Cm][1 bar Ddim/F][1 bar C7][1 bar Bdim7/C][1 bar Edim7][1 bar C7][1 bar C]", "performance": "Restless and driving, close and dry. Let the final chord bloom.", "source": "https://netcomposer.art/composition/bwv847-harmony-only.md"}, {"id": "bwv853", "name": "E♭ minor Prelude, harmony only", "title": "The E♭ minor Prelude, harmony only (after Bach, BWV 853)", "composer": "Peter", "composition": "40 bars of 6/4 at 84 BPM. 3/2 · 84 BPM · [1 bar Ebm][1 bar Abm/Eb][1 bar Ddim][1 bar Ebm][1 bar Gb7/Bb][1 bar Cb][1 bar Eb7/G][1 bar Abm][1 bar Bb7/D][1 bar Ebm][1 bar F7/A][1 bar Bbm][1 bar Cm7b5/Eb][1 bar Bbm/Db][1 bar F7sus4][1 bar Bbm][1 bar Gdim7][1 bar Gdim7/Db][1 bar Eb7][1 bar Ddim7/F][1 bar Bb7][1 bar Eb7/G][1 bar Abm][1 bar Bb7/D][1 bar Ebm][1 bar Fb/Ab][1 bar Bb7/Ab][1 bar Bb7][1 bar Cbmaj7][1 bar Eb7/G][1 bar Fbmaj7][1 bar Ddim7/F][1 bar Ddim7][1 bar Ddim7/Ab][1 bar Ddim7][1 bar Ebm][1 bar Eb7][1 bar Fm7b5/Eb][1 bar Ddim7/Eb][1 bar Eb]", "performance": "Night music, a slow sarabande, grave and close. Soft attacks; let each chord ring into the next. Let the peak hang. Never washed out.", "source": "https://netcomposer.art/composition/bwv853-harmony-only.md"}, {"id": "bwv862", "name": "A♭ major Prelude, harmony only", "title": "The A♭ major Prelude, harmony only (after Bach, BWV 862)", "composer": "Peter", "composition": "40 bars of 3/4 at 80 BPM. 3/4 · 80 BPM · [1 bar Ab][1 bar Eb7/G][1 bar Ab/Eb][1 bar Eb7][1 bar Ab][1 bar Fm7][1 bar Bbm7][1 bar Eb7][1 bar Ab][1 bar Gm/D][1 bar Fm/C][1 bar Eb/Bb][1 bar Ddim/Ab][1 bar Eb/Bb][1 bar Fm7/C][1 bar Bb7][1 bar Eb/G][2 bars Bb7][1 bar Eb][1 bar Bb7][2 bars Eb7/Bb][2 bars Ab7][1 bar Db/F][1 bar Cm7/Eb][1 bar Bbm7/Db][1 bar Abmaj7/C][1 bar Bbm7][1 bar Ab/C][1 bar Bbm7/Db][2 bars Eb7][1 bar Ab][1 bar Fm7][1 bar Bbm7][1 bar Eb7][1 bar Ab][1 bar Bbm][1 bar Fm/C][1 bar Eb/Bb][1 bar Eb7][1 bar Ab]", "performance": "A sunny dance in three: open, warm and lightly sprung. Daylight, not a cathedral.", "source": "https://netcomposer.art/composition/bwv862-harmony-only.md"}]</script>
+<script type="application/json" id="starters">
+[
+  {
+    "id": "bwv846",
+    "name": "C major Prelude, harmony only",
+    "title": "The C major Prelude, harmony only (after Bach, BWV 846)",
+    "composer": "Peter",
+    "composition": "4/4 · 69 BPM\n[1 bar C]\n[1 bar Dm7/C]\n[1 bar G7/B]\n[1 bar C]\n[1 bar Am/C]\n[1 bar D7/C]\n[1 bar G/B]\n[1 bar Cmaj7/B]\n[1 bar Am7]\n[1 bar D7]\n[1 bar G]\n[1 bar C#dim7/G]\n[1 bar Dm/F]\n[1 bar Bdim7/F]\n[1 bar C/E]\n[1 bar Fmaj7/E]\n[1 bar Dm7]\n[1 bar G7]\n[1 bar C]\n[1 bar C7]\n[1 bar Fmaj7]\n[1 bar F#dim7]\n[1 bar Bdim7/Ab]\n[1 bar G7]\n[1 bar C/G]\n[1 bar G7sus4]\n[1 bar G7]\n[1 bar F#dim7/G]\n[1 bar C/G]\n[1 bar G7sus4]\n[1 bar G7]\n[1 bar C7]\n[1 bar Dm7/C]\n[1 bar G7/C]\n[1 bar C]",
+    "performance": "Unhurried, but let it breathe: some bars linger, some move on, and light and shade are welcome. The harmony does all the work.",
+    "source": "https://netcomposer.art/composition/bwv846-harmony-only.md"
+  },
+  {
+    "id": "canon-d",
+    "name": "Canon in D",
+    "title": "Canon in D (after Pachelbel)",
+    "composer": "Peter",
+    "composition": "4/4 · 60 BPM\n[2 beats D]\n[2 beats A]\n[2 beats Bm]\n[2 beats F#m]\n[2 beats G]\n[2 beats D]\n[2 beats G]\n[2 beats A]\n[2 beats D]\n[2 beats A]\n[2 beats Bm]\n[2 beats F#m]\n[2 beats G]\n[2 beats D]\n[2 beats G]\n[2 beats A]",
+    "performance": "Warm and unhurried. Let each chord settle.",
+    "source": "https://netcomposer.art/composition/canon-d.md"
+  },
+  {
+    "id": "blues-a",
+    "name": "12-bar blues in A",
+    "title": "A 12-bar blues in A",
+    "composer": "Peter",
+    "composition": "4/4 · 80 BPM\n[1 bar A7]\n[1 bar A7]\n[1 bar A7]\n[1 bar A7]\n[1 bar D7]\n[1 bar D7]\n[1 bar A7]\n[1 bar A7]\n[1 bar E7]\n[1 bar D7]\n[1 bar A7]\n[1 bar E7]",
+    "performance": "Relaxed and loose. Room between the changes.",
+    "source": "https://netcomposer.art/composition/blues-a.md"
+  }
+]
+</script>
 <script src="recordings.js"></script>
 <script src="app.js"></script>
 <script src="live.js"></script>

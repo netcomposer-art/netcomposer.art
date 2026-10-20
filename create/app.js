@@ -1,5 +1,5 @@
 // NetComposer /create/: write a Composition, hear a sketch, download, share. Static; no server.
-// The Play preview runs at double the Composition's tempo (still two strikes per chord); the rendered Performance keeps its real length.
+// The Play preview runs at double the Composition's tempo (still two strikes per chord). The length under the chords is the written clock: tempo, meter and chord lengths. The rendered Performance keeps that clock, plus the Performer's tail.
 // Surprise me, Undo and Play all work in place; the work in progress is kept in the URL hash.
 (function () {
 'use strict';
@@ -55,16 +55,100 @@ function lengthOf(text) {
   m = /(\d+(?:\.\d+)?)\s*(?:seconds?|secs?|s)\b/i.exec(text);
   return m ? Math.max(20, Math.min(600, +m[1])) : 120;
 }
+// Written clock, the same brackets the hosted parser reads: [1 bar C], [2 beats A].
+function quartersPerBar(text) {
+  var m = /\b(\d+)\s*\/\s*(2|4|8)\b/.exec(text || '');
+  return m ? +m[1] * (4 / +m[2]) : 4;
+}
+function tempoChanges(text) {
+  var re = /\b(?:at|from)\s+bar\s+(\d+)\b[^.\n]{0,40}?(\d+(?:\.\d+)?)\s*BPM\b|\bbar\s+(\d+)\s*:\s*(\d+(?:\.\d+)?)\s*BPM\b/gi, found = {}, m;
+  while ((m = re.exec(text || ''))) {
+    var bar = m[1] ? +m[1] : +m[3], bpm = m[1] ? +m[2] : +m[4];
+    if (bar >= 1 && bpm > 0) found[bar] = bpm;
+  }
+  return Object.keys(found).map(function (k) { return [+k, found[k]]; }).sort(function (a, b) { return a[0] - b[0]; });
+}
+function openingBpm(text, changes) {
+  var blank = (text || '').replace(/\b(?:at|from)\s+bar\s+\d+\b[^.\n]{0,40}?\d+(?:\.\d+)?\s*BPM\b|\bbar\s+\d+\s*:\s*\d+(?:\.\d+)?\s*BPM\b/gi, ' ');
+  var m = /(\d+(?:\.\d+)?)\s*BPM\b/i.exec(blank) || /quarter(?:\s+note)?\s*[=≈]\s*(\d+(?:\.\d+)?)/i.exec(blank);
+  if (m) return +m[1];
+  for (var i = 0; i < changes.length; i++) if (changes[i][0] <= 1) return changes[i][1];
+  return null;
+}
+function bracketLengths(text, chords) {
+  var re = /\[\s*(\d+(?:\.\d+)?)\s*(bars?|beats?)\s+([^\]]+?)\]/gi, symbols = [], specs = [], m;
+  while ((m = re.exec(text || ''))) {
+    var hit = findChords(m[3]);
+    if (!hit.length) continue;
+    symbols.push(hit[0].sym);
+    specs.push([+m[1], /^bar/i.test(m[2]) ? 'bar' : 'beat']);
+  }
+  if (!specs.length || symbols.length !== chords.length) return null;
+  for (var i = 0; i < symbols.length; i++) if (symbols[i] !== chords[i].sym) return null;
+  return specs;
+}
+function secondsFor(startBar, amount, unit, qpb, opening, changes) {
+  var quarters = unit === 'bar' ? amount * qpb : amount;
+  var pos = (startBar - 1) * qpb, end = pos + quarters;
+  function bpmAt(q) {
+    var bar = q / qpb + 1, bpm = opening, i;
+    for (i = 0; i < changes.length; i++) if (changes[i][0] <= bar + 1e-6) bpm = changes[i][1];
+    return bpm;
+  }
+  var points = [pos];
+  changes.forEach(function (ch) {
+    var boundary = (ch[0] - 1) * qpb;
+    if (pos + 1e-9 < boundary && boundary < end - 1e-9) points.push(boundary);
+  });
+  points.push(end);
+  var total = 0, i;
+  for (i = 0; i < points.length - 1; i++) total += (points[i + 1] - points[i]) * (60 / bpmAt(points[i]));
+  return total;
+}
+function writtenDurations(text, chords) {
+  if (!chords || !chords.length) return null;
+  var all = tempoChanges(text), changes = all.filter(function (c) { return c[0] > 1; });
+  var opening = openingBpm(text, all), specs = bracketLengths(text, chords), i;
+  if (!specs && changes.length && /one chord per bar/i.test(text || '')) specs = chords.map(function () { return [1, 'bar']; });
+  if (!specs || !(opening > 0)) return null;
+  var qpb = quartersPerBar(text) || 4, exact = [], start = 1;
+  for (i = 0; i < specs.length; i++) {
+    if (!(specs[i][0] > 0)) return null;
+    exact.push(secondsFor(start, specs[i][0], specs[i][1], qpb, opening, changes));
+    start += specs[i][1] === 'bar' ? specs[i][0] : specs[i][0] / qpb;
+  }
+  if (exact.some(function (v) { return !(v > 0); })) return null;
+  var rounded = exact.map(function (v) { return +v.toFixed(3); });
+  var target = +exact.reduce(function (a, b) { return a + b; }, 0).toFixed(3);
+  var sum = rounded.reduce(function (a, b) { return a + b; }, 0);
+  rounded[rounded.length - 1] = +(rounded[rounded.length - 1] + (target - sum)).toFixed(3);
+  return rounded;
+}
 // the timeline, the same rule as `nc interpret --stub`
 function timeline() {
-  var comp = $('comp').value, words = comp + ' ' + $('perf').value;
-  var found = findChords(comp); if (!found.length) found = findChords(words);
+  var comp = $('comp').value, words = comp + ' ' + $('perf').value, fromComp = true;
+  var found = findChords(comp);
+  if (!found.length) { found = findChords(words); fromComp = false; }
   if (!found.length) return null;
-  var L = lengthOf(words), B = bars(words), n = found.length;
-  var reps = (B && B.n === n) ? 1 : Math.max(1, Math.round(L / (n * 9))), seq = [];
-  for (var r = 0; r < reps; r++) seq = seq.concat(found);
-  var dur = L / seq.length, prev = null, out = [];
-  seq.forEach(function (c, i) { var v = pickVoicing(c.sym, prev, c.bass); prev = v[1]; out.push({t: +(i * dur).toFixed(3), dur: +dur.toFixed(3), symbol: c.sym, bass: c.bass, path: v[0], voicing: v[1]}); });
+  var written = writtenDurations(fromComp ? comp : words, found);
+  var seq, durs, L;
+  if (written) {
+    seq = found; durs = written; L = written.reduce(function (a, b) { return a + b; }, 0);
+  } else {
+    L = lengthOf(words);
+    var B = bars(words), n = found.length, reps = (B && B.n === n) ? 1 : Math.max(1, Math.round(L / (n * 9)));
+    seq = [];
+    for (var r = 0; r < reps; r++) seq = seq.concat(found);
+    var dur = L / seq.length;
+    durs = seq.map(function () { return dur; });
+  }
+  var prev = null, out = [], t = 0;
+  seq.forEach(function (c, i) {
+    var v = pickVoicing(c.sym, prev, c.bass); prev = v[1];
+    var d = durs[i];
+    out.push({t: +t.toFixed(3), dur: +d.toFixed(3), symbol: c.sym, bass: c.bass, path: v[0], voicing: v[1]});
+    t += d;
+  });
   return {L: L, chords: out, unique: found.map(function (c) { return c.sym; })};
 }
 var NAMES = ['C', 'C#', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab', 'A', 'Bb', 'B'];
@@ -82,7 +166,7 @@ function refresh() {
     var s = document.createElement('span'); s.className = 'ch'; s.id = 'ch' + i;
     s.title = c.voicing.map(nn).join(' ') + ' · ' + c.path; s.textContent = prettySym(c.symbol); el.appendChild(s); el.appendChild(document.createTextNode(' '));
   });
-  $('progmeta').textContent = previewLen(tl.L / PREVIEW_TEMPO);
+  $('progmeta').textContent = previewLen(tl.L);
 }
 
 // ---------- play (WebAudio) ----------

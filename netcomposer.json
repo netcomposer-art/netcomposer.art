@@ -35,6 +35,8 @@
           "bwv847": "https://netcomposer.art/composition/bwv847-harmony-only.md",
           "bwv853": "https://netcomposer.art/composition/bwv853-harmony-only.md",
           "bwv862": "https://netcomposer.art/composition/bwv862-harmony-only.md",
+          "canon": "https://netcomposer.art/composition/canon-d.md",
+          "blues": "https://netcomposer.art/composition/blues-a.md",
           "index": "https://netcomposer.art/netcomposer.json"
         }
       },
@@ -2685,6 +2687,42 @@
           "what": "When in Rome harmonic analysis, Mark Gotham et al., commit 1c61fe4",
           "uri": "https://github.com/MarkGotham/When-in-Rome",
           "license": "CC-BY-SA-4.0"
+        }
+      ],
+      "performances": []
+    },
+    {
+      "id": "canon-d",
+      "title": "Canon in D (after Pachelbel)",
+      "composer": "Peter",
+      "text": "https://netcomposer.art/composition/canon-d.md",
+      "sha256": "26bd7a7991d6a9011e1de7e5aef8a4663d7eaee2c8b6ebf6403db239c35aa09f",
+      "meter": "4/4",
+      "bars": 8,
+      "tempo_bpm": 60,
+      "license": "CC-BY-SA-4.0",
+      "based_on": [
+        {
+          "what": "Johann Pachelbel, Canon and Gigue in D major, the Canon progression only",
+          "license": "Public domain"
+        }
+      ],
+      "performances": []
+    },
+    {
+      "id": "blues-a",
+      "title": "A 12-bar blues in A",
+      "composer": "Peter",
+      "text": "https://netcomposer.art/composition/blues-a.md",
+      "sha256": "ed9c8b2c9cd7a515505b40c3019ae2dbc44d626ddd9dc5a8e60f9abebe756209",
+      "meter": "4/4",
+      "bars": 12,
+      "tempo_bpm": 80,
+      "license": "CC-BY-SA-4.0",
+      "based_on": [
+        {
+          "what": "12-bar blues, a traditional form",
+          "license": "Public domain"
         }
       ],
       "performances": []
