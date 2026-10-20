@@ -61,7 +61,7 @@
     es.onmessage = function (ev) { try { onJob(JSON.parse(ev.data)); } catch (e) {} };
     es.onerror = function () { if (es && es.readyState === 2) { stopWatch(); poll(id); } };
   }
-  var recordText = '', recordName = 'performance.record.json', keeping = false, viewGen = 0;
+  var recordText = '', recordName = 'performance.record.json', keeping = false, viewGen = 0, keptBlobs = [];
   function node(tag, cls, text) {
     var n = document.createElement(tag);
     if (cls) n.className = cls;
@@ -238,16 +238,21 @@
       ? 'Listing it makes this public after a day, and keeps the audio. Keep itself does not list it.'
       : 'Keep holds the audio past 90 days. It stays unlisted.';
   }
+  function dialText(d) {
+    if (!d) return '';
+    var cut = d.cutoff_hz == null ? 'open' : (d.cutoff_hz >= 1000 ? (d.cutoff_hz / 1000).toFixed(d.cutoff_hz >= 10000 ? 0 : 1) + ' kHz' : d.cutoff_hz + ' Hz');
+    return 'Dials: cutoff ' + cut + ', delay ' + (d.delay_timing || '') + ', feedback ' + Math.round((d.feedback || 0) * 100) + '%, mix ' + Math.round((d.wet || 0) * 100) + '% wet.';
+  }
   function keptLine(j) {
     var id = j.id || jobId;
     var page = API + '/records/' + id;
-    var parts = ['Kept on the Performer.'];
+    var parts = [j.processed ? 'Kept the dialed sound on the Performer.' : 'Kept on the Performer.'];
     if (j.keep && Object.prototype.hasOwnProperty.call(j, 'audio_expires_at') && j.audio_expires_at == null) parts.push('The audio no longer expires.');
     if (j.visibility === 'public') parts.push('It is public.');
     else if (j.visibility === 'unlisted') parts.push('It stays unlisted.');
     return { text: parts.join(' '), href: page, id: id };
   }
-  function showKept(j, warn) {
+  function showKept(j, warn, local) {
     var box = $('perform-kept');
     box.textContent = '';
     box.className = warn ? 'm warn' : 'm';
@@ -255,6 +260,24 @@
     if (warn || !j) { box.textContent = j || ''; return; }
     var line = keptLine(j);
     box.appendChild(node('span', '', line.text + ' '));
+    if (j.dials || (local && local.dials)) box.appendChild(node('div', '', dialText(j.dials || local.dials)));
+    if (local && local.note) box.appendChild(node('div', '', local.note));
+    if (local && local.wav) {
+      var wavA = document.createElement('a');
+      wavA.href = local.wav;
+      wavA.download = local.wavName;
+      wavA.textContent = 'Dialed sound (WAV)';
+      box.appendChild(wavA);
+      if (local.jsonUrl) {
+        box.appendChild(node('span', '', ' · '));
+        var jsonA = document.createElement('a');
+        jsonA.href = local.jsonUrl;
+        jsonA.download = local.jsonName;
+        jsonA.textContent = 'Dial settings';
+        box.appendChild(jsonA);
+      }
+    }
+    if (local && local.wav) box.appendChild(document.createElement('br'));
     var a = extLink(line.href, line.href);
     box.appendChild(a);
     box.appendChild(node('span', '', ' '));
@@ -267,12 +290,36 @@
     };
     box.appendChild(copy);
   }
-  function applyKept(j) {
+  function applyKept(j, local) {
     keeping = false;
     $('perform-keep').textContent = 'Kept ✓';
     $('perform-keep').disabled = true;
     $('perform-keep-note').hidden = true;
-    showKept(j, false);
+    showKept(j, false, local);
+  }
+  function dropKeptFiles() {
+    keptBlobs.forEach(function (u) { URL.revokeObjectURL(u); });
+    keptBlobs = [];
+  }
+  function localKept(out) {
+    var wavUrl = URL.createObjectURL(out.blob);
+    var jsonUrl = URL.createObjectURL(new Blob([JSON.stringify({dials: out.dials, audio_sha256: out.sha256}, null, 1) + '\n'], {type: 'application/json'}));
+    keptBlobs.push(wavUrl, jsonUrl);
+    var id = jobId || 'performance';
+    return {
+      dials: out.dials, wav: wavUrl, wavName: id + '.live.wav', jsonUrl: jsonUrl, jsonName: id + '.live.dials.json',
+      note: 'The Performer kept the original audio. It does not store a dialed file yet, so this WAV is the sound you hear.'
+    };
+  }
+  function postProcessed(out) {
+    var tokenNow = sessionStorage.getItem('nc-claim:' + jobId);
+    var fd = new FormData();
+    fd.append('claim_token', tokenNow);
+    fd.append('dials', JSON.stringify(out.dials));
+    fd.append('audio', out.blob, (jobId || 'performance') + '.live.wav');
+    return fetch(API + '/api/jobs/' + jobId + '/keep', {method: 'POST', body: fd}).then(function (r) {
+      return read(r).then(function (j) { return {ok: r.ok, j: j}; });
+    }, function () { return {ok: false, j: {}}; });
   }
   function keepFail(msg) {
     keeping = false;
@@ -286,6 +333,7 @@
   }
   function showDone(j) {
     var gen = ++viewGen;
+    dropKeptFiles();
     if (j.id) jobId = j.id;
     idle();
     keeping = false;
@@ -296,7 +344,6 @@
     var page = f.page || (API + '/records/' + id);
     var audio = $('perform-audio');
     audio.crossOrigin = 'anonymous';
-    audio.src = mp3;
     $('perform-title').textContent = (window.NC && NC.state && NC.state().t) || 'Performance';
     $('perform-sources').open = false;
     $('perform-mp3').href = mp3;
@@ -331,10 +378,15 @@
     $('perform-turnstile').hidden = true;
     $('perform-bar').hidden = true;
     $('perform-out').hidden = true;
+    $('live').hidden = true;
     clearRecord();
     if (window.NCLive) NCLive.hide();
     $('performBtn').textContent = jobId ? 'Perform again' : 'Perform';
     status(soften(msg) || 'That Performance did not finish. Try again in a moment.', true);
+  }
+  function audioMiss(msg) {
+    $('live').hidden = true;
+    status(msg || 'This Performance came back, but its audio did not load into the player.', true);
   }
   function claim(id, value) {
     sessionStorage.setItem('nc-claim:' + id, value);
@@ -409,6 +461,8 @@
     if (words.length > max) { status('Those words are ' + words.length + ' characters. The limit is ' + max + '.', true); return; }
     viewGen++;
     busy = true;
+    dropKeptFiles();
+    if (window.NCLive && NCLive.prime) NCLive.prime();
     $('performBtn').disabled = true;
     $('performBtn').textContent = 'Performing…';
     if (jobId) {
@@ -480,13 +534,34 @@
       keepFail('This tab does not have the keep key for this Performance.');
       return;
     }
+    var moved = !!(window.NCLive && NCLive.dialed && NCLive.dialed());
     keeping = true;
     $('perform-keep').disabled = true;
-    $('perform-keep').textContent = 'Keeping…';
     $('perform-kept').hidden = true;
-    withClaim('keep', {}, function (x) {
-      if (!x.ok || !x.j || !x.j.keep) { keepFail(x.j && x.j.error); return; }
-      applyKept(x.j);
+    if (!moved) {
+      $('perform-keep').textContent = 'Keeping…';
+      withClaim('keep', {}, function (x) {
+        if (!x.ok || !x.j || !x.j.keep) { keepFail(x.j && x.j.error); return; }
+        applyKept(x.j);
+      });
+      return;
+    }
+    $('perform-keep').textContent = 'Rendering…';
+    NCLive.render().then(function (out) {
+      $('perform-keep').textContent = 'Keeping…';
+      return postProcessed(out).then(function (x) {
+        if (x.ok && x.j && x.j.processed) {
+          if (!x.j.dials) x.j.dials = out.dials;
+          applyKept(x.j);
+          return;
+        }
+        withClaim('keep', {dials: out.dials}, function (y) {
+          if (!y.ok || !y.j || !y.j.keep) { keepFail(y.j && y.j.error); return; }
+          applyKept(y.j, localKept(out));
+        });
+      });
+    }).catch(function () {
+      keepFail('Could not render the dialed sound. Try again in a moment.');
     });
   };
   $('perform-json-copy').onclick = function () {
@@ -511,7 +586,7 @@
       if (x.j && x.j.keep) applyKept(x.j); else keepNote();
     });
   });
-  window.NCPerform = { api: API, messageFor: messageFor, go: go, post: post, showDone: showDone, fail: fail, showRecord: showRecord };
+  window.NCPerform = { api: API, messageFor: messageFor, go: go, post: post, showDone: showDone, fail: fail, audioMiss: audioMiss, showRecord: showRecord };
   var booted = false;
   var wait = setInterval(function () {
     if (!document.body.getAttribute('data-ready') || booted) return;
