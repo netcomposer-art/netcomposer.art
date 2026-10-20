@@ -19,7 +19,6 @@ p{margin:.9rem 0;max-width:36rem}
 ul,ol{padding-left:1.2rem;margin:1rem 0;max-width:36rem}
 li{margin:.9rem 0}
 .m{color:#555;font-size:.85rem}.m a{color:#555}
-.lede{margin:0}
 audio{width:100%;max-width:26rem;margin:1rem 0 .4rem;display:block}
 footer.site{margin-top:9rem;padding-bottom:4rem;font-size:.85rem;color:#555}
 footer.site p{max-width:none}
@@ -30,17 +29,15 @@ footer.site p{max-width:none}
 <header>
 <p class="m"><a href="../">← netcomposer.art</a></p>
 <h1>How NetComposer works</h1>
-<p class="lede">Music performed by the open internet.</p>
 </header>
 <main>
 <section id="statement" aria-labelledby="h-idea">
 <h2 id="h-idea">The idea</h2>
-<p>A Composition is plain words: the chords, the length, the mood. A Performer turns it into music using only openly licensed sounds. Every Performance comes with a public record of every sound used, where it came from and who made it.</p>
+<p>A Composition is plain words. A Performer turns it into music from openly licensed sounds. The Performance carries a public record of every sound and who made it.</p>
 </section>
 
 <section id="roles" aria-labelledby="h-roles">
 <h2 id="h-roles">Four roles</h2>
-<p>Anyone can take any of them.</p>
 <ul>
 <li id="role-supplier"><b>Suppliers</b> share sounds under an open license.</li>
 <li id="role-composer"><b>Composers</b> write Compositions in plain words.</li>
@@ -54,7 +51,7 @@ footer.site p{max-width:none}
 <ol>
 <li><b>Write</b> a Composition on <a href="../create/">Create</a>.</li>
 <li><b>Hear</b> it: Play sketches the chords on the same page.</li>
-<li><b>Perform</b> it: press Perform on <a href="../create/">Create</a> for a hosted render, then ride that Performance at the dials once it comes back. Or use the <a href="https://github.com/netcomposer-art/nc-performer">Performer kit</a>, or hand it to an agent with the <a href="../create/SKILL.md">Performer skill</a>.</li>
+<li><b>Perform</b> it on <a href="../create/">Create</a>, with the <a href="https://github.com/netcomposer-art/nc-performer">Performer kit</a>, or with an agent and the <a href="../create/SKILL.md">Performer skill</a>.</li>
 <li><b>Share</b> the Performance with its record.</li>
 </ol>
 </section>
@@ -71,12 +68,12 @@ footer.site p{max-width:none}
 
 <section id="record" aria-labelledby="h-rec">
 <h2 id="h-rec">The record</h2>
-<p>Each Performance lists every sound with its source, license, author and checksum, plus every setting and the seed. Anyone can check the credits or rebuild the Performance exactly. <a href="../record/">How a record is built</a>.</p>
+<p>Every sound, with its source, license, author and checksum, plus the settings and the seed. <a href="../record/">How a record is built</a>.</p>
 </section>
 
 <section id="comparison" aria-labelledby="h-comp">
 <h2 id="h-comp">One Composition, four Performances</h2>
-<p><a href="../composition/bwv846-harmony-only.md">The C major Prelude, harmony only (after Bach, BWV 846)</a>, performed four ways:</p>
+<p><a href="../composition/bwv846-harmony-only.md">The C major Prelude, harmony only (after Bach, BWV 846)</a></p>
 <ul>
 <li id="take5-fwd-rev-echo">Take 5 · forward/reverse echo<br><audio controls preload="none" src="../audio/bwv846-take5-fwd-rev-echo.mp3"></audio><br><span class="m"><a href="../records/bwv846-take5-fwd-rev-echo.html">record</a></span></li>
 <li id="take6-arps-delay-lp1k">Take 6 · arps, 1/4 delay, LP 1 kHz<br><audio controls preload="none" src="../audio/bwv846-take6-arps-delay-lp1k.mp3"></audio><br><span class="m"><a href="../records/bwv846-take6-arps-delay-lp1k.html">record</a></span></li>
@@ -92,12 +89,12 @@ footer.site p{max-width:none}
 <li>The <a href="../record/">record format</a>; every record as raw JSON in <a href="../records/">records</a>.</li>
 <li>The Performer kit (MIT): <a href="https://github.com/netcomposer-art/nc-performer">github.com/netcomposer-art/nc-performer</a>.</li>
 <li>Suppliers: the <a href="../supplier-spec/">spec</a> and the <a href="../suppliers/">registry</a>.</li>
-<li>Take part: <a href="https://github.com/netcomposer-art/netcomposer.art/issues">issues on the site repository</a> (proposed channel).</li>
+<li>Take part: <a href="https://github.com/netcomposer-art/netcomposer.art/issues">issues on the site repository</a>.</li>
 </ul>
 </section>
 </main>
 <footer class="site">
-<p>For agents: <a href="/netcomposer.json">/netcomposer.json</a> · <a href="/llms.txt">/llms.txt</a> · <a href="/suppliers.json">/suppliers.json</a> · <a href="/record/">/record/</a> · every record is raw JSON under <a href="/records/">/records/</a>.</p>
+<p><a href="/netcomposer.json">/netcomposer.json</a> · <a href="/llms.txt">/llms.txt</a> · <a href="/suppliers.json">/suppliers.json</a> · <a href="/record/">/record/</a> · <a href="/records/">/records/</a></p>
 </footer>
 </body>
 </html>
