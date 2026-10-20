@@ -32,6 +32,11 @@ function settings() {
   return {cutoff: +$('lcut').value, cutoff_hz: cutoffHz(+$('lcut').value), delay_timing: o.textContent, delay_beats: +o.value, delay_s: +delayS().toFixed(4),
           feedback: +$('lfb').value / 100, wet: +$('lmix').value / 100, loop: $('lloop').checked};
 }
+// Neutral is the original render: filter open, delay silent. Timing and feedback stay parked at 1/8 dotted and 35% until wet is raised. Loop does not change the sound.
+function adjusted() {
+  var S = settings();
+  return S.cutoff !== 0 || S.wet !== 0 || S.delay_beats !== 0.75 || Math.round(S.feedback * 100) !== 35;
+}
 function dialEvent(d) {
   var S = settings(), ev = {dial: d};
   if (d === 'cutoff') { ev.value = S.cutoff; ev.hz = S.cutoff_hz; } else if (d === 'delay_timing') { ev.value = S.delay_timing; ev.beats = S.delay_beats; ev.s = S.delay_s; } else ev.value = S[d];
@@ -62,16 +67,20 @@ function graph() {
   apply(true); return G;
 }
 function player() { return $('perform-audio'); }
-function route() {
+function prime() {
   graph();
-  if (EL) return EL;
-  var a = player();
-  a.crossOrigin = 'anonymous';
-  EL = AC.createMediaElementSource(a);
-  EL.connect(G.input);
-  a.addEventListener('pointerdown', function () { AC.resume(); });
+  if (AC.state === 'suspended') AC.resume();
+  return AC;
+}
+function wirePlayer(a) {
+  if (a._ncLive) return;
+  a._ncLive = true;
+  a.setAttribute('playsinline', '');
+  a.playsInline = true;
+  a.addEventListener('pointerdown', function () { if (AC && AC.state === 'suspended') AC.resume(); });
   a.addEventListener('play', function () {
-    AC.resume(); live = true; apply(true);
+    if (AC && AC.state === 'suspended') AC.resume();
+    live = true; apply(true);
     T0 = AC.currentTime - (a.currentTime || 0);
     if (window.NC && NC.stop) NC.stop();
     if (armFollow) { armFollow = false; scheduleMoves(); }
@@ -84,9 +93,75 @@ function route() {
     else buttons();
   });
   a.addEventListener('error', function () {
-    if (!a.getAttribute('src') || !PERF) return;
-    status('This Performance came back, but its audio did not load into the player.');
+    if (!a.getAttribute('src') || a !== player() || !PERF) return;
+    $('live').hidden = true;
+    var msg = 'This Performance came back, but its audio did not load into the player.';
+    status(msg);
+    if (window.NCPerform && NCPerform.audioMiss) NCPerform.audioMiss(msg);
   });
+}
+// One MediaElementSource per element. A new Performance gets a new element so the
+// new src is actually in the graph (Safari will not retarget the old node).
+function connectElement(a) {
+  if (EL) { try { EL.disconnect(); } catch (e) {} EL = null; }
+  EL = AC.createMediaElementSource(a);
+  EL.connect(G.input);
+  wirePlayer(a);
+  return a;
+}
+function silence(a) {
+  if (!a) return;
+  try { a.pause(); } catch (e) {}
+  a.removeAttribute('src');
+  try { a.load(); } catch (e) {}
+}
+function freshDelay() {
+  if (!G) return;
+  var d = AC.createDelay(5), fb = AC.createGain();
+  try { G.lp.disconnect(G.delay); } catch (e) {}
+  try { G.delay.disconnect(); } catch (e) {}
+  try { G.fb.disconnect(); } catch (e) {}
+  G.delay = d; G.fb = fb;
+  G.lp.connect(G.delay); G.delay.connect(G.fb); G.fb.connect(G.delay); G.delay.connect(G.wet);
+  apply(true);
+}
+function mount(url) {
+  graph();
+  var a = player();
+  var next = url || '';
+  var changed = !sameUrl(a.getAttribute('src') || '', next);
+  if (EL && EL.mediaElement === a && !changed) {
+    a.loop = $('lloop').checked;
+    return a;
+  }
+  if (EL) {
+    var neu = document.createElement('audio');
+    neu.id = 'perform-audio';
+    neu.controls = true;
+    neu.setAttribute('playsinline', '');
+    neu.playsInline = true;
+    neu.preload = 'metadata';
+    neu.crossOrigin = 'anonymous';
+    neu.loop = $('lloop').checked;
+    if (next) neu.src = next;
+    a.replaceWith(neu);
+    silence(a);
+    freshDelay();
+    connectElement(neu);
+    try { neu.load(); } catch (e) {}
+    return neu;
+  }
+  a.crossOrigin = 'anonymous';
+  a.loop = $('lloop').checked;
+  if (next) a.src = next;
+  connectElement(a);
+  try { a.load(); } catch (e) {}
+  return a;
+}
+function route() {
+  graph();
+  var a = player();
+  if (!EL || EL.mediaElement !== a) mount(a.getAttribute('src') || '');
   return EL;
 }
 function playPlayer(fromStart) {
@@ -110,6 +185,18 @@ function level() {
   G.meter.getFloatTimeDomainData(buf);
   for (i = 0; i < buf.length; i++) s += buf[i] * buf[i];
   return Math.sqrt(s / buf.length);
+}
+function bands() {
+  if (!G || !G.meter || !AC) return null;
+  var bins = G.meter.frequencyBinCount, arr = new Uint8Array(bins), hzPer = AC.sampleRate / G.meter.fftSize;
+  G.meter.getByteFrequencyData(arr);
+  var low = 0, ln = 0, high = 0, hn = 0, i, hz;
+  for (i = 0; i < bins; i++) {
+    hz = i * hzPer;
+    if (hz < 300) { low += arr[i]; ln++; }
+    else if (hz > 4000 && hz < 12000) { high += arr[i]; hn++; }
+  }
+  return {low: ln ? low / ln : 0, high: hn ? high / hn : 0};
 }
 function apply(now) {
   if (!G) return; var t = AC.currentTime, k = now ? 0.001 : 0.02, S = settings();
@@ -247,21 +334,33 @@ function open(desc) {
   if (!desc || !desc.id) return Promise.resolve(false);
   var id = String(desc.id);
   var url = chosenUrl(desc);
-  if (PERF && PERF.id === id && !desc.force && player().getAttribute('src')) { $('live').hidden = false; label(); buttons(); return Promise.resolve(true); }
-  if (!url) { status('This Performance came back, but its audio did not load into the player.'); return Promise.resolve(false); }
+  if (PERF && PERF.id === id && !desc.force && player().getAttribute('src') && EL && EL.mediaElement === player()) { $('live').hidden = false; label(); buttons(); return Promise.resolve(true); }
+  if (!url) {
+    $('live').hidden = true;
+    var missing = 'This Performance came back, but its audio did not load into the player.';
+    status(missing);
+    if (window.NCPerform && NCPerform.audioMiss) NCPerform.audioMiss(missing);
+    return Promise.resolve(false);
+  }
   var my = ++openGen;
   stopAudio(); clearTake(); LOG = null; $('llog').hidden = true; $('lconflict').hidden = true;
   resetDials();
-  route();
-  var a = player();
-  if (!sameUrl(a.getAttribute('src') || '', url)) { a.crossOrigin = 'anonymous'; a.src = url; }
-  a.loop = $('lloop').checked;
   PERF = {id: id, buffer: null, sha: desc.sha || null, audioUrl: url, audioFile: fileOf(url),
     record: desc.record || null, bpm: 60, tempoSource: '60 BPM', creditName: 'hosted Perform'};
+  mount(url);
+  var a = player();
+  a.loop = $('lloop').checked;
   if (my !== openGen) return Promise.resolve(false);
+  if (a.error) {
+    $('live').hidden = true;
+    var broken = 'This Performance came back, but its audio did not load into the player.';
+    status(broken);
+    if (window.NCPerform && NCPerform.audioMiss) NCPerform.audioMiss(broken);
+    return Promise.resolve(false);
+  }
   $('live').hidden = false;
   label(); noteRecord(PERF.record); rememberSha(url, id); buttons();
-  status('Press play. These dials ride this player.');
+  status('');
   return Promise.resolve(true);
 }
 function hide() {
@@ -272,8 +371,9 @@ function hide() {
   resetDials(); buttons();
 }
 function resetDials() {
-  $('lcut').value = 0; $('ltime').value = '0.75'; $('lfb').value = 35; $('lmix').value = 25; $('lloop').checked = true;
-  player().loop = true; readouts(); if (G) apply(true);
+  $('lcut').value = 0; $('ltime').value = '0.75'; $('lfb').value = 35; $('lmix').value = 0; $('lloop').checked = true;
+  var a = player(); if (a) a.loop = true;
+  readouts(); if (G) apply(true);
 }
 
 // ---------- play the Performance through the dials ----------
@@ -467,6 +567,60 @@ function useLog(L) {
 }
 function forget() { if (FOLLOW) stop(); LOG = null; $('llog').hidden = true; $('lup').value = ''; buttons(); status('Dial log put away. The dials are yours.'); }
 
+// ---------- Keep: the same chain, offline, so the file matches the dials ----------
+function pcmWav(buffer) {
+  var rate = buffer.sampleRate, n = buffer.length, L = buffer.getChannelData(0);
+  var R = buffer.numberOfChannels > 1 ? buffer.getChannelData(1) : L, chunks = [], step = 4096, i, k, len, b, l, r;
+  for (i = 0; i < n; i += step) {
+    len = Math.min(step, n - i);
+    b = new Int16Array(len * 2);
+    for (k = 0; k < len; k++) {
+      l = L[i + k]; r = R[i + k];
+      l = l > 1 ? 1 : l < -1 ? -1 : l; r = r > 1 ? 1 : r < -1 ? -1 : r;
+      b[2 * k] = l * 32767; b[2 * k + 1] = r * 32767;
+    }
+    chunks.push(b);
+  }
+  return wav(chunks, n, rate);
+}
+function render() {
+  if (!PERF || !PERF.audioUrl) return Promise.reject(new Error('no audio'));
+  var S = settings();
+  graph();
+  return fetch(PERF.audioUrl).then(function (res) {
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    return res.arrayBuffer();
+  }).then(function (raw) {
+    return decode(raw);
+  }).then(function (buffer) {
+    var rate = buffer.sampleRate;
+    var tail = Math.min(8, Math.max(1.5, S.delay_s * 8));
+    var length = Math.ceil((buffer.duration + tail) * rate);
+    var off = new (window.OfflineAudioContext || window.webkitOfflineAudioContext)(2, length, rate);
+    var src = off.createBufferSource();
+    src.buffer = buffer;
+    var lp = off.createBiquadFilter();
+    lp.type = 'lowpass'; lp.Q.value = 0.707;
+    lp.frequency.value = S.cutoff_hz === null ? rate / 2 : S.cutoff_hz;
+    var dry = off.createGain(), delay = off.createDelay(5), fb = off.createGain(), wet = off.createGain(), master = off.createGain();
+    delay.delayTime.value = Math.min(4.9, S.delay_s);
+    fb.gain.value = S.feedback;
+    dry.gain.value = Math.cos(S.wet * Math.PI / 2);
+    wet.gain.value = Math.sin(S.wet * Math.PI / 2);
+    master.gain.value = 0.8;
+    src.connect(lp); lp.connect(dry); dry.connect(master);
+    lp.connect(delay); delay.connect(fb); fb.connect(delay); delay.connect(wet); wet.connect(master);
+    master.connect(off.destination);
+    src.start(0);
+    return off.startRendering().then(function (rendered) {
+      var blob = pcmWav(rendered);
+      return blob.arrayBuffer().then(function (raw) {
+        return sha256(raw).then(function (sha) { return {blob: blob, dials: S, sha256: sha}; });
+      });
+    });
+  });
+}
+
 // ---------- wire up ----------
 function status(t) { $('lstatus').textContent = t; }
 function buttons() {
@@ -483,6 +637,7 @@ $('lconfcancel').onclick = function () { PENDING = null; $('lconflict').hidden =
 $('lforget').onclick = forget;
 Object.keys(DIALS).forEach(function (d) {
   $(DIALS[d]).addEventListener('input', function () {
+    if (AC && AC.state === 'suspended') AC.resume();
     if (FOLLOW && !OVERRIDE[d]) { OVERRIDE[d] = true; status('You took over ' + d.replace('_', ' ') + '; the log keeps the other dials.'); }
     readouts(); apply(false); logEvent(dialEvent(d));
   });
@@ -493,8 +648,10 @@ $('lloop').addEventListener('change', function () {
 });
 $('play').addEventListener('click', function () { if (live || !player().paused) stop('The preview took over.'); });
 readouts(); buttons();
-window.NCLive = {settings: settings, cutoffHz: cutoffHz, validate: validate, open: open, hide: hide, level: level,
+window.NCLive = {settings: settings, cutoffHz: cutoffHz, validate: validate, open: open, hide: hide, level: level, bands: bands, prime: prime, render: render,
+  adjusted: adjusted,
   performanceId: function () { return PERF && PERF.id; },
+  player: function () { return player(); },
   take: function () { return TAKE && {bytes: TAKE.blob.size, log: TAKE.log}; }, recording: function () { return !!REC; },
   log: function () { return LOG && {name: LOG.name, events: LOG.log.events.length, initial: LOG.log.initial}; }, following: function () { return FOLLOW; }, clock: function () { return AC && live ? AC.currentTime - T0 : null; }, overrides: function () { return Object.assign({}, OVERRIDE); }};
 })();
