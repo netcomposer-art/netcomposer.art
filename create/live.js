@@ -360,7 +360,7 @@ function open(desc) {
   }
   $('live').hidden = false;
   label(); noteRecord(PERF.record); rememberSha(url, id); buttons();
-  status('Press play. These dials ride this player.');
+  status('');
   return Promise.resolve(true);
 }
 function hide() {
