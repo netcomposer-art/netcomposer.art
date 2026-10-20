@@ -238,6 +238,123 @@ function apply(now) {
   G.fb.gain.setTargetAtTime(S.feedback, t, k);
   G.dry.gain.setTargetAtTime(Math.cos(S.wet * Math.PI / 2), t, k); G.wet.gain.setTargetAtTime(Math.sin(S.wet * Math.PI / 2), t, k);   // equal-power wet/dry
 }
+// The live chain is these two nodes. A later effect is another { type, params }
+// on the take, an AudioParam on this graph, and a matching offline wire.
+// Changing a param never rebuilds the take.
+function chain() {
+  var S = settings();
+  return [
+    { type: 'lowpass', params: { cutoff: S.cutoff, cutoff_hz: S.cutoff_hz, q: 0.707 } },
+    { type: 'delay', params: { delay_beats: S.delay_beats, delay_s: S.delay_s, feedback: S.feedback, wet: S.wet } }
+  ];
+}
+function applyChain(list) {
+  (list || []).forEach(function (node) {
+    if (!node || !node.params) return;
+    if (node.type === 'lowpass' && node.params.cutoff != null) setDial('cutoff', node.params.cutoff);
+    if (node.type === 'delay') {
+      if (node.params.delay_beats != null) setDial('delay_timing', node.params.delay_beats);
+      if (node.params.feedback != null) setDial('feedback', node.params.feedback);
+      if (node.params.wet != null) setDial('wet', node.params.wet);
+    }
+  });
+  readouts();
+  apply(true);
+}
+var clipNodes = [], clipPlays = 0;
+function stopClips() {
+  clipNodes.forEach(function (n) {
+    try { n.src.onended = null; n.src.stop(); } catch (e) {}
+    try { n.src.disconnect(); } catch (e2) {}
+    try { n.gain.disconnect(); } catch (e3) {}
+  });
+  clipNodes = [];
+}
+function placeClip(ctx, dest, entry, when, offset) {
+  var buf = entry.buffer;
+  if (!buf) return null;
+  var slot = Math.min(entry.len, buf.duration);
+  var end = entry.at + slot;
+  if (end <= offset + 0.001) return null;
+  var skip = Math.max(0, offset - entry.at);
+  var playLen = slot - skip;
+  if (!(playLen > 0.001)) return null;
+  var src = ctx.createBufferSource(), g = ctx.createGain();
+  var lin = Math.pow(10, (entry.gainDb || 0) / 20);
+  var fin = Math.min(entry.fadeIn || 0.008, playLen / 2);
+  var fout = Math.min(entry.fadeOut || 0.008, playLen / 2);
+  var t0 = when + Math.max(0, entry.at - offset);
+  var stopAt = t0 + playLen;
+  src.buffer = buf;
+  src.playbackRate.value = 1;
+  if (skip > fin) g.gain.setValueAtTime(lin, t0);
+  else {
+    g.gain.setValueAtTime(0, t0);
+    g.gain.linearRampToValueAtTime(lin, t0 + Math.max(0.001, fin - skip));
+  }
+  g.gain.setValueAtTime(lin, Math.max(t0 + 0.002, stopAt - fout));
+  g.gain.linearRampToValueAtTime(0, stopAt);
+  src.connect(g); g.connect(dest);
+  src.start(t0, skip, playLen);
+  return { src: src, gain: g };
+}
+function scheduleClips(spec) {
+  graph();
+  if (AC.state === 'suspended') AC.resume();
+  stopClips();
+  clipPlays++;
+  var when = AC.currentTime + 0.03;
+  var offset = spec.offset || 0;
+  (spec.entries || []).forEach(function (entry) {
+    var node = placeClip(AC, G.input, entry, when, offset);
+    if (node) clipNodes.push(node);
+  });
+  apply(true);
+}
+function renderBuffers(spec) {
+  var list = spec.chain || chain();
+  var S = settings();
+  list.forEach(function (node) {
+    if (!node || !node.params) return;
+    if (node.type === 'lowpass') {
+      if (node.params.cutoff != null) S.cutoff = node.params.cutoff;
+      if (node.params.cutoff_hz !== undefined) S.cutoff_hz = node.params.cutoff_hz;
+      else S.cutoff_hz = cutoffHz(S.cutoff);
+    }
+    if (node.type === 'delay') {
+      if (node.params.delay_s != null) S.delay_s = node.params.delay_s;
+      if (node.params.feedback != null) S.feedback = node.params.feedback;
+      if (node.params.wet != null) S.wet = node.params.wet;
+    }
+  });
+  var rate = 48000;
+  var tail = S.wet > 0.001 ? Math.min(3, Math.max(0.2, (S.delay_s || 0) * 4)) : 0.05;
+  var total = (spec.total || 0) + tail;
+  var off = new (window.OfflineAudioContext || window.webkitOfflineAudioContext)(2, Math.max(1, Math.ceil(total * rate)), rate);
+  var bus = off.createGain();
+  (spec.entries || []).forEach(function (entry) { placeClip(off, bus, entry, 0, 0); });
+  var lp = off.createBiquadFilter();
+  lp.type = 'lowpass'; lp.Q.value = 0.707;
+  lp.frequency.value = S.cutoff_hz == null ? rate / 2 : S.cutoff_hz;
+  var dry = off.createGain(), delay = off.createDelay(5), fb = off.createGain(), wet = off.createGain(), master = off.createGain();
+  delay.delayTime.value = Math.min(4.9, S.delay_s || 0);
+  fb.gain.value = S.feedback || 0;
+  dry.gain.value = Math.cos((S.wet || 0) * Math.PI / 2);
+  wet.gain.value = Math.sin((S.wet || 0) * Math.PI / 2);
+  master.gain.value = 0.8;
+  bus.connect(lp); lp.connect(dry); dry.connect(master);
+  lp.connect(delay); delay.connect(fb); fb.connect(delay); delay.connect(wet); wet.connect(master);
+  master.connect(off.destination);
+  return off.startRendering().then(function (rendered) {
+    var limit = Math.pow(10, -1 / 20), peak = 0, ch, i, data = [];
+    for (ch = 0; ch < rendered.numberOfChannels; ch++) {
+      data.push(rendered.getChannelData(ch));
+      for (i = 0; i < rendered.length; i++) if (Math.abs(data[ch][i]) > peak) peak = Math.abs(data[ch][i]);
+    }
+    if (peak > limit) { var g = limit / peak; for (ch = 0; ch < data.length; ch++) for (i = 0; i < rendered.length; i++) data[ch][i] *= g; }
+    return pcmWav(rendered);
+  });
+}
 // ---------- the WAV tap: 16-bit stereo PCM straight from the master bus ----------
 var TAP_SRC = "registerProcessor('nc-tap',class extends AudioWorkletProcessor{constructor(){super();this.on=false;this.b=new Int16Array(8192);this.n=0;this.t=0;" +
   "this.port.onmessage=e=>{if(e.data==='start'){this.on=true;this.n=0}else if(e.data==='stop'){this.flush();this.on=false;this.port.postMessage({done:true})}}}" +
@@ -676,7 +793,8 @@ $('lloop').addEventListener('change', function () {
 $('play').addEventListener('click', function () { if (live || !player().paused) stop('The preview took over.'); });
 readouts(); buttons();
 window.NCLive = {settings: settings, cutoffHz: cutoffHz, validate: validate, open: open, hide: hide, level: level, bands: bands, prime: prime, render: render,
-  adjusted: adjusted,
+  adjusted: adjusted, chain: chain, applyChain: applyChain, scheduleClips: scheduleClips, stopClips: stopClips, renderBuffers: renderBuffers,
+  clipPlays: function () { return clipPlays; },
   performanceId: function () { return PERF && PERF.id; },
   player: function () { return player(); },
   take: function () { return TAKE && {bytes: TAKE.blob.size, log: TAKE.log}; }, recording: function () { return !!REC; },

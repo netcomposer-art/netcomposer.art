@@ -510,8 +510,15 @@
   }
   function keepNote() {
     var note = $('perform-keep-note');
-    if ($('perform-keep').textContent.indexOf('Kept') === 0) { note.hidden = true; return; }
+    var label = $('perform-keep').textContent;
+    if (label.indexOf('Kept') === 0 || label.indexOf('Saved') === 0) { note.hidden = true; return; }
     note.hidden = false;
+    if (localPlan && browserAssembly()) {
+      note.textContent = $('perform-public').checked
+        ? 'Listing it makes this public after a day. Save stores the sound you hear.'
+        : 'Save stores the sound you hear. It stays unlisted.';
+      return;
+    }
     note.textContent = $('perform-public').checked
       ? 'Listing it makes this public after a day, and keeps the audio. Keep itself does not list it.'
       : 'Keep holds the audio past 90 days. It stays unlisted.';
@@ -601,10 +608,16 @@
   }
   function keepFail(msg) {
     keeping = false;
-    $('perform-keep').textContent = 'Keep';
+    var local = !!(localPlan && browserAssembly());
+    $('perform-keep').textContent = local ? 'Save' : 'Keep';
     $('perform-keep').disabled = !(localPlan && gatherClaim) && !sessionStorage.getItem('nc-claim:' + jobId);
+    if (local) {
+      var quiet = $('perform-status');
+      quiet.className = 'm';
+      quiet.textContent = '';
+    }
     var clean = soften(msg);
-    var line = clean || 'Could not keep this Performance. Try again in a moment.';
+    var line = clean || (local ? 'Could not save this Performance. Try again in a moment.' : 'Could not keep this Performance. Try again in a moment.');
     if (clean && !/try again/i.test(clean)) line = clean + ' Try again in a moment.';
     showKept(line, true);
     keepNote();
@@ -793,22 +806,29 @@
   // paints arrivals in chord order. A finished gather is state "done" with sounds,
   // result.sounds, or found_sounds, plus gather_id (or id) and claim_token.
   //
-  // Perform places that collection in order, level-matched, with no further processing.
-  // When /api/config advertises browser_assembly, Perform renders that take here and
-  // the server only rebuilds and signs on Keep. Otherwise the page says "Assembling…"
-  // and opens the player as soon as preview.mp3 is ready: preview_ready, files.mp3,
-  // or preview_mp3 on an event, or the file at /api/jobs/<id>/files/preview.mp3.
-  // The record and sources fill in after state "done".
+  // Perform places that collection in order, level-matched. The Live dials are the
+  // processing, and in this browser they run on the cached clips.
+  // When /api/config advertises browser_assembly, or assembly "browser", Perform
+  // plays that take here. Save is the only offline render. Otherwise the page says
+  // "Assembling…" and opens the player as soon as preview.mp3 is ready: preview_ready,
+  // files.mp3, or preview_mp3 on an event, or the file at /api/jobs/<id>/files/preview.mp3.
+  // The record and sources fill in after state "done". The button stays Keep on that path.
+  //
+  // Each clip stays decoded in memory, and its bytes stay in IndexedDB and Cache
+  // Storage, both named nc-clips and keyed by clip_id. A reload reads those bytes
+  // and does not fetch the clip again. Order is memory, IndexedDB, Cache Storage, network.
   //
   // Browser plan, until the server publishes the duration rule and test vectors:
   //   { gather_id, seed, entries: [{ pos, chord, clip_id, at_s, len_s, gain_db, fade_in_ms, fade_out_ms }], total_s }
   // Written bracket lengths are used when the composition gives them. Otherwise each
   // slot is seeded rubato with a 1.25 s floor (mulberry32; a resting length drifts,
   // then a small wobble). Clips are trimmed to the slot and never stretched. Gain
-  // is gain_db, or -18 minus registry LUFS. Fades are 8 ms. OfflineAudioContext,
-  // then a peak guard at about -1 dBFS.
-  // Keep posts /api/keep-take { gather_id, claim_token, plan, title?, listed?, turnstile_token? }
-  // with X-NC-Tester when nc_tester is stored.
+  // is gain_db, or -18 minus registry LUFS. Fades are 8 ms.
+  // The player clock is a silent file of total_s. The clips are BufferSources into
+  // the Live graph, so a dial move is an AudioParam change. Take state is
+  // { version: 1, plan, chain } and chain is the Live nodes with their params.
+  // Save posts multipart /api/save, or cfg.save_url: take, audio (WAV, 40 MiB cap),
+  // gather_id, claim_token, listed, title?, turnstile_token?, and X-NC-Tester when stored.
   //
   // Pre-warm: if /api/config includes warm_url (absolute, or a path on this API),
   // the first focus of the Composition field sends one GET. No warm_url means no request.
@@ -985,25 +1005,120 @@
   function browserAssembly() {
     return !!(cfg && (cfg.browser_assembly === true || cfg.assembly === 'browser'));
   }
-  function decoder() {
+  var clipDbPromise = null;
+  function clipDb() {
+    if (clipDbPromise) return clipDbPromise;
+    clipDbPromise = new Promise(function (ok, no) {
+      if (!window.indexedDB) { no(new Error('idb')); return; }
+      var req = indexedDB.open('nc-clips', 1);
+      req.onupgradeneeded = function () {
+        var db = req.result;
+        if (!db.objectStoreNames.contains('clips')) db.createObjectStore('clips', { keyPath: 'clip_id' });
+      };
+      req.onsuccess = function () { ok(req.result); };
+      req.onerror = function () { no(req.error || new Error('idb')); };
+    });
+    clipDbPromise.catch(function () { clipDbPromise = null; });
+    return clipDbPromise;
+  }
+  function idbGet(id) {
+    return clipDb().then(function (db) {
+      return new Promise(function (ok) {
+        try {
+          var tx = db.transaction('clips', 'readonly');
+          var req = tx.objectStore('clips').get(id);
+          req.onsuccess = function () { ok(req.result || null); };
+          req.onerror = function () { ok(null); };
+        } catch (e) { ok(null); }
+      });
+    }).catch(function () { return null; });
+  }
+  function idbPut(row) {
+    return clipDb().then(function (db) {
+      return new Promise(function (ok) {
+        try {
+          var tx = db.transaction('clips', 'readwrite');
+          tx.objectStore('clips').put(row);
+          tx.oncomplete = function () { ok(true); };
+          tx.onerror = function () { ok(false); };
+        } catch (e) { ok(false); }
+      });
+    }).catch(function () { return false; });
+  }
+  function clipPath(id) { return location.origin + '/nc-clip/' + encodeURIComponent(id); }
+  function cacheGet(id) {
+    if (!window.caches) return Promise.resolve(null);
+    return caches.open('nc-clips').then(function (cache) {
+      return cache.match(clipPath(id));
+    }).then(function (res) {
+      return res ? res.arrayBuffer() : null;
+    }).catch(function () { return null; });
+  }
+  function cachePut(id, bytes, type) {
+    if (!window.caches) return Promise.resolve(false);
+    return caches.open('nc-clips').then(function (cache) {
+      return cache.put(clipPath(id), new Response(bytes.slice(0), { headers: { 'Content-Type': type || 'audio/wav' } }));
+    }).then(function () { return true; }).catch(function () { return false; });
+  }
+  function asBuffer(bytes) {
+    if (!bytes) return null;
+    if (bytes instanceof ArrayBuffer) return bytes;
+    if (bytes.buffer) return bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength);
+    return null;
+  }
+  function rememberBytes(id, bytes, type) {
+    var raw = asBuffer(bytes);
+    if (!id || !raw) return Promise.resolve();
+    var kind = type || 'audio/wav';
+    return Promise.all([idbPut({ clip_id: id, bytes: raw.slice(0), type: kind }), cachePut(id, raw, kind)]);
+  }
+  function audioCtx() {
+    if (window.NCLive && NCLive.prime) {
+      try { return NCLive.prime(); } catch (e) {}
+    }
     if (!decodeCtx) decodeCtx = new (window.AudioContext || window.webkitAudioContext)();
     return decodeCtx;
   }
+  function decodeBytes(raw) {
+    var copy = raw.slice(0);
+    return audioCtx().decodeAudioData(copy);
+  }
   function clipKey(s) { return (s && (s.clip_id || s.cache || s.url)) || ''; }
   function loadClip(s) {
-    var key = clipKey(s), url = s && (s.cache || s.url);
+    var key = clipKey(s), url = s && (s.cache || s.url), id = s && s.clip_id;
     if (!key || !url) return Promise.resolve(null);
     if (clipBuffers[key]) return Promise.resolve(clipBuffers[key]);
     if (clipJobs[key]) return clipJobs[key];
-    clipJobs[key] = fetch(url, { mode: 'cors' }).then(function (r) {
-      if (!r.ok) throw new Error('clip');
-      return r.arrayBuffer();
-    }).then(function (raw) {
-      return decoder().decodeAudioData(raw.slice(0));
-    }).then(function (buf) {
-      clipBuffers[key] = buf;
-      return buf;
-    }).catch(function () { return null; });
+    clipJobs[key] = Promise.resolve().then(function () {
+      return id ? idbGet(id) : null;
+    }).then(function (row) {
+      var stored = row && asBuffer(row.bytes);
+      if (stored) return { bytes: stored, type: row.type || '' };
+      if (!id) return null;
+      return cacheGet(id).then(function (cached) {
+        if (!cached) return null;
+        rememberBytes(id, cached, 'audio/wav');
+        return { bytes: cached, type: '' };
+      });
+    }).then(function (hit) {
+      if (hit && hit.bytes) return hit;
+      return fetch(url, { mode: 'cors' }).then(function (r) {
+        if (!r.ok) throw new Error('clip');
+        var type = (r.headers.get('Content-Type') || 'audio/wav').split(';')[0];
+        return r.arrayBuffer().then(function (raw) {
+          var keep = id ? rememberBytes(id, raw, type) : Promise.resolve();
+          return keep.then(function () { return { bytes: raw, type: type }; });
+        });
+      });
+    }).then(function (pack) {
+      return decodeBytes(pack.bytes).then(function (buf) {
+        clipBuffers[key] = buf;
+        return buf;
+      });
+    }).catch(function () {
+      delete clipJobs[key];
+      return null;
+    });
     return clipJobs[key];
   }
   function preloadClips(sounds) {
@@ -1065,60 +1180,58 @@
     }
     return { gather_id: gatherId, seed: seed, entries: entries, total_s: t };
   }
-  function peakGuard(buffer) {
-    var limit = Math.pow(10, -1 / 20), peak = 0, data = [], c, i, a, g;
-    for (c = 0; c < buffer.numberOfChannels; c++) {
-      data.push(buffer.getChannelData(c));
-      for (i = 0; i < buffer.length; i++) { a = Math.abs(data[c][i]); if (a > peak) peak = a; }
-    }
-    if (!(peak > limit)) return buffer;
-    g = limit / peak;
-    for (c = 0; c < data.length; c++) for (i = 0; i < buffer.length; i++) data[c][i] *= g;
-    return buffer;
-  }
-  function wavBlob(buffer) {
-    var chs = buffer.numberOfChannels, n = buffer.length, rate = buffer.sampleRate, dataLen = n * chs * 2;
-    var ab = new ArrayBuffer(44 + dataLen), v = new DataView(ab), channels = [], c, i, o, x;
-    function str(at, s) { for (var k = 0; k < s.length; k++) v.setUint8(at + k, s.charCodeAt(k)); }
+  function silenceWav(seconds) {
+    var rate = 8000, n = Math.max(1, Math.round((seconds || 0) * rate)), dataLen = n * 2;
+    var ab = new ArrayBuffer(44 + dataLen), v = new DataView(ab), k;
+    function str(at, s) { for (k = 0; k < s.length; k++) v.setUint8(at + k, s.charCodeAt(k)); }
     str(0, 'RIFF'); v.setUint32(4, 36 + dataLen, true); str(8, 'WAVE'); str(12, 'fmt ');
-    v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, chs, true);
-    v.setUint32(24, rate, true); v.setUint32(28, rate * chs * 2, true); v.setUint16(32, chs * 2, true); v.setUint16(34, 16, true);
+    v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true);
+    v.setUint32(24, rate, true); v.setUint32(28, rate * 2, true); v.setUint16(32, 2, true); v.setUint16(34, 16, true);
     str(36, 'data'); v.setUint32(40, dataLen, true);
-    for (c = 0; c < chs; c++) channels.push(buffer.getChannelData(c));
-    o = 44;
-    for (i = 0; i < n; i++) {
-      for (c = 0; c < chs; c++) {
-        x = Math.max(-1, Math.min(1, channels[c][i]));
-        v.setInt16(o, x < 0 ? x * 0x8000 : x * 0x7FFF, true);
-        o += 2;
-      }
-    }
     return new Blob([ab], { type: 'audio/wav' });
   }
-  function renderPlan(plan) {
-    var rate = 48000, frames = Math.max(1, Math.ceil(plan.total_s * rate));
-    var off = new OfflineAudioContext(2, frames, rate);
-    plan.entries.forEach(function (e, i) {
-      var sound = gatherSounds[i], buf = sound && clipBuffers[clipKey(sound)];
-      if (!buf) return;
-      var room = plan.total_s - e.at_s - (1 / rate);
-      var playLen = Math.min(e.len_s, buf.duration, Math.max(0, room));
-      if (!(playLen > 0.001)) return;
-      var src = off.createBufferSource(), g = off.createGain();
-      var lin = Math.pow(10, (e.gain_db || 0) / 20);
-      var fin = Math.min((e.fade_in_ms || 8) / 1000, playLen / 2);
-      var fout = Math.min((e.fade_out_ms || 8) / 1000, playLen / 2);
-      var t0 = e.at_s, end = t0 + playLen;
-      src.buffer = buf;
-      src.playbackRate.value = 1;
-      g.gain.setValueAtTime(0, t0);
-      g.gain.linearRampToValueAtTime(lin, t0 + fin);
-      g.gain.setValueAtTime(lin, Math.max(t0 + fin, end - fout));
-      g.gain.linearRampToValueAtTime(0, end);
-      src.connect(g); g.connect(off.destination);
-      src.start(t0, 0, playLen);
+  function clipEntries(plan) {
+    return (plan.entries || []).map(function (e, i) {
+      var sound = gatherSounds[i];
+      return {
+        buffer: sound && clipBuffers[clipKey(sound)],
+        at: e.at_s,
+        len: e.len_s,
+        gainDb: e.gain_db || 0,
+        fadeIn: (e.fade_in_ms != null ? e.fade_in_ms : 8) / 1000,
+        fadeOut: (e.fade_out_ms != null ? e.fade_out_ms : 8) / 1000
+      };
     });
-    return off.startRendering().then(peakGuard).then(wavBlob);
+  }
+  function driveClips() {
+    if (!localPlan || !window.NCLive || !NCLive.scheduleClips) return;
+    var audio = $('perform-audio');
+    if (!audio || audio.paused) return;
+    NCLive.scheduleClips({ entries: clipEntries(localPlan), offset: audio.currentTime || 0 });
+  }
+  function watchPlayer(audio) {
+    if (!audio || audio._ncWatch) return;
+    audio._ncWatch = true;
+    audio.addEventListener('play', function () {
+      stopPreview();
+      takeHeard = true;
+      if (window.NC && NC.stop) NC.stop();
+      followTake();
+      driveClips();
+    });
+    audio.addEventListener('seeked', function () {
+      followTake();
+      if (!audio.paused) driveClips();
+    });
+    audio.addEventListener('pause', function () {
+      followTake();
+      if (localPlan && window.NCLive && NCLive.stopClips) NCLive.stopClips();
+    });
+    audio.addEventListener('ended', function () {
+      followTake();
+      if (localPlan && window.NCLive && NCLive.stopClips) NCLive.stopClips();
+    });
+    audio.addEventListener('timeupdate', followTake);
   }
   function planAsRecord(plan) {
     return {
@@ -1159,34 +1272,38 @@
     });
     if (seedEl) { seedEl.hidden = false; seedEl.textContent = 'Seed ' + plan.seed; }
   }
-  function revealTake(plan, blob) {
+  function revealTake(plan) {
+    var blob = silenceWav(plan.total_s);
     if (localUrl) { try { URL.revokeObjectURL(localUrl); } catch (e) {} }
     localUrl = URL.createObjectURL(blob);
     localPlan = plan;
     playerJob = gatherId + '-' + plan.seed;
     $('perform-title').textContent = (window.NC && NC.state && NC.state().t) || 'Performance';
     $('perform-sources').open = false;
-    $('perform-mp3').href = localUrl;
+    $('perform-mp3').removeAttribute('href');
     $('perform-flac').removeAttribute('href');
     $('perform-record').href = '#';
     $('perform-out').hidden = false;
     $('perform-bar').hidden = true;
-    $('perform-keep').textContent = 'Keep';
+    $('perform-keep').textContent = 'Save';
     $('perform-keep').disabled = !gatherClaim;
     $('perform-kept').hidden = true;
     keeping = false;
     keepNote();
-    $('perform-meta').textContent = 'In this browser until you Keep.';
+    $('perform-meta').textContent = 'In this browser until you Save.';
     hideStop();
     var s = $('perform-status');
     s.className = 'm';
     s.textContent = '';
     armTake(planAsRecord(plan));
     paintPlan(plan);
+    if (window.NCLive && NCLive.stopClips) NCLive.stopClips();
+    if (window.NCLive && NCLive.prime) NCLive.prime();
     if (window.NCLive) {
       try { NCLive.open({ id: playerJob, only: [localUrl], mp3: localUrl, force: true }); } catch (e2) {}
     }
     var audio = $('perform-audio');
+    watchPlayer(audio);
     if (audio && !audio.getAttribute('src')) { try { audio.src = localUrl; } catch (e3) {} }
     var play = audio && audio.play && audio.play();
     if (play && play.catch) play.catch(function () {});
@@ -1197,14 +1314,13 @@
     stopPreview();
     busy = true;
     syncActions();
+    if (window.NCLive && NCLive.prime) NCLive.prime();
     var plan = buildPlan(drawSeed());
-    return Promise.all((gatherSounds || []).map(loadClip)).then(function () {
-      if (gen !== asmGen) return null;
-      return renderPlan(plan);
-    }).then(function (blob) {
-      if (gen !== asmGen || !blob) return;
+    return Promise.all((gatherSounds || []).map(loadClip)).then(function (bufs) {
+      if (gen !== asmGen) return;
+      if (!bufs.length || bufs.some(function (b) { return !b; })) throw new Error('clip');
       phase = (gatherSounds && gatherSounds.length) ? 'collection' : '';
-      revealTake(plan, blob);
+      revealTake(plan);
       idle();
     }).catch(function () {
       if (gen !== asmGen) return;
@@ -1213,15 +1329,16 @@
       status('Could not assemble that take. Try again in a moment.', true);
     });
   }
-  function showSigned(j) {
+  function showSaved(j) {
     keeping = false;
     j = j || {};
     var href = j.page || j.url || j.share || j.record_url || '';
     if (!href && typeof j.record === 'string') href = j.record;
     if (!href && j.id) href = API + '/records/' + encodeURIComponent(j.id);
-    $('perform-keep').textContent = 'Kept ✓';
+    $('perform-keep').textContent = 'Saved';
     $('perform-keep').disabled = true;
     $('perform-keep-note').hidden = true;
+    $('perform-meta').textContent = 'Saved on the Performer.';
     var s = $('perform-status');
     s.className = 'm';
     s.textContent = '';
@@ -1229,7 +1346,7 @@
     box.textContent = '';
     box.className = 'm';
     box.hidden = false;
-    box.appendChild(node('span', '', 'Signed. '));
+    box.appendChild(node('span', '', 'Saved. '));
     if (href) {
       box.appendChild(extLink(href, href));
       $('perform-record').href = href;
@@ -1238,30 +1355,45 @@
     }
     if (j.record && typeof j.record === 'object') { try { showRecord(j.record, j.id || ''); } catch (e) {} }
   }
-  function keepLocal() {
-    if (keeping || !localPlan) return;
+  var SAVE_CAP = 40 * 1024 * 1024;
+  function saveLocal() {
+    if (keeping || !localPlan || !window.NCLive || !NCLive.renderBuffers) return;
     keeping = true;
     $('perform-keep').disabled = true;
-    $('perform-keep').textContent = 'Signing…';
+    $('perform-keep').textContent = 'Saving…';
     $('perform-kept').hidden = true;
     var s = $('perform-status');
     s.className = 'm';
-    s.textContent = 'Signing…';
+    s.textContent = 'Saving…';
     askToken().then(function (tok) {
-      s.textContent = 'Signing…';
-      var headers = { 'Content-Type': 'application/json' };
-      var pass = testerToken();
-      if (pass) headers['X-NC-Tester'] = pass;
-      var body = { gather_id: gatherId, claim_token: gatherClaim || '', plan: localPlan, listed: !!$('perform-public').checked };
-      var title = window.NC && NC.state ? NC.state().t : '';
-      if (title) body.title = title;
-      if (tok) body.turnstile_token = tok;
-      return fetch((cfg && cfg.keep_take_url) || (API + '/api/keep-take'), {
-        method: 'POST', headers: headers, body: JSON.stringify(body)
-      }).then(function (r) { return read(r).then(function (j) { return { ok: r.ok, j: j }; }); }, function () { return { ok: false, j: {} }; });
+      s.className = 'm';
+      s.textContent = 'Saving…';
+      var state = { version: 1, plan: localPlan, chain: NCLive.chain ? NCLive.chain() : [] };
+      return NCLive.renderBuffers({ entries: clipEntries(localPlan), total: localPlan.total_s, chain: state.chain }).then(function (blob) {
+        if (!blob || blob.size > SAVE_CAP) {
+          keepFail('That take is over 40 MB, so it was not sent. Try again with a shorter one.');
+          return null;
+        }
+        var fd = new FormData();
+        fd.append('take', JSON.stringify(state));
+        fd.append('audio', blob, 'take.wav');
+        fd.append('gather_id', gatherId || '');
+        fd.append('claim_token', gatherClaim || '');
+        fd.append('listed', $('perform-public').checked ? 'true' : 'false');
+        var title = window.NC && NC.state ? NC.state().t : '';
+        if (title) fd.append('title', title);
+        if (tok) fd.append('turnstile_token', tok);
+        var headers = {};
+        var pass = testerToken();
+        if (pass) headers['X-NC-Tester'] = pass;
+        return fetch((cfg && cfg.save_url) || (API + '/api/save'), {
+          method: 'POST', headers: headers, body: fd
+        }).then(function (r) { return read(r).then(function (j) { return { ok: r.ok, j: j }; }); }, function () { return { ok: false, j: {} }; });
+      });
     }).then(function (x) {
-      if (!x || !x.ok) { keepFail(x && x.j && x.j.error); return; }
-      showSigned(x.j);
+      if (!x) return;
+      if (!x.ok) { keepFail(x.j && x.j.error); return; }
+      showSaved(x.j);
     }).catch(function () { keepFail(''); });
   }
   function stopPreview() {
@@ -1814,8 +1946,9 @@
     box.focus();
   };
   $('perform-keep').onclick = function () {
-    if (keeping || $('perform-keep').textContent.indexOf('Kept') === 0) return;
-    if (localPlan && browserAssembly()) { keepLocal(); return; }
+    var label = $('perform-keep').textContent;
+    if (keeping || label.indexOf('Kept') === 0 || label.indexOf('Saved') === 0) return;
+    if (localPlan && browserAssembly()) { saveLocal(); return; }
     if (!jobId || !sessionStorage.getItem('nc-claim:' + jobId)) {
       keepFail('This tab does not have the keep key for this Performance.');
       return;
