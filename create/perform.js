@@ -93,6 +93,11 @@
     if (code === 429) return raw || 'Too many Performs from this network (3 every 10 minutes, 10 a day). Try again in a few minutes.';
     if (code === 503) return 'Perform is resting or busy. Try again in a moment.';
     if (!code || code >= 500) return 'Perform did not answer. The service may be down. Try again in a moment.';
+    if (code === 403 && j && j.code === 'turnstile') {
+      var errors = Array.isArray(j.turnstile_errors) && j.turnstile_errors.length ? j.turnstile_errors.join(', ') : 'no siteverify code';
+      var host = typeof j.hostname === 'string' && j.hostname ? ' (' + j.hostname + ')' : '';
+      return (raw || 'The bot check failed. Reload the page and try again.') + ' [' + errors + ']' + host;
+    }
     return raw || 'Perform did not start. Try again in a moment.';
   }
   function read(r) {
@@ -1626,6 +1631,11 @@
     var raw = soften(j && (typeof j.error === 'string' ? j.error : ''));
     if (code === 429) return raw || 'Too many requests from this network. Try again in a few minutes.';
     if (code === 503) return 'Perform is resting or busy. Try again in a moment.';
+    if (code === 403 && j && j.code === 'turnstile') {
+      var errors = Array.isArray(j.turnstile_errors) && j.turnstile_errors.length ? j.turnstile_errors.join(', ') : 'no siteverify code';
+      var host = typeof j.hostname === 'string' && j.hostname ? ' (' + j.hostname + ')' : '';
+      return (raw || 'The bot check failed. Reload the page and try again.') + ' [' + errors + ']' + host;
+    }
     return 'Gather did not finish. Try again in a moment.';
   }
   function gatherFail(msg) {
