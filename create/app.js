@@ -286,7 +286,13 @@ function parseMd(txt) {
   }
   return {t: title, by: by, c: c, p: p || ''};
 }
-function fill(S) { $('title').value = S.t || ''; $('by').value = S.by || ''; $('comp').value = S.c || ''; $('perf').value = S.p || ''; SEED = S.sd ? surpriseInfo(S.sd, S.c) : null; stop(); refresh(); adoptNotes($('perf').value); }
+function fill(S) {
+  var was = active, at = cur;
+  $('title').value = S.t || ''; $('by').value = S.by || ''; $('comp').value = S.c || ''; $('perf').value = S.p || '';
+  SEED = S.sd ? surpriseInfo(S.sd, S.c) : null;
+  stop(); refresh(); adoptNotes($('perf').value);
+  if (was) start(at);
+}
 // ---------- share ----------
 function b64e(s) { return btoa(unescape(encodeURIComponent(s))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); }
 function b64d(s) { s = s.replace(/-/g, '+').replace(/_/g, '/'); while (s.length % 4) s += '='; return decodeURIComponent(escape(atob(s))); }
@@ -309,20 +315,34 @@ function fromHash() {
   var m = /[#&]c=([A-Za-z0-9_-]+)/.exec(location.hash); if (!m) return false;
   try { var S = JSON.parse(b64d(m[1])); fill(S); rememberStarter(matchStarter(S)); return true; } catch (e) { status('That share link could not be read.', true); return false; }
 }
-// ---------- undo (Surprise me, a starter, an opened file) ----------
-var UNDO = [], STARTER_UNDO = [];
-function pushUndo() {
+// ---------- undo ----------
+// The top Undo button is only for Surprise me. Starters and opened files still
+// land on the stack (so a later Surprise can step back through them) but they
+// do not reveal the button. It hides again once every Surprise is undone.
+var UNDO = [], STARTER_UNDO = [], SURPRISE_UNDO = [], surpriseDepth = 0;
+function syncUndoBtn() {
+  var show = surpriseDepth > 0;
+  $('undo').hidden = !show;
+  $('undo').disabled = !show;
+}
+function pushUndo(fromSurprise) {
   var S = raw(), top = UNDO[UNDO.length - 1];
-  if (!top || JSON.stringify(top) !== JSON.stringify(S)) { UNDO.push(S); STARTER_UNDO.push(shownStarter); }
-  if (UNDO.length > 30) { UNDO.shift(); STARTER_UNDO.shift(); }
-  $('undo').disabled = false;
+  if (!top || JSON.stringify(top) !== JSON.stringify(S)) {
+    UNDO.push(S); STARTER_UNDO.push(shownStarter); SURPRISE_UNDO.push(!!fromSurprise);
+    if (fromSurprise) surpriseDepth++;
+  }
+  if (UNDO.length > 30) {
+    UNDO.shift(); STARTER_UNDO.shift();
+    if (SURPRISE_UNDO.shift()) surpriseDepth = Math.max(0, surpriseDepth - 1);
+  }
+  syncUndoBtn();
 }
 function undo() {
-  var S = UNDO.pop(); if (!S) return; var was = active, at = cur;
+  var S = UNDO.pop(); if (!S) return;
   var choice = STARTER_UNDO.length ? STARTER_UNDO.pop() : '';
+  if (SURPRISE_UNDO.length && SURPRISE_UNDO.pop()) surpriseDepth = Math.max(0, surpriseDepth - 1);
   fill(S); persist(); rememberStarter(choice);
-  $('undo').disabled = !UNDO.length; status('Back to your previous version.');
-  if (was) start(at);
+  syncUndoBtn(); status('Back to your previous version.');
 }
 // ---------- read a composition.md into the fields (Open a file). No on-page markdown editor. ----------
 function fromText(txt) {
@@ -499,10 +519,10 @@ function surpriseInfo(seed, c) { var P = makeSurprise(seed); return P && P.compo
 function surprise() {
   if (!CAT) return;
   var P = makeSurprise(crypto.getRandomValues(new Uint32Array(1))[0] >>> 0); if (!P) return;
-  pushUndo();
+  pushUndo(true);
   fill({t: 'Surprise in ' + P.key + ' ' + P.mode, by: '', c: P.composition, p: P.mood, sd: P.seed});
   rememberStarter('');
-  persist(); $('shareurl').hidden = true; start(0);
+  persist(); $('shareurl').hidden = true;
   status('Surprise: ' + P.key + ' ' + P.mode + ', ' + P.degrees.join(' ') + ' (seed ' + P.seed + '). Again for another; Undo goes back.');
 }
 
@@ -526,7 +546,7 @@ sel.onchange = function () { if (sel.value === '') return;
 }); });
 ['title', 'by'].forEach(function (id) { $(id).addEventListener('input', persistSoon); });
 $('play').onclick = toggle;
-$('surprise').onclick = surprise; $('surprise2').onclick = surprise;
+$('surprise').onclick = surprise;
 $('undo').onclick = undo;
 $('notes-save').onclick = saveNotes;
 $('notes-undo').onclick = undoNotes;
@@ -546,7 +566,7 @@ $('dlmd').onclick = function () { var S = state(); download(slug(S.t) + '.compos
 $('dlplan').onclick = function () { var S = state(), p = toPlan(S); if (!p) { status('Write some chord symbols first.', true); return; } download(slug(S.t) + '.plan.json', JSON.stringify(p, null, 1) + '\n', 'application/json'); };
 $('up').onchange = function (e) {
   var f = e.target.files[0]; if (!f) return;
-  f.text().then(function (t) { pushUndo(); fill(parseMd(t)); rememberStarter(''); persist(); status('Loaded ' + f.name + '. Undo goes back.'); });
+  f.text().then(function (t) { pushUndo(); fill(parseMd(t)); rememberStarter(''); persist(); status('Loaded ' + f.name + '.'); });
 };
 $('share').onclick = function () {
   var u = shareUrl(); $('shareurl').value = u; $('shareurl').hidden = false; $('shareurl').select();
