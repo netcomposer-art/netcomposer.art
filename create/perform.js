@@ -37,11 +37,147 @@
     if (pollT) { clearTimeout(pollT); pollT = null; }
     if (es) { var cur = es; es = null; cur.close(); }
   }
+  var serverSeed = null, take = null, takeHeard = false;
+  function asOrigin(v) {
+    if (v == null || v === '') return '';
+    if (typeof v === 'string') return v.trim();
+    if (typeof v === 'object') return String(v.name || v.title || v.id || '').trim();
+    return '';
+  }
+  function takeSeed(j) {
+    if (!j || !Object.prototype.hasOwnProperty.call(j, 'seed') || j.seed == null || j.seed === '') return;
+    serverSeed = j.seed;
+  }
+  function trimText(v) {
+    if (v == null || v === false || v === '') return '';
+    if (typeof v === 'string') return v.trim();
+    if (typeof v === 'object') return String(v.note || v.message || '').trim();
+    return '';
+  }
+  function showTrim(text) {
+    var el = $('perform-trim');
+    if (!el) return;
+    if (!text) { el.hidden = true; el.textContent = ''; return; }
+    el.hidden = false;
+    el.textContent = text;
+  }
+  function foundLines(j) {
+    var bags = [];
+    function takeBag(v) {
+      if (Array.isArray(v)) bags = bags.concat(v);
+      else if (v && typeof v === 'object') Object.keys(v).forEach(function (k) { bags.push(v[k] && typeof v[k] === 'object' ? Object.assign({key: v[k].key || k}, v[k]) : {title: v[k], key: k}); });
+    }
+    ['found', 'sounds', 'sources', 'found_sounds'].forEach(function (k) { if (j && Object.prototype.hasOwnProperty.call(j, k)) takeBag(j[k]); });
+    var out = [], seen = {};
+    bags.forEach(function (item) {
+      var title = '', origin = '';
+      if (typeof item === 'string') title = item.trim();
+      else if (item && typeof item === 'object') {
+        title = String(item.title || item.name || item.sound || '').trim();
+        origin = asOrigin(item.source || item.supplier || item.origin || item.from);
+      }
+      if (!title && !origin) return;
+      var line = title && origin ? title + ', from ' + origin + '.' : (title || ('From ' + origin + '.'));
+      if (seen[line]) return;
+      seen[line] = 1;
+      out.push(line);
+    });
+    if (out.length > 6) {
+      var extra = out.length - 6;
+      out = out.slice(0, 6);
+      out.push('And ' + extra + ' more.');
+    }
+    return out;
+  }
+  function showStory(j) {
+    takeSeed(j);
+    var note = trimText(j && j.trimmed);
+    if (note) showTrim(note);
+    var s = $('perform-status');
+    s.className = 'm story';
+    s.textContent = '';
+    var head = (j && (j.stage_line || j.stage || j.state)) || 'Working…';
+    if (j && j.position && String(head).indexOf(String(j.position)) < 0) head += ' · position ' + j.position;
+    s.appendChild(node('span', 'story-line', head));
+    foundLines(j).forEach(function (line) { s.appendChild(node('span', 'story-line', line)); });
+  }
+  function clearTake() {
+    take = null;
+    takeHeard = false;
+    var bar = $('src-time');
+    if (bar) { bar.hidden = true; bar.textContent = ''; }
+    showTrim('');
+  }
+  function armTake(rec) {
+    take = null;
+    var bar = $('src-time');
+    if (bar) { bar.hidden = true; bar.textContent = ''; }
+    if (!rec || typeof rec !== 'object') return;
+    var p = rec.performance || {};
+    var timeline = Array.isArray(p.timeline) ? p.timeline : [];
+    var sounds = Array.isArray(rec.sounds_used) ? rec.sounds_used : [];
+    var spans = [];
+    sounds.forEach(function (s) {
+      (Array.isArray(s.spans) ? s.spans : []).forEach(function (sp) {
+        if (!sp || typeof sp.at_s !== 'number' || typeof sp.len_s !== 'number' || !(sp.len_s > 0)) return;
+        spans.push({at: sp.at_s, len: sp.len_s, title: String(s.title || s.key || sp.key || '').trim(), origin: asOrigin(s.source) || asOrigin(s.supplier), key: String(s.key || sp.key || '')});
+      });
+    });
+    if (!timeline.length && !spans.length) return;
+    var dur = typeof p.duration_s === 'number' ? p.duration_s : 0;
+    timeline.forEach(function (c) { if (c && typeof c.end_s === 'number' && c.end_s > dur) dur = c.end_s; });
+    spans.forEach(function (sp) { if (sp.at + sp.len > dur) dur = sp.at + sp.len; });
+    if (!(dur > 0)) return;
+    var keys = {}, list = [];
+    spans.forEach(function (sp) { if (sp.key && !keys[sp.key]) { keys[sp.key] = 1; list.push(sp.key); } });
+    var byOrigin = list.length > 8;
+    var groups = {}, order = [];
+    spans.forEach(function (sp) {
+      var id = byOrigin ? (sp.origin || sp.title || sp.key || 'sound') : (sp.key || sp.title || sp.origin || 'sound');
+      if (!groups[id]) { groups[id] = {label: byOrigin ? (sp.origin || sp.title || sp.key) : (sp.title || sp.origin || sp.key), spans: []}; order.push(id); }
+      groups[id].spans.push(sp);
+    });
+    take = {timeline: timeline, groups: groups, order: order, duration: dur};
+    if (!bar || !order.length) return;
+    bar.hidden = false;
+    order.forEach(function (id) {
+      var g = groups[id], lane = node('div', 'src-lane'), name = node('div', 'src-name', g.label), track = node('div', 'src-track');
+      name.title = g.label;
+      g.spans.forEach(function (sp) {
+        var mark = node('div', 'src-span');
+        mark.style.left = (100 * sp.at / dur) + '%';
+        mark.style.width = Math.max(0.4, 100 * sp.len / dur) + '%';
+        track.appendChild(mark);
+      });
+      var head = node('div', 'src-head');
+      head.style.left = '0%';
+      track.appendChild(head);
+      g.head = head;
+      lane.appendChild(name);
+      lane.appendChild(track);
+      bar.appendChild(lane);
+    });
+  }
+  function followTake() {
+    if (!take || !takeHeard) return;
+    var audio = $('perform-audio');
+    if (!audio) return;
+    var t = audio.currentTime || 0;
+    var idx = -1, i, c;
+    for (i = 0; i < take.timeline.length; i++) {
+      c = take.timeline[i];
+      if (!c || typeof c.start_s !== 'number' || typeof c.end_s !== 'number') continue;
+      if (t >= c.start_s && t < c.end_s) { idx = typeof c.chord_index === 'number' ? c.chord_index : i; break; }
+    }
+    document.querySelectorAll('#prog .ch.on').forEach(function (e) { e.classList.remove('on'); });
+    if (idx >= 0) { var tile = $('ch' + idx); if (tile) tile.classList.add('on'); }
+    var left = Math.max(0, Math.min(100, 100 * t / take.duration));
+    take.order.forEach(function (id) { if (take.groups[id].head) take.groups[id].head.style.left = left + '%'; });
+  }
   function onJob(j) {
     if (!j) return;
-    var line = j.stage_line || j.stage || j.state || '';
-    if (j.position) line += ' · position ' + j.position;
-    if (j.state !== 'done' && j.state !== 'failed' && j.state !== 'rejected') status(line || 'Working…');
+    takeSeed(j);
+    if (j.state !== 'done' && j.state !== 'failed' && j.state !== 'rejected') showStory(j);
     var bar = $('perform-bar');
     bar.hidden = false; bar.value = j.percent || 0;
     if (j.state === 'done') { stopWatch(); showDone(j); }
@@ -220,6 +356,7 @@
       view.appendChild(note);
     }
     view.appendChild(node('p', 'm', 'Peter Semmelhack'));
+    armTake(rec);
     if (p.title) $('perform-title').textContent = p.title;
     recordText = JSON.stringify(rec, null, 1) + '\n';
     recordName = (id || 'performance') + '.record.json';
@@ -286,6 +423,8 @@
   }
   function showDone(j) {
     var gen = ++viewGen;
+    takeSeed(j);
+    if (j && Object.prototype.hasOwnProperty.call(j, 'trimmed')) showTrim(trimText(j.trimmed));
     if (j.id) jobId = j.id;
     idle();
     keeping = false;
@@ -296,6 +435,7 @@
     var page = f.page || (API + '/records/' + id);
     var audio = $('perform-audio');
     audio.crossOrigin = 'anonymous';
+    takeHeard = false;
     audio.src = mp3;
     $('perform-title').textContent = (window.NC && NC.state && NC.state().t) || 'Performance';
     $('perform-sources').open = false;
@@ -328,6 +468,7 @@
   function fail(msg) {
     viewGen++;
     idle();
+    clearTake();
     $('perform-turnstile').hidden = true;
     $('perform-bar').hidden = true;
     $('perform-out').hidden = true;
@@ -348,6 +489,7 @@
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         title: S.t, composer: S.by, composition: S.c, performance: S.p,
+        instrument: instrumentHint() || undefined,
         visibility: $('perform-public').checked ? 'public' : 'unlisted',
         turnstile_token: tok || undefined,
         perform_again: !!jobId
@@ -358,6 +500,7 @@
       token = null;
       if (widget != null && window.turnstile) { try { window.turnstile.reset(widget); } catch (e) {} }
       if (!x.ok) { fail(messageFor(x.status, x.j)); return; }
+      takeSeed(x.j);
       jobId = x.j.id;
       sessionStorage.setItem('nc-perform-job', jobId);
       if (x.j.claim_token) claim(jobId, x.j.claim_token);
@@ -408,6 +551,7 @@
     var max = (cfg && cfg.max_words) || 4000, words = S.c + '\n' + S.p;
     if (words.length > max) { status('Those words are ' + words.length + ' characters. The limit is ' + max + '.', true); return; }
     viewGen++;
+    clearTake();
     busy = true;
     $('performBtn').disabled = true;
     $('performBtn').textContent = 'Performing…';
@@ -460,7 +604,7 @@
       cfg = c;
       if (!c.perform_enabled) { $('performBtn').disabled = true; status('Perform is resting until tomorrow.', true); return; }
       $('performBtn').disabled = false;
-      status('Up to 3 minutes. Three every 10 minutes, ten a day.');
+      status('Ready.');
       resume();
     }).catch(function () {
       $('performBtn').disabled = true;
@@ -471,6 +615,7 @@
   $('perform-edit').onclick = function (e) {
     e.preventDefault();
     var box = $('perf');
+    $('perf-box').open = true;
     $('perf-box').scrollIntoView({behavior: 'smooth', block: 'center'});
     box.focus();
   };
@@ -511,7 +656,17 @@
       if (x.j && x.j.keep) applyKept(x.j); else keepNote();
     });
   });
-  window.NCPerform = { api: API, messageFor: messageFor, go: go, post: post, showDone: showDone, fail: fail, showRecord: showRecord };
+  var heard = $('perform-audio');
+  if (heard) {
+    heard.addEventListener('play', function () { takeHeard = true; if (window.NC && NC.stop) NC.stop(); followTake(); });
+    ['timeupdate', 'seeked', 'pause', 'ended'].forEach(function (ev) { heard.addEventListener(ev, followTake); });
+  }
+  function instrumentHint() {
+    if (!window.NC || !NC.instrument) return '';
+    var text = String(NC.instrument() || '').trim();
+    return /^[A-Za-z0-9][A-Za-z0-9 ._-]{0,39}$/.test(text) ? text : '';
+  }
+  window.NCPerform = { api: API, messageFor: messageFor, go: go, post: post, showDone: showDone, fail: fail, showRecord: showRecord, foundLines: foundLines, showStory: showStory, seed: function () { return serverSeed; }, instrumentHint: instrumentHint };
   var booted = false;
   var wait = setInterval(function () {
     if (!document.body.getAttribute('data-ready') || booted) return;
