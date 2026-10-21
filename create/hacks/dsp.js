@@ -299,6 +299,255 @@
     out[1] = dryG * xR + wetG * yr;
   }
 
+  // ---------- EQ: three RBJ biquads (Bristow-Johnson, "Audio EQ Cookbook"): low shelf 250 Hz, a bell, high shelf 4 kHz.
+  // All bands at 0 dB is the dry signal, passed through untouched.
+  function ncBiquad() { return { b0: 1, b1: 0, b2: 0, a1: 0, a2: 0, z1L: 0, z2L: 0, z1R: 0, z2R: 0 }; }
+  function ncBiquadSet(f, kind, hz, db, q, sr) {
+    var A = Math.pow(10, db / 40);
+    var w0 = 6.283185307179586 * hz / sr;
+    var c = Math.cos(w0), s = Math.sin(w0);
+    var b0, b1, b2, a0, a1, a2, alpha;
+    if (kind === 0) {
+      alpha = s / 2 * Math.SQRT2;
+      var sq = 2 * Math.sqrt(A) * alpha;
+      b0 = A * ((A + 1) - (A - 1) * c + sq);
+      b1 = 2 * A * ((A - 1) - (A + 1) * c);
+      b2 = A * ((A + 1) - (A - 1) * c - sq);
+      a0 = (A + 1) + (A - 1) * c + sq;
+      a1 = -2 * ((A - 1) + (A + 1) * c);
+      a2 = (A + 1) + (A - 1) * c - sq;
+    } else if (kind === 2) {
+      alpha = s / 2 * Math.SQRT2;
+      var sq2 = 2 * Math.sqrt(A) * alpha;
+      b0 = A * ((A + 1) + (A - 1) * c + sq2);
+      b1 = -2 * A * ((A - 1) + (A + 1) * c);
+      b2 = A * ((A + 1) + (A - 1) * c - sq2);
+      a0 = (A + 1) - (A - 1) * c + sq2;
+      a1 = 2 * ((A - 1) - (A + 1) * c);
+      a2 = (A + 1) - (A - 1) * c - sq2;
+    } else {
+      alpha = s / (2 * q);
+      b0 = 1 + alpha * A;
+      b1 = -2 * c;
+      b2 = 1 - alpha * A;
+      a0 = 1 + alpha / A;
+      a1 = -2 * c;
+      a2 = 1 - alpha / A;
+    }
+    f.b0 = b0 / a0; f.b1 = b1 / a0; f.b2 = b2 / a0; f.a1 = a1 / a0; f.a2 = a2 / a0;
+  }
+  function ncBiquadStep(f, xL, xR, out) {
+    var yL = f.b0 * xL + f.z1L;
+    f.z1L = ncFlush(f.b1 * xL - f.a1 * yL + f.z2L);
+    f.z2L = ncFlush(f.b2 * xL - f.a2 * yL);
+    var yR = f.b0 * xR + f.z1R;
+    f.z1R = ncFlush(f.b1 * xR - f.a1 * yR + f.z2R);
+    f.z2R = ncFlush(f.b2 * xR - f.a2 * yR);
+    out[0] = yL; out[1] = yR;
+  }
+  function ncEqCreate(sr) {
+    return {
+      type: 'eq', sr: sr, f: [ncBiquad(), ncBiquad(), ncBiquad()],
+      lowS: 0, lowT: 0, midS: 0, midT: 0, hiS: 0, hiT: 0, logHzS: 6.907755278982137, logHzT: 6.907755278982137,
+      flat: true, dirty: true, tick: 0,
+      bypass: 1, bypassT: 1, kFast: ncCoef(0.02, sr), kSlow: ncCoef(0.08, sr), immediate: false
+    };
+  }
+  function ncEqApply(st, p, snap) {
+    function clamp(v, d, lo, hi) {
+      var x = v == null ? d : +v;
+      if (x !== x) x = d;
+      return x < lo ? lo : x > hi ? hi : x;
+    }
+    st.lowT = clamp(p.low_db, st.lowT, -12, 12);
+    st.midT = clamp(p.mid_db, st.midT, -12, 12);
+    st.hiT = clamp(p.high_db, st.hiT, -12, 12);
+    var hz = clamp(p.mid_hz, Math.exp(st.logHzT), 200, 5000);
+    st.logHzT = Math.log(hz);
+    st.dirty = true;
+    if (snap) { st.lowS = st.lowT; st.midS = st.midT; st.hiS = st.hiT; st.logHzS = st.logHzT; }
+  }
+  function ncEqStep(st, xL, xR, out) {
+    var k = st.immediate ? 1 : st.kFast;
+    var moving = st.lowS !== st.lowT || st.midS !== st.midT || st.hiS !== st.hiT || st.logHzS !== st.logHzT;
+    if (moving) {
+      st.lowS += (st.lowT - st.lowS) * k;
+      st.midS += (st.midT - st.midS) * k;
+      st.hiS += (st.hiT - st.hiS) * k;
+      st.logHzS += (st.logHzT - st.logHzS) * k;
+      if (Math.abs(st.lowT - st.lowS) < 1e-4) st.lowS = st.lowT;
+      if (Math.abs(st.midT - st.midS) < 1e-4) st.midS = st.midT;
+      if (Math.abs(st.hiT - st.hiS) < 1e-4) st.hiS = st.hiT;
+      if (Math.abs(st.logHzT - st.logHzS) < 1e-5) st.logHzS = st.logHzT;
+    }
+    var flat = st.lowS === 0 && st.midS === 0 && st.hiS === 0;
+    if (flat) {
+      if (!st.flat) { ncEqClear(st); st.flat = true; }
+      out[0] = xL; out[1] = xR;
+      return;
+    }
+    if (st.flat) { st.flat = false; st.dirty = true; st.tick = 0; }
+    // Coefficients follow moving dials every 16 samples, then once more when they settle.
+    var redo = false;
+    if (moving) { st.dirty = true; redo = (st.tick++ & 15) === 0; }
+    else if (st.dirty) { redo = true; st.dirty = false; st.tick = 0; }
+    if (redo) {
+      ncBiquadSet(st.f[0], 0, 250, st.lowS, 0.7071, st.sr);
+      ncBiquadSet(st.f[1], 1, Math.exp(st.logHzS), st.midS, 0.9, st.sr);
+      ncBiquadSet(st.f[2], 2, 4000, st.hiS, 0.7071, st.sr);
+    }
+    ncBiquadStep(st.f[0], xL, xR, out);
+    ncBiquadStep(st.f[1], out[0], out[1], out);
+    ncBiquadStep(st.f[2], out[0], out[1], out);
+  }
+  function ncEqClear(st) {
+    var i;
+    for (i = 0; i < 3; i++) { st.f[i].z1L = 0; st.f[i].z2L = 0; st.f[i].z1R = 0; st.f[i].z2R = 0; }
+  }
+
+  // ---------- Drive: tanh soft saturation with first-order antiderivative anti-aliasing
+  // (Parker, Zavalishin, Le Bivic, DAFx 2016; Bilbao et al., IEEE SPL 2017). The curve is scaled so a −12 dBFS
+  // signal comes out at the level it went in: more drive means more grit, not just louder. Drive 0 dB is dry.
+  function ncLogCosh(u) {
+    var a = u < 0 ? -u : u;
+    return a + Math.log(1 + Math.exp(-2 * a)) - 0.6931471805599453;
+  }
+  // One channel of antialiased tanh. ch 0 is left, 1 is right. Keeps the last input and its antiderivative.
+  function ncTanhAdaa(st, ch, u) {
+    var f = ncLogCosh(u);
+    var d = u - st.u[ch];
+    var y = (d > 1e-5 || d < -1e-5) ? (f - st.f[ch]) / d : Math.tanh(0.5 * (u + st.u[ch]));
+    st.u[ch] = u;
+    st.f[ch] = f;
+    return y;
+  }
+  function ncDriveCreate(sr) {
+    return {
+      type: 'drive', sr: sr, u: [0, 0], f: [0, 0],
+      driveS: 0, driveT: 0, outS: 0, outT: 0, mixS: 1, mixT: 1,
+      bypass: 1, bypassT: 1, kFast: ncCoef(0.02, sr), kSlow: ncCoef(0.08, sr), immediate: false
+    };
+  }
+  function ncDriveApply(st, p, snap) {
+    function clamp(v, d, lo, hi) {
+      var x = v == null ? d : +v;
+      if (x !== x) x = d;
+      return x < lo ? lo : x > hi ? hi : x;
+    }
+    st.driveT = clamp(p.drive_db, st.driveT, 0, 24);
+    st.outT = clamp(p.output_db, st.outT, -12, 12);
+    st.mixT = clamp(p.mix, st.mixT, 0, 1);
+    if (snap) { st.driveS = st.driveT; st.outS = st.outT; st.mixS = st.mixT; }
+  }
+  function ncDriveStep(st, xL, xR, out) {
+    var k = st.immediate ? 1 : st.kFast;
+    st.driveS += (st.driveT - st.driveS) * k;
+    st.outS += (st.outT - st.outS) * k;
+    st.mixS += (st.mixT - st.mixS) * k;
+    if (Math.abs(st.driveT - st.driveS) < 1e-5) st.driveS = st.driveT;
+    if (Math.abs(st.outT - st.outS) < 1e-5) st.outS = st.outT;
+    if (Math.abs(st.mixT - st.mixS) < 1e-6) st.mixS = st.mixT;
+    var trim = st.outS === 0 ? 1 : Math.pow(10, st.outS / 20);
+    if (st.driveS === 0) {
+      st.u[0] = 0; st.u[1] = 0; st.f[0] = 0; st.f[1] = 0;
+      out[0] = xL * trim; out[1] = xR * trim;
+      return;
+    }
+    var g = Math.pow(10, st.driveS / 20) - 1;
+    // tanh(g x) * r / tanh(g r) keeps a −12 dBFS (r = 0.25) level where it was.
+    var comp = 0.25 / Math.tanh(0.25 * g) / g;
+    var a = ncTanhAdaa(st, 0, g * xL);
+    var b = ncTanhAdaa(st, 1, g * xR);
+    var m = st.mixS;
+    out[0] = trim * ((1 - m) * xL + m * g * comp * a);
+    out[1] = trim * ((1 - m) * xR + m * g * comp * b);
+  }
+
+  // ---------- Compressor: feed-forward, stereo-linked peak detector, soft knee 6 dB, smooth branching in dB
+  // (Giannoulis, Massberg, Reiss, JAES 2012). Ratio 1:1 with 0 dB makeup is dry.
+  function ncCompCreate(sr) {
+    return {
+      type: 'compressor', sr: sr, yl: 0, gr: 0,
+      thrS: 0, thrT: 0, ratioS: 1, ratioT: 1, mkS: 0, mkT: 0, att: 10, rel: 150,
+      aA: ncCoef(0.010, sr), aR: ncCoef(0.150, sr),
+      bypass: 1, bypassT: 1, kFast: ncCoef(0.02, sr), kSlow: ncCoef(0.08, sr), immediate: false
+    };
+  }
+  function ncCompApply(st, p, snap) {
+    function clamp(v, d, lo, hi) {
+      var x = v == null ? d : +v;
+      if (x !== x) x = d;
+      return x < lo ? lo : x > hi ? hi : x;
+    }
+    st.thrT = clamp(p.threshold_db, st.thrT, -60, 0);
+    st.ratioT = clamp(p.ratio, st.ratioT, 1, 20);
+    st.mkT = clamp(p.makeup_db, st.mkT, 0, 24);
+    st.att = clamp(p.attack_ms, st.att, 0.1, 100);
+    st.rel = clamp(p.release_ms, st.rel, 10, 1000);
+    st.aA = ncCoef(st.att / 1000, st.sr);
+    st.aR = ncCoef(st.rel / 1000, st.sr);
+    if (snap) { st.thrS = st.thrT; st.ratioS = st.ratioT; st.mkS = st.mkT; }
+  }
+  function ncCompStep(st, xL, xR, out) {
+    var k = st.immediate ? 1 : st.kFast;
+    st.thrS += (st.thrT - st.thrS) * k;
+    st.ratioS += (st.ratioT - st.ratioS) * k;
+    st.mkS += (st.mkT - st.mkS) * k;
+    if (Math.abs(st.ratioT - st.ratioS) < 1e-6) st.ratioS = st.ratioT;
+    if (Math.abs(st.mkT - st.mkS) < 1e-6) st.mkS = st.mkT;
+    if (Math.abs(st.thrT - st.thrS) < 1e-6) st.thrS = st.thrT;
+    if (st.ratioS === 1 && st.mkS === 0 && st.yl === 0) { out[0] = xL; out[1] = xR; return; }
+    var aL = xL < 0 ? -xL : xL, aR = xR < 0 ? -xR : xR;
+    var peak = aL > aR ? aL : aR;
+    var xg = peak > 1e-6 ? 8.685889638065035 * Math.log(peak) : -120;
+    var T = st.thrS, R = st.ratioS, W = 6, over = xg - T, yg;
+    if (2 * over < -W) yg = xg;
+    else if (2 * over > W) yg = T + over / R;
+    else { var t = over + W / 2; yg = xg + (1 / R - 1) * t * t / (2 * W); }
+    var want = xg - yg;
+    var yl = st.yl;
+    yl += (want - yl) * (want > yl ? st.aA : st.aR);
+    if (yl < 1e-9) yl = 0;
+    st.yl = yl;
+    st.gr = yl;
+    var g = Math.exp((st.mkS - yl) * 0.11512925464970229);
+    out[0] = xL * g; out[1] = xR * g;
+  }
+
+  // ---------- Width: mid/side. M = (L+R)/2, S = (L−R)/2, S times width. A mono source has no side,
+  // so width cannot change it. Balance tilts left/right without touching the centre. 100% and centre are dry.
+  function ncWidthCreate(sr) {
+    return {
+      type: 'width', sr: sr, wS: 1, wT: 1, balS: 0, balT: 0,
+      bypass: 1, bypassT: 1, kFast: ncCoef(0.02, sr), kSlow: ncCoef(0.08, sr), immediate: false
+    };
+  }
+  function ncWidthApply(st, p, snap) {
+    var w = p.width == null ? st.wT : +p.width;
+    if (w !== w) w = st.wT;
+    st.wT = w < 0 ? 0 : w > 2 ? 2 : w;
+    var b = p.balance == null ? st.balT : +p.balance;
+    if (b !== b) b = st.balT;
+    st.balT = b < -1 ? -1 : b > 1 ? 1 : b;
+    if (snap) { st.wS = st.wT; st.balS = st.balT; }
+  }
+  function ncWidthStep(st, xL, xR, out) {
+    var k = st.immediate ? 1 : st.kFast;
+    st.wS += (st.wT - st.wS) * k;
+    st.balS += (st.balT - st.balS) * k;
+    if (Math.abs(st.wT - st.wS) < 1e-6) st.wS = st.wT;
+    if (Math.abs(st.balT - st.balS) < 1e-6) st.balS = st.balT;
+    var yL = xL, yR = xR;
+    if (st.wS !== 1) {
+      var m = 0.5 * (xL + xR), s = 0.5 * (xL - xR) * st.wS;
+      yL = m + s; yR = m - s;
+    }
+    var b = st.balS;
+    if (b > 0) yL *= 1 - b;
+    else if (b < 0) yR *= 1 + b;
+    out[0] = yL; out[1] = yR;
+  }
+
   function ncLimiterCreate(sr) {
     var la = Math.round(0.0015 * sr);
     if (la < 1) la = 1;
@@ -341,6 +590,10 @@
     if (type === 'lowpass') return ncLowpassCreate(sr);
     if (type === 'delay') return ncDelayCreate(sr);
     if (type === 'plate') return ncPlateCreate(sr);
+    if (type === 'eq') return ncEqCreate(sr);
+    if (type === 'drive') return ncDriveCreate(sr);
+    if (type === 'compressor') return ncCompCreate(sr);
+    if (type === 'width') return ncWidthCreate(sr);
     return null;
   }
   function ncWidgetApply(st, p, snap, bypass) {
@@ -348,6 +601,10 @@
     if (st.type === 'lowpass') ncLowpassApply(st, p, snap);
     else if (st.type === 'delay') ncDelayApply(st, p, snap);
     else if (st.type === 'plate') ncPlateApply(st, p, snap);
+    else if (st.type === 'eq') ncEqApply(st, p, snap);
+    else if (st.type === 'drive') ncDriveApply(st, p, snap);
+    else if (st.type === 'compressor') ncCompApply(st, p, snap);
+    else if (st.type === 'width') ncWidthApply(st, p, snap);
     if (bypass != null) {
       st.bypassT = bypass ? 0 : 1;
       if (snap) st.bypass = st.bypassT;
@@ -357,6 +614,9 @@
     if (!st) return;
     if (st.type === 'lowpass') { st.z1L = 0; st.z2L = 0; st.z1R = 0; st.z2R = 0; return; }
     if (st.type === 'delay') { st.bufL.fill(0); st.bufR.fill(0); st.w = 0; return; }
+    if (st.type === 'eq') { ncEqClear(st); return; }
+    if (st.type === 'drive') { st.u[0] = 0; st.u[1] = 0; st.f[0] = 0; st.f[1] = 0; return; }
+    if (st.type === 'compressor') { st.yl = 0; st.gr = 0; return; }
     if (st.type === 'plate') {
       ncZeroLine(st.pre);
       var i;
@@ -373,6 +633,10 @@
     if (st.type === 'lowpass') ncLowpassStep(st, xL, xR, out);
     else if (st.type === 'delay') ncDelayStep(st, xL, xR, out);
     else if (st.type === 'plate') ncPlateStep(st, xL, xR, out);
+    else if (st.type === 'eq') ncEqStep(st, xL, xR, out);
+    else if (st.type === 'drive') ncDriveStep(st, xL, xR, out);
+    else if (st.type === 'compressor') ncCompStep(st, xL, xR, out);
+    else if (st.type === 'width') ncWidthStep(st, xL, xR, out);
     else { out[0] = xL; out[1] = xR; }
     var b = st.bypass;
     if (b >= 0.999) return;
@@ -524,6 +788,10 @@
       ncLowpassCreate, ncLowpassCoeffs, ncLowpassApply, ncLowpassStep,
       ncDelayCreate, ncDelayApply, ncDelayStep,
       ncDiff2, ncPlateCreate, ncPlateApply, ncTank, ncPlateStep,
+      ncBiquad, ncBiquadSet, ncBiquadStep, ncEqCreate, ncEqApply, ncEqStep, ncEqClear,
+      ncLogCosh, ncTanhAdaa, ncDriveCreate, ncDriveApply, ncDriveStep,
+      ncCompCreate, ncCompApply, ncCompStep,
+      ncWidthCreate, ncWidthApply, ncWidthStep,
       ncLimiterCreate, ncLimiterStep,
       ncWidgetCreate, ncWidgetApply, ncClearState, ncWidgetStep,
       ncChainCreate, ncKeep, ncFade, ncChainSet, ncChainAdd, ncSame, ncChainOrder, ncChainPatch, ncChainClear, ncRender
