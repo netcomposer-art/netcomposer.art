@@ -1678,27 +1678,29 @@
     return a[0] || 1;
   }
   function buildPlan(seed, bufs) {
-    var sounds = gatherSounds || [], n = sounds.length, slots = planSlots(n, seed), entries = [], i, slot, len, cap, end = 0;
+    var sounds = gatherSounds || [], n = sounds.length, slots = planSlots(n, seed), caps = [], i, cap;
     for (i = 0; i < n; i++) {
-      slot = slots[i] || { t: end, dur: 1.25 };
-      len = +(+slot.dur).toFixed(3);
       cap = sounds[i].duration_s;
       if (!(cap > 0) && bufs && bufs[i]) cap = Math.max(0, bufs[i].duration - (sounds[i].start_s || 0));
-      if (cap > 0 && len > cap + 0.001) len = Math.floor(cap * 1000) / 1000;
-      if (!(len > 0)) len = Math.min(slot.dur, 0.1);
-      entries.push({
+      caps.push(cap > 0 ? cap : 0);
+    }
+    var written = !!(gatherClock && gatherClock.written && gatherClock.slots && gatherClock.slots.length === n);
+    var asm = window.NCAssembly;
+    // Back to back unless the Composition wrote the clock or asked for a gap.
+    var placed = asm.placeChords(slots, caps, { written: written, gap: asm.explicitGap(pieceWords()) });
+    var entries = placed.entries.map(function (p, i) {
+      return {
         pos: i,
         chord: sounds[i].symbol || gatherNames[i] || '',
         clip_id: sounds[i].clip_id || ('c' + i),
-        at_s: +(+slot.t).toFixed(3),
-        len_s: +len.toFixed(3),
+        at_s: p.at_s,
+        len_s: p.len_s,
         gain_db: gainFor(sounds[i]),
         fade_in_ms: 12,
         fade_out_ms: 12
-      });
-      end = +(+slot.t + +slot.dur).toFixed(3);
-    }
-    return { nc_assembly_version: '1', gather_id: gatherId, seed: seed, entries: entries, total_s: end };
+      };
+    });
+    return { nc_assembly_version: '1', gather_id: gatherId, seed: seed, entries: entries, total_s: placed.total_s };
   }
   function silenceWav(seconds) {
     var rate = 8000, n = Math.max(1, Math.round((seconds || 0) * rate)), dataLen = n * 2;
