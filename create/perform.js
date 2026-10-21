@@ -864,7 +864,8 @@
   // Otherwise NCAssembly.chordSlots places one section of the gathered chords.
   // len_s is at most the clip's duration_s. Fades are 12 ms. gain_db is copied.
   // Save posts multipart /api/keep-take: gather_id, claim_token, take_state, audio,
-  // title?, listed?, turnstile_token. take_state is {nc_take_version:'1', plan, processing}.
+  // title?, listed?, turnstile_token. take_state is {nc_take_version:'2', plan, processing}.
+  // processing.schema is 2. processing.chain is [{id, type, version, bypass, params}], limiter last.
   // 200 done shows the page. 202 queued is polled. 400 rejected is shown as sent.
   function fromCollection() { return !!(gatherOn && gatherId); }
   function num(v) {
@@ -1437,19 +1438,24 @@
   }
   var SAVE_CAP = 40 * 1024 * 1024, STATE_CAP = 64 * 1024;
   function processingOf(list) {
-    var params = {}, names = [];
+    var chain = [];
     (list || []).forEach(function (node) {
-      if (!node) return;
-      if (node.type) names.push(String(node.type));
-      if (!node.params) return;
-      Object.keys(node.params).forEach(function (key) { params[key] = node.params[key]; });
+      if (!node || !node.type) return;
+      var item = {
+        id: node.id || node.type,
+        type: String(node.type),
+        version: node.version || 1,
+        bypass: !!node.bypass,
+        params: node.params || {}
+      };
+      if (node.fixed) item.fixed = true;
+      chain.push(item);
     });
-    if (!names.length) names = ['lowpass', 'delay'];
-    return { chain: names, params: params };
+    return { schema: 2, chain: chain };
   }
   function takeBody(plan, chain) {
     return {
-      nc_take_version: '1',
+      nc_take_version: '2',
       plan: {
         nc_assembly_version: '1',
         gather_id: plan.gather_id,
