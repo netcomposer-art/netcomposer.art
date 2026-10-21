@@ -22,6 +22,8 @@
   'use strict';
   var MIN_LEN_S = 0.05;
   var MAX_TOTAL_S = 180;
+  // A pull this far past the recording's end counts as asking for more.
+  var CLIP_EPS_S = 0.005;
 
   function secs(n) {
     return +(+n).toFixed(3);
@@ -117,11 +119,14 @@
     var cap = capFor(entries, caps, index);
     var floor = minLen(cap);
     var n = neighbors(entries, index);
-    var minAt = Math.max(0, n.prev, secs(end - cap));
+    var clipAt = secs(end - cap);
+    var minAt = Math.max(0, n.prev, clipAt);
     var maxAt = Math.min(n.next, secs(end - floor));
-    if (!(maxAt >= minAt)) return unchanged(entries, base);
-    at = Math.max(minAt, Math.min(maxAt, +at));
-    return replaced(entries, index, at, end - at, base);
+    // The recording, not the neighbors or 0, is what stopped this start.
+    var whole = +at < clipAt - CLIP_EPS_S && clipAt >= Math.max(0, n.prev);
+    var r = !(maxAt >= minAt) ? unchanged(entries, base) : replaced(entries, index, Math.max(minAt, Math.min(maxAt, +at)), end - Math.max(minAt, Math.min(maxAt, +at)), base);
+    if (whole) { r.clipBlock = true; r.clip_s = cap; }
+    return r;
   }
 
   // End edge. The start stays put. The length cannot pass the natural length
@@ -140,16 +145,18 @@
       if (+end > writtenEnd + 1e-9) refused = true;
       if (writtenEnd < maxEnd) maxEnd = writtenEnd;
     }
-    if (!(maxEnd >= minEnd)) {
-      var held = unchanged(entries, base);
-      if (clock) held.total_s = writtenSum(clock);
-      if (refused) held.writtenBlock = true;
-      return held;
+    // Past the whole recording (and not past a written length, whose note
+    // wins): nothing is stretched, so the page says why the edge stopped.
+    var whole = !refused && +end > secs(at + cap) + CLIP_EPS_S && secs(at + cap) <= MAX_TOTAL_S;
+    var result;
+    if (!(maxEnd >= minEnd)) result = unchanged(entries, base);
+    else {
+      end = Math.max(minEnd, Math.min(maxEnd, +end));
+      result = replaced(entries, index, at, end - at, base);
     }
-    end = Math.max(minEnd, Math.min(maxEnd, +end));
-    var result = replaced(entries, index, at, end - at, base);
     if (clock) result.total_s = writtenSum(clock);
     if (refused) result.writtenBlock = true;
+    if (whole) { result.clipBlock = true; result.clip_s = cap; }
     return result;
   }
 
@@ -182,7 +189,113 @@
     return r;
   }
 
+    // ---------- the playhead ----------
+  // The time under a pointer, clamped to the take.
+  function timeAt(x, left, width, dur) {
+    if (!(width > 0) || !(dur > 0)) return 0;
+    var f = (+x - left) / width;
+    if (!(f > 0)) f = 0;
+    if (f > 1) f = 1;
+    return secs(f * dur);
+  }
+  // A ruler row above the first lane, with a dot that shows where the take
+  // is and can be dragged to seek. The line under the dot runs down through
+  // the lanes but never takes a pointer, so bars keep every gesture.
+  // opts: lanes (the #src-lanes element), duration() in seconds, seek(t),
+  // preview(t) while scrubbing (optional).
+  function playhead(opts) {
+    var lanes = opts.lanes, doc = lanes.ownerDocument;
+    var old = lanes.parentNode && lanes.parentNode.querySelector('.src-ruler');
+    if (old && old.parentNode) old.parentNode.removeChild(old);
+    var oldLine = lanes.querySelector('.src-playline');
+    if (oldLine) lanes.removeChild(oldLine);
+    var ruler = doc.createElement('div'), knob = doc.createElement('div'), dot = doc.createElement('span'), line = doc.createElement('div');
+    ruler.className = 'src-ruler';
+    knob.className = 'src-knob';
+    dot.className = 'src-dot';
+    line.className = 'src-playline';
+    line.setAttribute('aria-hidden', 'true');
+    ruler.tabIndex = 0;
+    ruler.setAttribute('role', 'slider');
+    ruler.setAttribute('aria-label', 'Play position');
+    ruler.setAttribute('aria-valuemin', '0');
+    knob.appendChild(dot);
+    ruler.appendChild(knob);
+    lanes.parentNode.insertBefore(ruler, lanes);
+    lanes.appendChild(line);
+    var now = 0, scrub = null;
+    function dur() { var d = +opts.duration(); return d > 0 ? d : 0; }
+    function box() {
+      var track = lanes.querySelector('.src-track');
+      var r = (track || ruler).getBoundingClientRect();
+      return { left: r.left, width: r.width };
+    }
+    function place(t) {
+      var d = dur();
+      now = Math.max(0, Math.min(d, +t || 0));
+      var f = d > 0 ? now / d : 0;
+      ruler.style.setProperty('--f', String(f));
+      lanes.style.setProperty('--f', String(f));
+      ruler.setAttribute('aria-valuemax', String(+d.toFixed(1)));
+      ruler.setAttribute('aria-valuenow', String(+now.toFixed(1)));
+      ruler.setAttribute('aria-valuetext', now.toFixed(1) + ' s of ' + d.toFixed(1) + ' s');
+    }
+    function fromEvent(ev) {
+      var b = box();
+      return timeAt(ev.clientX, b.left, b.width, dur());
+    }
+    function finish(ev) {
+      if (!scrub || (ev && ev.pointerId != null && ev.pointerId !== scrub.id)) return;
+      var t = now;
+      try { if (ruler.hasPointerCapture && ruler.hasPointerCapture(scrub.id)) ruler.releasePointerCapture(scrub.id); } catch (e) {}
+      scrub = null;
+      ruler.classList.remove('scrubbing');
+      opts.seek(t);
+    }
+    ruler.addEventListener('pointerdown', function (ev) {
+      if (ev.button != null && ev.button !== 0) return;
+      if (scrub || !(dur() > 0)) return;
+      ev.preventDefault();
+      ev.stopPropagation();
+      scrub = { id: ev.pointerId };
+      ruler.classList.add('scrubbing');
+      if (ruler.focus) ruler.focus({ preventScroll: true });
+      try { ruler.setPointerCapture(ev.pointerId); } catch (e) {}
+      place(fromEvent(ev));
+      if (opts.preview) opts.preview(now);
+    });
+    ruler.addEventListener('pointermove', function (ev) {
+      if (!scrub || ev.pointerId !== scrub.id) return;
+      ev.preventDefault();
+      place(fromEvent(ev));
+      if (opts.preview) opts.preview(now);
+    });
+    ruler.addEventListener('pointerup', finish);
+    ruler.addEventListener('pointercancel', finish);
+    ruler.addEventListener('lostpointercapture', finish);
+    ruler.addEventListener('keydown', function (ev) {
+      var step = ev.shiftKey ? 5 : 1, t = null;
+      if (ev.key === 'ArrowLeft' || ev.key === 'ArrowDown') t = now - step;
+      else if (ev.key === 'ArrowRight' || ev.key === 'ArrowUp') t = now + step;
+      else if (ev.key === 'Home') t = 0;
+      else if (ev.key === 'End') t = dur();
+      if (t == null) return;
+      ev.preventDefault();
+      place(t);
+      opts.seek(now);
+    });
+    place(0);
+    return {
+      place: function (t) { if (!scrub) place(t); },
+      scrubbing: function () { return !!scrub; },
+      ruler: ruler,
+      line: line
+    };
+  }
+
   root.NCTimelineEdit = {
+    timeAt: timeAt,
+    playhead: playhead,
     edit: edit,
     chords: chords,
     idOf: idOf,

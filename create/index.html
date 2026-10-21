@@ -47,9 +47,18 @@ details.fold{margin:1.8rem 0}details.fold>summary{cursor:pointer;color:#555;font
 .src-track{position:relative;height:2px;background:#eee}.src-span{position:absolute;top:0;height:100%;background:#000}
 .src-head{position:absolute;top:-3px;bottom:-3px;width:1px;background:#000;pointer-events:none}
 #src-time.editing{touch-action:none;-webkit-user-select:none;user-select:none}
-#src-time.editing #src-lanes{--lane:28px;--grip:12px;padding:.45rem 0;overflow-x:clip;overflow-clip-margin:calc(var(--grip) + 4px)}
+#src-time{--pad:0px;--rule:22px;--knob:32px}#src-time.editing{--lane:28px;--grip:12px;--pad:var(--grip)}
+#src-time.editing #src-lanes{margin:0 calc(-1 * var(--pad));padding:.45rem var(--pad);overflow-x:clip}
 #src-time.editing #src-lanes.dense{--lane:18px}
-@media(pointer:coarse){#src-time.editing #src-lanes{--lane:36px;--grip:22px}#src-time.editing #src-lanes.dense{--lane:26px}}
+@media(pointer:coarse){#src-time{--rule:34px;--knob:44px}#src-time.editing{--lane:36px;--grip:22px}#src-time.editing #src-lanes.dense{--lane:26px}}
+#src-lanes{position:relative}
+.src-ruler{position:relative;height:var(--rule);margin:0 calc(-1 * var(--pad));cursor:pointer;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;outline:none}
+.src-knob{position:absolute;top:0;bottom:0;width:var(--knob);left:calc(var(--pad) + (100% - 2 * var(--pad)) * var(--f, 0));transform:translateX(-50%);cursor:grab}
+.src-ruler.scrubbing,.src-ruler.scrubbing .src-knob{cursor:grabbing}
+.src-dot{position:absolute;left:50%;bottom:4px;width:8px;height:8px;margin-left:-4px;border-radius:50%;background:#000}
+.src-knob::after{content:"";position:absolute;left:50%;margin-left:-1px;width:2px;bottom:0;height:5px;background:#000}
+.src-ruler:focus-visible .src-dot{outline:2px solid #000;outline-offset:2px}
+.src-playline{position:absolute;top:0;bottom:0;width:2px;margin-left:-1px;left:calc(var(--pad) + (100% - 2 * var(--pad)) * var(--f, 0));background:#000;pointer-events:none}
 #src-time.editing .src-lane{margin:0;padding:0;height:var(--lane);display:flex;align-items:center;cursor:default}
 #src-time.editing .src-track{flex:1 1 auto}
 #src-time.editing .src-span{cursor:grab;touch-action:none;-webkit-tap-highlight-color:transparent}
