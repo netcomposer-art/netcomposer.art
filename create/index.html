@@ -47,10 +47,18 @@ details.fold{margin:1.8rem 0}details.fold>summary{cursor:pointer;color:#555;font
 .src-track{position:relative;height:2px;background:#eee}.src-span{position:absolute;top:0;height:100%;background:#000}
 .src-head{position:absolute;top:-3px;bottom:-3px;width:1px;background:#000;pointer-events:none}
 #src-time.editing{touch-action:none;-webkit-user-select:none;user-select:none}
-#src-time.editing .src-lane{cursor:default}
+#src-time.editing #src-lanes{--lane:28px;--grip:12px;padding:.45rem 0;overflow-x:clip;overflow-clip-margin:calc(var(--grip) + 4px)}
+#src-time.editing #src-lanes.dense{--lane:18px}
+@media(pointer:coarse){#src-time.editing #src-lanes{--lane:36px;--grip:22px}#src-time.editing #src-lanes.dense{--lane:26px}}
+#src-time.editing .src-lane{margin:0;padding:0;height:var(--lane);display:flex;align-items:center;cursor:default}
+#src-time.editing .src-track{flex:1 1 auto}
 #src-time.editing .src-span{cursor:grab;touch-action:none;-webkit-tap-highlight-color:transparent}
-#src-time.editing .src-span::after{content:"";position:absolute;left:-14px;right:-14px;top:-0.7rem;bottom:-0.7rem}
-#src-time.editing .src-span.on-edge{cursor:ew-resize}
+#src-time.editing .src-span::after{content:"";position:absolute;left:0;right:0;top:calc(1px - var(--lane) / 2);bottom:calc(1px - var(--lane) / 2)}
+#src-time.editing .src-grip{position:absolute;z-index:1;top:calc(1px - var(--lane) / 2);bottom:calc(1px - var(--lane) / 2);width:var(--grip);cursor:ew-resize;touch-action:none}
+#src-time.editing .src-grip.start{right:100%}#src-time.editing .src-grip.end{left:100%}
+#src-time.editing .src-grip::before{content:"";position:absolute;top:calc(50% - 4px);height:8px;width:1px;background:#000;opacity:0}
+#src-time.editing .src-grip.start::before{right:0}#src-time.editing .src-grip.end::before{left:0}
+#src-time.editing .src-span:hover .src-grip::before,#src-time.editing .src-span:focus-visible .src-grip::before,#src-time.editing .src-span.dragging .src-grip::before,#src-time.editing .src-span.trimming .src-grip::before{opacity:.45}
 #src-time.editing .src-span.dragging{cursor:grabbing}
 #src-time.editing .src-span:focus-visible{outline:2px solid #000;outline-offset:6px}
 #src-lock{margin:.45rem 0 0}#src-now{margin:.9rem 0 0}

@@ -13,6 +13,11 @@
 // Starts stay put, the take stays the sum of those durations, and an end
 // can only get shorter than its written duration. writtenBlock marks a
 // gesture the clock refused.
+//
+// Every chord instance has its own id (chord-<position>). Positions never
+// change, because Save needs the chords in harmonic order, so the id stays
+// put for the whole take. Two chords with the same symbol (G13 twice) are
+// two ids. An edit only ever replaces the one entry it names.
 (function (root) {
   'use strict';
   var MIN_LEN_S = 0.05;
@@ -33,8 +38,8 @@
     if (!(cap > 0)) return MIN_LEN_S;
     return Math.min(MIN_LEN_S, cap);
   }
-  function retotal(entries) {
-    var m = 0, i, end;
+  function retotal(entries, base) {
+    var m = base > 0 ? secs(Math.min(MAX_TOTAL_S, base)) : 0, i, end;
     for (i = 0; i < entries.length; i++) {
       end = secs(+entries[i].at_s + +entries[i].len_s);
       if (end > m) m = end;
@@ -48,13 +53,13 @@
     o.len_s = secs(len);
     return o;
   }
-  function replaced(entries, index, at, len) {
+  function replaced(entries, index, at, len, base) {
     var next = entries.slice();
     next[index] = copyTiming(entries[index], at, len);
-    return { entries: next, total_s: retotal(next) };
+    return { entries: next, total_s: retotal(next, base) };
   }
-  function unchanged(entries) {
-    return { entries: entries.slice(), total_s: retotal(entries) };
+  function unchanged(entries, base) {
+    return { entries: entries.slice(), total_s: retotal(entries, base) };
   }
   // A written clock is one positive duration per chord. Anything else leaves
   // the organic editor alone.
@@ -87,7 +92,7 @@
   // Move the whole bar. The recording's length stays. The start cannot pass
   // the previous or the next chord, so the harmony stays in order while the
   // tails may still overlap.
-  function move(entries, index, at, caps, written) {
+  function move(entries, index, at, caps, written, base) {
     if (!entries || !entries[index]) return { entries: entries || [], total_s: 0 };
     var clock = writtenOf(written, entries.length);
     if (clock) return locked(entries, clock);
@@ -95,15 +100,15 @@
     var n = neighbors(entries, index);
     var minAt = Math.max(0, n.prev);
     var maxAt = Math.min(n.next, secs(MAX_TOTAL_S - len));
-    if (!(maxAt >= minAt)) return unchanged(entries);
+    if (!(maxAt >= minAt)) return unchanged(entries, base);
     at = Math.max(minAt, Math.min(maxAt, +at));
-    return replaced(entries, index, at, len);
+    return replaced(entries, index, at, len, base);
   }
 
   // Start edge. The end stays put. The clip still plays from its beginning,
   // so a later start is a shorter play and an earlier start can reveal more
   // of the recording, up to its natural length.
-  function trimStart(entries, index, at, caps, written) {
+  function trimStart(entries, index, at, caps, written, base) {
     if (!entries || !entries[index]) return { entries: entries || [], total_s: 0 };
     var clock = writtenOf(written, entries.length);
     if (clock) return locked(entries, clock);
@@ -114,14 +119,14 @@
     var n = neighbors(entries, index);
     var minAt = Math.max(0, n.prev, secs(end - cap));
     var maxAt = Math.min(n.next, secs(end - floor));
-    if (!(maxAt >= minAt)) return unchanged(entries);
+    if (!(maxAt >= minAt)) return unchanged(entries, base);
     at = Math.max(minAt, Math.min(maxAt, +at));
-    return replaced(entries, index, at, end - at);
+    return replaced(entries, index, at, end - at, base);
   }
 
   // End edge. The start stays put. The length cannot pass the natural length
   // or 180 s, and it keeps enough of the clip for the short fades.
-  function trimEnd(entries, index, end, caps, written) {
+  function trimEnd(entries, index, end, caps, written, base) {
     if (!entries || !entries[index]) return { entries: entries || [], total_s: 0 };
     var at = +entries[index].at_s;
     var cap = capFor(entries, caps, index);
@@ -136,19 +141,52 @@
       if (writtenEnd < maxEnd) maxEnd = writtenEnd;
     }
     if (!(maxEnd >= minEnd)) {
-      var held = unchanged(entries);
+      var held = unchanged(entries, base);
       if (clock) held.total_s = writtenSum(clock);
       if (refused) held.writtenBlock = true;
       return held;
     }
     end = Math.max(minEnd, Math.min(maxEnd, +end));
-    var result = replaced(entries, index, at, end - at);
+    var result = replaced(entries, index, at, end - at, base);
     if (clock) result.total_s = writtenSum(clock);
     if (refused) result.writtenBlock = true;
     return result;
   }
 
+  // One record per chord instance. The id is the only key the strip uses.
+  function idOf(index) {
+    return 'chord-' + index;
+  }
+  function indexOf(entries, id) {
+    var m = /^chord-(\d+)$/.exec(String(id == null ? '' : id));
+    if (!m || !entries) return -1;
+    var i = +m[1];
+    return i < entries.length && entries[i] ? i : -1;
+  }
+  function chords(entries) {
+    return (entries || []).map(function (e, i) {
+      return { id: idOf(i), index: i, symbol: (e && e.chord) || '', clip_id: (e && e.clip_id) || '' };
+    });
+  }
+  // One gesture step on one chord. opts: caps, written, base (the take length
+  // as gathered; an organic take never gets shorter than that from an edit
+  // elsewhere). Every other entry comes back as the very same object.
+  function edit(entries, id, mode, time, opts) {
+    opts = opts || {};
+    var index = indexOf(entries, id);
+    if (index < 0) return { entries: (entries || []).slice(), total_s: retotal(entries || [], opts.base), index: -1 };
+    var fn = mode === 'start' ? trimStart : (mode === 'end' ? trimEnd : move);
+    var r = fn(entries, index, time, opts.caps, opts.written, opts.base);
+    r.index = index;
+    r.id = idOf(index);
+    return r;
+  }
+
   root.NCTimelineEdit = {
+    edit: edit,
+    chords: chords,
+    idOf: idOf,
+    indexOf: indexOf,
     move: move,
     trimStart: trimStart,
     trimEnd: trimEnd,
