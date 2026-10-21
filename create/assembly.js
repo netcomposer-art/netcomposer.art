@@ -303,7 +303,10 @@
     if (/last bar\b.{0,40}\b(held|ring)/i.test(text)) return 1;
     return 0;
   }
-  function takeSeconds(text) {
+  // The length the Composition states, in seconds, or null when it states none.
+  // With none, the piece is as long as its gathered recordings (Petrus, 2026-10-21).
+  function statedSeconds(text) { return takeSeconds(text, true); }
+  function takeSeconds(text, open) {
     text = text || '';
     var bars = text.match(/(\d+)\s*bars?/i);
     var bpm = text.match(/(\d+(?:\.\d+)?)\s*BPM/i);
@@ -313,7 +316,7 @@
     mins = text.match(/(\d+(?:\.\d+)?)\s*-?\s*(?:minutes?|mins?|m)\b(?:\s*(\d+)\s*(?:seconds?|secs?|s)\b)?/i);
     if (mins) return Math.max(20, Math.min(600, +mins[1] * 60 + +(mins[2] || 0)));
     secs = text.match(/(\d+(?:\.\d+)?)\s*(?:seconds?|secs?|s)\b/i);
-    return secs ? Math.max(20, Math.min(600, +secs[1])) : 120;
+    return secs ? Math.max(20, Math.min(600, +secs[1])) : (open ? null : 120);
   }
 
   // A gap only when the Composition asks for one in so many words:
@@ -330,12 +333,13 @@
   // instead of leaving silence.
   function placeChords(slots, caps, opts) {
     opts = opts || {};
-    var keep = !!(opts.written || opts.gap), out = [], cursor = 0, end = 0, i, slot, len, cap, at;
+    var keep = !!(opts.written || (opts.gap && slots.every(function (s) { return s && isFinite(s.dur); }))), out = [], cursor = 0, end = 0, i, slot, len, cap, at;
     for (i = 0; i < slots.length; i++) {
       slot = slots[i] || { t: end, dur: 1.25 };
       len = +(+slot.dur).toFixed(3);
       cap = caps && caps[i];
       if (cap > 0 && len > cap + 0.001) len = Math.floor(cap * 1000) / 1000;
+      if (!isFinite(len)) len = 1.25;
       if (!(len > 0)) len = Math.min(slot.dur, 0.1);
       len = +len.toFixed(3);
       at = keep ? +(+slot.t).toFixed(3) : cursor;
@@ -356,6 +360,7 @@
     statedPulse: statedPulse,
     broadenBars: broadenBars,
     takeSeconds: takeSeconds,
+    statedSeconds: statedSeconds,
     pyRandom: PyRandom
   };
 })(typeof globalThis !== 'undefined' ? globalThis : this);
