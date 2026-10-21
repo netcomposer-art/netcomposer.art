@@ -268,6 +268,8 @@ function mount(url) {
     neu.playsInline = true;
     neu.preload = 'metadata';
     neu.crossOrigin = 'anonymous';
+    neu.title = 'Play/stop: Space';
+    neu.setAttribute('aria-keyshortcuts', 'Space');
     neu.loop = $('lloop').checked;
     if (next) neu.src = next;
     a.replaceWith(neu);
@@ -912,6 +914,55 @@ $('lloop').addEventListener('change', function () {
   logEvent({event: 'loop', value: $('lloop').checked});
 });
 $('play').addEventListener('click', function () { if (live || !player().paused) stop('The preview took over.'); });
+// Space plays and stops the Performance from anywhere on the page while Live is up, the same as the
+// player's own button (it resumes from the playhead). Typing keeps Space: text fields, textareas,
+// contenteditable, selects. On a button, checkbox, link or slider, Space plays/stops instead of
+// pressing it, and never scrolls the page.
+var spaceHeld = false;
+function isSpace(e) { return e.key === ' ' || e.key === 'Spacebar' || e.code === 'Space'; }
+function typingIn(el) {
+  if (!el || el.nodeType !== 1) return false;
+  if (el.isContentEditable) return true;
+  var tag = el.tagName;
+  if (tag === 'TEXTAREA' || tag === 'SELECT') return true;
+  if (tag === 'INPUT') return !/^(button|submit|reset|checkbox|radio|range|file|color|image)$/i.test(el.type || 'text');
+  return false;
+}
+function spaceTarget(e) {
+  var el = (e.composedPath && e.composedPath()[0]) || e.target;
+  if (el && el.nodeType !== 1) el = el.parentElement;
+  return el;
+}
+function liveUp() {
+  var a = player();
+  return !!(a && a.getAttribute('src') && !$('live').hidden && !$('perform-out').hidden);
+}
+function toggleTake() {
+  var a = player();
+  if (!a) return;
+  if (a.paused) {
+    if (AC && AC.state === 'suspended') AC.resume();
+    var p = a.play();
+    if (p && p.catch) p.catch(function () { status('Press play on the player.'); });
+  } else a.pause();
+}
+window.addEventListener('keydown', function (e) {
+  if (!isSpace(e) || e.ctrlKey || e.metaKey || e.altKey || e.shiftKey) return;
+  var el = spaceTarget(e);
+  if (typingIn(el) || typingIn(document.activeElement)) return;
+  if (!liveUp()) return;
+  if (e.defaultPrevented) { spaceHeld = true; return; }   // a timeline bar already played/stopped
+  e.preventDefault();
+  spaceHeld = true;
+  if (e.repeat) return;
+  toggleTake();
+});
+// The button or checkbox would act on keyup; Space already played/stopped, so swallow it.
+document.addEventListener('keyup', function (e) {
+  if (!isSpace(e) || !spaceHeld) return;
+  spaceHeld = false;
+  e.preventDefault();
+}, true);
 readouts(); buttons();
 window.NCLive = {settings: settings, cutoffHz: cutoffHz, validate: validate, open: open, hide: hide, level: level, bands: bands, prime: prime, render: render,
   adjusted: adjusted, chain: chain, applyChain: applyChain, scheduleClips: scheduleClips, stopClips: stopClips, renderBuffers: renderBuffers,
