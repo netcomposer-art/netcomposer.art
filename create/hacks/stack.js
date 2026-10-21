@@ -137,13 +137,7 @@
     var btn = art.querySelector('.hack-bypass');
     if (!btn) return;
     btn.setAttribute('aria-pressed', on ? 'true' : 'false');
-    var waves = btn.querySelectorAll('.hack-wave');
     var slash = btn.querySelector('.hack-slash');
-    var i;
-    for (i = 0; i < waves.length; i++) {
-      if (on) waves[i].setAttribute('hidden', '');
-      else waves[i].removeAttribute('hidden');
-    }
     if (slash) {
       if (on) slash.removeAttribute('hidden');
       else slash.setAttribute('hidden', '');
@@ -265,10 +259,10 @@
       finish(false);
     });
   }
-  var TRI_UP = '<svg viewBox="0.3 0.3 15.4 13.4" width="15" height="12" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linejoin="round"><path d="M8 1.2 14.7 12.5H1.3Z"/></svg>';
-  var TRI_DN = '<svg viewBox="0.3 0.3 15.4 13.4" width="15" height="12" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linejoin="round"><path d="M8 12.8 1.3 1.5h13.4Z"/></svg>';
-  var SPEAKER = '<svg viewBox="0.4 1.5 17.4 12.9" width="20" height="15" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.05" stroke-linecap="round" stroke-linejoin="round"><path d="M1.2 5.8h2.4L8.4 2.5v11L3.6 10.2H1.2z"/><path class="hack-wave" d="M10.5 5.5a3.2 3.2 0 0 0 0 5"/><path class="hack-wave" d="M13.4 3.1a6 6 0 0 0 0 9.8"/><path class="hack-slash" d="M1.7 13.1 16.6 2.5" hidden/></svg>';
-  var CROSS = '<svg viewBox="0.5 0.5 11 11" width="13" height="13" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.05" stroke-linecap="round"><path d="M1.5 1.5l9 9M10.5 1.5 1.5 10.5"/></svg>';
+  var TRI_UP = '<svg viewBox="0 0 20 18" width="20" height="18" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M10 1.5 18.5 16.5H1.5Z"/></svg>';
+  var TRI_DN = '<svg viewBox="0 0 20 18" width="20" height="18" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M10 16.5 1.5 1.5h17Z"/></svg>';
+  var SPEAKER = '<svg viewBox="0 0 32 32" width="32" height="32" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3.4 12.2h5.4v7.6H3.4z"/><path d="M8.8 12.2 16 7.2v17.6L8.8 19.8z"/><path class="hack-wave" d="M19.4 11.2Q28.2 16 19.4 20.8"/><path class="hack-wave" d="M23.2 7.4Q36.2 16 23.2 24.6"/><path class="hack-slash" d="M3.2 27.4 30.2 4.6" hidden/></svg>';
+  var CROSS = '<svg viewBox="0 0 32 32" width="32" height="32" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M7.5 7.5 24.5 24.5M24.5 7.5 7.5 24.5"/></svg>';
   function moveButton(type, dir) {
     var btn = document.createElement('button');
     btn.type = 'button';
