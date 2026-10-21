@@ -85,12 +85,26 @@
   // Gather has its own line in the Gather section. Pages without it fall back to the Perform line.
   function gstatus(t, warn) {
     if (!$('gather-status')) { status(t, warn); return; }
-    if (t === '') { $('gather-status').textContent = ''; $('gather-status').className = 'm'; return; }
+    if (t === '') { $('gather-status').textContent = ''; $('gather-status').className = 'm'; gsync(); return; }
     var clean = soften(t);
     if (!clean) clean = 'Perform did not answer. The service may be down. Try again in a moment.';
     var s = $('gather-status');
     s.textContent = clean;
     s.className = warn ? 'm warn' : 'm';
+    gsync();
+  }
+  // A copy of the Gather line sits under the gathered list, so someone who
+  // scrolls on to Perform still sees it. It mirrors the top line: same text,
+  // same Stop. It shows only while the list does.
+  function gsync() {
+    var top = $('gather-status'), end = $('gather-status-end'), line = $('gather-line-end');
+    if (!top || !end || !line) return;
+    if (end.textContent !== top.textContent) end.textContent = top.textContent;
+    if (end.className !== top.className) end.className = top.className;
+    var st = $('gather-stop'), se = $('gather-stop-end');
+    if (st && se) { se.hidden = st.hidden; se.disabled = st.disabled; }
+    var box = $('gather-box');
+    line.hidden = !top.textContent || !box || box.hidden;
   }
   function soften(msg) {
     var t = String(msg || '').replace(/\s+/g, ' ').trim();
@@ -136,6 +150,7 @@
       again.textContent = phase === 'gather' ? 'Gathering…' : 'Gather again';
     }
     if (box) box.hidden = !(has || (phase === 'gather' && gatherLive.length));
+    gsync();
     // Perform stays in view, disabled until a Gather; the muted line says why.
     pBtn.hidden = false;
     var wait = $('perform-wait');
@@ -685,7 +700,8 @@
     };
     es.onerror = function () { if (mine !== alive) return; if (es && es.readyState === 2) { stopWatch(); poll(id, on); } };
   }
-  function showStop() {
+  function showStop() { showStopNow(); gsync(); }
+  function showStopNow() {
     var btn = $('perform-stop'), gbtn = $('gather-stop');
     if (gbtn && phase === 'gather') {
       gbtn.hidden = !cancelOk;
@@ -704,6 +720,7 @@
   function hideStop() {
     var btn = $('perform-stop'), gbtn = $('gather-stop');
     if (gbtn) { gbtn.hidden = true; gbtn.disabled = false; }
+    gsync();
     if (!btn) return;
     btn.hidden = true;
     btn.disabled = false;
@@ -2369,6 +2386,7 @@
     var btn = $('perform-stop'), gbtn = $('gather-stop');
     if (btn) btn.disabled = true;
     if (gbtn) gbtn.disabled = true;
+    gsync();
     gatherGen++;
     alive++;
     if (gatherAbort) { try { gatherAbort.abort(); } catch (e) {} gatherAbort = null; }
@@ -2667,6 +2685,14 @@
   if ($('gather-again')) $('gather-again').onclick = function () { gather(true); };
   if ($('perform-stop')) $('perform-stop').onclick = cancelJob;
   if ($('gather-stop')) $('gather-stop').onclick = cancelJob;
+  if ($('gather-stop-end')) $('gather-stop-end').onclick = cancelJob;
+  // Catch any other change to the top line too, so the two never drift.
+  if (window.MutationObserver && $('gather-line')) {
+    var gobs = new MutationObserver(gsync);
+    gobs.observe($('gather-line'), {subtree: true, childList: true, characterData: true, attributes: true});
+    if ($('gather-box')) gobs.observe($('gather-box'), {attributes: true, attributeFilter: ['hidden']});
+  }
+  gsync();
   $('perform-edit').onclick = function (e) {
     e.preventDefault();
     var box = $('perf'), fold = $('perf-box');
