@@ -93,9 +93,10 @@
     s.className = warn ? 'm warn' : 'm';
     gsync();
   }
-  // A copy of the Gather line sits under the gathered list, so someone who
-  // scrolls on to Perform still sees it. It mirrors the top line: same text,
-  // same Stop. It shows only while the list does.
+  // A copy of the Gather line sits in the Perform row, where "Gather first."
+  // is, so someone who scrolls on to Perform still sees it. It mirrors the
+  // top line: same text, same Stop. It shows only while a Gather runs; then
+  // the slot goes back to what it shows without one.
   function gsync() {
     var top = $('gather-status'), end = $('gather-status-end'), line = $('gather-line-end');
     if (!top || !end || !line) return;
@@ -103,8 +104,9 @@
     if (end.className !== top.className) end.className = top.className;
     var st = $('gather-stop'), se = $('gather-stop-end');
     if (st && se) { se.hidden = st.hidden; se.disabled = st.disabled; }
-    var box = $('gather-box');
-    line.hidden = !top.textContent || !box || box.hidden;
+    line.hidden = !top.textContent || phase !== 'gather';
+    var wait = $('perform-wait');
+    if (wait && phase === 'gather') wait.hidden = true;
     gpaint();
   }
   // Gather progress. When the service reports it (progress, 0-100, per
@@ -192,7 +194,7 @@
     // Perform stays in view, disabled until a Gather; the muted line says why.
     pBtn.hidden = false;
     var wait = $('perform-wait');
-    if (wait) wait.hidden = !(gatherOn && !has && phase !== 'perform');
+    if (wait) wait.hidden = !(gatherOn && !has && phase !== 'perform' && phase !== 'gather');
     pBtn.disabled = !can || busy || (gatherOn && !has && phase !== 'perform');
     if (phase === 'perform' && busy && !playerJob) pBtn.textContent = (gatherOn && gatherId) ? 'Assembling…' : 'Performing…';
     else if (phase === 'perform' && busy) pBtn.textContent = 'Perform';

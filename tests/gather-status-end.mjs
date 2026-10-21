@@ -1,6 +1,8 @@
-// The Gather status line is repeated under the gathered list (Petrus,
-// 2026-10-21), so someone who scrolls on to Perform still sees it. Both
-// lines must say the same thing at every step, and both Stops must work.
+// The Gather status line is repeated in the Perform row, in the slot where
+// "Gather first." is (Petrus, 2026-10-21), so someone who scrolls on to
+// Perform still sees it. Both lines must say the same thing at every step,
+// and both Stops must work. The slot shows "Gather first." again when no
+// Gather is running and nothing is gathered.
 //
 // Each line also shows a percentage and a thin bar while gathering (Petrus,
 // 2026-10-21): found of total chords, never backwards, 100 only at done.
@@ -83,7 +85,12 @@ window.EventSource.prototype.close = function () { this.readyState = 2; };
 window.__push = function (o) { var s = window.__es; if (s && s.readyState !== 2 && s.onmessage) s.onmessage({data: JSON.stringify(o)}); };`;
 
 async function open(view = { width: 1100 }, prep = '') {
-  const target = await (await fetch(`http://127.0.0.1:${dbgPort}/json/new?about:blank`, { method: 'PUT' })).json();
+  // Chrome can take a moment to open its debugging port under load.
+  let target;
+  for (let i = 0; ; i++) {
+    try { target = await (await fetch(`http://127.0.0.1:${dbgPort}/json/new?about:blank`, { method: 'PUT' })).json(); break; }
+    catch (e) { if (i >= 50) throw e; await sleep(200); }
+  }
   ws = new WebSocket(target.webSocketDebuggerUrl);
   ws.addEventListener('message', async (ev) => {
     const msg = JSON.parse(ev.data);
@@ -136,7 +143,11 @@ const lines = (ev) => ev(`(() => {
     top: document.getElementById('gather-status').textContent, end: document.getElementById('gather-status-end').textContent,
     topCls: document.getElementById('gather-status').className, endCls: document.getElementById('gather-status-end').className,
     endShown: vis(end), topStop: vis(ts), endStop: vis(es), topDis: ts.disabled, endDis: es.disabled,
-    below: vis(end) && vis(box) ? end.getBoundingClientRect().top >= box.getBoundingClientRect().bottom - 1 : null,
+    inRow: !!end.closest('#perform-row'),
+    oldGone: !document.querySelector('#gather > #gather-line-end, #gather-box + #gather-line-end'),
+    wait: vis(document.getElementById('perform-wait')) ? document.getElementById('perform-wait').textContent : '',
+    btn: (function () { var r = document.getElementById('performBtn').getBoundingClientRect(); return Math.round(r.left) + ',' + Math.round(r.top - document.getElementById('perform-h').getBoundingClientRect().top); })(),
+    rowFits: (function () { var row = document.getElementById('perform-row').getBoundingClientRect(); return !vis(end) || end.getBoundingClientRect().right <= row.right + 1; })(),
     items: document.querySelectorAll('#gather-list li').length,
     pct: vis(document.getElementById('gather-pct')) ? document.getElementById('gather-pct').textContent : '',
     pctEnd: vis(document.getElementById('gather-pct-end')) ? document.getElementById('gather-pct-end').textContent : '',
@@ -158,12 +169,13 @@ function same(s, tag) {
   check(s.pct === s.pctEnd && s.bar === s.barEnd, tag + ': the two percentages differ: ' + s.pct + '/' + s.bar + ' vs ' + s.pctEnd + '/' + s.barEnd);
 }
 const pctOf = (k) => Math.min(99, Math.floor(100 * k / SYMS.length)) + '%';
-async function shoot(ev, name, view, extra = 50) {
+// From the Gather heading down to the Perform row.
+async function shoot(ev, name, view, extra = 30) {
   if (!process.env.SHOTS) return;
   mkdirSync(process.env.SHOTS, { recursive: true });
   await ev("window.scrollTo(0, document.getElementById('gather').getBoundingClientRect().top + scrollY - 20)");
   await sleep(350);
-  const r = await ev("(() => { var a = document.getElementById('gather').getBoundingClientRect(), b = document.getElementById('gather-line-end').getBoundingClientRect(), c = document.getElementById('gather-again-row').getBoundingClientRect(); return {y: a.top + scrollY - 20, h: Math.max(b.bottom, c.bottom) - a.top + " + extra + "}; })()");
+  const r = await ev("(() => { var a = document.getElementById('gather').getBoundingClientRect(), b = document.getElementById('perform-row').getBoundingClientRect(); return {y: a.top + scrollY - 20, h: b.bottom - a.top + " + extra + "}; })()");
   const shot = await send('Page.captureScreenshot', { format: 'png', captureBeyondViewport: true, clip: { x: 0, y: r.y, width: view.width, height: r.h, scale: 1 } });
   writeFileSync(join(process.env.SHOTS, name), Buffer.from(shot.data, 'base64'));
 }
@@ -173,7 +185,10 @@ try {
   // 1. Gather to the end, checking at every step.
   let { ev, until } = await open();
   let s = await lines(ev);
-  check(!s.endShown, 'before Gather the bottom line stays hidden (no list yet)');
+  check(!s.endShown && s.wait === 'Gather first.', 'before Gather the Perform slot says Gather first., got ' + JSON.stringify([s.endShown, s.wait]));
+  check(s.inRow && s.oldGone, 'the copy lives in the Perform row, not under the list');
+  const idleBtn = s.btn;
+  await shoot(ev, 'gather-perform-idle-desktop.png', { width: 1100 });
   await ev("document.getElementById('gatherBtn').click()");
   await until("!!window.__es");
   s = await lines(ev);
@@ -186,7 +201,9 @@ try {
     await sleep(120);
     s = await lines(ev);
     same(s, 'progress ' + k);
-    check(s.endShown && s.below, 'progress ' + k + ': the bottom line shows under the list');
+    check(s.endShown && s.inRow && s.wait === '', 'progress ' + k + ': the Perform slot shows the status instead of Gather first.');
+    check(s.btn === idleBtn, 'progress ' + k + ': the Perform button moved: ' + idleBtn + ' -> ' + s.btn);
+    check(s.rowFits, 'progress ' + k + ': the status runs past the Perform row');
     check(s.topStop && s.endStop, 'progress ' + k + ': both Stops show while gathering');
     check(s.top === 'Gathering…', 'progress ' + k + ': top says Gathering…, got ' + s.top);
     check(s.pct === pctOf(k) && s.bar === pctOf(k) && s.now === String(parseInt(pctOf(k))), 'progress ' + k + ': want ' + pctOf(k) + ', got ' + s.pct + ' bar ' + s.bar + ' aria ' + s.now);
@@ -196,7 +213,7 @@ try {
     check(parseInt(s.pct) < 100, 'progress ' + k + ': 100% before done');
     last = parseInt(s.pct); seen.push(s.pct);
     if (k === 5) {
-      await shoot(ev, 'gather-percent-mid-desktop.png', { width: 1100 });
+      await shoot(ev, 'gather-perform-mid-desktop.png', { width: 1100 });
       // A late message with fewer rows must not pull it back.
       await ev(`window.__push(${JSON.stringify({ id: G, gather_id: G, state: 'gathering', found_sounds: ROWS.slice(0, 2) })})`);
       await sleep(120);
@@ -215,10 +232,10 @@ try {
   await sleep(200);
   s = await lines(ev);
   same(s, 'done');
-  check(s.end === 'Gathered.' && s.endShown, 'done: the bottom line says Gathered. too');
+  check(!s.endShown && s.wait === '', 'done: the Perform slot is as it is after a Gather (no Gather first., no status)');
   check(!s.topStop && !s.endStop, 'done: both Stops hide');
   check(s.pct === '' && s.bar === '' && s.now === '100', 'done: Gathered. with no % or bar, aria 100; got ' + s.pct + ' / ' + s.bar + ' / ' + s.now);
-  await shoot(ev, 'gather-percent-done-desktop.png', { width: 1100 });
+  await shoot(ev, 'gather-perform-done-desktop.png', { width: 1100 });
   console.log('  steps: ' + seen.join(' ') + ' 99% (copying) Gathered.');
   ws.close();
 
@@ -239,13 +256,16 @@ try {
   check(cancels === before + 1, 'the bottom Stop sends one cancel, sent ' + (cancels - before));
   same(s, 'after bottom Stop');
   check(s.top === 'Stopped.' && !s.topStop && !s.endStop, 'after Stop both lines say Stopped. and both Stops hide');
-  check(s.endShown === (s.items > 0), 'after Stop the bottom line shows only with a list');
+  check(!s.endShown && s.wait === 'Gather first.', 'after Stop with nothing gathered the Perform slot says Gather first. again');
   check(s.pct === '' && s.bar === '', 'after Stop the % and bar hide');
   ws.close();
 
   // 3. Phone.
   const phone = { width: 390, mobile: true };
   ({ ev, until } = await open(phone));
+  s = await lines(ev);
+  const phoneBtn = s.btn;
+  await shoot(ev, 'gather-perform-idle-phone.png', phone);
   await ev("document.getElementById('gatherBtn').click()");
   await until("!!window.__es");
   await ev(`window.__push(${JSON.stringify({ id: G, gather_id: G, state: 'gathering', found_sounds: ROWS.slice(0, 5) })})`);
@@ -254,10 +274,11 @@ try {
   same(s, 'phone');
   check(s.pct === pctOf(5), 'phone: want ' + pctOf(5) + ', got ' + s.pct);
   check(await ev('document.documentElement.scrollWidth <= document.documentElement.clientWidth'), 'phone: the bar never widens the page');
-  await shoot(ev, 'gather-percent-mid-phone.png', phone);
+  check(s.btn === phoneBtn && s.rowFits, 'phone: the Perform button stays put and the status fits the row: ' + phoneBtn + ' -> ' + s.btn);
+  await shoot(ev, 'gather-perform-mid-phone.png', phone);
   await ev(`window.__push(${JSON.stringify({ id: G, gather_id: G, state: 'done', claim_token: 'claim-x', clock: null, sounds: ROWS, found_sounds: ROWS })})`);
   await until("document.getElementById('gather-status').textContent === 'Gathered.'");
-  await shoot(ev, 'gather-percent-done-phone.png', phone);
+  await shoot(ev, 'gather-perform-done-phone.png', phone);
   ws.close();
 
   // 4. Total unknown: no number, no bar, no fake progress.
