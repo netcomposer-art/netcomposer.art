@@ -48,10 +48,10 @@ details.fold{margin:1.8rem 0}details.fold>summary{cursor:pointer;color:#555;font
 .src-track{position:relative;height:2px;background:#eee}.src-span{position:absolute;top:0;height:100%;background:#000}
 .src-head{position:absolute;top:-3px;bottom:-3px;width:1px;background:#000;pointer-events:none}
 #src-time.editing{touch-action:none;-webkit-user-select:none;user-select:none}
-#src-time{--pad:0px;--rule:22px;--knob:32px}#src-time.editing{--lane:28px;--grip:12px;--pad:var(--grip)}
+#src-time{--pad:0px;--rule:22px;--knob:32px}#src-time.editing{--lane:28px;--grip:12px;--body:10px;--pad:calc(var(--grip) + var(--body) / 2)}
 #src-time.editing #src-lanes{margin:0 calc(-1 * var(--pad));padding:.45rem var(--pad);overflow-x:clip}
 #src-time.editing #src-lanes.dense{--lane:18px}
-@media(pointer:coarse){#src-time{--rule:34px;--knob:44px}#src-time.editing{--lane:36px;--grip:22px}#src-time.editing #src-lanes.dense{--lane:26px}}
+@media(pointer:coarse){#src-time{--rule:34px;--knob:44px}#src-time.editing{--lane:36px;--grip:22px;--body:18px}#src-time.editing #src-lanes.dense{--lane:26px}}
 #src-lanes{position:relative}
 .src-ruler{position:relative;height:var(--rule);margin:0 calc(-1 * var(--pad));cursor:pointer;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;outline:none}
 .src-knob{position:absolute;top:0;bottom:0;width:var(--knob);left:calc(var(--pad) + (100% - 2 * var(--pad)) * var(--f, 0));transform:translateX(-50%);cursor:grab}
@@ -63,9 +63,9 @@ details.fold{margin:1.8rem 0}details.fold>summary{cursor:pointer;color:#555;font
 #src-time.editing .src-lane{margin:0;padding:0;height:var(--lane);display:flex;align-items:center;cursor:default}
 #src-time.editing .src-track{flex:1 1 auto}
 #src-time.editing .src-span{cursor:grab;touch-action:none;-webkit-tap-highlight-color:transparent}
-#src-time.editing .src-span::after{content:"";position:absolute;left:0;right:0;top:calc(1px - var(--lane) / 2);bottom:calc(1px - var(--lane) / 2)}
+#src-time.editing .src-span::after{content:"";position:absolute;left:min(0px, (100% - var(--body)) / 2);right:min(0px, (100% - var(--body)) / 2);top:calc(1px - var(--lane) / 2);bottom:calc(1px - var(--lane) / 2)}
 #src-time.editing .src-grip{position:absolute;z-index:1;top:calc(1px - var(--lane) / 2);bottom:calc(1px - var(--lane) / 2);width:var(--grip);cursor:ew-resize;touch-action:none}
-#src-time.editing .src-grip.start{right:100%}#src-time.editing .src-grip.end{left:100%}
+#src-time.editing .src-grip.start{right:calc(100% + max(0px, (var(--body) - 100%) / 2))}#src-time.editing .src-grip.end{left:calc(100% + max(0px, (var(--body) - 100%) / 2))}
 #src-time.editing .src-grip::before{content:"";position:absolute;top:calc(50% - 4px);height:8px;width:1px;background:#000;opacity:0}
 #src-time.editing .src-grip.start::before{right:0}#src-time.editing .src-grip.end::before{left:0}
 #src-time.editing .src-span:hover .src-grip::before,#src-time.editing .src-span:focus-visible .src-grip::before,#src-time.editing .src-span.dragging .src-grip::before,#src-time.editing .src-span.trimming .src-grip::before{opacity:.45}
