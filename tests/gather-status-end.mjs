@@ -4,6 +4,8 @@
 //
 // Each line also shows a percentage and a thin bar while gathering (Petrus,
 // 2026-10-21): found of total chords, never backwards, 100 only at done.
+// When the service sends its finer progress (progress, progress_stage,
+// progress_done, progress_total), that number is shown instead.
 //
 // Headless Chrome, a stubbed Gather whose progress the test steps by hand.
 // Needs Chrome (CHROME=… or google-chrome on PATH) and Node 22 (global
@@ -268,6 +270,51 @@ try {
   check(s.pct === s.pctEnd && s.bar === s.barEnd, 'unknown total: the two lines differ');
   check(s.top === 'Gathering…' && s.pct === '' && s.bar === '', 'unknown total: Gathering… with no %, got ' + s.top + ' ' + s.pct + ' ' + s.bar);
   ws.close();
+
+  // 5. The service's finer progress, desktop and phone: its number, not the chord steps.
+  for (const view of [{ width: 1100 }, { width: 390, mobile: true }]) {
+    const tag = view.mobile ? 'phone' : 'desktop';
+    ({ ev, until } = await open(view));
+    await ev("document.getElementById('gatherBtn').click()");
+    await until("!!window.__es");
+    const steps = [
+      { progress: 3, progress_stage: 'searching', progress_done: 1, progress_total: 8, found: 0, want: '3%' },
+      { progress: 15, progress_stage: 'picking', progress_done: 0, progress_total: 8, found: 0, want: '15%' },
+      { progress: 21, progress_stage: 'picking', progress_done: 2, progress_total: 8, found: 2, want: '21%' },
+      { progress: 40, progress_stage: 'downloading', progress_done: 0, progress_total: 11, found: 8, want: '40%' },
+      { progress: 47, progress_stage: 'downloading', progress_done: 3, progress_total: 11, found: 8, want: '47%', shot: true },
+      { progress: 44, progress_stage: 'downloading', progress_done: 2, progress_total: 11, found: 8, want: '47%' },
+      { progress: 73, progress_stage: 'copying', progress_done: 1, progress_total: 8, found: 8, want: '73%' },
+      { progress: 85, progress_stage: 'saving', progress_done: 0, progress_total: 11, found: 8, want: '85%' },
+      { progress: 96, progress_stage: 'saving', progress_done: 9, progress_total: 11, found: 8, want: '96%' },
+      { progress: 99, progress_stage: 'saving', progress_done: 11, progress_total: 11, found: 8, want: '99%' },
+      { progress: 100, progress_stage: 'saving', progress_done: 11, progress_total: 11, found: 8, want: '99%' },
+    ];
+    let prev = -1;
+    const shown = [];
+    for (const st of steps) {
+      const { found, want, shot, ...fine } = st;
+      await ev(`window.__push(${JSON.stringify({ id: G, gather_id: G, state: 'gathering', percent: 40, found_sounds: ROWS.slice(0, found), ...fine })})`);
+      await sleep(120);
+      s = await lines(ev);
+      same(s, tag + ' fine ' + fine.progress);
+      check(s.pct === want && s.bar === want, tag + ': service progress ' + fine.progress + ' should show ' + want + ', got ' + s.pct + ' / ' + s.bar);
+      check(parseInt(s.pct) >= prev, tag + ': went backwards at ' + fine.progress);
+      check(s.now === String(parseInt(want)), tag + ': aria-valuenow ' + s.now + ' for ' + want);
+      prev = parseInt(s.pct);
+      shown.push(s.pct);
+      if (shot) await shoot(ev, 'gather-fine-mid-' + tag + '.png', view);
+    }
+    await ev(`window.__push(${JSON.stringify({ id: G, gather_id: G, state: 'done', claim_token: 'claim-x', clock: null, sounds: ROWS, found_sounds: ROWS, progress: 100, progress_stage: 'done' })})`);
+    await until("document.getElementById('gather-status').textContent === 'Gathered.'");
+    await sleep(200);
+    s = await lines(ev);
+    same(s, tag + ' fine done');
+    check(s.pct === '' && s.now === '100', tag + ': done shows Gathered. with aria 100');
+    await shoot(ev, 'gather-fine-done-' + tag + '.png', view);
+    if (!view.mobile) console.log('  service steps: ' + shown.join(' ') + ' Gathered.');
+    ws.close();
+  }
 } finally {
   proc.kill();
   server.close();
