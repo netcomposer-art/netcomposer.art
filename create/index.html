@@ -85,7 +85,7 @@ footer{max-width:46rem;margin:0 auto;padding:1.2rem 1.5rem 4rem;font-size:.85rem
 .hack-nudge .hack-down::after{left:-6px;right:-10px;top:-2px;bottom:-10px}
 .hack-tools{margin-left:auto;display:flex;align-items:center;gap:.5rem;flex:none}
 .hack-bypass,.hack-remove{position:relative;display:flex;align-items:center;justify-content:center;width:32px;height:32px;flex:none}
-.hack-bypass svg [hidden]{display:none}
+.hack-bypass svg [hidden]{display:none}#perform-vis[hidden]{display:none}
 .hack-bypass[aria-pressed="true"] .hack-wave{opacity:.28}
 .hack-bypass::after{left:-6px;right:-3px;top:-6px;bottom:-6px}
 .hack-remove::after{left:-3px;right:-10px;top:-6px;bottom:-6px}
@@ -122,7 +122,8 @@ footer{max-width:46rem;margin:0 auto;padding:1.2rem 1.5rem 4rem;font-size:.85rem
 <section id="perform">
 <h2 id="perform-h">Perform</h2>
 <p>One openly licensed recording for each chord, placed in order and level-matched. No further processing.</p>
-<div id="perf-box">
+<!-- Performance prompt hidden by Petrus 2026-10-20: Perform gathers the chord files the Composition needs and plays them by the Composition's rules plus your hacks. Markup and logic stay; remove the hidden attribute to restore it. While hidden, the page sends an empty prompt. -->
+<div id="perf-box" hidden>
 <label for="perf">Performance prompt</label>
 <textarea id="perf" placeholder="Describe how it should be performed (optional)."></textarea>
 <div class="row" role="group" aria-label="Performance prompt">
@@ -135,7 +136,7 @@ footer{max-width:46rem;margin:0 auto;padding:1.2rem 1.5rem 4rem;font-size:.85rem
 <div id="gather-box" hidden>
 <ul id="gather-list"></ul>
 </div>
-<div class="row"><button id="gatherBtn" type="button" hidden disabled>Gather</button><button id="performBtn" type="button" disabled>Perform</button><button type="button" id="gather-again" hidden>Gather again</button><label class="toggle" id="perform-vis" for="perform-public"><input id="perform-public" type="checkbox"> List it after a day</label></div>
+<div class="row"><button id="gatherBtn" type="button" hidden disabled>Gather</button><button id="performBtn" type="button" disabled>Perform</button><button type="button" id="gather-again" hidden>Gather again</button><!-- "List it after a day" hidden by Petrus 2026-10-20: the only listing is the /api/feed JSON, which no page shows. Hidden and unchecked, Save sends listed=false (unlisted). Remove the hidden attribute to restore it. --><label class="toggle" id="perform-vis" for="perform-public" hidden><input id="perform-public" type="checkbox"> List it after a day</label></div>
 <div id="perform-turnstile" hidden></div>
 <p class="m" id="perform-line"><span id="perform-status" aria-live="polite">Checking whether Perform is awake…</span><button type="button" id="perform-stop" hidden>Stop</button></p>
 <progress id="perform-bar" hidden max="100" value="0"></progress>
@@ -213,7 +214,8 @@ footer{max-width:46rem;margin:0 auto;padding:1.2rem 1.5rem 4rem;font-size:.85rem
 <p class="m">A take is a WAV of this Performance through the dials, plus a dial log, up to 10 minutes.</p>
 <div id="ltake" hidden><audio id="ltakeaudio" controls></audio><p class="m" id="ltakemeta"></p></div>
 </details>
-<p class="m"><a href="#perf-box" id="perform-edit">Change the prompt</a>, then press Perform again.</p>
+<!-- Hidden with the Performance prompt by Petrus 2026-10-20; restore with it. -->
+<p class="m" id="perform-edit-line" hidden><a href="#perf-box" id="perform-edit">Change the prompt</a>, then press Perform again.</p>
 </details>
 </div>
 </section>

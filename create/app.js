@@ -126,7 +126,7 @@ function writtenDurations(text, chords) {
 }
 // the timeline, the same rule as `nc interpret --stub`
 function timeline() {
-  var comp = $('comp').value, words = comp + ' ' + $('perf').value, fromComp = true;
+  var comp = $('comp').value, words = comp + ' ' + promptWords(), fromComp = true;
   var found = findChords(comp);
   if (!found.length) { found = findChords(words); fromComp = false; }
   if (!found.length) return null;
@@ -314,7 +314,12 @@ function restartSoon() { if (!active) return; clearTimeout(restartT); var at = c
 function status(t, warn) { var s = $('status'); s.textContent = t; s.className = warn ? 'm warn' : 'm'; }
 
 // ---------- composition.md, sketch (plan.json) ----------
-function state() { return {t: $('title').value.trim() || 'Untitled', by: $('by').value.trim() || 'anonymous', c: $('comp').value.trim(), p: $('perf').value.trim()}; }
+// The Performance prompt is hidden (Petrus, 2026-10-20). While its box is hidden,
+// nothing reads the prompt: Play, Gather, Perform and downloads see an empty one.
+// raw() still keeps the text in the link, so restoring the box brings it back.
+function promptOn() { var box = $('perf-box'); return !(box && box.hidden); }
+function promptWords() { return promptOn() ? $('perf').value : ''; }
+function state() { return {t: $('title').value.trim() || 'Untitled', by: $('by').value.trim() || 'anonymous', c: $('comp').value.trim(), p: promptWords().trim()}; }
 function toMd(S) {
   var d = new Date().toISOString().slice(0, 10);
   return '# ' + S.t + '\n\n**Composer of this Composition:** ' + S.by + ' · **License out:** CC BY-SA 4.0\n' +
