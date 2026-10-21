@@ -376,6 +376,8 @@
   }
   var TRI_UP = '<svg viewBox="0 0 20 18" width="20" height="18" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M10 1.5 18.5 16.5H1.5Z"/></svg>';
   var TRI_DN = '<svg viewBox="0 0 20 18" width="20" height="18" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M10 16.5 1.5 1.5h17Z"/></svg>';
+  // Speaker (bypass) icon. Credit: "speaker on" by masmooh, Noun Project
+  // (https://thenounproject.com/browse/icons/term/speaker-on/), CC BY 3.0, in the /create/ footer (#foot-speaker).
   var SPEAKER = '<svg viewBox="0 0 32 32" width="32" height="32" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3.4 12.2h5.4v7.6H3.4z"/><path d="M8.8 12.2 16 7.2v17.6L8.8 19.8z"/><path class="hack-wave" d="M19.4 11.2Q28.2 16 19.4 20.8"/><path class="hack-wave" d="M23.2 7.4Q36.2 16 23.2 24.6"/><path class="hack-slash" d="M3.2 27.4 30.2 4.6" hidden/></svg>';
   var CROSS = '<svg viewBox="0 0 32 32" width="32" height="32" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M7.5 7.5 24.5 24.5M24.5 7.5 7.5 24.5"/></svg>';
   function moveButton(type, dir, id) {
@@ -389,6 +391,206 @@
   function nameOf(type, id) {
     var m = /-(\d+)$/.exec(id || '');
     return LABELS[type] + (m && +m[1] > 1 ? ' ' + m[1] : '');
+  }
+  // ---------- dice: randomize one hack (with an A/B undo), or the whole stack ----------
+  function icons() { return window.NCIcons || { die: '⚄', undo: '↶', redo: '↷' }; }
+  // The undo slot sits left of the die and stays in the row when empty, so dice line up like the speakers.
+  function addDice(tools, type, id) {
+    if (tools.querySelector('.hack-die')) return;
+    var name = nameOf(type, id);
+    var un = document.createElement('button');
+    un.type = 'button';
+    un.className = 'hack-undo';
+    un.setAttribute('data-ab', '');
+    un.setAttribute('aria-label', 'Undo randomize ' + name);
+    un.innerHTML = icons().undo;
+    un.disabled = true;
+    var die = document.createElement('button');
+    die.type = 'button';
+    die.className = 'hack-die';
+    die.setAttribute('aria-label', 'Randomize ' + name);
+    die.innerHTML = icons().die;
+    var first = tools.firstChild;
+    tools.insertBefore(un, first);
+    tools.insertBefore(die, first);
+  }
+  var rngOverride = null;
+  function draw() { return rngOverride || (window.NCRandom ? NCRandom.rng(NCRandom.freshSeed()) : Math.random); }
+  function snapshot(art) {
+    var out = {};
+    Array.prototype.forEach.call(art.querySelectorAll('[data-param]'), function (el) { out[el.getAttribute('data-param')] = el.value; });
+    return out;
+  }
+  // Sets dials as the slider holds them, then tells the audio once. The DSP smooths each move, so no clicks.
+  function setDials(art, dials, quiet) {
+    var changed = [];
+    Object.keys(dials || {}).forEach(function (k) {
+      var el = field(art, k);
+      if (!el) return;
+      var v = String(dials[k]);
+      if (el.tagName === 'SELECT') {
+        var i, o = el.options;
+        for (i = 0; i < o.length; i++) if (o[i].value === v) { el.selectedIndex = i; break; }
+      } else el.value = v;
+      changed.push(el);
+    });
+    readouts();
+    if (quiet) return;
+    // The page's first filter and delay keep a dial log; tell it about each of their dials, like a hand move would.
+    var told = false;
+    if (art.hasAttribute('data-primary') && hooks.onDial) {
+      changed.forEach(function (el) { var d = el.getAttribute('data-dial'); if (d) { hooks.onDial(d); told = true; } });
+    }
+    if (!told && hooks.onChange) hooks.onChange();
+  }
+  function paintAB(art) {
+    var un = art.querySelector('.hack-undo');
+    if (!un) return;
+    var ab = art._ncAB;
+    var name = art.querySelector('h3') ? art.querySelector('h3').textContent : '';
+    if (!ab) {
+      un.disabled = true;
+      un.setAttribute('data-ab', '');
+      un.innerHTML = icons().undo;
+      un.setAttribute('aria-label', 'Undo randomize ' + name);
+      return;
+    }
+    un.disabled = false;
+    var onAfter = ab.showing === 'after';
+    un.setAttribute('data-ab', onAfter ? 'undo' : 'redo');
+    un.innerHTML = onAfter ? icons().undo : icons().redo;
+    un.setAttribute('aria-label', (onAfter ? 'Undo randomize ' : 'Redo randomize ') + name);
+  }
+  function clearAB(art) {
+    if (!art._ncAB) return;
+    art._ncAB = null;
+    paintAB(art);
+  }
+  function randomizeOne(art, r) {
+    if (!window.NCRandom || !art || art.hasAttribute('data-fixed')) return;
+    var dials = NCRandom.params(art.getAttribute('data-type'), r || draw());
+    if (!dials) return;
+    var before = snapshot(art);
+    setDials(art, dials);
+    art._ncAB = { before: before, after: snapshot(art), showing: 'after' };
+    paintAB(art);
+  }
+  function toggleAB(art) {
+    var ab = art._ncAB;
+    if (!ab) return;
+    ab.showing = ab.showing === 'after' ? 'before' : 'after';
+    setDials(art, ab.showing === 'after' ? ab.after : ab.before);
+    paintAB(art);
+  }
+  // Rough level check: a short harmonic probe through the drawn stack, offline, against the probe through the
+  // limiter alone. A stack more than 4 dB off is drawn again (up to 10 tries, keeping the closest).
+  var PROBE = null, PROBE_DRY = null, LEVEL_DB = 4, TRIES = 10;
+  function probeBuffer(ctx) {
+    var sr = 48000, n = Math.round(0.6 * sr), b = ctx.createBuffer(2, n, sr), c, i, k, t, h, d, s = 99;
+    for (c = 0; c < 2; c++) {
+      d = b.getChannelData(c);
+      for (i = 0; i < n; i++) {
+        t = i / sr; h = 0;
+        for (k = 1; k <= 24; k++) h += Math.sin(6.283185307179586 * 110 * k * t + k * c) / k;
+        s = (s * 1664525 + 1013904223) >>> 0;
+        d[i] = 0.16 * Math.exp(-2.5 * t) * h + 0.02 * (s / 4294967296 - 0.5);
+      }
+    }
+    return b;
+  }
+  function probeLevel(widgets) {
+    var O = window.OfflineAudioContext || window.webkitOfflineAudioContext;
+    if (!O || !window.NCHacks || !NCHacks.attach) return Promise.resolve(null);
+    var sr = 48000, n = Math.round(0.6 * sr), off = new O(2, n, sr);
+    if (!PROBE) PROBE = probeBuffer(off);
+    var src = off.createBufferSource();
+    src.buffer = PROBE;
+    return NCHacks.attach(off, { widgets: widgets, immediate: true }).then(function (api) {
+      src.connect(api.node); api.node.connect(off.destination); src.start();
+      return off.startRendering();
+    }).then(function (out) {
+      var e = 0, c, i, d;
+      for (c = 0; c < 2; c++) { d = out.getChannelData(c); for (i = 0; i < d.length; i++) e += d[i] * d[i]; }
+      return 10 * Math.log10(e / (2 * n) + 1e-20);
+    }).catch(function () { return null; });
+  }
+  var LIM = { id: 'limiter', type: 'limiter', version: 1, bypass: false, fixed: true, params: { ceiling_db: -1, lookahead_s: 0.0015 } };
+  function widgetsOf(plan) {
+    var count = {};
+    return plan.map(function (item) {
+      count[item.type] = (count[item.type] || 0) + 1;
+      var id = item.type + '-' + count[item.type];
+      var art = createArticle(item.type, id, false);
+      setDials(art, item.dials, true);
+      return { id: id, type: item.type, version: item.type === 'eq' ? 2 : 1, bypass: false, params: paramsOf(art) };
+    }).concat([LIM]);
+  }
+  function levelOf(plan) {
+    var dry = PROBE_DRY != null ? Promise.resolve(PROBE_DRY) : probeLevel([LIM]).then(function (v) { PROBE_DRY = v; return v; });
+    return dry.then(function (d) {
+      if (d == null) return null;
+      return probeLevel(widgetsOf(plan)).then(function (w) { return w == null ? null : w - d; });
+    });
+  }
+  function pickPlan(r) {
+    var best = null, tries = 0;
+    function next() {
+      var plan = NCRandom.stack(r, 10, 2, 6);
+      tries++;
+      return levelOf(plan).then(function (db) {
+        if (db == null) return { plan: plan, db: null, tries: tries };
+        if (!best || Math.abs(db) < Math.abs(best.db)) best = { plan: plan, db: db, tries: tries };
+        if (Math.abs(db) <= LEVEL_DB || tries >= TRIES) { best.tries = tries; return best; }
+        return next();
+      });
+    }
+    return next();
+  }
+  var lastPick = null;
+  function randomizeAll(r) {
+    if (!window.NCRandom) return Promise.resolve([]);
+    r = r || draw();
+    var die = $('live-die');
+    if (die) die.disabled = true;
+    return pickPlan(r).then(function (pick) {
+      lastPick = { db: pick.db, tries: pick.tries };
+      buildStack(pick.plan);
+      if (die) die.disabled = false;
+      return pick.plan;
+    }, function (err) { if (die) die.disabled = false; throw err; });
+  }
+  function buildStack(plan) {
+    movable().forEach(function (a) { a.remove(); });
+    plan.forEach(function (item) {
+      var art = add(item.type, true);
+      if (art) setDials(art, item.dials, true);
+    });
+    buttons();
+    readouts();
+    if (hooks.onChange) hooks.onChange();
+    return plan;
+  }
+  function confirmBox(show) {
+    var box = $('live-confirm'), die = $('live-die');
+    if (!box) return;
+    box.hidden = !show;
+    if (die) die.setAttribute('aria-expanded', show ? 'true' : 'false');
+    if (show) { var b = $('live-replace'); if (b) b.focus(); }
+  }
+  function bindSection() {
+    var die = $('live-die');
+    if (!die || die._ncBound) return;
+    die._ncBound = true;
+    if (!die.innerHTML.trim()) die.innerHTML = icons().die;
+    die.addEventListener('click', function () {
+      if (movable().length > 0) confirmBox(true);
+      else { confirmBox(false); randomizeAll(); }
+    });
+    var rep = $('live-replace'), can = $('live-cancel');
+    if (rep) rep.addEventListener('click', function () { confirmBox(false); randomizeAll(); if (die) die.focus(); });
+    if (can) can.addEventListener('click', function () { confirmBox(false); if (die) die.focus(); });
+    var box = $('live-confirm');
+    if (box) box.addEventListener('keydown', function (e) { if (e.key === 'Escape') { confirmBox(false); if (die) die.focus(); } });
   }
   function bar(type, id, primary) {
     var row = document.createElement('div');
@@ -405,6 +607,7 @@
     nudge.appendChild(moveButton(type, 1, id));
     var tools = document.createElement('span');
     tools.className = 'hack-tools';
+    addDice(tools, type, id);
     var by = document.createElement('button');
     by.type = 'button';
     by.className = 'hack-bypass';
@@ -560,6 +763,7 @@
   }
   function setParams(art, p) {
     p = p || {};
+    clearAB(art);
     var type = art.getAttribute('data-type');
     if (type === 'lowpass' && p.cutoff != null) field(art, 'cutoff').value = String(Math.round(+p.cutoff));
     if (type === 'delay') {
@@ -664,21 +868,25 @@
   function reset() {
     applyList(defaults());
   }
-  function add(type) {
-    if (movable().length >= 10) { cap(); return; }
-    if (LABELS[type] == null) return;
+  function add(type, quiet) {
+    if (movable().length >= 10) { cap(); return null; }
+    if (LABELS[type] == null) return null;
     var id = nextId(type);
     var primary = !!PRIMARY[type] && id === type + '-1' && !document.getElementById(PRIMARY[type]);
     var art = createArticle(type, id, primary);
     var lim = $('hack-limiter');
     stack().insertBefore(art, lim);
+    if (quiet) return art;
     buttons();
     readouts();
     if (hooks.onChange) hooks.onChange();
+    return art;
   }
   function onEdit(e) {
     var art = e.target.closest && e.target.closest('article.hack');
     if (!art || art.hasAttribute('data-fixed')) return;
+    // A hand on a dial ends the before/after of the last randomize.
+    clearAB(art);
     readouts();
     var dial = e.target.getAttribute('data-dial');
     if (art.hasAttribute('data-primary') && dial && hooks.onDial) hooks.onDial(dial);
@@ -695,7 +903,9 @@
       if (!t) return;
       var art = t.closest('article.hack');
       if (!art || art.hasAttribute('data-fixed')) return;
-      if (t.classList.contains('hack-up')) move(art, -1);
+      if (t.classList.contains('hack-die')) randomizeOne(art);
+      else if (t.classList.contains('hack-undo')) toggleAB(art);
+      else if (t.classList.contains('hack-up')) move(art, -1);
       else if (t.classList.contains('hack-down')) move(art, 1);
       else if (t.classList.contains('hack-bypass')) {
         if (art.getAttribute('data-bypass') === '1') art.removeAttribute('data-bypass');
@@ -728,6 +938,13 @@
       hooks.onDial = h && h.onDial;
       hooks.onChange = h && h.onChange;
       bind();
+      // The page's first three hacks are in the HTML: give them dice too.
+      arts().forEach(function (art) {
+        if (art.hasAttribute('data-fixed')) return;
+        var tools = art.querySelector('.hack-tools');
+        if (tools) addDice(tools, art.getAttribute('data-type'), art.getAttribute('data-id'));
+      });
+      bindSection();
       var cpu = $('lcpu');
       if (cpu && devCpu()) cpu.hidden = false;
       readouts();
@@ -739,6 +956,14 @@
     reset: reset,
     applyChain: applyList,
     count: function () { return movable().length; },
+    // For tests and the console: a seeded randomize, and the before/after state of one hack.
+    seed: function (n) { rngOverride = n == null || !window.NCRandom ? null : NCRandom.rng(n); },
+    randomizeAll: function (seed) { return randomizeAll(seed == null ? null : NCRandom.rng(seed)); },
+    lastLevel: function () { return lastPick; },
+    randomize: function (id, seed) { randomizeOne(byId(id), seed == null ? null : NCRandom.rng(seed)); },
+    toggle: function (id) { toggleAB(byId(id)); },
+    ab: function (id) { var a = byId(id); return a && a._ncAB ? { showing: a._ncAB.showing, before: a._ncAB.before, after: a._ncAB.after } : null; },
+    dials: function (id) { var a = byId(id); return a ? snapshot(a) : null; },
     devCpu: devCpu
   };
 })();
