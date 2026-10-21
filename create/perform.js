@@ -1662,7 +1662,9 @@
     }
     if (!asm) return [];
     var words = pieceWords();
-    var seconds = asm.takeSeconds(words);
+    var seconds = asm.statedSeconds(words);
+    // No stated length: no target. Each chord gets its whole recording (buildPlan caps it).
+    if (seconds == null) { var open = []; for (var k = 0; k < n; k++) open.push({ t: 0, dur: Infinity }); return open; }
     var pulse = asm.statedPulse(words);
     return asm.chordSlots([{ count: n, seconds: seconds }], seed, pulse, pulse ? asm.broadenBars(words) : 0);
   }

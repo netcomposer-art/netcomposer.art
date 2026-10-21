@@ -576,17 +576,8 @@ function rng(seed) {   // mulberry32
   return function () { a = (a + 0x6D2B79F5) >>> 0; var t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
 }
 function wpick(r, items) { var tot = 0, i; for (i = 0; i < items.length; i++) tot += items[i][1]; var x = r() * tot; for (i = 0; i < items.length; i++) { x -= items[i][1]; if (x < 0) return items[i][0]; } return items[items.length - 1][0]; }
-var SHAPES = [
-  ['30 seconds.', 'Once, close together.'],
-  ['45 seconds.', 'One pass.'],
-  ['1 min.', 'Unhurried.'],
-  ['1 min 20 s.', 'Let the last chord hang.'],
-  ['90 seconds.', 'Two breaths.'],
-  ['2 min.', 'Room to ring.'],
-  ['2 min 30 s.', 'Long and wide.'],
-  ['3 min.', 'A long take.'],
-  ['4 min.', 'Slow, and longer than it looks.']
-];
+// No length here (Petrus, 2026-10-21): the piece is as long as the gathered recordings.
+var SHAPES = ['Once, close together.', 'One pass.', 'Unhurried.', 'Let the last chord hang.', 'Two breaths.', 'Room to ring.', 'Long and wide.', 'Slow and patient.', 'Slow, and wider than it looks.'];
 function progression(seed) {
   var r = rng(seed), modes = Object.keys(GRAMMAR), mode = wpick(r, modes.map(function (m) { return [m, GRAMMAR[m].w]; })), G = GRAMMAR[mode], key = G.keys[Math.floor(r() * G.keys.length)];
   var count = wpick(r, [[4, 2], [5, 2.2], [6, 2.4], [8, 2.6], [10, 1.5], [12, 1.1]]);
@@ -623,13 +614,13 @@ function progression(seed) {
     memo[tk] = memo[tk] || q; return SPELL[(key + d[0]) % 12] + q;
   });
   return {seed: seed >>> 0, key: SPELL[key], mode: mode, degrees: seq, chords: syms, pretty: syms.map(prettySym),
-    shape: shape[0], tail: shape[1], mood: G.mood[Math.floor(r() * G.mood.length)]};
+    shape: shape, mood: G.mood[Math.floor(r() * G.mood.length)]};
 }
 // every symbol must read back through the page's own lookup and have a recorded voicing; otherwise try the next seed
 function makeSurprise(seed) {
   for (var k = 0; k < 80; k++, seed = (seed + 0x9E3779B9) >>> 0) {
     var P = progression(seed); if (!P) continue;
-    var c = P.shape + ' ' + P.pretty.join(', ') + '. ' + P.tail, f = findChords(c);
+    var c = P.pretty.join(', ') + '. ' + P.shape, f = findChords(c);
     if (f.length === P.chords.length && f.every(function (x, i) { return x.sym === P.chords[i] && pickVoicing(x.sym, null, x.bass); })) { P.composition = c; return P; }
   }
   return null;
