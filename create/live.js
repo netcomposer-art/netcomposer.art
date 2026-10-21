@@ -1,8 +1,8 @@
-// NetComposer /create/ Live: ride two hacks on a finished Performance, not on the Composition preview.
-// The page player is the only play control. Its output is the Web Audio source, so the dials
-// change that same sound while it plays. Record keeps the processed sound as a WAV plus a dial log.
-// Graph: player -> input -> low-pass -> dry --------------------------> master -> speakers
-//                                  \-> delay <-> feedback; delay -> wet -/      \-> tap (WAV recorder)
+// NetComposer /create/ Live: a stack of hacks on a finished Performance, not on the Composition preview.
+// The page player is the only play control. Its output is the Web Audio source. Signal flows
+// top to bottom through one AudioWorklet (low-pass, delay, plate, then a fixed limiter).
+// Record keeps the processed sound as a WAV plus a dial log.
+// Graph: player -> input -> hack stack -> limiter (-1 dBFS) -> speakers and the WAV tap.
 (function () {
 'use strict';
 var $ = function (id) { return document.getElementById(id); };
@@ -19,23 +19,43 @@ var FOLLOW = false, OVERRIDE = {}, PENDING = null;
 // ---------- dial semantics ----------
 function cutoffHz(v) { return v <= 0 ? null : Math.round(20000 * Math.pow(150 / 20000, v / 100)); }   // 0 = fully open (no filtering), 100 = 150 Hz
 function beatS() { return 60 / ((PERF && PERF.bpm) || 60); }   // one quarter note of this Performance
-function delayS() { return Math.min(4.9, +$('ltime').value * beatS()); }
+function delayS() { var el = $('ltime'); return Math.min(4.9, (el ? +el.value : 0.75) * beatS()); }
 function fmtHz(h) { return h === null ? 'open' : h >= 1000 ? (h / 1000).toFixed(h >= 10000 ? 0 : 1) + ' kHz' : h + ' Hz'; }
 function readouts() {
+  if (window.NCStack) { NCStack.setQuarter(beatS()); NCStack.readouts(); return; }
   $('lcutv').textContent = fmtHz(cutoffHz(+$('lcut').value));
   $('ltimev').textContent = Math.round(delayS() * 1000) + ' ms';
   $('lfbv').textContent = $('lfb').value + '%';
   $('lmixv').textContent = $('lmix').value + '% wet';
 }
 function settings() {
+  if (!$('lcut') || !$('ltime') || !$('lfb') || !$('lmix')) {
+    return {cutoff: 0, cutoff_hz: null, delay_timing: '1/8 dotted', delay_beats: 0.75, delay_s: +delayS().toFixed(4), feedback: 0.35, wet: 0, loop: $('lloop') ? $('lloop').checked : true};
+  }
   var o = $('ltime').options[$('ltime').selectedIndex];
   return {cutoff: +$('lcut').value, cutoff_hz: cutoffHz(+$('lcut').value), delay_timing: o.textContent, delay_beats: +o.value, delay_s: +delayS().toFixed(4),
           feedback: +$('lfb').value / 100, wet: +$('lmix').value / 100, loop: $('lloop').checked};
 }
-// Neutral is the original render: filter open, delay silent. Timing and feedback stay parked at 1/8 dotted and 35% until wet is raised. Loop does not change the sound.
+// Neutral is the original render: filter open, delay silent, plate silent. Timing and feedback stay parked at 1/8 dotted and 35% until wet is raised. A bypassed hack, and the order of neutral hacks, do not change the sound. Loop does not either.
 function adjusted() {
-  var S = settings();
-  return S.cutoff !== 0 || S.wet !== 0 || S.delay_beats !== 0.75 || Math.round(S.feedback * 100) !== 35;
+  var list = chain(), i, w, p, beats, fb;
+  for (i = 0; i < list.length; i++) {
+    w = list[i];
+    if (!w || w.type === 'limiter' || w.bypass) continue;
+    p = w.params || {};
+    if (w.id === 'delay-1') {
+      beats = p.delay_beats == null ? 0.75 : p.delay_beats;
+      fb = p.feedback == null ? 0.35 : p.feedback;
+      if ((p.wet || 0) !== 0 || Math.abs(beats - 0.75) > 1e-9 || Math.round(fb * 100) !== 35) return true;
+    } else if (w.type === 'lowpass') {
+      if ((p.cutoff || 0) !== 0) return true;
+    } else if (w.type === 'delay') {
+      if ((p.wet || 0) !== 0) return true;
+    } else if (w.type === 'plate') {
+      if ((p.mix || 0) !== 0) return true;
+    }
+  }
+  return false;
 }
 function dialEvent(d) {
   var S = settings(), ev = {dial: d};
@@ -48,6 +68,7 @@ function setTiming(beats) {   // nearest note value
   $('ltime').selectedIndex = best;
 }
 function setDial(d, v) {   // v as logged: cutoff 0..100, feedback/wet 0..1, delay_timing in beats
+  if (!$(DIALS[d])) return;
   if (d === 'cutoff') $('lcut').value = Math.round(v);
   else if (d === 'feedback') $('lfb').value = Math.round(v * 100);
   else if (d === 'wet') $('lmix').value = Math.round(v * 100);
@@ -55,16 +76,68 @@ function setDial(d, v) {   // v as logged: cutoff 0..100, feedback/wet 0..1, del
 }
 
 // ---------- the audio graph ----------
+function showCpu(c) {
+  var el = $('lcpu');
+  if (!el || el.hidden || !c || !(c.budget > 0)) return;
+  el.textContent = 'CPU ' + c.avg.toFixed(2) + ' / ' + c.budget.toFixed(2) + ' ms · max ' + c.max.toFixed(2);
+}
+function movableOf(list) {
+  return (list || []).filter(function (w) { return w && !w.fixed && w.type !== 'limiter'; });
+}
+function replaceAudio() {
+  if (!G || !G.api) return Promise.resolve();
+  var list = chain();
+  var mov = movableOf(list);
+  G.known = {};
+  mov.forEach(function (w) { G.known[w.id] = 1; });
+  G.orderKey = mov.map(function (w) { return w.id; }).join('|');
+  return G.api.send({op: 'chain', widgets: list});
+}
+function syncAudio(snap) {
+  if (!G || !G.api) return Promise.resolve();
+  var mov = movableOf(chain());
+  var ids = mov.map(function (w) { return w.id; });
+  var known = G.known || {};
+  var seq = Promise.resolve();
+  mov.forEach(function (w) {
+    if (!known[w.id]) {
+      seq = seq.then(function () { return G.api.send({op: 'add', widget: w}); });
+      known[w.id] = 1;
+    } else {
+      seq = seq.then(function () { return G.api.send({op: 'patch', id: w.id, params: w.params, bypass: !!w.bypass, immediate: !!snap}); });
+    }
+  });
+  Object.keys(known).forEach(function (id) { if (ids.indexOf(id) < 0) delete known[id]; });
+  G.known = known;
+  var key = ids.join('|');
+  if (key !== G.orderKey || snap) {
+    G.orderKey = key;
+    seq = seq.then(function () { return G.api.send({op: 'order', ids: ids, immediate: !!snap}); });
+  }
+  return seq;
+}
 function graph() {
   if (G) return G;
-  AC = new (window.AudioContext || window.webkitAudioContext)();
-  G = {input: AC.createGain(), lp: AC.createBiquadFilter(), dry: AC.createGain(), delay: AC.createDelay(5), fb: AC.createGain(), wet: AC.createGain(), master: AC.createGain(), sink: AC.createGain()};
-  G.lp.type = 'lowpass'; G.lp.Q.value = 0.707; G.master.gain.value = 0.8; G.sink.gain.value = 0;
+  var Ctx = window.AudioContext || window.webkitAudioContext;
+  try { AC = new Ctx({sampleRate: 48000}); } catch (e) { AC = new Ctx(); }
+  G = {input: AC.createGain(), sink: AC.createGain(), hack: null, api: null, ready: null, known: {}, orderKey: ''};
   G.meter = AC.createAnalyser(); G.meter.fftSize = 2048; G.meter.smoothingTimeConstant = 0.3;
-  G.input.connect(G.lp); G.lp.connect(G.dry); G.dry.connect(G.master);
-  G.lp.connect(G.delay); G.delay.connect(G.fb); G.fb.connect(G.delay); G.delay.connect(G.wet); G.wet.connect(G.master);
-  G.master.connect(AC.destination); G.master.connect(G.meter); G.sink.connect(AC.destination);
-  apply(true); return G;
+  G.sink.gain.value = 0; G.sink.connect(AC.destination);
+  G.ready = NCHacks.attach(AC).then(function (api) {
+    G.api = api; G.hack = api.node; G.master = api.node;
+    api.onCpu = showCpu;
+    G.hack.connect(AC.destination); G.hack.connect(G.meter);
+    return replaceAudio();
+  }).then(function () {
+    G.input.connect(G.hack);
+    return G;
+  }).catch(function () {
+    var dry = AC.createGain(); dry.gain.value = 0.8; G.master = dry;
+    G.input.connect(dry); dry.connect(AC.destination); dry.connect(G.meter);
+    status('These hacks need a browser that can run an audio worklet.');
+    return G;
+  });
+  return G;
 }
 function player() { return $('perform-audio'); }
 function prime() {
@@ -149,14 +222,7 @@ function silence(a) {
   try { a.load(); } catch (e) {}
 }
 function freshDelay() {
-  if (!G) return;
-  var d = AC.createDelay(5), fb = AC.createGain();
-  try { G.lp.disconnect(G.delay); } catch (e) {}
-  try { G.delay.disconnect(); } catch (e) {}
-  try { G.fb.disconnect(); } catch (e) {}
-  G.delay = d; G.fb = fb;
-  G.lp.connect(G.delay); G.delay.connect(G.fb); G.fb.connect(G.delay); G.delay.connect(G.wet);
-  apply(true);
+  if (G && G.api) G.api.send({op: 'clear'});
 }
 function mount(url) {
   graph();
@@ -232,34 +298,33 @@ function bands() {
   return {low: ln ? low / ln : 0, high: hn ? high / hn : 0};
 }
 function apply(now) {
-  if (!G) return; var t = AC.currentTime, k = now ? 0.001 : 0.02, S = settings();
-  G.lp.frequency.setTargetAtTime(S.cutoff_hz === null ? AC.sampleRate / 2 : S.cutoff_hz, t, k);
-  G.delay.delayTime.setTargetAtTime(S.delay_s, t, now ? 0.001 : 0.08);
-  G.fb.gain.setTargetAtTime(S.feedback, t, k);
-  G.dry.gain.setTargetAtTime(Math.cos(S.wet * Math.PI / 2), t, k); G.wet.gain.setTargetAtTime(Math.sin(S.wet * Math.PI / 2), t, k);   // equal-power wet/dry
+  if (!G || !G.api) return;
+  syncAudio(!!now);
 }
-// The live chain is these two nodes. A later effect is another { type, params }
-// on the take, an AudioParam on this graph, and a matching offline wire.
-// Changing a param never rebuilds the take.
+// The chain is the stack, top to bottom, limiter last. Reordering keeps each hack's state.
 function chain() {
+  if (window.NCStack) { NCStack.setQuarter(beatS()); return NCStack.chain(); }
   var S = settings();
   return [
-    { type: 'lowpass', params: { cutoff: S.cutoff, cutoff_hz: S.cutoff_hz, q: 0.707 } },
-    { type: 'delay', params: { delay_beats: S.delay_beats, delay_s: S.delay_s, feedback: S.feedback, wet: S.wet } }
+    { id: 'lowpass-1', type: 'lowpass', version: 1, bypass: false, params: { cutoff: S.cutoff, cutoff_hz: S.cutoff_hz, q: 0.7071067811865476 } },
+    { id: 'delay-1', type: 'delay', version: 1, bypass: false, params: { delay_beats: S.delay_beats, delay_s: S.delay_s, feedback: S.feedback, wet: S.wet } }
   ];
 }
 function applyChain(list) {
-  (list || []).forEach(function (node) {
-    if (!node || !node.params) return;
-    if (node.type === 'lowpass' && node.params.cutoff != null) setDial('cutoff', node.params.cutoff);
-    if (node.type === 'delay') {
-      if (node.params.delay_beats != null) setDial('delay_timing', node.params.delay_beats);
-      if (node.params.feedback != null) setDial('feedback', node.params.feedback);
-      if (node.params.wet != null) setDial('wet', node.params.wet);
-    }
-  });
+  if (window.NCStack) NCStack.applyChain(list || []);
   readouts();
-  apply(true);
+  if (G && G.api) replaceAudio();
+}
+function tailFor(list) {
+  var tail = 0.0515;
+  (list || []).forEach(function (w) {
+    if (!w || w.bypass || w.fixed || w.type === 'limiter') return;
+    var p = w.params || {}, t = 0;
+    if (w.type === 'delay' && (p.wet || 0) > 0.001) t = Math.min(3, Math.max(0.2, (p.delay_s || 0) * 4));
+    if (w.type === 'plate' && (p.mix || 0) > 0.001) t = Math.min(6, 0.4 + (p.decay || 0) * 5);
+    if (t > tail) tail = t;
+  });
+  return tail;
 }
 var clipNodes = [], clipPlays = 0;
 function stopClips() {
@@ -270,8 +335,26 @@ function stopClips() {
   });
   clipNodes = [];
 }
+function atRate(ctx, buf) {
+  var rate = ctx.sampleRate;
+  if (!buf || buf.sampleRate === rate) return buf;
+  var frames = Math.max(1, Math.round(buf.duration * rate));
+  var out = ctx.createBuffer(buf.numberOfChannels, frames, rate);
+  var ratio = buf.sampleRate / rate, ch, src, dst, i, x, i0, i1, f;
+  for (ch = 0; ch < buf.numberOfChannels; ch++) {
+    src = buf.getChannelData(ch); dst = out.getChannelData(ch);
+    for (i = 0; i < frames; i++) {
+      x = i * ratio; i0 = Math.floor(x); f = x - i0; i1 = i0 + 1;
+      if (i0 < 0) i0 = 0;
+      if (i0 >= src.length) i0 = src.length - 1;
+      if (i1 >= src.length) i1 = src.length - 1;
+      dst[i] = src[i0] * (1 - f) + src[i1] * f;
+    }
+  }
+  return out;
+}
 function placeClip(ctx, dest, entry, when, offset) {
-  var buf = entry.buffer;
+  var buf = atRate(ctx, entry.buffer);
   if (!buf) return null;
   var origin = entry.origin > 0 ? entry.origin : 0;
   var room = Math.max(0, buf.duration - origin);
@@ -302,60 +385,39 @@ function placeClip(ctx, dest, entry, when, offset) {
 }
 function scheduleClips(spec) {
   graph();
-  if (AC.state === 'suspended') AC.resume();
-  stopClips();
-  clipPlays++;
-  var when = AC.currentTime + 0.03;
-  var offset = spec.offset || 0;
-  (spec.entries || []).forEach(function (entry) {
-    var node = placeClip(AC, G.input, entry, when, offset);
-    if (node) clipNodes.push(node);
-  });
-  apply(true);
+  var run = function () {
+    if (AC.state === 'suspended') AC.resume();
+    stopClips();
+    clipPlays++;
+    var when = AC.currentTime + 0.03;
+    var offset = spec.offset || 0;
+    (spec.entries || []).forEach(function (entry) {
+      var node = placeClip(AC, G.input, entry, when, offset);
+      if (node) clipNodes.push(node);
+    });
+    syncAudio(true);
+  };
+  if (G.hack) run();
+  else G.ready.then(run);
 }
 function renderBuffers(spec) {
+  graph();
   var list = spec.chain || chain();
-  var S = settings();
-  list.forEach(function (node) {
-    if (!node || !node.params) return;
-    if (node.type === 'lowpass') {
-      if (node.params.cutoff != null) S.cutoff = node.params.cutoff;
-      if (node.params.cutoff_hz !== undefined) S.cutoff_hz = node.params.cutoff_hz;
-      else S.cutoff_hz = cutoffHz(S.cutoff);
-    }
-    if (node.type === 'delay') {
-      if (node.params.delay_s != null) S.delay_s = node.params.delay_s;
-      if (node.params.feedback != null) S.feedback = node.params.feedback;
-      if (node.params.wet != null) S.wet = node.params.wet;
-    }
-  });
-  var rate = 48000;
-  var tail = S.wet > 0.001 ? Math.min(3, Math.max(0.2, (S.delay_s || 0) * 4)) : 0.05;
-  var musical = spec.total || 0;
-  if (musical + tail > 180) tail = Math.max(0, 180 - musical);
-  var total = musical + tail;
-  var off = new (window.OfflineAudioContext || window.webkitOfflineAudioContext)(2, Math.max(1, Math.ceil(total * rate)), rate);
-  var bus = off.createGain();
-  (spec.entries || []).forEach(function (entry) { placeClip(off, bus, entry, 0, 0); });
-  var lp = off.createBiquadFilter();
-  lp.type = 'lowpass'; lp.Q.value = 0.707;
-  lp.frequency.value = S.cutoff_hz == null ? rate / 2 : S.cutoff_hz;
-  var dry = off.createGain(), delay = off.createDelay(5), fb = off.createGain(), wet = off.createGain(), master = off.createGain();
-  delay.delayTime.value = Math.min(4.9, S.delay_s || 0);
-  fb.gain.value = S.feedback || 0;
-  dry.gain.value = Math.cos((S.wet || 0) * Math.PI / 2);
-  wet.gain.value = Math.sin((S.wet || 0) * Math.PI / 2);
-  master.gain.value = 0.8;
-  bus.connect(lp); lp.connect(dry); dry.connect(master);
-  lp.connect(delay); delay.connect(fb); fb.connect(delay); delay.connect(wet); wet.connect(master);
-  master.connect(off.destination);
-  return off.startRendering().then(function (rendered) {
-    var limit = Math.pow(10, -1 / 20), peak = 0, ch, i, data = [];
-    for (ch = 0; ch < rendered.numberOfChannels; ch++) {
-      data.push(rendered.getChannelData(ch));
-      for (i = 0; i < rendered.length; i++) if (Math.abs(data[ch][i]) > peak) peak = Math.abs(data[ch][i]);
-    }
-    if (peak > limit) { var g = limit / peak; for (ch = 0; ch < data.length; ch++) for (i = 0; i < rendered.length; i++) data[ch][i] *= g; }
+  return G.ready.then(function () {
+    var rate = 48000;
+    var tail = tailFor(list);
+    var musical = spec.total || 0;
+    if (musical + tail > 180) tail = Math.max(0, 180 - musical);
+    var total = musical + tail;
+    var off = new (window.OfflineAudioContext || window.webkitOfflineAudioContext)(2, Math.max(1, Math.ceil(total * rate)), rate);
+    var bus = off.createGain();
+    (spec.entries || []).forEach(function (entry) { placeClip(off, bus, entry, 0, 0); });
+    return NCHacks.attach(off, {widgets: list, immediate: true}).then(function (api) {
+      bus.connect(api.node);
+      api.node.connect(off.destination);
+      return off.startRendering();
+    });
+  }).then(function (rendered) {
     return { blob: pcmWav(rendered), total_s: +(rendered.length / rendered.sampleRate).toFixed(3) };
   });
 }
@@ -368,25 +430,28 @@ var TAP_SRC = "registerProcessor('nc-tap',class extends AudioWorkletProcessor{co
 var TAP = null;
 function tap() {   // -> Promise of {start(onData), stop(onDone)}
   if (TAP) return TAP;
+  graph();
+  TAP = G.ready.then(function () { return tapNode(); });
+  return TAP;
+}
+function tapNode() {
   if (AC.audioWorklet && window.AudioWorkletNode) {
-    TAP = AC.audioWorklet.addModule(URL.createObjectURL(new Blob([TAP_SRC], {type: 'application/javascript'}))).then(function () {
+    return AC.audioWorklet.addModule(URL.createObjectURL(new Blob([TAP_SRC], {type: 'application/javascript'}))).then(function () {
       var n = new AudioWorkletNode(AC, 'nc-tap', {numberOfInputs: 1, numberOfOutputs: 1, outputChannelCount: [2], channelCount: 2, channelCountMode: 'explicit'}), on = null, done = null;
       G.master.connect(n); n.connect(G.sink);
       n.port.onmessage = function (e) { if (e.data.done) { if (done) done(); } else if (on) on(e.data.t, e.data.b); };
       return {start: function (f) { on = f; n.port.postMessage('start'); }, stop: function (f) { done = function () { on = null; done = null; f(); }; n.port.postMessage('stop'); }};
     });
-  } else {   // older browsers
-    TAP = Promise.resolve().then(function () {
-      var n = AC.createScriptProcessor(4096, 2, 2), on = null; G.master.connect(n); n.connect(G.sink);
-      n.onaudioprocess = function (e) {
-        if (!on) return; var L = e.inputBuffer.getChannelData(0), R = e.inputBuffer.numberOfChannels > 1 ? e.inputBuffer.getChannelData(1) : L, b = new Int16Array(L.length * 2);
-        for (var k = 0; k < L.length; k++) { b[2 * k] = Math.max(-1, Math.min(1, L[k])) * 32767; b[2 * k + 1] = Math.max(-1, Math.min(1, R[k])) * 32767; }
-        on(e.playbackTime, b);
-      };
-      return {start: function (f) { on = f; }, stop: function (f) { on = null; f(); }};
-    });
   }
-  return TAP;
+  return Promise.resolve().then(function () {
+    var n = AC.createScriptProcessor(4096, 2, 2), on = null; G.master.connect(n); n.connect(G.sink);
+    n.onaudioprocess = function (e) {
+      if (!on) return; var L = e.inputBuffer.getChannelData(0), R = e.inputBuffer.numberOfChannels > 1 ? e.inputBuffer.getChannelData(1) : L, b = new Int16Array(L.length * 2);
+      for (var k = 0; k < L.length; k++) { b[2 * k] = Math.max(-1, Math.min(1, L[k])) * 32767; b[2 * k + 1] = Math.max(-1, Math.min(1, R[k])) * 32767; }
+      on(e.playbackTime, b);
+    };
+    return {start: function (f) { on = f; }, stop: function (f) { on = null; f(); }};
+  });
 }
 function wav(chunks, frames, rate) {
   var h = new DataView(new ArrayBuffer(44)), s = function (o, t) { for (var i = 0; i < 4; i++) h.setUint8(o + i, t.charCodeAt(i)); };
@@ -519,9 +584,12 @@ function hide() {
   resetDials(); buttons();
 }
 function resetDials() {
-  $('lcut').value = 0; $('ltime').value = '0.75'; $('lfb').value = 35; $('lmix').value = 0; $('lloop').checked = true;
+  if (window.NCStack) NCStack.reset();
+  else if ($('lcut') && $('ltime')) { $('lcut').value = 0; $('ltime').value = '0.75'; $('lfb').value = 35; $('lmix').value = 0; }
+  $('lloop').checked = true;
   var a = player(); if (a) a.loop = true;
-  readouts(); if (G) apply(true);
+  readouts();
+  if (G && G.api) replaceAudio();
 }
 
 // ---------- play the Performance through the dials ----------
@@ -574,9 +642,9 @@ function freshLog(follow) {
     t_unit: 's, from the start of the Performance audio',
     performance: {id: PERF.id, record_url: PERF.record, audio_url: PERF.audioUrl, audio_sha256: PERF.sha, audio_file: PERF.audioFile},
     credits: [{role: 'performance', name: PERF.creditName, link: PERF.record, license: 'CC-BY-SA-4.0', record_id: PERF.id, audio_sha256: PERF.sha}],
-    playback: {bpm: PERF.bpm, tempo_source: PERF.tempoSource, quarter_s: +beatS().toFixed(4), pitch_shift: false, time_stretch: false, source: 'page player, then low-pass and delay'},
-    graph: 'player -> low-pass -> (dry + delay with feedback, equal-power wet/dry) -> out',
-    hacks: {lowpass: {type: 'biquad lowpass, Q 0.707', cutoff_map: '0 = open; v in 1..100 -> 20000 * (150/20000)^(v/100) Hz'}, delay: {timing_unit: 'quarter note of this Performance (60 BPM until the record names a tempo)', feedback_max: 0.9, mix: 'equal-power'}},
+    playback: {bpm: PERF.bpm, tempo_source: PERF.tempoSource, quarter_s: +beatS().toFixed(4), pitch_shift: false, time_stretch: false, source: 'page player, then the hack stack'},
+    graph: 'player -> hacks, top to bottom -> limiter (-1 dBFS) -> out',
+    hacks: {lowpass: {type: 'biquad lowpass, Q 0.707', cutoff_map: '0 = open; v in 1..100 -> 20000 * (150/20000)^(v/100) Hz'}, delay: {timing_unit: 'quarter note of this Performance (60 BPM until the record names a tempo)', feedback_max: 0.9, mix: 'equal-power'}, plate: {kind: 'Dattorro plate, JAES 1997', predelay_s: '0..0.2', size: '0.5 is the paper size', mix: 'equal-power, default silent'}, limiter: {fixed: true, ceiling_db: -1, lookahead_s: 0.0015}},
     performer: 'human', based_on: follow ? {file: LOG.name, started_at: LOG.log.started_at || null} : null,
     initial: settings(), events: [], audio: null, license: 'CC BY-SA 4.0'};
 }
@@ -735,36 +803,31 @@ function render() {
   if (!PERF || !PERF.audioUrl) return Promise.reject(new Error('no audio'));
   var S = settings();
   graph();
-  return fetch(PERF.audioUrl).then(function (res) {
+  var list = chain();
+  return G.ready.then(function () {
+    return fetch(PERF.audioUrl);
+  }).then(function (res) {
     if (!res.ok) throw new Error('HTTP ' + res.status);
     return res.arrayBuffer();
   }).then(function (raw) {
     return decode(raw);
   }).then(function (buffer) {
     var rate = buffer.sampleRate;
-    var tail = Math.min(8, Math.max(1.5, S.delay_s * 8));
+    var tail = Math.max(tailFor(list), Math.min(8, Math.max(1.5, (S.delay_s || 0) * 8)));
     var length = Math.ceil((buffer.duration + tail) * rate);
     var off = new (window.OfflineAudioContext || window.webkitOfflineAudioContext)(2, length, rate);
     var src = off.createBufferSource();
     src.buffer = buffer;
-    var lp = off.createBiquadFilter();
-    lp.type = 'lowpass'; lp.Q.value = 0.707;
-    lp.frequency.value = S.cutoff_hz === null ? rate / 2 : S.cutoff_hz;
-    var dry = off.createGain(), delay = off.createDelay(5), fb = off.createGain(), wet = off.createGain(), master = off.createGain();
-    delay.delayTime.value = Math.min(4.9, S.delay_s);
-    fb.gain.value = S.feedback;
-    dry.gain.value = Math.cos(S.wet * Math.PI / 2);
-    wet.gain.value = Math.sin(S.wet * Math.PI / 2);
-    master.gain.value = 0.8;
-    src.connect(lp); lp.connect(dry); dry.connect(master);
-    lp.connect(delay); delay.connect(fb); fb.connect(delay); delay.connect(wet); wet.connect(master);
-    master.connect(off.destination);
-    src.start(0);
-    return off.startRendering().then(function (rendered) {
-      var blob = pcmWav(rendered);
-      return blob.arrayBuffer().then(function (raw) {
-        return sha256(raw).then(function (sha) { return {blob: blob, dials: S, sha256: sha}; });
-      });
+    return NCHacks.attach(off, {widgets: list, immediate: true}).then(function (api) {
+      src.connect(api.node);
+      api.node.connect(off.destination);
+      src.start(0);
+      return off.startRendering();
+    });
+  }).then(function (rendered) {
+    var blob = pcmWav(rendered);
+    return blob.arrayBuffer().then(function (raw) {
+      return sha256(raw).then(function (sha) { return {blob: blob, dials: S, chain: list, sha256: sha}; });
     });
   });
 }
@@ -783,12 +846,16 @@ $('lup').onchange = function () { upload(this.files[0]); this.value = ''; };
 $('lloadperf').onclick = function () { loadPending(); };
 $('lconfcancel').onclick = function () { PENDING = null; $('lconflict').hidden = true; status('Nothing loaded.'); };
 $('lforget').onclick = forget;
-Object.keys(DIALS).forEach(function (d) {
-  $(DIALS[d]).addEventListener('input', function () {
+if (window.NCStack) NCStack.install({
+  onDial: function (d) {
     if (AC && AC.state === 'suspended') AC.resume();
     if (FOLLOW && !OVERRIDE[d]) { OVERRIDE[d] = true; status('You took over ' + d.replace('_', ' ') + '; the log keeps the other dials.'); }
     readouts(); apply(false); logEvent(dialEvent(d));
-  });
+  },
+  onChange: function () {
+    if (AC && AC.state === 'suspended') AC.resume();
+    readouts(); apply(false);
+  }
 });
 $('lloop').addEventListener('change', function () {
   player().loop = $('lloop').checked;
@@ -798,6 +865,8 @@ $('play').addEventListener('click', function () { if (live || !player().paused) 
 readouts(); buttons();
 window.NCLive = {settings: settings, cutoffHz: cutoffHz, validate: validate, open: open, hide: hide, level: level, bands: bands, prime: prime, render: render,
   adjusted: adjusted, chain: chain, applyChain: applyChain, scheduleClips: scheduleClips, stopClips: stopClips, renderBuffers: renderBuffers,
+  cpu: function () { return window.__hackCpu || null; },
+  ready: function () { graph(); return G.ready; },
   clipPlays: function () { return clipPlays; },
   performanceId: function () { return PERF && PERF.id; },
   player: function () { return player(); },
