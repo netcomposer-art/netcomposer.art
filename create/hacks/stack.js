@@ -6,6 +6,8 @@
   var hooks = { onDial: null, onChange: null };
   var quarter = 1;
   var LABELS = { lowpass: 'Low-pass filter', delay: 'Delay', plate: 'Plate' };
+  // The first lowpass, delay and plate keep the page's original dial ids (lcut, ltime...). Every other hack gets ids from its own.
+  var PRIMARY = { lowpass: 'hack-lp', delay: 'hack-delay', plate: 'hack-plate' };
 
   function stack() { return $('hack-stack'); }
   function arts() {
@@ -263,13 +265,17 @@
   var TRI_DN = '<svg viewBox="0 0 20 18" width="20" height="18" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M10 16.5 1.5 1.5h17Z"/></svg>';
   var SPEAKER = '<svg viewBox="0 0 32 32" width="32" height="32" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3.4 12.2h5.4v7.6H3.4z"/><path d="M8.8 12.2 16 7.2v17.6L8.8 19.8z"/><path class="hack-wave" d="M19.4 11.2Q28.2 16 19.4 20.8"/><path class="hack-wave" d="M23.2 7.4Q36.2 16 23.2 24.6"/><path class="hack-slash" d="M3.2 27.4 30.2 4.6" hidden/></svg>';
   var CROSS = '<svg viewBox="0 0 32 32" width="32" height="32" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M7.5 7.5 24.5 24.5M24.5 7.5 7.5 24.5"/></svg>';
-  function moveButton(type, dir) {
+  function moveButton(type, dir, id) {
     var btn = document.createElement('button');
     btn.type = 'button';
     btn.className = (dir < 0 ? 'hack-up' : 'hack-down') + ' hack-move';
-    btn.setAttribute('aria-label', 'Move ' + LABELS[type] + (dir < 0 ? ' up' : ' down'));
+    btn.setAttribute('aria-label', 'Move ' + nameOf(type, id) + (dir < 0 ? ' up' : ' down'));
     btn.innerHTML = dir < 0 ? TRI_UP : TRI_DN;
     return btn;
+  }
+  function nameOf(type, id) {
+    var m = /-(\d+)$/.exec(id || '');
+    return LABELS[type] + (m && +m[1] > 1 ? ' ' + m[1] : '');
   }
   function bar(type, id, primary) {
     var row = document.createElement('div');
@@ -279,24 +285,24 @@
     grip.setAttribute('aria-hidden', 'true');
     grip.textContent = '⋮⋮';
     var h = document.createElement('h3');
-    h.textContent = LABELS[type];
+    h.textContent = nameOf(type, id);
     var nudge = document.createElement('span');
     nudge.className = 'hack-nudge';
-    nudge.appendChild(moveButton(type, -1));
-    nudge.appendChild(moveButton(type, 1));
+    nudge.appendChild(moveButton(type, -1, id));
+    nudge.appendChild(moveButton(type, 1, id));
     var tools = document.createElement('span');
     tools.className = 'hack-tools';
     var by = document.createElement('button');
     by.type = 'button';
     by.className = 'hack-bypass';
     by.setAttribute('aria-pressed', 'false');
-    by.setAttribute('aria-label', 'Bypass ' + LABELS[type]);
+    by.setAttribute('aria-label', 'Bypass ' + nameOf(type, id));
     by.innerHTML = SPEAKER;
     tools.appendChild(by);
     var rm = document.createElement('button');
     rm.type = 'button';
     rm.className = 'hack-remove';
-    rm.setAttribute('aria-label', 'Remove ' + LABELS[type]);
+    rm.setAttribute('aria-label', 'Remove ' + nameOf(type, id));
     rm.innerHTML = CROSS;
     tools.appendChild(rm);
     row.appendChild(grip);
@@ -397,7 +403,7 @@
   function createArticle(type, id, primary) {
     var art = document.createElement('article');
     art.className = 'hack';
-    art.id = primary ? (type === 'lowpass' ? 'hack-lp' : type === 'delay' ? 'hack-delay' : 'hack-plate') : 'hack-' + id;
+    art.id = primary && PRIMARY[type] ? PRIMARY[type] : 'hack-' + id;
     art.setAttribute('data-id', id);
     art.setAttribute('data-type', type);
     if (primary) art.setAttribute('data-primary', '1');
@@ -422,11 +428,12 @@
       if (p.mix != null) field(art, 'mix').value = String(Math.round(+p.mix * 100));
     }
   }
+  // Any number of the same hack can sit in the stack (two delays is fine). Each gets its own id: delay-1, delay-2...
   function nextId(type) {
     var n = 1;
     arts().forEach(function (a) {
       if (a.getAttribute('data-type') !== type) return;
-      var m = /(\d+)$/.exec(a.getAttribute('data-id') || '');
+      var m = /-(\d+)$/.exec(a.getAttribute('data-id') || '');
       if (m && +m[1] >= n) n = +m[1] + 1;
     });
     return type + '-' + n;
@@ -441,7 +448,18 @@
   function applyList(list) {
     var root = stack();
     var lim = $('hack-limiter');
-    var mov = (list || []).filter(function (w) { return w && w.type !== 'limiter' && !w.fixed; }).slice(0, 10);
+    var seen = {}, all = {};
+    (list || []).forEach(function (w) { if (w && w.id) all[w.id] = 1; });
+    var mov = (list || []).filter(function (w) { return w && w.type !== 'limiter' && !w.fixed && LABELS[w.type] != null; }).slice(0, 10).map(function (w) {
+      // A saved stack with two hacks under one id still loads both: the second gets the next free id.
+      if (!w.id || seen[w.id]) {
+        var n = 1;
+        while (seen[w.type + '-' + n] || all[w.type + '-' + n]) n++;
+        w = Object.assign({}, w, { id: w.type + '-' + n });
+      }
+      seen[w.id] = 1;
+      return w;
+    });
     var keep = {};
     mov.forEach(function (w) { keep[w.id] = 1; });
     movable().forEach(function (art) {
@@ -449,7 +467,7 @@
     });
     mov.forEach(function (w) {
       var art = byId(w.id);
-      var primary = w.id === 'lowpass-1' || w.id === 'delay-1' || w.id === 'plate-1';
+      var primary = !!PRIMARY[w.type] && w.id === w.type + '-1';
       if (!art) {
         art = createArticle(w.type, w.id, primary);
         root.insertBefore(art, lim);
@@ -473,7 +491,7 @@
     if (movable().length >= 10) { cap(); return; }
     if (LABELS[type] == null) return;
     var id = nextId(type);
-    var primary = !byId(type + '-1') && id === type + '-1';
+    var primary = !!PRIMARY[type] && id === type + '-1' && !document.getElementById(PRIMARY[type]);
     var art = createArticle(type, id, primary);
     var lim = $('hack-limiter');
     stack().insertBefore(art, lim);

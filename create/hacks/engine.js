@@ -37,6 +37,7 @@
       var wait = {};
       var tail = Promise.resolve();
       var onCpu = null;
+      var onGr = null;
       node.port.onmessage = function (e) {
         var d = e.data || {};
         if (d.ready) { try { window.__hackReady = d; } catch (err) {} }
@@ -45,6 +46,7 @@
           try { window.__hackCpu = d.cpu; } catch (err) {}
           if (onCpu) onCpu(d.cpu);
         }
+        if (d.gr != null && onGr) onGr(d.gr);
         if (d.ack && wait[d.ack]) { wait[d.ack](d); delete wait[d.ack]; }
       };
       function post(msg) {
@@ -64,7 +66,8 @@
         node: node,
         send: send,
         cpu: function () { return lastCpu; },
-        set onCpu(fn) { onCpu = fn; }
+        set onCpu(fn) { onCpu = fn; },
+        set onGr(fn) { onGr = fn; }
       };
     });
   }

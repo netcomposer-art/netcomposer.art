@@ -306,7 +306,7 @@
     var i;
     for (i = 0; i < la; i++) gains[i] = 1;
     return {
-      la: la, w: 0, env: 1, ceiling: CEILING,
+      la: la, w: 0, env: 1, lo: 1, ceiling: CEILING,
       rel: ncCoef(0.05, sr),
       bufL: new Float32Array(la), bufR: new Float32Array(la), gains: gains
     };
@@ -327,6 +327,7 @@
     if (gMin < env) env = gMin;
     else env += (gMin - env) * lim.rel;
     lim.env = env;
+    if (env < lim.lo) lim.lo = env;
     gains[w] = req;
     lim.bufL[w] = xL;
     lim.bufR[w] = xR;
@@ -433,7 +434,7 @@
     var i;
     for (i = 0; i < list.length && chain.order.length < 10; i++) {
       var w = list[i];
-      if (!w || w.type === 'limiter' || w.fixed) continue;
+      if (!w || w.type === 'limiter' || w.fixed || chain.box[w.id]) continue;
       var st = ncWidgetCreate(w.type, chain.sr);
       if (!st) continue;
       ncWidgetApply(st, w.params || {}, true, !!w.bypass);
@@ -441,11 +442,12 @@
       chain.order.push(w.id);
     }
   }
+  // 'add' always means a new instance. Two of the same type are fine, each under its own id.
+  // A re-used id (delay-2 removed, then added again) starts fresh instead of keeping the old tail.
   function ncChainAdd(chain, w) {
     if (!w || w.type === 'limiter' || w.fixed) return;
-    if (chain.box[w.id]) return;
     var n = 0;
-    for (var id in chain.box) n++;
+    for (var id in chain.box) if (id !== w.id) n++;
     if (n >= 10) return;
     var st = ncWidgetCreate(w.type, chain.sr);
     if (!st) return;
