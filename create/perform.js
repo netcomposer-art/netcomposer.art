@@ -2815,6 +2815,12 @@
     heard.addEventListener('play', function () { stopPreview(); takeHeard = true; if (window.NC && NC.stop) NC.stop(); followTake(); });
     ['timeupdate', 'seeked', 'pause', 'ended'].forEach(function (ev) { heard.addEventListener(ev, followTake); });
   }
+  // Back to the beginning. Playing keeps playing from 0; paused stays paused.
+  var rewind = $('perform-rewind');
+  if (rewind && heard) rewind.addEventListener('click', function () {
+    try { heard.currentTime = 0; } catch (e) {}
+    followTake();
+  });
   var playBtn = $('play');
   if (playBtn) playBtn.addEventListener('click', stopPreview);
   window.NCPerform = { api: API, messageFor: messageFor, go: go, post: post, showDone: showDone, fail: fail, audioMiss: audioMiss, showRecord: showRecord, foundLines: foundLines, showStory: showStory, seed: function () { return serverSeed; }, sync: syncActions };
