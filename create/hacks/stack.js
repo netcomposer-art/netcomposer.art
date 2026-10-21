@@ -5,9 +5,15 @@
   var $ = function (id) { return document.getElementById(id); };
   var hooks = { onDial: null, onChange: null };
   var quarter = 1;
-  var LABELS = { lowpass: 'Low-pass filter', delay: 'Delay', plate: 'Plate' };
+  var LABELS = { lowpass: 'Low-pass filter', delay: 'Delay', plate: 'Plate', eq: 'EQ', drive: 'Drive', compressor: 'Compressor', width: 'Width' };
   // The first lowpass, delay and plate keep the page's original dial ids (lcut, ltime...). Every other hack gets ids from its own.
   var PRIMARY = { lowpass: 'hack-lp', delay: 'hack-delay', plate: 'hack-plate' };
+  // EQ bell 200 Hz to 5 kHz on a log dial, 50 = 1 kHz. Compressor ratio 1:1 to 20:1 on a log dial.
+  function midHz(v) { return Math.round(200 * Math.pow(25, v / 100)); }
+  function midDial(hz) { return Math.round(100 * Math.log(hz / 200) / Math.log(25)); }
+  function ratioOf(v) { return +Math.pow(20, v / 100).toFixed(2); }
+  function ratioDial(r) { return Math.round(100 * Math.log(r) / Math.log(20)); }
+  function fmtDb(v) { return (v > 0 ? '+' : v < 0 ? '−' : '') + Math.abs(v) + ' dB'; }
 
   function stack() { return $('hack-stack'); }
   function arts() {
@@ -66,6 +72,36 @@
         mix: +field(art, 'mix').value / 100
       };
     }
+    if (type === 'eq') {
+      return {
+        low_db: +field(art, 'low_db').value,
+        mid_db: +field(art, 'mid_db').value,
+        mid_hz: midHz(+field(art, 'mid_hz').value),
+        high_db: +field(art, 'high_db').value
+      };
+    }
+    if (type === 'drive') {
+      return {
+        drive_db: +field(art, 'drive_db').value,
+        output_db: +field(art, 'output_db').value,
+        mix: +field(art, 'mix').value / 100
+      };
+    }
+    if (type === 'compressor') {
+      return {
+        threshold_db: +field(art, 'threshold_db').value,
+        ratio: ratioOf(+field(art, 'ratio').value),
+        attack_ms: +field(art, 'attack_ms').value,
+        release_ms: +field(art, 'release_ms').value,
+        makeup_db: +field(art, 'makeup_db').value
+      };
+    }
+    if (type === 'width') {
+      return {
+        width: +field(art, 'width').value / 100,
+        balance: +field(art, 'balance').value / 100
+      };
+    }
     return {};
   }
   function readouts() {
@@ -94,6 +130,39 @@
         if (damp) damp.textContent = field(art, 'damping').value + '%';
         var mix = outOf(art, 'mix');
         if (mix) mix.textContent = field(art, 'mix').value + '% wet';
+      } else if (type === 'eq') {
+        ['low_db', 'mid_db', 'high_db'].forEach(function (k) {
+          var o = outOf(art, k);
+          if (o) o.textContent = fmtDb(+field(art, k).value);
+        });
+        var mh = outOf(art, 'mid_hz');
+        if (mh) mh.textContent = fmtHz(midHz(+field(art, 'mid_hz').value));
+      } else if (type === 'drive') {
+        var dd = outOf(art, 'drive_db');
+        if (dd) dd.textContent = +field(art, 'drive_db').value === 0 ? 'clean' : fmtDb(+field(art, 'drive_db').value);
+        var od = outOf(art, 'output_db');
+        if (od) od.textContent = fmtDb(+field(art, 'output_db').value);
+        var dm = outOf(art, 'mix');
+        if (dm) dm.textContent = field(art, 'mix').value + '% wet';
+      } else if (type === 'compressor') {
+        var th = outOf(art, 'threshold_db');
+        if (th) th.textContent = fmtDb(+field(art, 'threshold_db').value);
+        var ra = outOf(art, 'ratio');
+        if (ra) ra.textContent = ratioOf(+field(art, 'ratio').value).toFixed(1) + ':1';
+        var at = outOf(art, 'attack_ms');
+        if (at) at.textContent = field(art, 'attack_ms').value + ' ms';
+        var re = outOf(art, 'release_ms');
+        if (re) re.textContent = field(art, 'release_ms').value + ' ms';
+        var mk = outOf(art, 'makeup_db');
+        if (mk) mk.textContent = fmtDb(+field(art, 'makeup_db').value);
+      } else if (type === 'width') {
+        var wd = outOf(art, 'width');
+        if (wd) wd.textContent = field(art, 'width').value + '%';
+        var bl = outOf(art, 'balance');
+        if (bl) {
+          var bv = +field(art, 'balance').value;
+          bl.textContent = bv === 0 ? 'centre' : (bv < 0 ? 'L ' + (-bv) : 'R ' + bv);
+        }
       }
     });
   }
@@ -398,6 +467,28 @@
       art.appendChild(dial('Damping', damp, output(primary ? 'pdampv' : p + 'dampv', '0%'), 'damping'));
       var mix = range(primary ? 'pmix' : p + 'mix', 'mix', 0, 100, 0, '');
       art.appendChild(dial('Mix', mix, output(primary ? 'pmixv' : p + 'mixv', '0% wet'), 'mix'));
+    } else if (type === 'eq') {
+      art.appendChild(dial('Low', range(p + 'low', 'low_db', -12, 12, 0, ''), output(p + 'lowv', '0 dB'), 'low_db'));
+      art.appendChild(dial('Mid', range(p + 'mid', 'mid_db', -12, 12, 0, ''), output(p + 'midv', '0 dB'), 'mid_db'));
+      art.appendChild(dial('Mid at', range(p + 'midhz', 'mid_hz', 0, 100, 50, ''), output(p + 'midhzv', '1.0 kHz'), 'mid_hz'));
+      art.appendChild(dial('High', range(p + 'high', 'high_db', -12, 12, 0, ''), output(p + 'highv', '0 dB'), 'high_db'));
+    } else if (type === 'drive') {
+      art.appendChild(dial('Drive', range(p + 'drive', 'drive_db', 0, 24, 0, ''), output(p + 'drivev', 'clean'), 'drive_db'));
+      art.appendChild(dial('Output', range(p + 'out', 'output_db', -12, 12, 0, ''), output(p + 'outv', '0 dB'), 'output_db'));
+      art.appendChild(dial('Mix', range(p + 'mix', 'mix', 0, 100, 100, ''), output(p + 'mixv', '100% wet'), 'mix'));
+    } else if (type === 'compressor') {
+      art.appendChild(dial('Threshold', range(p + 'thr', 'threshold_db', -60, 0, 0, ''), output(p + 'thrv', '0 dB'), 'threshold_db'));
+      art.appendChild(dial('Ratio', range(p + 'ratio', 'ratio', 0, 100, 0, ''), output(p + 'ratiov', '1.0:1'), 'ratio'));
+      art.appendChild(dial('Attack', range(p + 'att', 'attack_ms', 1, 100, 10, ''), output(p + 'attv', '10 ms'), 'attack_ms'));
+      art.appendChild(dial('Release', range(p + 'rel', 'release_ms', 10, 1000, 150, ''), output(p + 'relv', '150 ms'), 'release_ms'));
+      art.appendChild(dial('Makeup', range(p + 'mk', 'makeup_db', 0, 24, 0, ''), output(p + 'mkv', '0 dB'), 'makeup_db'));
+    } else if (type === 'width') {
+      art.appendChild(dial('Width', range(p + 'width', 'width', 0, 200, 100, ''), output(p + 'widthv', '100%'), 'width'));
+      art.appendChild(dial('Balance', range(p + 'bal', 'balance', -100, 100, 0, ''), output(p + 'balv', 'centre'), 'balance'));
+      var note = document.createElement('p');
+      note.className = 'm hack-note';
+      note.textContent = 'A mono sound has no sides, so width leaves it as it is.';
+      art.appendChild(note);
     }
   }
   function createArticle(type, id, primary) {
@@ -426,6 +517,23 @@
       if (p.decay != null) field(art, 'decay').value = String(Math.round(+p.decay * 100));
       if (p.damping != null) field(art, 'damping').value = String(Math.round(+p.damping * 100));
       if (p.mix != null) field(art, 'mix').value = String(Math.round(+p.mix * 100));
+    }
+    if (type === 'eq') {
+      ['low_db', 'mid_db', 'high_db'].forEach(function (k) { if (p[k] != null) field(art, k).value = String(Math.round(+p[k])); });
+      if (p.mid_hz != null) field(art, 'mid_hz').value = String(midDial(+p.mid_hz));
+    }
+    if (type === 'drive') {
+      if (p.drive_db != null) field(art, 'drive_db').value = String(Math.round(+p.drive_db));
+      if (p.output_db != null) field(art, 'output_db').value = String(Math.round(+p.output_db));
+      if (p.mix != null) field(art, 'mix').value = String(Math.round(+p.mix * 100));
+    }
+    if (type === 'compressor') {
+      ['threshold_db', 'attack_ms', 'release_ms', 'makeup_db'].forEach(function (k) { if (p[k] != null) field(art, k).value = String(Math.round(+p[k])); });
+      if (p.ratio != null) field(art, 'ratio').value = String(ratioDial(+p.ratio));
+    }
+    if (type === 'width') {
+      if (p.width != null) field(art, 'width').value = String(Math.round(+p.width * 100));
+      if (p.balance != null) field(art, 'balance').value = String(Math.round(+p.balance * 100));
     }
   }
   // Any number of the same hack can sit in the stack (two delays is fine). Each gets its own id: delay-1, delay-2...
