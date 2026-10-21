@@ -162,6 +162,9 @@ try {
   check(b0.length === 5 && new Set(b0.map((b) => b.id)).size === 5, 'every chord has its own id, got ' + b0.map((b) => b.id));
   check(b0.every((b) => b.id === b.lane), 'one bar per lane, keyed by the chord id');
   check(p0[1][0] === 'G13' && p0[3][0] === 'G13', 'the stub has G13 twice');
+  // No Composition rest: each chord starts the moment the one before ends.
+  for (let i = 1; i < p0.length; i++) check(Math.abs(p0[i][1] - (p0[i - 1][1] + p0[i - 1][2])) < 0.0015, 'chord ' + (i + 1) + ' starts when chord ' + i + ' ends, got ' + JSON.stringify(p0));
+  check(Math.abs((await ev("document.getElementById('perform-audio').duration")) - (p0[4][1] + p0[4][2])) < 0.05, 'the take ends when the last chord ends');
   // Hit areas: the gap between two lanes belongs to exactly one of them.
   const gapY = (b0[2].y + b0[3].y) / 2;
   const above = await hitAt(ev, b0[2].x + b0[2].w / 2, gapY - 2), below = await hitAt(ev, b0[3].x + b0[3].w / 2, gapY + 2);

@@ -316,7 +316,39 @@
     return secs ? Math.max(20, Math.min(600, +secs[1])) : 120;
   }
 
+  // A gap only when the Composition asks for one in so many words:
+  // "a rest between chords", "pause between", "silence between", "gap between",
+  // "space between", "air between". Nothing else leaves silence (Petrus, 2026-10-21).
+  var GAP_BETWEEN = /\b(?:rests?|pauses?|silences?|silent|gaps?|space|air|breaths?)\s+(?:between|after)\s+(?:each\s+|every\s+|the\s+)?(?:chords?|changes?|bars?)\b/i;
+  function explicitGap(words) { return GAP_BETWEEN.test(words || ''); }
+
+  // Where each chord sits. slots are the clock; caps are each clip's usable
+  // seconds (0 when unknown). A clip never plays longer than its recording:
+  // nothing is time-stretched. Written clocks and an explicit gap keep the
+  // slot starts. Otherwise each chord starts the moment the one before ends,
+  // so a clip shorter than its slot pulls the rest of the piece forward
+  // instead of leaving silence.
+  function placeChords(slots, caps, opts) {
+    opts = opts || {};
+    var keep = !!(opts.written || opts.gap), out = [], cursor = 0, end = 0, i, slot, len, cap, at;
+    for (i = 0; i < slots.length; i++) {
+      slot = slots[i] || { t: end, dur: 1.25 };
+      len = +(+slot.dur).toFixed(3);
+      cap = caps && caps[i];
+      if (cap > 0 && len > cap + 0.001) len = Math.floor(cap * 1000) / 1000;
+      if (!(len > 0)) len = Math.min(slot.dur, 0.1);
+      len = +len.toFixed(3);
+      at = keep ? +(+slot.t).toFixed(3) : cursor;
+      out.push({ at_s: at, len_s: len });
+      cursor = +(at + len).toFixed(3);
+      end = keep ? +(+slot.t + +slot.dur).toFixed(3) : cursor;
+    }
+    return { entries: out, total_s: end };
+  }
+
   root.NCAssembly = {
+    placeChords: placeChords,
+    explicitGap: explicitGap,
     chordSlots: chordSlots,
     durationCv: durationCv,
     looksAlternating: looksAlternating,
