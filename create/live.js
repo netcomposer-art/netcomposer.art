@@ -354,12 +354,30 @@ function tailFor(list) {
   return tail;
 }
 var clipNodes = [], clipPlays = 0, clipEnd = 0;
+// Stop with the same 12 ms fade a clip ends with, so a seek or a pause
+// never clicks. The hack chain stays connected; only the sources go.
+var CLIP_FADE_S = 0.012;
 function stopClips() {
   clipEnd = 0;
+  var now = AC ? AC.currentTime : 0;
   clipNodes.forEach(function (n) {
-    try { n.src.onended = null; n.src.stop(); } catch (e) {}
-    try { n.src.disconnect(); } catch (e2) {}
-    try { n.gain.disconnect(); } catch (e3) {}
+    var g = n.gain && n.gain.gain;
+    var done = function () {
+      try { n.src.disconnect(); } catch (e2) {}
+      try { n.gain.disconnect(); } catch (e3) {}
+    };
+    try {
+      n.src.onended = done;
+      if (g && g.cancelScheduledValues) {
+        g.cancelScheduledValues(now);
+        g.setValueAtTime(g.value, now);
+        g.linearRampToValueAtTime(0, now + CLIP_FADE_S);
+      }
+      n.src.stop(now + CLIP_FADE_S + 0.002);
+    } catch (e) {
+      try { n.src.stop(); } catch (e4) {}
+      done();
+    }
   });
   clipNodes = [];
 }
@@ -400,8 +418,11 @@ function placeClip(ctx, dest, entry, when, offset) {
   var stopAt = t0 + playLen;
   src.buffer = buf;
   src.playbackRate.value = 1;
-  if (skip > fin) g.gain.setValueAtTime(lin, t0);
-  else {
+  if (skip > fin) {
+    // Starting inside the clip (a seek): fade in like a clip start.
+    g.gain.setValueAtTime(0, t0);
+    g.gain.linearRampToValueAtTime(lin, t0 + Math.min(CLIP_FADE_S, playLen / 2));
+  } else {
     g.gain.setValueAtTime(0, t0);
     g.gain.linearRampToValueAtTime(lin, t0 + Math.max(0.001, fin - skip));
   }

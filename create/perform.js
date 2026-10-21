@@ -251,6 +251,8 @@
       if (bar.classList) bar.classList.remove('editing');
     }
     if (lanes) lanes.textContent = '';
+    var ruler = bar && bar.querySelector ? bar.querySelector('.src-ruler') : null;
+    if (ruler && ruler.parentNode) ruler.parentNode.removeChild(ruler);
     if (now) now.textContent = '';
     hideWrittenNote();
   }
@@ -333,13 +335,41 @@
         track.appendChild(mark);
         if (canEdit) wireBar(mark, track, sp);
       });
-      var head = node('div', 'src-head');
-      head.style.left = '0%';
-      track.appendChild(head);
-      g.head = head;
       lane.appendChild(track);
       lanes.appendChild(lane);
     });
+    // One playhead for the whole Arrangement, in its own row above lane 1.
+    if (E && E.playhead && lanes.parentNode && lanes.parentNode.insertBefore && lanes.ownerDocument && lanes.style && lanes.style.setProperty) {
+      take.head = E.playhead({
+        lanes: lanes,
+        duration: function () { return take ? take.duration : 0; },
+        seek: seekTake,
+        preview: function (t) { var now = $('src-now'); if (now) now.textContent = soundsAt(t); }
+      });
+      var a = $('perform-audio');
+      if (a) take.head.place(a.currentTime || 0);
+    }
+  }
+  // Seek the take. Playing: the clips restart from here (seeked -> driveClips,
+  // with the usual 12 ms fades). Stopped: Play starts here.
+  function seekTake(t) {
+    var audio = $('perform-audio');
+    if (!audio) return;
+    var end = isFinite(audio.duration) && audio.duration > 0 ? audio.duration - 0.001 : (take ? take.duration : 0);
+    t = Math.max(0, Math.min(end, +t || 0));
+    try { audio.currentTime = t; } catch (e) {}
+    if (take && take.head) take.head.place(t);
+  }
+  var headRaf = 0;
+  function tickHead() {
+    headRaf = 0;
+    var audio = $('perform-audio');
+    if (!audio || audio.paused || !take || !take.head) return;
+    take.head.place(audio.currentTime || 0);
+    headRaf = requestAnimationFrame(tickHead);
+  }
+  function runHead() {
+    if (!headRaf && typeof requestAnimationFrame === 'function') headRaf = requestAnimationFrame(tickHead);
   }
   function placeMark(mark, sp, dur) {
     mark.style.left = (100 * sp.at / dur) + '%';
@@ -441,9 +471,16 @@
     var el = $('src-lock');
     if (el) el.hidden = true;
   }
-  function showWrittenNote() {
+  var lockText = '';
+  // The note under the lanes says why an edge stopped: the Composition's
+  // written length, or the end of the recording itself (no stretching).
+  function showWrittenNote(clip_s) {
     var el = $('src-lock');
     if (!el) return;
+    if (!lockText) lockText = el.textContent;
+    el.textContent = clip_s > 0
+      ? 'That is the whole recording (' + (+clip_s).toFixed(1) + ' s). Nothing is stretched, so it can\'t get longer. You can shorten it or move it.'
+      : lockText;
     el.hidden = false;
     if (lockTimer) clearTimeout(lockTimer);
     lockTimer = setTimeout(function () { lockTimer = 0; el.hidden = true; }, 4000);
@@ -494,7 +531,7 @@
     ev.stopPropagation();
     if (!ev.repeat) hideWrittenNote();
     next = applyEdit(mode, sp.entry, time);
-    if (next && next.writtenBlock && !ev.repeat) showWrittenNote();
+    if (next && (next.writtenBlock || next.clipBlock) && !ev.repeat) showWrittenNote(next.writtenBlock ? 0 : next.clip_s);
     finishDrag();
   }
   // One bar, one pointer. The grip under the pointer (start, end, or the
@@ -547,7 +584,7 @@
       var dt = (ev.clientX - drag.x) / drag.width * drag.scale;
       var time = drag.mode === 'end' ? drag.end + dt : drag.at + dt;
       var next = applyEdit(drag.mode, drag.index, time);
-      if (next && next.writtenBlock && !drag.noted) { drag.noted = true; showWrittenNote(); }
+      if (next && (next.writtenBlock || next.clipBlock) && !drag.noted) { drag.noted = true; showWrittenNote(next.writtenBlock ? 0 : next.clip_s); }
     });
     function endPointer(ev) {
       if (!drag || drag.mark !== mark) return;
@@ -580,8 +617,9 @@
     return best;
   }
   function followTake() {
-    if (!take || !takeHeard) return;
     var audio = $('perform-audio');
+    if (take && take.head && audio) take.head.place(audio.currentTime || 0);
+    if (!take || !takeHeard) return;
     if (!audio) return;
     var t = audio.currentTime || 0;
     var now = $('src-now');
@@ -1675,6 +1713,7 @@
       if (window.NC && NC.stop) NC.stop();
       followTake();
       driveClips();
+      runHead();
     });
     audio.addEventListener('seeked', function () {
       followTake();

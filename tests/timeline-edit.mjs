@@ -233,6 +233,34 @@ check(r.writtenBlock === true && r.entries[3].len_s === 7.5, 'a written end cann
 r = E.edit(fiveClock, 'chord-1', 'end', 14, { caps: fiveCaps, written: fiveWritten, base: 52 });
 check(r.writtenBlock !== true && r.entries[1].len_s === 5.1, 'the clip stops it before the written length: no note');
 
+// The whole recording (Petrus, 2026-10-21: the top three would not get
+// longer). A chord already at its clip's natural length says so.
+const stacks = [chord(0, 'Dm9', 0, 4, 0), chord(1, 'G13', 9, 4, 0), chord(2, 'Cadd9', 20, 4, 0), chord(3, 'G13', 28, 3, 0)];
+const stackCaps = [4, 4, 4, 7.5];
+r = E.edit(stacks, 'chord-1', 'end', 15, { caps: stackCaps, base: 40 });
+check(r.clipBlock === true && r.clip_s === 4 && r.entries[1].len_s === 4, 'pulling a full-length chord longer is the clip note, got ' + JSON.stringify([r.clipBlock, r.entries[1].len_s]));
+r = E.edit(stacks, 'chord-1', 'end', 11, { caps: stackCaps, base: 40 });
+check(r.clipBlock !== true && r.entries[1].len_s === 2, 'a full-length chord still shortens');
+r = E.edit(stacks, 'chord-1', 'start', 6, { caps: stackCaps, base: 40 });
+check(r.clipBlock === true && r.entries[1].at_s === 9, 'the start edge of a full-length chord cannot reveal more, and says so');
+r = E.edit(stacks, 'chord-1', 'start', 10, { caps: stackCaps, base: 40 });
+check(r.clipBlock !== true && r.entries[1].at_s === 10 && r.entries[1].len_s === 3, 'the start edge still shortens a full-length chord');
+r = E.edit(stacks, 'chord-1', 'move', 12, { caps: stackCaps, base: 40 });
+check(r.clipBlock !== true && r.entries[1].at_s === 12, 'a full-length chord still moves');
+r = E.edit(stacks, 'chord-3', 'end', 40, { caps: stackCaps, base: 40 });
+check(r.clipBlock === true && r.entries[3].len_s === 7.5, 'a chord with room grows to its clip, then says so');
+r = E.edit(stacks, 'chord-3', 'end', 33, { caps: stackCaps, base: 40 });
+check(r.clipBlock !== true && r.entries[3].len_s === 5, 'growing inside the clip is quiet');
+r = E.edit([chord(0, 'Dm9', 0, 2, 0)].concat(stacks.slice(1)), 'chord-0', 'start', -3, { caps: stackCaps, base: 40 });
+check(r.clipBlock !== true && r.entries[0].at_s === 0, 'time 0, not the clip, stops the first start: no clip note');
+r = E.edit(stacks, 'chord-1', 'end', 60, { caps: stackCaps, written: [9, 11, 8, 12], base: 40 });
+check(r.writtenBlock === true && r.clipBlock !== true, 'past a written length, the written note wins');
+
+// Playhead math.
+check(E.timeAt(100, 100, 500, 60) === 0 && E.timeAt(600, 100, 500, 60) === 60 && E.timeAt(350, 100, 500, 60) === 30, 'timeAt maps the track to the take');
+check(E.timeAt(20, 100, 500, 60) === 0 && E.timeAt(900, 100, 500, 60) === 60, 'timeAt clamps to the take');
+check(E.timeAt(300, 100, 0, 60) === 0 && E.timeAt(300, 100, 500, 0) === 0, 'timeAt with no track or no take is 0');
+
 if (problems.length) {
   console.error(problems.join('\n'));
   process.exit(1);
