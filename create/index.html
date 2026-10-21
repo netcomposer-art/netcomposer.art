@@ -42,7 +42,7 @@ details.fold{margin:1.8rem 0}details.fold>summary{cursor:pointer;color:#555;font
 #perform-stop,#gather-stop,#gather-again,#gather-list button{font:inherit;font-size:.85rem;line-height:inherit;color:#555;background:transparent;border:0;border-radius:0;padding:0;margin:0;min-width:0;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
 #perform-stop:hover,#gather-stop:hover,#gather-again:hover,#gather-list button:hover{color:#000}#perform-stop:disabled,#gather-stop:disabled,#gather-again:disabled,#gather-list button:disabled{color:#999;background:transparent;border:0;cursor:default}
 #gather-box{margin:1.8rem 0 .4rem}#gather-list{list-style:none;margin:0;padding:0}#gather-list li{margin:0 0 1.7rem;line-height:1.45}#gather-list .g-chord,#plan-src .g-chord{display:block;margin:0 0 .2rem;color:#555}#gather-list .g-title{margin-left:.65rem}#gather-list .g-meta{display:block;margin:.15rem 0 0}#gather-list li.pending,#gather-list li.pending .g-chord,#gather-list li.pending .g-wait{color:#ccc}
-#gather-line-end{display:flex;flex-wrap:wrap;align-items:baseline;gap:.15rem .7rem;margin-top:0}#gather-line-end[hidden]{display:none}#gather-stop-end{font:inherit;font-size:.85rem;line-height:inherit;color:#555;background:transparent;border:0;border-radius:0;padding:0;margin:0;min-width:0;text-decoration:underline;text-underline-offset:3px;cursor:pointer}#gather-stop-end:hover{color:#000}#gather-stop-end:disabled{color:#999;background:transparent;border:0;cursor:default}
+#gather-line-end{display:inline-flex;flex-wrap:wrap;align-items:baseline;gap:.15rem .7rem;margin:0 0 0 .3rem;min-width:0;max-width:100%}#gather-line-end[hidden]{display:none}#gather-stop-end{font:inherit;font-size:.85rem;line-height:inherit;color:#555;background:transparent;border:0;border-radius:0;padding:0;margin:0;min-width:0;text-decoration:underline;text-underline-offset:3px;cursor:pointer}#gather-stop-end:hover{color:#000}#gather-stop-end:disabled{color:#999;background:transparent;border:0;cursor:default}
 #gather-pct,#gather-pct-end{margin-left:-.35rem;font-variant-numeric:tabular-nums}#gather-pct[hidden],#gather-pct-end[hidden]{display:none}.gbar{display:block;flex:0 0 100%;margin:.15rem 0 0}.gtrack{display:block;max-width:16rem;height:2px;background:#eee;overflow:hidden}.gbar[hidden]{display:none}.gfill{display:block;height:100%;width:0;background:#000;transition:width .25s linear}
 #plan-src{list-style:none;margin:.2rem 0 1.4rem;padding:0}#plan-src li{margin:0 0 1.15rem;line-height:1.45}#plan-seed{color:#bbb;margin:-.4rem 0 1.2rem}
 #perform-trim{color:#666;font-size:.8rem;margin:.05rem 0 .35rem}
@@ -155,7 +155,6 @@ footer{max-width:46rem;margin:0 auto;padding:1.2rem 1.5rem 4rem;font-size:.85rem
 <div id="gather-box" hidden>
 <ul id="gather-list"></ul>
 </div>
-<p class="m" id="gather-line-end" hidden><span id="gather-status-end"></span><span id="gather-pct-end" aria-hidden="true" hidden></span><button type="button" id="gather-stop-end" hidden>Stop</button><span class="gbar" id="gather-bar-end" aria-hidden="true" hidden><span class="gtrack"><span class="gfill" id="gather-fill-end"></span></span></span></p>
 <div class="row" id="gather-again-row"><button type="button" id="gather-again" hidden>Gather again</button></div>
 </section>
 
@@ -173,7 +172,7 @@ footer{max-width:46rem;margin:0 auto;padding:1.2rem 1.5rem 4rem;font-size:.85rem
 <span class="m" id="notes-status" role="status" aria-live="polite"></span>
 </div>
 </div>
-<div class="row" id="perform-row"><button id="performBtn" type="button" disabled>Perform</button><span class="m" id="perform-wait">Gather first.</span><!-- "List it after a day" hidden by Petrus 2026-10-20: the only listing is the /api/feed JSON, which no page shows. Hidden and unchecked, Save sends listed=false (unlisted). Remove the hidden attribute to restore it. --><label class="toggle" id="perform-vis" for="perform-public" hidden><input id="perform-public" type="checkbox"> List it after a day</label></div>
+<div class="row" id="perform-row"><button id="performBtn" type="button" disabled>Perform</button><span class="m" id="perform-wait">Gather first.</span><span class="m" id="gather-line-end" hidden><span id="gather-status-end"></span><span id="gather-pct-end" aria-hidden="true" hidden></span><button type="button" id="gather-stop-end" hidden>Stop</button><span class="gbar" id="gather-bar-end" aria-hidden="true" hidden><span class="gtrack"><span class="gfill" id="gather-fill-end"></span></span></span></span><!-- "List it after a day" hidden by Petrus 2026-10-20: the only listing is the /api/feed JSON, which no page shows. Hidden and unchecked, Save sends listed=false (unlisted). Remove the hidden attribute to restore it. --><label class="toggle" id="perform-vis" for="perform-public" hidden><input id="perform-public" type="checkbox"> List it after a day</label></div>
 <div id="perform-turnstile" hidden></div>
 <p class="m" id="perform-line"><span id="perform-status" aria-live="polite"></span><button type="button" id="perform-stop" hidden>Stop</button></p>
 <progress id="perform-bar" hidden max="100" value="0"></progress>
