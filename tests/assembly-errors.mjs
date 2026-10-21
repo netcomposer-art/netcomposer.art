@@ -461,12 +461,13 @@ function check(cond, msg) { if (!cond) problems.push(msg); }
 const clipUrl = function (i) { return API + '/api/jobs/' + G2 + '/audio/c' + i; };
 const status = function () { return byId('perform-status').textContent; };
 
-await waitFor(function () { return status() === 'Ready.'; }, 'boot');
+const gatherStatus = function () { return byId('gather-status').textContent; };
+await waitFor(function () { return gatherStatus() === 'Ready.'; }, 'boot');
 // A clip that loaded once stays in memory, so each case breaks clips that never loaded.
 failures[clipUrl(0)] = 404;
 failures[clipUrl(1)] = 404;
 byId('gatherBtn').onclick();
-await waitFor(function () { return status() === 'Gathered.'; }, 'gather');
+await waitFor(function () { return gatherStatus() === 'Gathered.'; }, 'gather');
 
 async function performExpect(want, label) {
   errors.length = 0;

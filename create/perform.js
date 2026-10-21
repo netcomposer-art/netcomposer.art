@@ -82,6 +82,16 @@
     s.textContent = clean;
     s.className = warn ? 'm warn' : 'm';
   }
+  // Gather has its own line in the Gather section. Pages without it fall back to the Perform line.
+  function gstatus(t, warn) {
+    if (!$('gather-status')) { status(t, warn); return; }
+    if (t === '') { $('gather-status').textContent = ''; $('gather-status').className = 'm'; return; }
+    var clean = soften(t);
+    if (!clean) clean = 'Perform did not answer. The service may be down. Try again in a moment.';
+    var s = $('gather-status');
+    s.textContent = clean;
+    s.className = warn ? 'm warn' : 'm';
+  }
   function soften(msg) {
     var t = String(msg || '').replace(/\s+/g, ' ').trim();
     if (!t || /^HTTP\b/i.test(t) || /\bHTTP Error\b/i.test(t) || /\bHTTP\s*[45]\d\d\b/i.test(t)) return '';
@@ -126,7 +136,10 @@
       again.textContent = phase === 'gather' ? 'Gathering…' : 'Gather again';
     }
     if (box) box.hidden = !(has || (phase === 'gather' && gatherLive.length));
-    pBtn.hidden = gatherOn && !has && phase !== 'perform';
+    // Perform stays in view, disabled until a Gather; the muted line says why.
+    pBtn.hidden = false;
+    var wait = $('perform-wait');
+    if (wait) wait.hidden = !(gatherOn && !has && phase !== 'perform');
     pBtn.disabled = !can || busy || (gatherOn && !has && phase !== 'perform');
     if (phase === 'perform' && busy && !playerJob) pBtn.textContent = (gatherOn && gatherId) ? 'Assembling…' : 'Performing…';
     else if (phase === 'perform' && busy) pBtn.textContent = 'Perform';
@@ -635,7 +648,14 @@
     es.onerror = function () { if (mine !== alive) return; if (es && es.readyState === 2) { stopWatch(); poll(id, on); } };
   }
   function showStop() {
-    var btn = $('perform-stop');
+    var btn = $('perform-stop'), gbtn = $('gather-stop');
+    if (gbtn && phase === 'gather') {
+      gbtn.hidden = !cancelOk;
+      if (cancelOk && !stopping) gbtn.disabled = false;
+      if (btn) btn.hidden = true;
+      return;
+    }
+    if (gbtn) { gbtn.hidden = true; gbtn.disabled = false; }
     if (!btn) return;
     if (!cancelOk) { btn.hidden = true; return; }
     if (phase === 'gather') { btn.hidden = false; if (!stopping) btn.disabled = false; return; }
@@ -644,7 +664,8 @@
     if (!stopping) btn.disabled = false;
   }
   function hideStop() {
-    var btn = $('perform-stop');
+    var btn = $('perform-stop'), gbtn = $('gather-stop');
+    if (gbtn) { gbtn.hidden = true; gbtn.disabled = false; }
     if (!btn) return;
     btn.hidden = true;
     btn.disabled = false;
@@ -2080,13 +2101,14 @@
     var play = preview.play();
     if (play && play.catch) play.catch(function () { if (previewBtn === btn) stopPreview(); });
   }
-  function wordsOk() {
+  function wordsOk(say) {
+    say = say || status;
     if (!window.NC) return null;
     if (NC.commitNotes) NC.commitNotes();
     var S = NC.state();
-    if (!S.c) { status('Write a Composition first.', true); return null; }
+    if (!S.c) { say('Write a Composition first.', true); return null; }
     var max = (cfg && cfg.max_words) || 4000, words = S.c + '\n' + S.p;
-    if (words.length > max) { status('Those words are ' + words.length + ' characters. The limit is ' + max + '.', true); return null; }
+    if (words.length > max) { say('Those words are ' + words.length + ' characters. The limit is ' + max + '.', true); return null; }
     return S;
   }
   function gatherMessage(code, j) {
@@ -2126,7 +2148,7 @@
     phase = (gatherSounds && gatherSounds.length) ? 'collection' : '';
     restoreGather();
     idle();
-    status(soften(msg) || '[job failed]', true);
+    gstatus(soften(msg) || '[job failed]', true);
   }
   function gatherStopped() {
     alive++;
@@ -2140,7 +2162,7 @@
     phase = (gatherSounds && gatherSounds.length) ? 'collection' : '';
     restoreGather();
     idle();
-    status('Stopped.');
+    gstatus('Stopped.');
   }
   function releaseTake() {
     asmGen++;
@@ -2202,7 +2224,7 @@
     paintGather(gatherSounds);
     preloadClips(gatherSounds);
     idle();
-    status('Gathered.');
+    gstatus('Gathered.');
     return true;
   }
   function onGatherJob(j) {
@@ -2227,7 +2249,7 @@
     if (j.state === 'failed' || j.state === 'rejected') { stopWatch(); gatherFail(limitMessage(j) || gatherNote('[job failed]', j)); return; }
     if (j.state === 'cancelled' || j.state === 'canceled' || j.state === 'stopped') { stopWatch(); stopped(); return; }
     mergeFound(j);
-    status('Gathering…');
+    gstatus('Gathering…');
     $('perform-bar').hidden = true;
     showStop();
   }
@@ -2275,7 +2297,7 @@
   function gather(again) {
     if (busy || !gatherOn || !window.NC) return;
     if (!(NC.timeline && NC.timeline())) return;
-    var S = wordsOk();
+    var S = wordsOk(gstatus);
     if (!S) return;
     stopPreview();
     var exclude = again ? gatherId : '';
@@ -2290,11 +2312,11 @@
     var mine = ++gatherGen;
     syncActions();
     showStop();
-    status('Gathering…');
+    gstatus('Gathering…');
     $('perform-public').disabled = true;
     askToken().then(function (tok) {
       if (mine !== gatherGen) return;
-      status('Gathering…');
+      gstatus('Gathering…');
       return postGather(S, tok, exclude, mine);
     }).catch(function (e) {
       if (mine !== gatherGen) return;
@@ -2305,8 +2327,9 @@
   function cancelGather() {
     if (stopping || phase !== 'gather') return;
     stopping = true;
-    var btn = $('perform-stop');
+    var btn = $('perform-stop'), gbtn = $('gather-stop');
     if (btn) btn.disabled = true;
+    if (gbtn) gbtn.disabled = true;
     gatherGen++;
     alive++;
     if (gatherAbort) { try { gatherAbort.abort(); } catch (e) {} gatherAbort = null; }
@@ -2444,8 +2467,11 @@
     token = null;
     var gen = ++askGen;
     var box = $('perform-turnstile');
+    // The check sits under whichever step asked for it: Gather, or Save in Perform.
+    var anchor = phase === 'gather' ? $('gather-line') : $('perform-row');
+    if (anchor && anchor.parentNode && anchor.nextSibling !== box && anchor.parentNode.insertBefore) anchor.parentNode.insertBefore(box, anchor.nextSibling);
     box.hidden = false;
-    if (!(phase === 'gather' && gatherSounds && gatherSounds.length)) status('One check, then it starts.');
+    if (!(phase === 'gather' && gatherSounds && gatherSounds.length)) (phase === 'gather' ? gstatus : status)('One check, then it starts.');
     return loadTurnstile().then(function () {
       return new Promise(function (ok, no) {
         if (gen !== askGen) return;
@@ -2580,18 +2606,19 @@
       if (!c.perform_enabled) {
         gatherOn = false;
         syncActions();
-        status('Perform is resting until tomorrow.', true);
+        gstatus('Perform is resting until tomorrow.', true);
         return;
       }
       return probeGather().then(function () {
         syncActions();
-        if ($('perform-out').hidden) status('Ready.');
+        if (!gatherOn) gstatus('');
+        if ($('perform-out').hidden) (gatherOn ? gstatus : status)('Ready.');
         resume();
       });
     }).catch(function () {
       gatherOn = false;
       syncActions();
-      status('Perform did not answer. The service may be down. Try again in a moment.', true);
+      gstatus('Perform did not answer. The service may be down. Try again in a moment.', true);
     });
   }
   var compField = $('comp');
@@ -2600,6 +2627,7 @@
   if ($('gatherBtn')) $('gatherBtn').onclick = function () { gather(false); };
   if ($('gather-again')) $('gather-again').onclick = function () { gather(true); };
   if ($('perform-stop')) $('perform-stop').onclick = cancelJob;
+  if ($('gather-stop')) $('gather-stop').onclick = cancelJob;
   $('perform-edit').onclick = function (e) {
     e.preventDefault();
     var box = $('perf'), fold = $('perf-box');
