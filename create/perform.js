@@ -1137,13 +1137,28 @@
       credit: String(credit || '')
     };
   }
-  function absoluteApi(url) {
+  // Performer paths always go to API, whatever host the server wrote. A
+  // container started without NC_PUBLIC_BASE_URL names http://localhost:8080,
+  // and the browser must never fetch that (or any other origin) for a clip.
+  var API_PATH = /^\/(?:api\/jobs\/[hkg]-[0-9a-z]+(?:\/(?:audio|files)\/[A-Za-z0-9._-]+)?|records\/[A-Za-z0-9._\/-]+)$/;
+  function apiUrl(url, keepOther) {
     url = String(url || '').trim();
     if (!url) return '';
-    if (/^https?:\/\//i.test(url)) return url;
-    if (url.charAt(0) === '/') return API + url;
+    var abs = /^https?:\/\//i.test(url), path = '', search = '';
+    if (abs) {
+      try { var u = new URL(url); path = u.pathname; search = u.search; } catch (e) { return keepOther ? url : ''; }
+    } else if (url.charAt(0) === '/') {
+      var cut = url.search(/[?#]/);
+      path = cut >= 0 ? url.slice(0, cut) : url;
+      search = cut >= 0 ? url.slice(cut).replace(/#.*$/, '') : '';
+    } else return keepOther ? url : '';
+    if (API_PATH.test(path)) return API + path + search;
+    if (abs && keepOther) return url;
     return '';
   }
+  // A clip address. Anything that is not a Performer path is dropped, and
+  // soundOf falls back to jobAudio(id, gather).
+  function absoluteApi(url) { return apiUrl(url, false); }
   function jobAudio(id, gid) {
     gid = gid || gatherId || gatherJobId;
     if (!gid || !id) return '';
@@ -1206,10 +1221,10 @@
     if (!mp3 && j && j.preview_ready && id) mp3 = API + '/api/jobs/' + encodeURIComponent(id) + '/files/preview.mp3';
     return {
       id: id,
-      mp3: mp3,
-      flac: f.flac || (id ? API + '/api/jobs/' + encodeURIComponent(id) + '/files/performance.flac' : ''),
-      rec: f.record || (id ? API + '/records/' + encodeURIComponent(id) + '.json' : ''),
-      page: f.page || (id ? API + '/records/' + encodeURIComponent(id) : ''),
+      mp3: apiUrl(mp3, true),
+      flac: apiUrl(f.flac, true) || (id ? API + '/api/jobs/' + encodeURIComponent(id) + '/files/performance.flac' : ''),
+      rec: apiUrl(f.record, true) || (id ? API + '/records/' + encodeURIComponent(id) + '.json' : ''),
+      page: apiUrl(f.page, true) || (id ? API + '/records/' + encodeURIComponent(id) : ''),
       meta: id ? API + '/api/jobs/' + encodeURIComponent(id) + '/files/meta.json' : ''
     };
   }
@@ -1420,6 +1435,11 @@
   }
   function loadClip(s) {
     var key = clipKey(s), url = s && (s.cache || s.url), id = cacheId(s);
+    if (url && url.indexOf(API + '/') !== 0) {
+      // Only the Performer serves clips. soundOf already rewrites its paths.
+      clipErrors[key || ('pos' + (s && s.slot))] = { reason: 'origin', status: 0, url: url };
+      return Promise.resolve(null);
+    }
     if (!key || !url) {
       if (key || s) clipErrors[key || ('pos' + (s && s.slot))] = { reason: 'missing', status: 0, url: url || '' };
       return Promise.resolve(null);
@@ -1707,6 +1727,7 @@
     if (e.reason === 'http') return 'HTTP ' + e.status;
     if (e.reason === 'decode') return 'could not decode';
     if (e.reason === 'missing') return 'no clip address';
+    if (e.reason === 'origin') return 'not a Performer address';
     return 'network or CORS error';
   }
   // One short line for the page, the details for the console.
@@ -1771,6 +1792,7 @@
     j = j || {};
     var href = j.page_url || j.page || j.record_url || j.url || j.share || '';
     if (!href && typeof j.record === 'string') href = j.record;
+    href = apiUrl(href, true);
     if (!href && j.id) href = API + '/records/' + encodeURIComponent(j.id);
     $('perform-keep').textContent = 'Saved';
     $('perform-keep').disabled = true;
@@ -2494,7 +2516,7 @@
     }).then(function (j) {
       if (!j || busy) return;
       if (j.state === 'done') {
-        var file = (j.files && j.files.mp3) || (API + '/api/jobs/' + (j.id || id) + '/files/preview.mp3');
+        var file = apiUrl(j.files && j.files.mp3, true) || (API + '/api/jobs/' + (j.id || id) + '/files/preview.mp3');
         return fetch(file, { method: 'GET', cache: 'no-store', headers: { Range: 'bytes=0-0' } }).then(function (r) {
           if (r.body && r.body.cancel) { try { r.body.cancel(); } catch (e) {} }
           if (busy) return;
