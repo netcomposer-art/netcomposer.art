@@ -1437,7 +1437,9 @@
   }
   function pieceWords() {
     var comp = ($('comp') && $('comp').value) || '';
-    var perf = ($('perf') && $('perf').value) || '';
+    // Hidden prompt (Petrus, 2026-10-20): the take's clock reads the Composition only.
+    var box = $('perf-box');
+    var perf = (box && box.hidden) ? '' : (($('perf') && $('perf').value) || '');
     return comp + '\n' + perf;
   }
   function planSlots(n, seed) {
