@@ -150,29 +150,140 @@
     buttons();
     if (hooks.onChange) hooks.onChange();
   }
+  function orderKey() {
+    return movable().map(function (a) { return a.getAttribute('data-id'); }).join('|');
+  }
+  function clearMotion() {
+    arts().forEach(function (n) {
+      n.style.transition = '';
+      n.style.transform = '';
+    });
+  }
+  function bindDrag(root) {
+    var drag = null;
+    function finish(commit) {
+      if (!drag) return;
+      var art = drag.art, gap = drag.gap, start = drag.start, next = drag.startNext;
+      if (drag.raf) cancelAnimationFrame(drag.raf);
+      if (commit) gap.parentNode.insertBefore(art, gap);
+      gap.remove();
+      if (!commit && art.parentNode) art.parentNode.insertBefore(art, next);
+      art.classList.remove('dragging');
+      art.style.position = '';
+      art.style.left = '';
+      art.style.right = '';
+      art.style.top = '';
+      art.style.width = '';
+      art.style.margin = '';
+      clearMotion();
+      document.documentElement.style.overflowAnchor = '';
+      drag = null;
+      buttons();
+      if (commit && orderKey() !== start && hooks.onChange) hooks.onChange();
+    }
+    function place(clientY) {
+      var list = movable().filter(function (a) { return a !== drag.art; });
+      var y = clientY - root.getBoundingClientRect().top;
+      var before = null, i;
+      for (i = 0; i < list.length; i++) {
+        if (y < list[i].offsetTop + list[i].offsetHeight / 2) { before = list[i]; break; }
+      }
+      var lim = $('hack-limiter');
+      var anchor = before || lim;
+      if (!anchor || drag.gap.nextElementSibling === anchor) return;
+      var nodes = lim ? list.concat([lim]) : list;
+      var prev = nodes.map(function (n) { return [n, n.getBoundingClientRect().top]; });
+      root.insertBefore(drag.gap, anchor);
+      prev.forEach(function (pair) {
+        var dy = pair[1] - pair[0].getBoundingClientRect().top;
+        if (!dy) return;
+        pair[0].style.transition = 'none';
+        pair[0].style.transform = 'translateY(' + dy + 'px)';
+      });
+      if (drag.raf) cancelAnimationFrame(drag.raf);
+      drag.raf = requestAnimationFrame(function () {
+        prev.forEach(function (pair) {
+          pair[0].style.transition = '';
+          pair[0].style.transform = '';
+        });
+      });
+    }
+    root.addEventListener('pointerdown', function (e) {
+      if (drag) return;
+      var grip = e.target && e.target.closest ? e.target.closest('.hack-grip') : null;
+      if (!grip || !root.contains(grip)) return;
+      if (e.button != null && e.button !== 0) return;
+      var art = grip.closest('article.hack');
+      if (!art || art.hasAttribute('data-fixed')) return;
+      e.preventDefault();
+      document.documentElement.style.overflowAnchor = 'none';
+      var box = art.getBoundingClientRect();
+      var rb = root.getBoundingClientRect();
+      var gap = document.createElement('div');
+      gap.className = 'hack-gap';
+      gap.style.height = box.height + 'px';
+      drag = {
+        art: art, gap: gap, pointer: e.pointerId, start: orderKey(),
+        startNext: art.nextSibling, offsetY: e.clientY - box.top, raf: 0
+      };
+      root.insertBefore(gap, art);
+      art.classList.add('dragging');
+      art.style.position = 'absolute';
+      art.style.left = '0';
+      art.style.right = '0';
+      art.style.margin = '0';
+      art.style.top = (box.top - rb.top) + 'px';
+      try { grip.setPointerCapture(e.pointerId); } catch (err) {}
+    }, { passive: false });
+    root.addEventListener('pointermove', function (e) {
+      if (!drag || e.pointerId !== drag.pointer) return;
+      e.preventDefault();
+      var rb = root.getBoundingClientRect();
+      var top = e.clientY - drag.offsetY - rb.top;
+      var max = root.clientHeight - drag.art.offsetHeight;
+      if (top < 0) top = 0;
+      if (top > max) top = max;
+      drag.art.style.top = top + 'px';
+      place(e.clientY);
+    }, { passive: false });
+    root.addEventListener('pointerup', function (e) {
+      if (!drag || e.pointerId !== drag.pointer) return;
+      finish(true);
+    });
+    root.addEventListener('pointercancel', function (e) {
+      if (!drag || e.pointerId !== drag.pointer) return;
+      finish(false);
+    });
+  }
+  function moveButton(type, dir) {
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = (dir < 0 ? 'hack-up' : 'hack-down') + ' hack-move';
+    btn.setAttribute('aria-label', 'Move ' + LABELS[type] + (dir < 0 ? ' up' : ' down'));
+    btn.textContent = dir < 0 ? '↑' : '↓';
+    return btn;
+  }
   function bar(type, id, primary) {
     var row = document.createElement('div');
     row.className = 'hack-bar';
+    var grip = document.createElement('span');
+    grip.className = 'hack-grip';
+    grip.setAttribute('aria-hidden', 'true');
+    grip.textContent = '⋮⋮';
     var h = document.createElement('h3');
     h.textContent = LABELS[type];
-    var up = document.createElement('button');
-    up.type = 'button';
-    up.className = 'hack-up hack-move';
-    up.setAttribute('aria-label', 'Move ' + LABELS[type] + ' up');
-    up.textContent = '↑';
-    var down = document.createElement('button');
-    down.type = 'button';
-    down.className = 'hack-down hack-move';
-    down.setAttribute('aria-label', 'Move ' + LABELS[type] + ' down');
-    down.textContent = '↓';
+    var nudge = document.createElement('div');
+    nudge.className = 'hack-nudge';
+    nudge.appendChild(moveButton(type, -1));
+    nudge.appendChild(moveButton(type, 1));
     var by = document.createElement('button');
     by.type = 'button';
     by.className = 'hack-bypass';
     by.setAttribute('aria-pressed', 'false');
     by.textContent = 'Bypass';
+    row.appendChild(grip);
     row.appendChild(h);
-    row.appendChild(up);
-    row.appendChild(down);
+    row.appendChild(nudge);
     row.appendChild(by);
     if (!primary) {
       var rm = document.createElement('button');
@@ -392,6 +503,7 @@
         if (hooks.onChange) hooks.onChange();
       }
     });
+    bindDrag(root);
     var btn = $('hack-add-btn');
     if (btn) btn.addEventListener('click', function () {
       var sel = $('hack-type');
