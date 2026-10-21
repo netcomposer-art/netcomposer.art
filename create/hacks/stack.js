@@ -293,19 +293,12 @@
     by.setAttribute('aria-label', 'Bypass ' + LABELS[type]);
     by.innerHTML = SPEAKER;
     tools.appendChild(by);
-    if (!primary) {
-      var rm = document.createElement('button');
-      rm.type = 'button';
-      rm.className = 'hack-remove';
-      rm.setAttribute('aria-label', 'Remove ' + LABELS[type]);
-      rm.innerHTML = CROSS;
-      tools.appendChild(rm);
-    } else {
-      var slot = document.createElement('span');
-      slot.className = 'hack-slot';
-      slot.setAttribute('aria-hidden', 'true');
-      tools.appendChild(slot);
-    }
+    var rm = document.createElement('button');
+    rm.type = 'button';
+    rm.className = 'hack-remove';
+    rm.setAttribute('aria-label', 'Remove ' + LABELS[type]);
+    rm.innerHTML = CROSS;
+    tools.appendChild(rm);
     row.appendChild(grip);
     row.appendChild(nudge);
     row.appendChild(h);
@@ -515,6 +508,7 @@
         paintBypass(art);
         if (hooks.onChange) hooks.onChange();
       } else if (t.classList.contains('hack-remove')) {
+        // The row goes now. The worklet fades through silence on the new order, the same fade as a reorder, then drops the hack.
         art.remove();
         buttons();
         if (hooks.onChange) hooks.onChange();

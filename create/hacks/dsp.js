@@ -399,7 +399,8 @@
     for (i = 0; i < gone.length; i++) delete chain.box[gone[i]];
   }
   function ncFade(chain) {
-    if (chain.immediate || chain.fadePhase === 'idle' || !chain.nextOrder) return 1;
+    if (chain.immediate || chain.fadePhase === 'idle') return 1;
+    if (chain.fadePhase === 'out' && !chain.nextOrder) return 1;
     var len = chain.fadeLen;
     chain.fadePos++;
     var p = chain.fadePos / len;
