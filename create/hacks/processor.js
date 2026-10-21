@@ -17,6 +17,10 @@ class NCHackProcessor extends AudioWorkletProcessor {
     this.cpuSum = 0;
     this.cpuMax = 0;
     this.clock = ncNow() > 0;
+    // Limiter gain for the scope: off until the page asks, then the lowest gain every 8 blocks.
+    this.grOn = false;
+    this.grMin = 1;
+    this.grN = 0;
     var self = this;
     this.port.onmessage = function (e) { self.onMsg(e.data || {}); };
     this.port.postMessage({ ready: 1, sr: sampleRate, clock: this.clock });
@@ -28,6 +32,7 @@ class NCHackProcessor extends AudioWorkletProcessor {
     else if (msg.op === 'order') ncChainOrder(chain, msg.ids || [], !!msg.immediate);
     else if (msg.op === 'patch') ncChainPatch(chain, msg.id, msg.params, msg.bypass, !!msg.immediate);
     else if (msg.op === 'clear') ncChainClear(chain);
+    else if (msg.op === 'scope') { this.grOn = !!msg.on; this.grMin = 1; this.grN = 0; }
     if (msg.ack) this.port.postMessage({ ack: msg.ack });
   }
   process(inputs, outputs) {
@@ -40,6 +45,16 @@ class NCHackProcessor extends AudioWorkletProcessor {
     var outR = output[1] || outL;
     if (!outL) return true;
     ncRender(this.chain, inL, inR, outL, outR);
+    if (this.grOn) {
+      var lim = this.chain.lim;
+      if (lim.lo < this.grMin) this.grMin = lim.lo;
+      lim.lo = 1;
+      if (++this.grN >= 8) {
+        this.port.postMessage({ gr: this.grMin });
+        this.grMin = 1;
+        this.grN = 0;
+      }
+    }
     if (!this.clock) return true;
     var dt = ncNow() - t0;
     if (this.warm > 0) { this.warm--; return true; }

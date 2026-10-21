@@ -93,6 +93,7 @@ footer{max-width:46rem;margin:0 auto;padding:1.2rem 1.5rem 4rem;font-size:.85rem
 .hack-grip::before{content:"";position:absolute;left:-.65rem;right:0;top:-.85rem;bottom:-.85rem}
 .hack.dragging{z-index:2;background:#fff;opacity:.82;transition:none;cursor:grabbing}
 .hack-gap{margin:.9rem 0;background:#f4f4f4;border-left:2px solid #ddd;box-sizing:border-box}
+.hack-fixed .hack-bar{margin:0 0 .35rem}.hack-scope{display:block;width:100%;height:28px;margin:0}
 </style>
 </head>
 <body>
@@ -181,6 +182,7 @@ footer{max-width:46rem;margin:0 auto;padding:1.2rem 1.5rem 4rem;font-size:.85rem
 </article>
 <article class="hack hack-fixed" id="hack-limiter" data-id="limiter" data-type="limiter" data-fixed="1">
 <div class="hack-bar"><h3>Limiter</h3><span>−1 dBFS, fixed</span></div>
+<canvas class="hack-scope" id="hack-scope" aria-hidden="true" title="What leaves the limiter. The faint bar on top is how hard it is pulling down."></canvas>
 </article>
 </div>
 <div id="hack-add">
@@ -278,6 +280,7 @@ nc perform composition.md -o out/           # any OpenAI-compatible LLM</pre>
 <script src="hacks/dsp.js"></script>
 <script src="hacks/engine.js"></script>
 <script src="hacks/stack.js"></script>
+<script src="hacks/scope.js"></script>
 <script src="live.js"></script>
 <script src="assembly.js"></script>
 <script src="timeline-edit.js"></script>

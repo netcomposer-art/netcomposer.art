@@ -127,6 +127,14 @@ function graph() {
     G.api = api; G.hack = api.node; G.master = api.node;
     api.onCpu = showCpu;
     G.hack.connect(AC.destination); G.hack.connect(G.meter);
+    if (window.NCScope) {
+      api.onGr = NCScope.gr;
+      NCScope.attach({
+        analyser: function () { return G && G.meter; },
+        playing: playing,
+        gain: function (on) { if (G && G.api) G.api.send({op: 'scope', on: !!on}); }
+      });
+    }
     return replaceAudio();
   }).then(function () {
     G.input.connect(G.hack);
@@ -140,6 +148,12 @@ function graph() {
   return G;
 }
 function player() { return $('perform-audio'); }
+// Something is going through the stack: the player, or clips the page placed itself.
+function playing() {
+  if (!AC || AC.state !== 'running') return false;
+  return live || (clipNodes.length > 0 && AC.currentTime < clipEnd);
+}
+function scopeWake() { if (window.NCScope) NCScope.wake(); }
 function prime() {
   graph();
   if (AC.state === 'suspended') AC.resume();
@@ -154,6 +168,7 @@ function wirePlayer(a) {
   a.addEventListener('play', function () {
     if (AC && AC.state === 'suspended') AC.resume();
     live = true; apply(true);
+    scopeWake();
     T0 = AC.currentTime - (a.currentTime || 0);
     if (window.NC && NC.stop) NC.stop();
     if (armFollow) { armFollow = false; scheduleMoves(); }
@@ -326,8 +341,9 @@ function tailFor(list) {
   });
   return tail;
 }
-var clipNodes = [], clipPlays = 0;
+var clipNodes = [], clipPlays = 0, clipEnd = 0;
 function stopClips() {
+  clipEnd = 0;
   clipNodes.forEach(function (n) {
     try { n.src.onended = null; n.src.stop(); } catch (e) {}
     try { n.src.disconnect(); } catch (e2) {}
@@ -381,7 +397,7 @@ function placeClip(ctx, dest, entry, when, offset) {
   g.gain.linearRampToValueAtTime(0, stopAt);
   src.connect(g); g.connect(dest);
   src.start(t0, origin + skip, playLen);
-  return { src: src, gain: g };
+  return { src: src, gain: g, end: stopAt };
 }
 function scheduleClips(spec) {
   graph();
@@ -393,9 +409,10 @@ function scheduleClips(spec) {
     var offset = spec.offset || 0;
     (spec.entries || []).forEach(function (entry) {
       var node = placeClip(AC, G.input, entry, when, offset);
-      if (node) clipNodes.push(node);
+      if (node) { clipNodes.push(node); if (node.end > clipEnd) clipEnd = node.end; }
     });
     syncAudio(true);
+    scopeWake();
   };
   if (G.hack) run();
   else G.ready.then(run);
@@ -866,6 +883,7 @@ readouts(); buttons();
 window.NCLive = {settings: settings, cutoffHz: cutoffHz, validate: validate, open: open, hide: hide, level: level, bands: bands, prime: prime, render: render,
   adjusted: adjusted, chain: chain, applyChain: applyChain, scheduleClips: scheduleClips, stopClips: stopClips, renderBuffers: renderBuffers,
   cpu: function () { return window.__hackCpu || null; },
+  playing: playing,
   ready: function () { graph(); return G.ready; },
   clipPlays: function () { return clipPlays; },
   performanceId: function () { return PERF && PERF.id; },
