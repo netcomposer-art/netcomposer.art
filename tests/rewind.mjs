@@ -175,6 +175,58 @@ try {
     st = await ev("(() => { var a = document.getElementById('perform-audio'); return { t: a.currentTime, paused: a.paused }; })()");
     check(st.t < 0.8 && !st.paused, tag + ': playing rewind restarts from 0 and keeps playing, got ' + JSON.stringify(st));
     await ev("document.getElementById('perform-audio').pause()");
+
+    // The Live take's player gets the same icon. A take is stood in with a WAV
+    // blob here; recording one is not what this test is about.
+    const live = await ev(`(async () => {
+      var n = 8000 * 20, b = new ArrayBuffer(44 + n * 2), v = new DataView(b), i;
+      function w(o, s) { for (i = 0; i < s.length; i++) v.setUint8(o + i, s.charCodeAt(i)); }
+      w(0, 'RIFF'); v.setUint32(4, 36 + n * 2, true); w(8, 'WAVEfmt '); v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true);
+      v.setUint32(24, 8000, true); v.setUint32(28, 16000, true); v.setUint16(32, 2, true); v.setUint16(34, 16, true); w(36, 'data'); v.setUint32(40, n * 2, true);
+      for (i = 0; i < n; i++) v.setInt16(44 + i * 2, Math.round(2000 * Math.sin(i / 7)), true);
+      var a = document.getElementById('ltakeaudio');
+      var box = document.getElementById('ltake');
+      for (var d = box.parentElement; d; d = d.parentElement) if (d.tagName === 'DETAILS') d.open = true;
+      box.hidden = false;
+      a.src = URL.createObjectURL(new Blob([b], { type: 'audio/wav' }));
+      await new Promise(function (ok) { if (a.readyState >= 1) ok(); else a.addEventListener('loadedmetadata', ok, { once: true }); });
+      box.scrollIntoView({ block: 'center' });
+      var r = document.getElementById('ltake-rewind'), br = r.getBoundingClientRect(), ar = a.getBoundingClientRect();
+      return { label: r.getAttribute('aria-label'), title: r.title, w: br.width, h: br.height, bx: br.right, ax: ar.left, bc: br.top + br.height / 2, ac: ar.top + ar.height / 2, aw: ar.width,
+        wide: document.documentElement.scrollWidth > document.documentElement.clientWidth };
+    })()`);
+    check(live.label === 'Back to the beginning' && live.title === 'Back to the beginning', tag + ' live: label and title');
+    check(Math.abs(live.w - 32) < 1 && Math.abs(live.h - 32) < 1, tag + ' live: a 32 px icon, got ' + live.w + 'x' + live.h);
+    check(live.bx <= live.ax + 0.5 && Math.abs(live.bc - live.ac) <= 1.5, tag + ' live: left of the player and centred on it');
+    check(live.aw > 200 && !live.wide, tag + ' live: the player keeps its width and the page does not widen, ' + live.aw);
+    await ev("(() => { var a = document.getElementById('ltakeaudio'); a.pause(); a.currentTime = 9; })()");
+    await sleep(200);
+    await ev("document.getElementById('ltake-rewind').click()");
+    await sleep(200);
+    st = await ev("(() => { var a = document.getElementById('ltakeaudio'); return { t: a.currentTime, paused: a.paused, perf: document.getElementById('perform-audio').currentTime }; })()");
+    check(st.t < 0.05 && st.paused, tag + ' live: paused rewind goes to 0 and stays paused, got ' + JSON.stringify(st));
+    await ev("(() => { var a = document.getElementById('ltakeaudio'); a.currentTime = 12; return a.play(); })()");
+    await sleep(500);
+    if (SHOTS) {
+      await ev("(() => { var a = document.querySelector('#ltake .player-row'); window.scrollTo(0, scrollY + a.getBoundingClientRect().top - 200); })()");
+      await sleep(200);
+      const r = await ev("(() => { var a = document.querySelector('#ltake .player-row').getBoundingClientRect(); return {x: 0, y: a.top + scrollY - 24, width: innerWidth, height: a.height + 48}; })()");
+      const shot = await send('Page.captureScreenshot', { format: 'png', clip: { ...r, scale: view.mobile ? 2 : 1 }, captureBeyondViewport: true });
+      (await import('node:fs')).writeFileSync(SHOTS + '/live-' + tag + '.png', Buffer.from(shot.data, 'base64'));
+    }
+    await ev("document.getElementById('ltake-rewind').click()");
+    await sleep(300);
+    st = await ev("(() => { var a = document.getElementById('ltakeaudio'); return { t: a.currentTime, paused: a.paused }; })()");
+    check(st.t < 0.8 && !st.paused, tag + ' live: playing rewind restarts from 0 and keeps playing, got ' + JSON.stringify(st));
+    // Space on the focused icon is the page's play/stop, not a rewind.
+    await ev("(() => { var a = document.getElementById('ltakeaudio'); a.pause(); a.currentTime = 6; document.getElementById('ltake-rewind').focus(); })()");
+    await sleep(150);
+    await send('Input.dispatchKeyEvent', { type: 'keyDown', key: ' ', code: 'Space', windowsVirtualKeyCode: 32, text: ' ' });
+    await send('Input.dispatchKeyEvent', { type: 'keyUp', key: ' ', code: 'Space', windowsVirtualKeyCode: 32 });
+    await sleep(250);
+    st = await ev("(() => ({ t: document.getElementById('ltakeaudio').currentTime }))()");
+    check(st.t > 5.5, tag + ' live: Space on the icon does not rewind, got ' + JSON.stringify(st));
+    await ev("(() => { document.getElementById('perform-audio').pause(); document.getElementById('ltakeaudio').pause(); })()");
     ws.close();
   }
 } finally {

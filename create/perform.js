@@ -2815,11 +2815,16 @@
     heard.addEventListener('play', function () { stopPreview(); takeHeard = true; if (window.NC && NC.stop) NC.stop(); followTake(); });
     ['timeupdate', 'seeked', 'pause', 'ended'].forEach(function (ev) { heard.addEventListener(ev, followTake); });
   }
-  // Back to the beginning. Playing keeps playing from 0; paused stays paused.
-  var rewind = $('perform-rewind');
-  if (rewind && heard) rewind.addEventListener('click', function () {
-    try { heard.currentTime = 0; } catch (e) {}
-    followTake();
+  // Back to the beginning, for every .rewind[data-for] (the take and the Live take).
+  // Playing keeps playing from 0; paused stays paused. The player is looked up on
+  // each click because Live may swap #perform-audio for a fresh element.
+  if (document.addEventListener) document.addEventListener('click', function (ev) {
+    var b = ev.target && ev.target.closest ? ev.target.closest('.rewind[data-for]') : null;
+    if (!b) return;
+    var a = document.getElementById(b.getAttribute('data-for'));
+    if (!a) return;
+    try { a.currentTime = 0; } catch (e) {}
+    if (a.id === 'perform-audio') followTake();
   });
   var playBtn = $('play');
   if (playBtn) playBtn.addEventListener('click', stopPreview);
