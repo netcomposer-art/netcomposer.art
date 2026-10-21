@@ -70,7 +70,7 @@
   var gatherOn = false, gatherId = '', gatherClaim = '', gatherJobId = '', gatherSounds = null, gatherClock = null, phase = '', gatherGen = 0, gatherAbort = null;
   var gatherNames = [], gatherLive = [], playerJob = '', assembleTimer = null, warmAsked = false, warmSent = false;
   var clipBuffers = {}, clipJobs = {}, decodeCtx = null, localPlan = null, localUrl = '', clockDur = 0, asmGen = 0;
-  var drag = null, refitting = false;
+  var drag = null, refitting = false, planBase = 0;
   var preview = new Audio(), previewBtn = null;
   preview.preload = 'none';
   preview.addEventListener('ended', function () { stopPreview(); });
@@ -273,33 +273,52 @@
     timeline.forEach(function (c) { if (c && typeof c.end_s === 'number' && c.end_s > dur) dur = c.end_s; });
     spans.forEach(function (sp) { if (sp.at + sp.len > dur) dur = sp.at + sp.len; });
     if (!(dur > 0)) return;
+    var E = window.NCTimelineEdit;
+    var canEdit = !!(editable && E && localPlan);
+    // Editing: one lane per chord instance, keyed by its own id, never by the
+    // sound, the supplier or the chord symbol. Two G13s are two lanes, and no
+    // two bars ever share a lane, so their hit areas cannot overlap.
+    // A kept record (read only) still groups by sound as before.
     var keys = {}, list = [];
     spans.forEach(function (sp) { if (sp.key && !keys[sp.key]) { keys[sp.key] = 1; list.push(sp.key); } });
     var byOrigin = list.length > 8;
-    var groups = {}, order = [];
+    var groups = {}, order = [], byId = {};
     spans.forEach(function (sp) {
-      var id = byOrigin ? (sp.origin || sp.title || sp.key || 'sound') : (sp.key || sp.title || sp.origin || 'sound');
+      var id;
+      if (canEdit) {
+        if (!(sp.entry >= 0)) return;
+        id = sp.id = E.idOf(sp.entry);
+        byId[id] = sp;
+        groups[id] = {label: sp.title || sp.origin || sp.key, spans: [sp]};
+        order.push(id);
+        return;
+      }
+      id = byOrigin ? (sp.origin || sp.title || sp.key || 'sound') : (sp.key || sp.title || sp.origin || 'sound');
       if (!groups[id]) { groups[id] = {label: byOrigin ? (sp.origin || sp.title || sp.key) : (sp.title || sp.origin || sp.key), spans: []}; order.push(id); }
       groups[id].spans.push(sp);
     });
-    take = {timeline: timeline, groups: groups, order: order, duration: dur};
+    take = {timeline: timeline, groups: groups, order: order, duration: dur, byId: byId};
     var lanes = $('src-lanes');
     if (!lanes || !order.length) return;
     var box = $('src-time');
     box.hidden = false;
-    var canEdit = !!(editable && window.NCTimelineEdit && localPlan);
     if (canEdit) box.classList.add('editing');
+    if (lanes.classList) {
+      if (canEdit && order.length > 12) lanes.classList.add('dense');
+      else lanes.classList.remove('dense');
+    }
     order.forEach(function (id) {
       var g = groups[id], lane = node('div', 'src-lane'), track = node('div', 'src-track');
       lane.title = g.label;
       lane.setAttribute('aria-label', g.label);
-      lane.addEventListener('click', function () { var now = $('src-now'); if (now) now.textContent = g.label; });
+      if (canEdit) lane.setAttribute('data-chord', id);
+      else lane.addEventListener('click', function () { var now = $('src-now'); if (now) now.textContent = g.label; });
       g.spans.forEach(function (sp) {
         var mark = node('div', 'src-span');
         sp.mark = mark;
         placeMark(mark, sp, dur);
         track.appendChild(mark);
-        if (canEdit && sp.entry >= 0) wireBar(mark, track, sp);
+        if (canEdit) wireBar(mark, track, sp);
       });
       var head = node('div', 'src-head');
       head.style.left = '0%';
@@ -318,7 +337,7 @@
     var e = localPlan && sp.entry >= 0 ? localPlan.entries[sp.entry] : null;
     var name = (e && e.chord) || sp.title || 'Chord';
     var end = +(+sp.at + +sp.len).toFixed(1);
-    var range = name + ', ' + (+sp.at).toFixed(1) + 's to ' + end.toFixed(1) + 's';
+    var range = 'Chord ' + (sp.entry + 1) + ', ' + name + ', ' + (+sp.at).toFixed(1) + 's to ' + end.toFixed(1) + 's';
     var written = !!writtenLengths();
     sp.mark.title = written
       ? range + '. The Composition wrote this length. Drag the end to shorten it.'
@@ -326,16 +345,6 @@
     sp.mark.setAttribute('aria-label', written
       ? range + '. Up and down change the end, no further than the Composition wrote. The start stays.'
       : range + '. Left and right move it. Up and down change the end. Alt with left or right changes the start.');
-  }
-  function edgeMode(ev, mark) {
-    var box = mark.getBoundingClientRect();
-    var w = Math.max(box.width, 42);
-    var left = box.left + box.width / 2 - w / 2;
-    var zone = Math.min(14, w / 3);
-    var x = ev.clientX;
-    if (x <= left + zone) return 'start';
-    if (x >= left + w - zone) return 'end';
-    return 'move';
   }
   function entryCaps(plan) {
     var sounds = gatherSounds || [];
@@ -352,21 +361,39 @@
       return cap;
     });
   }
+  // The strip's scale only grows. A shorter take after an edit leaves the
+  // other bars exactly where they were.
   function syncTakeFromPlan(plan) {
     if (!take || !plan) return;
-    var view = drag && drag.dur > plan.total_s ? drag.dur : plan.total_s;
-    take.duration = view;
+    if (plan.total_s > take.duration) take.duration = plan.total_s;
     take.timeline = plan.entries.map(function (e, i) {
       return { chord_index: i, start_s: e.at_s, end_s: +(e.at_s + e.len_s).toFixed(3), symbol: e.chord };
     });
-    take.order.forEach(function (id) {
-      take.groups[id].spans.forEach(function (sp) {
-        if (!(sp.entry >= 0) || !plan.entries[sp.entry]) return;
-        var e = plan.entries[sp.entry];
-        sp.at = e.at_s;
-        sp.len = e.len_s;
-      });
+    plan.entries.forEach(function (e, i) {
+      var sp = take.byId && take.byId[NCTimelineEdit.idOf(i)];
+      if (!sp) return;
+      sp.at = e.at_s;
+      sp.len = e.len_s;
     });
+  }
+  // Only the chord that changed: its record, its bar, its row in the list.
+  function syncChord(plan, index) {
+    if (!take || !plan || !plan.entries[index]) return;
+    var e = plan.entries[index];
+    var sp = take.byId && take.byId[NCTimelineEdit.idOf(index)];
+    if (take.timeline[index]) take.timeline[index] = { chord_index: index, start_s: e.at_s, end_s: +(e.at_s + e.len_s).toFixed(3), symbol: e.chord };
+    if (sp) {
+      sp.at = e.at_s;
+      sp.len = e.len_s;
+      if (sp.mark) { placeMark(sp.mark, sp, take.duration); labelBar(sp); }
+    }
+    var list = $('plan-src'), li = list && list.children[index];
+    if (li) {
+      li.dataset.at = String(e.at_s);
+      li.dataset.len = String(e.len_s);
+      var when = li.querySelector ? li.querySelector('.m') : null;
+      if (when) when.textContent = ' ' + e.at_s.toFixed(1) + 's';
+    }
   }
   function layoutStrip() {
     if (!take || !(take.duration > 0)) return;
@@ -410,15 +437,12 @@
   }
   function applyEdit(mode, index, time) {
     if (!localPlan || !window.NCTimelineEdit || !(index >= 0)) return null;
-    var E = NCTimelineEdit, caps = entryCaps(localPlan), written = writtenLengths(), next;
-    if (mode === 'end') next = E.trimEnd(localPlan.entries, index, time, caps, written);
-    else if (mode === 'start') next = E.trimStart(localPlan.entries, index, time, caps, written);
-    else next = E.move(localPlan.entries, index, time, caps, written);
+    var E = NCTimelineEdit;
+    var next = E.edit(localPlan.entries, E.idOf(index), mode, time, { caps: entryCaps(localPlan), written: writtenLengths(), base: planBase });
+    if (next.index !== index) return null;
     localPlan.entries = next.entries;
     localPlan.total_s = next.total_s;
-    syncTakeFromPlan(localPlan);
-    layoutStrip();
-    paintPlan(localPlan);
+    syncChord(localPlan, index);
     followTake();
     driveClips();
     return next;
@@ -426,14 +450,15 @@
   function finishDrag() {
     drag = null;
     if (!localPlan) return;
+    var scale = take ? take.duration : 0;
     syncTakeFromPlan(localPlan);
-    layoutStrip();
+    if (take && take.duration !== scale) layoutStrip();
     followTake();
     fitClock();
     driveClips();
   }
   function onBarKey(ev, sp) {
-    if (!localPlan || !(sp.entry >= 0)) return;
+    if (!localPlan || !(sp.entry >= 0) || drag) return;
     var e = localPlan.entries[sp.entry];
     if (!e) return;
     var step = ev.shiftKey ? 0.5 : 0.1, mode = '', time = 0, audio, next;
@@ -459,70 +484,73 @@
     if (next && next.writtenBlock && !ev.repeat) showWrittenNote();
     finishDrag();
   }
+  // One bar, one pointer. The grip under the pointer (start, end, or the
+  // body) decides the gesture, and the bar that got the pointerdown captures
+  // the pointer, so nothing in another lane can take over mid-drag.
   function wireBar(mark, track, sp) {
+    var id = sp.id;
     mark.tabIndex = 0;
     mark.setAttribute('role', 'group');
     mark.setAttribute('data-edit', '1');
+    mark.setAttribute('data-chord', id);
+    ['start', 'end'].forEach(function (side) {
+      var grip = node('span', 'src-grip ' + side);
+      grip.setAttribute('data-grip', side);
+      grip.setAttribute('aria-hidden', 'true');
+      mark.appendChild(grip);
+    });
     labelBar(sp);
+    function gripOf(ev) {
+      var t = ev.target;
+      var side = t && t.getAttribute ? t.getAttribute('data-grip') : '';
+      return side === 'start' || side === 'end' ? side : 'move';
+    }
     mark.addEventListener('pointerdown', function (ev) {
       if (ev.button != null && ev.button !== 0) return;
-      if (!localPlan || !(sp.entry >= 0) || !take) return;
-      var entry = localPlan.entries[sp.entry];
+      if (drag || !localPlan || !take) return;
+      var index = NCTimelineEdit.indexOf(localPlan.entries, id);
+      var entry = index >= 0 ? localPlan.entries[index] : null;
       var box = track.getBoundingClientRect();
-      if (!entry || !(box.width > 0)) return;
+      if (!entry || index !== sp.entry || !(box.width > 0)) return;
       ev.preventDefault();
       ev.stopPropagation();
       hideWrittenNote();
-      if (mark.focus) mark.focus();
+      if (mark.focus) mark.focus({ preventScroll: true });
       drag = {
-        pointerId: ev.pointerId, mark: mark, track: track, index: sp.entry,
-        mode: edgeMode(ev, mark), x: ev.clientX, y: ev.clientY,
-        at: entry.at_s, len: entry.len_s, end: +(entry.at_s + entry.len_s).toFixed(3),
-        dur: take.duration, width: box.width, moved: false
+        id: id, pointerId: ev.pointerId, mark: mark, index: index, mode: gripOf(ev),
+        x: ev.clientX, y: ev.clientY, at: entry.at_s, end: +(entry.at_s + entry.len_s).toFixed(3),
+        scale: take.duration, width: box.width, moved: false, noted: false
       };
-      mark.classList.add(drag.mode === 'move' ? 'dragging' : 'on-edge');
+      mark.classList.add(drag.mode === 'move' ? 'dragging' : 'trimming');
       if (mark.setPointerCapture) { try { mark.setPointerCapture(ev.pointerId); } catch (e) {} }
     });
     mark.addEventListener('pointermove', function (ev) {
-      if (!drag || drag.mark !== mark) {
-        if (mark.classList) mark.classList.toggle('on-edge', edgeMode(ev, mark) !== 'move');
-        return;
-      }
-      if (ev.pointerId !== drag.pointerId) return;
+      if (!drag || drag.mark !== mark || ev.pointerId !== drag.pointerId) return;
       if (!drag.moved) {
         if (Math.abs(ev.clientX - drag.x) < 3 && Math.abs(ev.clientY - drag.y) < 3) return;
         drag.moved = true;
       }
       ev.preventDefault();
-      var width = drag.width, box = track.getBoundingClientRect();
-      if (box.width > 0) width = box.width;
-      var dt = (ev.clientX - drag.x) / width * drag.dur;
+      var dt = (ev.clientX - drag.x) / drag.width * drag.scale;
       var time = drag.mode === 'end' ? drag.end + dt : drag.at + dt;
       var next = applyEdit(drag.mode, drag.index, time);
       if (next && next.writtenBlock && !drag.noted) { drag.noted = true; showWrittenNote(); }
-      if (localPlan && drag && localPlan.total_s > drag.dur + 0.0001) {
-        var edited = localPlan.entries[drag.index];
-        drag.dur = localPlan.total_s;
-        drag.x = ev.clientX;
-        drag.at = edited.at_s;
-        drag.len = edited.len_s;
-        drag.end = +(edited.at_s + edited.len_s).toFixed(3);
-        drag.width = width;
-        syncTakeFromPlan(localPlan);
-        layoutStrip();
-        followTake();
-      }
     });
     function endPointer(ev) {
       if (!drag || drag.mark !== mark) return;
       if (ev && ev.pointerId != null && ev.pointerId !== drag.pointerId) return;
+      var moved = drag.moved;
       mark.classList.remove('dragging');
-      mark.classList.remove('on-edge');
-      if (!drag.moved) { drag = null; return; }
+      mark.classList.remove('trimming');
+      if (mark.hasPointerCapture && mark.releasePointerCapture && ev && ev.pointerId != null) {
+        try { if (mark.hasPointerCapture(ev.pointerId)) mark.releasePointerCapture(ev.pointerId); } catch (e) {}
+      }
+      if (!moved) { drag = null; return; }
       finishDrag();
     }
     mark.addEventListener('pointerup', endPointer);
     mark.addEventListener('pointercancel', endPointer);
+    mark.addEventListener('lostpointercapture', endPointer);
     mark.addEventListener('keydown', function (ev) { onBarKey(ev, sp); });
     mark.addEventListener('contextmenu', function (ev) { ev.preventDefault(); });
   }
@@ -1688,6 +1716,7 @@
     localUrl = URL.createObjectURL(blob);
     clockDur = plan.total_s;
     localPlan = plan;
+    planBase = plan.total_s;
     playerJob = gatherId + '-' + plan.seed;
     $('perform-title').textContent = (window.NC && NC.state && NC.state().t) || 'Performance';
     $('perform-sources').open = false;

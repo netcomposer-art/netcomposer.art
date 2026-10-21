@@ -174,6 +174,65 @@ check(r.writtenBlock !== true && r.entries[1].at_s === 3 && r.entries[1].len_s =
 r = E.move(base, 2, 5, caps);
 check(r.writtenBlock !== true && r.entries[2].at_s === 5 && r.total_s === 8, 'an organic take can still move and grow');
 
+// One record per chord instance (Petrus, 2026-10-21: a lower bar merged with
+// the one above). Ids are positions, so G13 twice is two chords.
+const five = [chord(0, 'Dm9', 0, 6, 0), chord(1, 'G13', 7, 5, 0), chord(2, 'Cadd9', 16, 8, 0), chord(3, 'G13', 28, 7.5, 0), chord(4, 'Am9', 44, 8, 0)];
+five[3].clip_id = five[1].clip_id; // even a shared clip id must not tie them together
+const fiveCaps = [6.2, 5.1, 8, 7.5, 8];
+const ids = E.chords(five).map((c) => c.id);
+check(ids.join() === 'chord-0,chord-1,chord-2,chord-3,chord-4', 'one id per chord instance, got ' + ids);
+check(E.indexOf(five, 'chord-3') === 3 && E.indexOf(five, 'G13') === -1 && E.indexOf(five, 'chord-9') === -1, 'ids resolve by position only, never by symbol');
+function others(next, prev, index, msg) {
+  for (let i = 0; i < prev.length; i++) if (i !== index) check(next[i] === prev[i], msg + ': chord ' + (i + 1) + ' changed');
+}
+for (const mode of ['move', 'start', 'end']) {
+  for (const t of [-100, 0, 7, 16, 20, 27.9, 30, 200]) {
+    r = E.edit(five, 'chord-3', mode, t, { caps: fiveCaps, base: 52 });
+    others(r.entries, five, 3, mode + ' of the lower G13 to ' + t);
+    check(r.index === 3 && r.id === 'chord-3', 'the edit names the chord it changed');
+    check(r.entries[3].at_s >= five[2].at_s && r.entries[3].at_s <= five[4].at_s, 'the lower bar stays between its neighbors (harmonic order)');
+    check(r.entries[3].len_s <= fiveCaps[3], 'the lower bar never passes its clip length');
+    check(r.entries[3].offset_s == null && r.entries[3].in_s == null, 'no in-offset');
+  }
+}
+check(five[3].at_s === 28 && five[2].at_s === 16 && five[1].at_s === 7, 'edits never mutate the plan');
+r = E.edit(five, 'chord-3', 'move', 0, { caps: fiveCaps, base: 52 });
+check(r.entries[3].at_s === 16 && r.entries[2] === five[2], 'dragging the lower bar up to the upper start stops there and leaves the upper bar as it was');
+r = E.edit(five, 'chord-3', 'end', 30, { caps: fiveCaps, base: 52 });
+check(r.entries[3].len_s === 2 && r.entries[1] === five[1], 'trimming the second G13 leaves the first G13');
+r = E.edit(five, 'chord-1', 'end', 9, { caps: fiveCaps, base: 52 });
+check(r.entries[1].len_s === 2 && r.entries[3] === five[3], 'trimming the first G13 leaves the second G13');
+let chain = five;
+for (const [id, mode, t] of [['chord-1', 'move', 8], ['chord-3', 'end', 31], ['chord-1', 'end', 100], ['chord-3', 'start', 29]]) chain = E.edit(chain, id, mode, t, { caps: fiveCaps, base: 52 }).entries;
+check(chain[1].at_s === 8 && chain[1].len_s === 5.1, 'first G13 after its own edits, got ' + chain[1].at_s + '/' + chain[1].len_s);
+check(chain[3].at_s === 29 && chain[3].len_s === 2, 'second G13 after its own edits, got ' + chain[3].at_s + '/' + chain[3].len_s);
+check(chain[0] === five[0] && chain[2] === five[2] && chain[4] === five[4], 'the untouched chords are the same objects');
+r = E.edit(five, 'chord-1', 'end', 100, { caps: fiveCaps, base: 52 });
+check(r.entries[1].len_s === 5.1, 'the end clamps at the clip length, got ' + r.entries[1].len_s);
+r = E.edit(five, 'chord-1', 'start', 0, { caps: fiveCaps, base: 52 });
+check(r.entries[1].at_s === 6.9 && r.entries[1].len_s === 5.1, 'the start clamps where the clip runs out, got ' + r.entries[1].at_s);
+r = E.edit(five, 'chord-0', 'end', 1, { caps: fiveCaps, base: 52 });
+check(r.total_s === 52, 'an edit early in the take keeps the gathered length, got ' + r.total_s);
+r = E.edit(five, 'chord-4', 'move', 50, { caps: fiveCaps, base: 52 });
+check(r.total_s === 58, 'a chord moved past the end still grows the take, got ' + r.total_s);
+r = E.edit(five, 'chord-7', 'move', 1, { caps: fiveCaps });
+check(r.index === -1 && r.entries.every((e, i) => e === five[i]), 'an unknown id changes nothing');
+// Written lock through the same entry point.
+const fiveWritten = [7, 9, 12, 16, 8];
+const fiveClock = [chord(0, 'Dm9', 0, 6, 0), chord(1, 'G13', 7, 5, 0), chord(2, 'Cadd9', 16, 8, 0), chord(3, 'G13', 28, 7.5, 0), chord(4, 'Am9', 44, 8, 0)];
+r = E.edit(fiveClock, 'chord-3', 'move', 20, { caps: fiveCaps, written: fiveWritten, base: 52 });
+check(r.writtenBlock === true && r.entries[3].at_s === 28 && r.total_s === 52, 'a written lower bar does not move');
+r = E.edit(fiveClock, 'chord-3', 'start', 30, { caps: fiveCaps, written: fiveWritten, base: 52 });
+check(r.writtenBlock === true && r.entries[3].at_s === 28, 'a written start edge stays');
+r = E.edit(fiveClock, 'chord-3', 'end', 31, { caps: fiveCaps, written: fiveWritten, base: 52 });
+check(r.writtenBlock !== true && r.entries[3].len_s === 3 && r.total_s === 52, 'a written end may shorten');
+others(r.entries, fiveClock, 3, 'shortening a written chord');
+check(saveAccepts(r, fiveWritten) === '', 'a shortened written chord would fail Save: ' + saveAccepts(r, fiveWritten));
+r = E.edit(fiveClock, 'chord-3', 'end', 60, { caps: fiveCaps, written: fiveWritten, base: 52 });
+check(r.writtenBlock === true && r.entries[3].len_s === 7.5, 'a written end cannot pass the clip or the written length');
+r = E.edit(fiveClock, 'chord-1', 'end', 14, { caps: fiveCaps, written: fiveWritten, base: 52 });
+check(r.writtenBlock !== true && r.entries[1].len_s === 5.1, 'the clip stops it before the written length: no note');
+
 if (problems.length) {
   console.error(problems.join('\n'));
   process.exit(1);
