@@ -137,7 +137,17 @@
     var btn = art.querySelector('.hack-bypass');
     if (!btn) return;
     btn.setAttribute('aria-pressed', on ? 'true' : 'false');
-    btn.textContent = on ? 'Bypassed' : 'Bypass';
+    var waves = btn.querySelectorAll('.hack-wave');
+    var slash = btn.querySelector('.hack-slash');
+    var i;
+    for (i = 0; i < waves.length; i++) {
+      if (on) waves[i].setAttribute('hidden', '');
+      else waves[i].removeAttribute('hidden');
+    }
+    if (slash) {
+      if (on) slash.removeAttribute('hidden');
+      else slash.setAttribute('hidden', '');
+    }
   }
   function move(art, dir) {
     var list = movable();
@@ -255,12 +265,16 @@
       finish(false);
     });
   }
+  var TRI_UP = '<svg viewBox="0.3 0.3 15.4 13.4" width="15" height="12" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linejoin="round"><path d="M8 1.2 14.7 12.5H1.3Z"/></svg>';
+  var TRI_DN = '<svg viewBox="0.3 0.3 15.4 13.4" width="15" height="12" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linejoin="round"><path d="M8 12.8 1.3 1.5h13.4Z"/></svg>';
+  var SPEAKER = '<svg viewBox="0.4 1.5 17.4 12.9" width="20" height="15" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.05" stroke-linecap="round" stroke-linejoin="round"><path d="M1.2 5.8h2.4L8.4 2.5v11L3.6 10.2H1.2z"/><path class="hack-wave" d="M10.5 5.5a3.2 3.2 0 0 0 0 5"/><path class="hack-wave" d="M13.4 3.1a6 6 0 0 0 0 9.8"/><path class="hack-slash" d="M1.7 13.1 16.6 2.5" hidden/></svg>';
+  var CROSS = '<svg viewBox="0.5 0.5 11 11" width="13" height="13" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.05" stroke-linecap="round"><path d="M1.5 1.5l9 9M10.5 1.5 1.5 10.5"/></svg>';
   function moveButton(type, dir) {
     var btn = document.createElement('button');
     btn.type = 'button';
     btn.className = (dir < 0 ? 'hack-up' : 'hack-down') + ' hack-move';
     btn.setAttribute('aria-label', 'Move ' + LABELS[type] + (dir < 0 ? ' up' : ' down'));
-    btn.textContent = dir < 0 ? '↑' : '↓';
+    btn.innerHTML = dir < 0 ? TRI_UP : TRI_DN;
     return btn;
   }
   function bar(type, id, primary) {
@@ -272,27 +286,31 @@
     grip.textContent = '⋮⋮';
     var h = document.createElement('h3');
     h.textContent = LABELS[type];
-    var nudge = document.createElement('div');
+    var nudge = document.createElement('span');
     nudge.className = 'hack-nudge';
     nudge.appendChild(moveButton(type, -1));
     nudge.appendChild(moveButton(type, 1));
-    var by = document.createElement('button');
-    by.type = 'button';
-    by.className = 'hack-bypass';
-    by.setAttribute('aria-pressed', 'false');
-    by.textContent = 'Bypass';
-    row.appendChild(grip);
-    row.appendChild(h);
-    row.appendChild(nudge);
-    row.appendChild(by);
+    var tools = document.createElement('span');
+    tools.className = 'hack-tools';
     if (!primary) {
       var rm = document.createElement('button');
       rm.type = 'button';
       rm.className = 'hack-remove';
       rm.setAttribute('aria-label', 'Remove ' + LABELS[type]);
-      rm.textContent = 'Remove';
-      row.appendChild(rm);
+      rm.innerHTML = CROSS;
+      tools.appendChild(rm);
     }
+    var by = document.createElement('button');
+    by.type = 'button';
+    by.className = 'hack-bypass';
+    by.setAttribute('aria-pressed', 'false');
+    by.setAttribute('aria-label', 'Bypass ' + LABELS[type]);
+    by.innerHTML = SPEAKER;
+    tools.appendChild(by);
+    row.appendChild(grip);
+    row.appendChild(nudge);
+    row.appendChild(h);
+    row.appendChild(tools);
     return row;
   }
   function dial(label, input, output, param) {
