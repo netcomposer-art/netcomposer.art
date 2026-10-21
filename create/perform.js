@@ -105,6 +105,35 @@
     if (st && se) { se.hidden = st.hidden; se.disabled = st.disabled; }
     var box = $('gather-box');
     line.hidden = !top.textContent || !box || box.hidden;
+    gpaint();
+  }
+  // Gather progress: chords found out of the chords asked for. It never goes
+  // back, holds at 99 while the recordings are copied, and is 100 only at
+  // done. Unknown total: no number at all.
+  var gatherTotal = 0, gatherPct = -1;
+  function gprogress(done) {
+    if (done) { gatherPct = 100; gsync(); return; }
+    if (!gatherTotal) return;
+    var found = 0;
+    for (var i = 0; i < gatherLive.length && i < gatherTotal; i++) if (gatherLive[i]) found++;
+    var p = Math.min(99, Math.floor(100 * found / gatherTotal));
+    if (p > gatherPct) gatherPct = p;
+    gsync();
+  }
+  function gpaint() {
+    var top = $('gather-status');
+    if (!top) return;
+    var on = phase === 'gather' && !stopping && gatherPct >= 0 && /^Gathering/.test(top.textContent);
+    [['gather-pct', 'gather-bar', 'gather-fill'], ['gather-pct-end', 'gather-bar-end', 'gather-fill-end']].forEach(function (ids) {
+      var t = $(ids[0]), bar = $(ids[1]), fill = $(ids[2]);
+      // Only write what changed: the observer on the top line calls back here.
+      var pct = gatherPct + '%';
+      if (t) { if (t.hidden !== !on) t.hidden = !on; if (on && t.textContent !== pct) t.textContent = pct; }
+      if (bar && bar.hidden !== !on) bar.hidden = !on;
+      if (fill && on && fill.style.width !== pct) fill.style.width = pct;
+    });
+    var b = $('gather-bar'), now = String(Math.max(0, gatherPct));
+    if (b && b.setAttribute && b.getAttribute('aria-valuenow') !== now) b.setAttribute('aria-valuenow', now);
   }
   function soften(msg) {
     var t = String(msg || '').replace(/\s+/g, ' ').trim();
@@ -2107,6 +2136,8 @@
   function openGatherList() {
     gatherNames = compositionChords();
     gatherLive = gatherNames.map(function () { return null; });
+    gatherTotal = gatherNames.length;
+    gatherPct = -1;
     paintLive();
   }
   function paintLive() {
@@ -2271,6 +2302,7 @@
     });
     gatherLive = [];
     gatherJobId = '';
+    gprogress(true);
     phase = 'collection';
     running = false;
     stopping = false;
@@ -2305,6 +2337,7 @@
     if (j.state === 'failed' || j.state === 'rejected') { stopWatch(); gatherFail(limitMessage(j) || gatherNote('[job failed]', j)); return; }
     if (j.state === 'cancelled' || j.state === 'canceled' || j.state === 'stopped') { stopWatch(); stopped(); return; }
     mergeFound(j);
+    gprogress();
     gstatus('Gathering…');
     $('perform-bar').hidden = true;
     showStop();
@@ -2368,6 +2401,7 @@
     var mine = ++gatherGen;
     syncActions();
     showStop();
+    gprogress();
     gstatus('Gathering…');
     $('perform-public').disabled = true;
     askToken().then(function (tok) {
