@@ -286,14 +286,6 @@
     nudge.appendChild(moveButton(type, 1));
     var tools = document.createElement('span');
     tools.className = 'hack-tools';
-    if (!primary) {
-      var rm = document.createElement('button');
-      rm.type = 'button';
-      rm.className = 'hack-remove';
-      rm.setAttribute('aria-label', 'Remove ' + LABELS[type]);
-      rm.innerHTML = CROSS;
-      tools.appendChild(rm);
-    }
     var by = document.createElement('button');
     by.type = 'button';
     by.className = 'hack-bypass';
@@ -301,6 +293,19 @@
     by.setAttribute('aria-label', 'Bypass ' + LABELS[type]);
     by.innerHTML = SPEAKER;
     tools.appendChild(by);
+    if (!primary) {
+      var rm = document.createElement('button');
+      rm.type = 'button';
+      rm.className = 'hack-remove';
+      rm.setAttribute('aria-label', 'Remove ' + LABELS[type]);
+      rm.innerHTML = CROSS;
+      tools.appendChild(rm);
+    } else {
+      var slot = document.createElement('span');
+      slot.className = 'hack-slot';
+      slot.setAttribute('aria-hidden', 'true');
+      tools.appendChild(slot);
+    }
     row.appendChild(grip);
     row.appendChild(nudge);
     row.appendChild(h);
