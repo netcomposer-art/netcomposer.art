@@ -1,9 +1,10 @@
-// A thin oscilloscope in the limiter widget: the sound after the limiter, as it leaves for the speakers.
+// A narrow oscilloscope (56 px) in the limiter widget: the sound after the limiter, as it leaves for the speakers.
 // It only draws while something plays and the page is visible. Otherwise it rests as a flat line.
 // Faint bar along the top: how hard the limiter is pulling down right now (0 to 12 dB).
 (function () {
   'use strict';
-  var INK = '#000', FAINT = '#c8c8c8', GUIDE = '#eee';
+  // Bright green trace (#00e676); the ceiling guides and gain-reduction bar stay faint grey so the trace stands out.
+  var INK = '#00e676', FAINT = '#c8c8c8', GUIDE = '#eee';
   var src = null, buf = null, raf = 0, running = false, gr = 1, grShown = 0;
 
   function canvas() { return document.getElementById('hack-scope'); }
@@ -31,7 +32,7 @@
       g.fillRect(0, 0, Math.round(w * Math.min(1, grShown / 12)), Math.max(1, Math.round(2 * dpr)));
     }
     g.fillStyle = INK;
-    if (!data) { g.fillRect(0, Math.round(mid), w, dpr); return; }
+    if (!data) { g.fillRect(0, Math.round(mid - 0.5 * dpr), w, Math.max(1, Math.round(1.5 * dpr))); return; }
     // Start on a rising zero crossing so a steady tone holds still, then draw half the buffer.
     var n = data.length, half = n >> 1, start = 0, i;
     for (i = 1; i < half; i++) if (data[i - 1] < 0 && data[i] >= 0) { start = i; break; }
@@ -44,7 +45,7 @@
       if (hi < lo) continue;
       y0 = Math.round(mid - hi * (mid - dpr));
       y1 = Math.round(mid - lo * (mid - dpr));
-      g.fillRect(x, y0, 1, Math.max(dpr, y1 - y0 + 1));
+      g.fillRect(x, y0 - Math.round(0.5 * dpr), 1, Math.max(Math.round(1.75 * dpr), y1 - y0 + Math.round(dpr)));
     }
   }
   function tick() {
