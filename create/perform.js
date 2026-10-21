@@ -890,7 +890,9 @@
     var lufs = num(s.loudness_lufs != null ? s.loudness_lufs : (s.lufs != null ? s.lufs : (loud && typeof loud === 'object' ? (loud.lufs != null ? loud.lufs : loud.integrated) : loud)));
     var id = String(s.clip_id || s.id || s.key || '').trim();
     var audio = absoluteApi(s.preview_url || s.url || s.preview || '');
-    if (!audio && id) audio = jobAudio(id, gid);
+    var owner = String(gid || gatherInUrl(s.preview_url || s.url || audio) || '').trim();
+    if (!owner && phase === 'gather' && gatherJobId) owner = gatherJobId;
+    if (!audio && id && owner) audio = jobAudio(id, owner);
     return {
       slot: slot,
       symbol: String(s.symbol || s.chord_symbol || '').trim(),
@@ -899,6 +901,7 @@
       license: String(license || ''),
       url: audio,
       cache: audio,
+      gather_id: owner,
       clip_id: id,
       lufs: lufs,
       gain_db: num(s.gain_db),
@@ -1108,11 +1111,13 @@
     if (bytes.buffer) return bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength);
     return null;
   }
-  function rememberBytes(id, bytes, type) {
+  function rememberBytes(id, bytes, type, url) {
     var raw = asBuffer(bytes);
     if (!id || !raw) return Promise.resolve();
     var kind = type || 'audio/wav';
-    return Promise.all([idbPut({ clip_id: id, bytes: raw.slice(0), type: kind }), cachePut(id, raw, kind)]);
+    var row = { clip_id: id, bytes: raw.slice(0), type: kind };
+    if (url) row.url = url;
+    return Promise.all([idbPut(row), cachePut(id, raw, kind)]);
   }
   function audioCtx() {
     if (window.NCLive && NCLive.prime) {
@@ -1125,43 +1130,79 @@
     var copy = raw.slice(0);
     return audioCtx().decodeAudioData(copy);
   }
-  function clipKey(s) { return (s && (s.clip_id || s.cache || s.url)) || ''; }
+  // Clip ids are the chord position (c0, c1, ...). A note stack's parts are
+  // c0n0, c0n1, ... and the assembled clip is still c0. Gather again reuses
+  // those ids, so memory, IndexedDB and Cache Storage keep the gather id too.
+  function gatherInUrl(url) {
+    var m = /\/api\/jobs\/([^/?#]+)\/audio\//.exec(String(url || ''));
+    if (!m) return '';
+    try { return decodeURIComponent(m[1]); } catch (e) { return m[1]; }
+  }
+  function cacheId(s) {
+    var id = s && s.clip_id;
+    var gid = s && (s.gather_id || gatherInUrl(s.cache || s.url));
+    if (gid && id) return gid + '/' + id;
+    return '';
+  }
+  function clipKey(s) {
+    var id = cacheId(s);
+    if (id) return id;
+    return (s && (s.cache || s.url)) || '';
+  }
+  function bufferCurrent(key) {
+    var gid = '';
+    if (key && key.indexOf('http') !== 0) {
+      var slash = key.indexOf('/');
+      if (slash > 0) gid = key.slice(0, slash);
+    } else gid = gatherInUrl(key);
+    if (!gid) return true;
+    return gid === gatherId || gid === gatherJobId;
+  }
+  function dropGatherCache(gid, jobsOnly) {
+    if (!gid) return;
+    var prefix = gid + '/';
+    if (!jobsOnly) Object.keys(clipBuffers).forEach(function (k) { if (k.indexOf(prefix) === 0) delete clipBuffers[k]; });
+    Object.keys(clipJobs).forEach(function (k) { if (k.indexOf(prefix) === 0) delete clipJobs[k]; });
+  }
   function loadClip(s) {
-    var key = clipKey(s), url = s && (s.cache || s.url), id = s && s.clip_id;
+    var key = clipKey(s), url = s && (s.cache || s.url), id = cacheId(s);
     if (!key || !url) return Promise.resolve(null);
     if (clipBuffers[key]) return Promise.resolve(clipBuffers[key]);
     if (clipJobs[key]) return clipJobs[key];
-    clipJobs[key] = Promise.resolve().then(function () {
+    var job;
+    job = Promise.resolve().then(function () {
       return id ? idbGet(id) : null;
     }).then(function (row) {
+      if (row && row.url && row.url !== url) row = null;
       var stored = row && asBuffer(row.bytes);
       if (stored) return { bytes: stored, type: row.type || '' };
       if (!id) return null;
       return cacheGet(id).then(function (cached) {
         if (!cached) return null;
-        rememberBytes(id, cached, 'audio/wav');
+        rememberBytes(id, cached, 'audio/wav', url);
         return { bytes: cached, type: '' };
       });
     }).then(function (hit) {
       if (hit && hit.bytes) return hit;
-      return fetch(url, { mode: 'cors' }).then(function (r) {
+      return fetch(url, { mode: 'cors', cache: 'no-store' }).then(function (r) {
         if (!r.ok) throw new Error('clip');
         var type = (r.headers.get('Content-Type') || 'audio/wav').split(';')[0];
         return r.arrayBuffer().then(function (raw) {
-          var keep = id ? rememberBytes(id, raw, type) : Promise.resolve();
+          var keep = id ? rememberBytes(id, raw, type, url) : Promise.resolve();
           return keep.then(function () { return { bytes: raw, type: type }; });
         });
       });
     }).then(function (pack) {
       return decodeBytes(pack.bytes).then(function (buf) {
-        clipBuffers[key] = buf;
+        if (bufferCurrent(key)) clipBuffers[key] = buf;
         return buf;
       });
     }).catch(function () {
-      delete clipJobs[key];
+      if (clipJobs[key] === job) delete clipJobs[key];
       return null;
     });
-    return clipJobs[key];
+    clipJobs[key] = job;
+    return job;
   }
   function preloadClips(sounds) {
     if (!browserAssembly()) return;
@@ -1342,7 +1383,9 @@
     }
     var audio = $('perform-audio');
     watchPlayer(audio);
-    if (audio && !audio.getAttribute('src')) { try { audio.src = localUrl; } catch (e3) {} }
+    if (audio && localUrl && (audio.getAttribute('src') || '') !== localUrl) {
+      try { audio.src = localUrl; } catch (e3) {}
+    }
     var play = audio && audio.play && audio.play();
     if (play && play.catch) play.catch(function () {});
     syncActions();
@@ -1592,8 +1635,9 @@
     var items = foundList(j);
     if (!items.length || phase !== 'gather') return;
     if (!gatherLive.length) openGatherList();
+    var gid = (j && (j.gather_id || j.id)) || gatherJobId;
     items.forEach(function (raw) {
-      var s = soundOf(raw);
+      var s = soundOf(raw, gid);
       if (!s.title && !s.url) return;
       var slot = s.slot, i;
       if (slot < 0) {
@@ -1691,17 +1735,52 @@
     idle();
     status('Stopped.');
   }
+  function releaseTake() {
+    asmGen++;
+    localPlan = null;
+    playerJob = '';
+    stopPreview();
+    if (window.NCLive && NCLive.stopClips) NCLive.stopClips();
+    var audio = $('perform-audio');
+    if (audio) {
+      try { audio.pause(); } catch (e) {}
+      if (audio.getAttribute('src')) {
+        audio.removeAttribute('src');
+        try { audio.load(); } catch (e2) {}
+      }
+    }
+    if (window.NCLive && NCLive.hide) NCLive.hide();
+    if (localUrl) {
+      try { URL.revokeObjectURL(localUrl); } catch (e3) {}
+      localUrl = '';
+    }
+    clearPlanView();
+    clearTake();
+    var out = $('perform-out');
+    if (out) out.hidden = true;
+    var live = $('live');
+    if (live) live.hidden = true;
+  }
   function acceptGather(raw) {
     if (phase !== 'gather' || stopping) return false;
     var col = GATHER.collection(raw);
     if (!col) return false;
+    var previous = gatherId;
+    if (previous && previous !== col.id) {
+      releaseTake();
+      dropGatherCache(previous);
+    }
     gatherId = col.id;
+    // A clip requested while this Gather was still copying can 404. Do not
+    // let that promise answer Perform. Bytes already stored under this gather stay.
+    dropGatherCache(col.id, true);
     gatherClock = col.clock;
     if (col.claim) gatherClaim = col.claim;
     if (gatherClaim) { try { sessionStorage.setItem('nc-claim:' + gatherId, gatherClaim); } catch (e) {} }
     gatherSounds = col.sounds.map(function (s, i) {
       var slot = s.slot >= 0 ? s.slot : i;
       if (!s.symbol && gatherNames[slot]) s.symbol = gatherNames[slot];
+      if (!s.gather_id) s.gather_id = col.id;
       return s;
     });
     gatherLive = [];
