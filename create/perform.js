@@ -239,6 +239,7 @@
     }
     if (lanes) lanes.textContent = '';
     if (now) now.textContent = '';
+    hideWrittenNote();
   }
   function clearPlanView() {
     var list = $('plan-src'), seed = $('plan-seed');
@@ -318,8 +319,13 @@
     var name = (e && e.chord) || sp.title || 'Chord';
     var end = +(+sp.at + +sp.len).toFixed(1);
     var range = name + ', ' + (+sp.at).toFixed(1) + 's to ' + end.toFixed(1) + 's';
-    sp.mark.title = range + '. Drag to move. Drag either edge to change the start or the end.';
-    sp.mark.setAttribute('aria-label', range + '. Left and right move it. Up and down change the end. Alt with left or right changes the start.');
+    var written = !!writtenLengths();
+    sp.mark.title = written
+      ? range + '. The Composition wrote this length. Drag the end to shorten it.'
+      : range + '. Drag to move. Drag either edge to change the start or the end.';
+    sp.mark.setAttribute('aria-label', written
+      ? range + '. Up and down change the end, no further than the Composition wrote. The start stays.'
+      : range + '. Left and right move it. Up and down change the end. Alt with left or right changes the start.');
   }
   function edgeMode(ev, mark) {
     var box = mark.getBoundingClientRect();
@@ -373,12 +379,41 @@
       });
     });
   }
+  // The Composition's durations, when it wrote them. Organic gathers return null
+  // and the bars stay free. Save checks these same numbers.
+  function writtenLengths() {
+    var clock = gatherClock, n = localPlan && localPlan.entries ? localPlan.entries.length : 0;
+    if (!clock || !clock.written || !n) return null;
+    var src = Array.isArray(clock.durations_s) && clock.durations_s.length === n ? clock.durations_s
+      : (Array.isArray(clock.slots) && clock.slots.length === n ? clock.slots.map(function (s) { return s && s.dur; }) : null);
+    if (!src) return null;
+    var out = [], i, d;
+    for (i = 0; i < n; i++) {
+      d = +src[i];
+      if (!(d > 0)) return null;
+      out.push(d);
+    }
+    return out;
+  }
+  var lockTimer = 0;
+  function hideWrittenNote() {
+    if (lockTimer) { clearTimeout(lockTimer); lockTimer = 0; }
+    var el = $('src-lock');
+    if (el) el.hidden = true;
+  }
+  function showWrittenNote() {
+    var el = $('src-lock');
+    if (!el) return;
+    el.hidden = false;
+    if (lockTimer) clearTimeout(lockTimer);
+    lockTimer = setTimeout(function () { lockTimer = 0; el.hidden = true; }, 4000);
+  }
   function applyEdit(mode, index, time) {
-    if (!localPlan || !window.NCTimelineEdit || !(index >= 0)) return;
-    var E = NCTimelineEdit, caps = entryCaps(localPlan), next;
-    if (mode === 'end') next = E.trimEnd(localPlan.entries, index, time, caps);
-    else if (mode === 'start') next = E.trimStart(localPlan.entries, index, time, caps);
-    else next = E.move(localPlan.entries, index, time, caps);
+    if (!localPlan || !window.NCTimelineEdit || !(index >= 0)) return null;
+    var E = NCTimelineEdit, caps = entryCaps(localPlan), written = writtenLengths(), next;
+    if (mode === 'end') next = E.trimEnd(localPlan.entries, index, time, caps, written);
+    else if (mode === 'start') next = E.trimStart(localPlan.entries, index, time, caps, written);
+    else next = E.move(localPlan.entries, index, time, caps, written);
     localPlan.entries = next.entries;
     localPlan.total_s = next.total_s;
     syncTakeFromPlan(localPlan);
@@ -386,6 +421,7 @@
     paintPlan(localPlan);
     followTake();
     driveClips();
+    return next;
   }
   function finishDrag() {
     drag = null;
@@ -400,7 +436,7 @@
     if (!localPlan || !(sp.entry >= 0)) return;
     var e = localPlan.entries[sp.entry];
     if (!e) return;
-    var step = ev.shiftKey ? 0.5 : 0.1, mode = '', time = 0, audio;
+    var step = ev.shiftKey ? 0.5 : 0.1, mode = '', time = 0, audio, next;
     if (ev.altKey && ev.key === 'ArrowLeft') { mode = 'start'; time = e.at_s - step; }
     else if (ev.altKey && ev.key === 'ArrowRight') { mode = 'start'; time = e.at_s + step; }
     else if (ev.key === 'ArrowLeft') { mode = 'move'; time = e.at_s - step; }
@@ -409,6 +445,7 @@
     else if (ev.key === 'ArrowDown') { mode = 'end'; time = e.at_s + e.len_s - step; }
     else if (ev.key === ' ' || ev.key === 'Spacebar') {
       ev.preventDefault();
+      if (!ev.repeat) hideWrittenNote();
       audio = $('perform-audio');
       if (!audio) return;
       if (audio.paused) { var p = audio.play && audio.play(); if (p && p.catch) p.catch(function () {}); }
@@ -417,7 +454,9 @@
     } else return;
     ev.preventDefault();
     ev.stopPropagation();
-    applyEdit(mode, sp.entry, time);
+    if (!ev.repeat) hideWrittenNote();
+    next = applyEdit(mode, sp.entry, time);
+    if (next && next.writtenBlock && !ev.repeat) showWrittenNote();
     finishDrag();
   }
   function wireBar(mark, track, sp) {
@@ -433,6 +472,7 @@
       if (!entry || !(box.width > 0)) return;
       ev.preventDefault();
       ev.stopPropagation();
+      hideWrittenNote();
       if (mark.focus) mark.focus();
       drag = {
         pointerId: ev.pointerId, mark: mark, track: track, index: sp.entry,
@@ -458,7 +498,8 @@
       if (box.width > 0) width = box.width;
       var dt = (ev.clientX - drag.x) / width * drag.dur;
       var time = drag.mode === 'end' ? drag.end + dt : drag.at + dt;
-      applyEdit(drag.mode, drag.index, time);
+      var next = applyEdit(drag.mode, drag.index, time);
+      if (next && next.writtenBlock && !drag.noted) { drag.noted = true; showWrittenNote(); }
       if (localPlan && drag && localPlan.total_s > drag.dur + 0.0001) {
         var edited = localPlan.entries[drag.index];
         drag.dur = localPlan.total_s;

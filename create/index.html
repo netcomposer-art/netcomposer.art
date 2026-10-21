@@ -53,7 +53,7 @@ details.fold{margin:1.8rem 0}details.fold>summary{cursor:pointer;color:#555;font
 #src-time.editing .src-span.on-edge{cursor:ew-resize}
 #src-time.editing .src-span.dragging{cursor:grabbing}
 #src-time.editing .src-span:focus-visible{outline:2px solid #000;outline-offset:6px}
-#src-now{margin:.9rem 0 0}
+#src-lock{margin:.45rem 0 0}#src-now{margin:.9rem 0 0}
 input[type=range]{width:9rem;accent-color:#000}input[type=file]{font:inherit;font-size:.85rem;max-width:100%}
 pre{white-space:pre;overflow-x:auto;font:inherit;font-size:.8rem;border-left:2px solid #000;padding:.1rem 0 .1rem .8rem;margin:.6rem 0}
 code{font:inherit;overflow-wrap:anywhere;word-break:break-word}#shareurl{font-size:.8rem;margin-top:.5rem}#perform-out audio{width:100%;margin:1.2rem 0 .3rem}#perform-out #perform-title{font-size:1.05rem;margin:0 0 .3rem;overflow-wrap:anywhere}#perform-sources{margin:1.6rem 0 .2rem}#perform-sources>summary,#live-take>summary{cursor:pointer}#live{margin:2.8rem 0 .8rem}#perf-box{scroll-margin-top:1.2rem}
@@ -154,7 +154,7 @@ footer{max-width:46rem;margin:0 auto;padding:1.2rem 1.5rem 4rem;font-size:.85rem
 <h3 id="perform-title"></h3>
 <audio id="perform-audio" controls preload="metadata" crossorigin="anonymous"></audio>
 <p class="m" id="perform-trim" hidden></p>
-<div id="src-time" hidden><div id="src-lanes"></div><p class="m" id="src-now"></p></div>
+<div id="src-time" hidden><div id="src-lanes"></div><p class="m" id="src-lock" hidden aria-live="polite">These lengths are written in the Composition, so they can't be moved or lengthened here. You can shorten a chord.</p><p class="m" id="src-now"></p></div>
 <ul id="plan-src" hidden></ul>
 <p class="m" id="plan-seed" hidden></p>
 <section id="live" hidden>
