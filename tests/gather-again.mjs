@@ -453,9 +453,9 @@ function check(cond, msg) {
   if (!cond) problems.push(msg);
 }
 
-await waitFor(function () { return byId('perform-status').textContent === 'Ready.'; }, 'boot');
+await waitFor(function () { return byId('gather-status').textContent === 'Ready.'; }, 'boot');
 byId('gatherBtn').onclick();
-await waitFor(function () { return byId('perform-status').textContent === 'Gathered.'; }, 'first gather');
+await waitFor(function () { return byId('gather-status').textContent === 'Gathered.'; }, 'first gather');
 byId('performBtn').onclick();
 await waitFor(function () { return scheduled.length === 1; }, 'first perform');
 const celloTags = tagsOf(scheduled[0]);
@@ -464,7 +464,7 @@ check(celloTags.length === 5 && celloTags.every(function (tag, i) { return tag =
 const stopsBefore = liveLog.filter(function (e) { return e.kind === 'stopClips' || e.kind === 'hide'; }).length;
 const fetchesBeforeMix = fetches.length;
 byId('gather-again').onclick();
-await waitFor(function () { return byId('perform-status').textContent === 'Gathered.' && byId('gather-list').textContent.indexOf('piano Cm7') >= 0; }, 'second gather');
+await waitFor(function () { return byId('gather-status').textContent === 'Gathered.' && byId('gather-list').textContent.indexOf('piano Cm7') >= 0; }, 'second gather');
 const list = byId('gather-list').textContent;
 check(list.indexOf('Fat Synth Dm7b5') >= 0 && list.indexOf('guitar G7 from 4 native-pitch notes') >= 0, 'the list should show the mixed collection');
 check(byId('perform-audio').getAttribute('src') == null, 'Gather again should drop the cello player');
