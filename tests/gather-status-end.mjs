@@ -2,10 +2,13 @@
 // 2026-10-21), so someone who scrolls on to Perform still sees it. Both
 // lines must say the same thing at every step, and both Stops must work.
 //
+// Each line also shows a percentage and a thin bar while gathering (Petrus,
+// 2026-10-21): found of total chords, never backwards, 100 only at done.
+//
 // Headless Chrome, a stubbed Gather whose progress the test steps by hand.
 // Needs Chrome (CHROME=… or google-chrome on PATH) and Node 22 (global
 // WebSocket; on Node 20 run with --experimental-websocket).
-// SHOTS=/some/dir saves a mid-gather screenshot there.
+// SHOTS=/some/dir saves mid-gather and done screenshots there (desktop and phone).
 import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
 import { spawn, execFileSync } from 'node:child_process';
@@ -77,7 +80,7 @@ const fakeES = `window.EventSource = function (url) { var s = this; s.url = url;
 window.EventSource.prototype.close = function () { this.readyState = 2; };
 window.__push = function (o) { var s = window.__es; if (s && s.readyState !== 2 && s.onmessage) s.onmessage({data: JSON.stringify(o)}); };`;
 
-async function open() {
+async function open(view = { width: 1100 }, prep = '') {
   const target = await (await fetch(`http://127.0.0.1:${dbgPort}/json/new?about:blank`, { method: 'PUT' })).json();
   ws = new WebSocket(target.webSocketDebuggerUrl);
   ws.addEventListener('message', async (ev) => {
@@ -107,7 +110,7 @@ async function open() {
   await send('Page.enable');
   await send('Runtime.enable');
   await send('Fetch.enable', { patterns: [{ urlPattern: API + '/*' }] });
-  await send('Emulation.setDeviceMetricsOverride', { width: 1100, height: 1400, deviceScaleFactor: 1, mobile: false });
+  await send('Emulation.setDeviceMetricsOverride', { width: view.width, height: view.mobile ? 844 : 1400, deviceScaleFactor: view.mobile ? 2 : 1, mobile: !!view.mobile });
   await send('Page.addScriptToEvaluateOnNewDocument', { source: fakeES });
   await send('Page.navigate', { url: `http://127.0.0.1:${httpPort}/create/` });
   const ev = async (expression) => (await send('Runtime.evaluate', { expression, returnByValue: true, awaitPromise: true })).result.value;
@@ -118,6 +121,7 @@ async function open() {
   await until("!!(document.body && window.NC && document.getElementById('comp'))");
   await ev(`(() => { var c = document.getElementById('comp'); c.value = ${JSON.stringify(SYMS.join(' '))}; c.dispatchEvent(new Event('input', {bubbles: true})); })()`);
   await until("(() => { var b = document.getElementById('gatherBtn'); return b && !b.hidden && !b.disabled; })()");
+  if (prep) await ev(prep);
   return { ev, until };
 }
 // Both lines as the eye sees them.
@@ -131,7 +135,17 @@ const lines = (ev) => ev(`(() => {
     topCls: document.getElementById('gather-status').className, endCls: document.getElementById('gather-status-end').className,
     endShown: vis(end), topStop: vis(ts), endStop: vis(es), topDis: ts.disabled, endDis: es.disabled,
     below: vis(end) && vis(box) ? end.getBoundingClientRect().top >= box.getBoundingClientRect().bottom - 1 : null,
-    items: document.querySelectorAll('#gather-list li').length
+    items: document.querySelectorAll('#gather-list li').length,
+    pct: vis(document.getElementById('gather-pct')) ? document.getElementById('gather-pct').textContent : '',
+    pctEnd: vis(document.getElementById('gather-pct-end')) ? document.getElementById('gather-pct-end').textContent : '',
+    bar: vis(document.getElementById('gather-bar')) ? document.getElementById('gather-fill').style.width : '',
+    barEnd: vis(document.getElementById('gather-bar-end')) ? document.getElementById('gather-fill-end').style.width : '',
+    barH: vis(document.getElementById('gather-bar')) ? document.querySelector('#gather-bar .gtrack').getBoundingClientRect().height : 0,
+    now: document.getElementById('gather-bar').getAttribute('aria-valuenow'),
+    role: document.getElementById('gather-bar').getAttribute('role'),
+    under: vis(document.getElementById('gather-bar')) ? document.getElementById('gather-bar').getBoundingClientRect().top >= document.getElementById('gather-status').getBoundingClientRect().bottom - 1 : false,
+    roles: document.querySelectorAll('[role=progressbar]').length,
+    endHidden: document.getElementById('gather-bar-end').getAttribute('aria-hidden') === 'true' && document.getElementById('gather-pct-end').getAttribute('aria-hidden') === 'true'
   };
 })()`);
 function same(s, tag) {
@@ -139,6 +153,17 @@ function same(s, tag) {
   check(s.topCls === s.endCls, tag + ': the two lines differ in style: ' + s.topCls + ' vs ' + s.endCls);
   check(s.topStop === s.endStop, tag + ': one Stop shows and the other does not');
   check(s.topDis === s.endDis, tag + ': one Stop is disabled and the other is not');
+  check(s.pct === s.pctEnd && s.bar === s.barEnd, tag + ': the two percentages differ: ' + s.pct + '/' + s.bar + ' vs ' + s.pctEnd + '/' + s.barEnd);
+}
+const pctOf = (k) => Math.min(99, Math.floor(100 * k / SYMS.length)) + '%';
+async function shoot(ev, name, view, extra = 50) {
+  if (!process.env.SHOTS) return;
+  mkdirSync(process.env.SHOTS, { recursive: true });
+  await ev("window.scrollTo(0, document.getElementById('gather').getBoundingClientRect().top + scrollY - 20)");
+  await sleep(350);
+  const r = await ev("(() => { var a = document.getElementById('gather').getBoundingClientRect(), b = document.getElementById('gather-line-end').getBoundingClientRect(), c = document.getElementById('gather-again-row').getBoundingClientRect(); return {y: a.top + scrollY - 20, h: Math.max(b.bottom, c.bottom) - a.top + " + extra + "}; })()");
+  const shot = await send('Page.captureScreenshot', { format: 'png', captureBeyondViewport: true, clip: { x: 0, y: r.y, width: view.width, height: r.h, scale: 1 } });
+  writeFileSync(join(process.env.SHOTS, name), Buffer.from(shot.data, 'base64'));
 }
 
 try {
@@ -149,23 +174,40 @@ try {
   check(!s.endShown, 'before Gather the bottom line stays hidden (no list yet)');
   await ev("document.getElementById('gatherBtn').click()");
   await until("!!window.__es");
-  for (let k = 1; k <= 5; k++) {
-    await ev(`window.__push(${JSON.stringify({ id: G, gather_id: G, state: 'gathering', found_sounds: ROWS.slice(0, k) })})`);
+  s = await lines(ev);
+  check(s.pct === '0%' && s.now === '0', 'at the start the total is known: 0%, got ' + s.pct + ' / ' + s.now);
+  check(s.role === 'progressbar' && s.roles === 1 && s.endHidden, 'one progressbar (top), the bottom copy aria-hidden');
+  let last = 0;
+  const seen = [];
+  for (let k = 1; k <= SYMS.length; k++) {
+    await ev(`window.__push(${JSON.stringify({ id: G, gather_id: G, state: 'gathering', percent: 40, found_sounds: ROWS.slice(0, k) })})`);
     await sleep(120);
     s = await lines(ev);
     same(s, 'progress ' + k);
     check(s.endShown && s.below, 'progress ' + k + ': the bottom line shows under the list');
     check(s.topStop && s.endStop, 'progress ' + k + ': both Stops show while gathering');
-    check(/^Gathering/.test(s.top), 'progress ' + k + ': top says Gathering…, got ' + s.top);
+    check(s.top === 'Gathering…', 'progress ' + k + ': top says Gathering…, got ' + s.top);
+    check(s.pct === pctOf(k) && s.bar === pctOf(k) && s.now === String(parseInt(pctOf(k))), 'progress ' + k + ': want ' + pctOf(k) + ', got ' + s.pct + ' bar ' + s.bar + ' aria ' + s.now);
+    check(Math.abs(s.barH - 2) < 0.6, 'progress ' + k + ': the bar is 2 px, got ' + s.barH);
+    check(s.under, 'progress ' + k + ': the bar sits under the status text');
+    check(parseInt(s.pct) >= last, 'progress ' + k + ': went backwards ' + last + ' -> ' + s.pct);
+    check(parseInt(s.pct) < 100, 'progress ' + k + ': 100% before done');
+    last = parseInt(s.pct); seen.push(s.pct);
+    if (k === 5) {
+      await shoot(ev, 'gather-percent-mid-desktop.png', { width: 1100 });
+      // A late message with fewer rows must not pull it back.
+      await ev(`window.__push(${JSON.stringify({ id: G, gather_id: G, state: 'gathering', found_sounds: ROWS.slice(0, 2) })})`);
+      await sleep(120);
+      s = await lines(ev);
+      check(s.pct === pctOf(5), 'an older progress message pulled the % back to ' + s.pct);
+    }
   }
-  if (process.env.SHOTS) {
-    mkdirSync(process.env.SHOTS, { recursive: true });
-    await ev("window.scrollTo(0, document.getElementById('gather').getBoundingClientRect().top + scrollY - 20)");
-    await sleep(150);
-    const r = await ev("(() => { var a = document.getElementById('gather').getBoundingClientRect(), b = document.getElementById('gather-line-end').getBoundingClientRect(); return {y: a.top + scrollY - 20, h: b.bottom - a.top + 50}; })()");
-    const shot = await send('Page.captureScreenshot', { format: 'png', captureBeyondViewport: true, clip: { x: 0, y: r.y, width: 1100, height: r.h, scale: 1 } });
-    writeFileSync(join(process.env.SHOTS, 'gather-mid-both-indicators.png'), Buffer.from(shot.data, 'base64'));
-  }
+  // All found, still copying: 99, not 100.
+  await ev(`window.__push(${JSON.stringify({ id: G, gather_id: G, state: 'gathering', stage_line: 'Copying the recordings…', found_sounds: ROWS })})`);
+  await sleep(120);
+  s = await lines(ev);
+  same(s, 'copying');
+  check(s.pct === '99%', 'while copying it holds at 99%, got ' + s.pct);
   await ev(`window.__push(${JSON.stringify({ id: G, gather_id: G, state: 'done', claim_token: 'claim-x', clock: null, sounds: ROWS, found_sounds: ROWS })})`);
   await until("document.getElementById('gather-status').textContent === 'Gathered.'");
   await sleep(200);
@@ -173,11 +215,9 @@ try {
   same(s, 'done');
   check(s.end === 'Gathered.' && s.endShown, 'done: the bottom line says Gathered. too');
   check(!s.topStop && !s.endStop, 'done: both Stops hide');
-  if (process.env.SHOTS) {
-    const r = await ev("(() => { var a = document.getElementById('gather').getBoundingClientRect(), b = document.getElementById('gather-line-end').getBoundingClientRect(); return {y: a.top + scrollY - 20, h: b.bottom - a.top + 90}; })()");
-    const shot = await send('Page.captureScreenshot', { format: 'png', captureBeyondViewport: true, clip: { x: 0, y: r.y, width: 1100, height: r.h, scale: 1 } });
-    writeFileSync(join(process.env.SHOTS, 'gather-done-both-indicators.png'), Buffer.from(shot.data, 'base64'));
-  }
+  check(s.pct === '' && s.bar === '' && s.now === '100', 'done: Gathered. with no % or bar, aria 100; got ' + s.pct + ' / ' + s.bar + ' / ' + s.now);
+  await shoot(ev, 'gather-percent-done-desktop.png', { width: 1100 });
+  console.log('  steps: ' + seen.join(' ') + ' 99% (copying) Gathered.');
   ws.close();
 
   // 2. The bottom Stop stops the Gather, exactly like the top one.
@@ -198,6 +238,35 @@ try {
   same(s, 'after bottom Stop');
   check(s.top === 'Stopped.' && !s.topStop && !s.endStop, 'after Stop both lines say Stopped. and both Stops hide');
   check(s.endShown === (s.items > 0), 'after Stop the bottom line shows only with a list');
+  check(s.pct === '' && s.bar === '', 'after Stop the % and bar hide');
+  ws.close();
+
+  // 3. Phone.
+  const phone = { width: 390, mobile: true };
+  ({ ev, until } = await open(phone));
+  await ev("document.getElementById('gatherBtn').click()");
+  await until("!!window.__es");
+  await ev(`window.__push(${JSON.stringify({ id: G, gather_id: G, state: 'gathering', found_sounds: ROWS.slice(0, 5) })})`);
+  await sleep(150);
+  s = await lines(ev);
+  same(s, 'phone');
+  check(s.pct === pctOf(5), 'phone: want ' + pctOf(5) + ', got ' + s.pct);
+  check(await ev('document.documentElement.scrollWidth <= document.documentElement.clientWidth'), 'phone: the bar never widens the page');
+  await shoot(ev, 'gather-percent-mid-phone.png', phone);
+  await ev(`window.__push(${JSON.stringify({ id: G, gather_id: G, state: 'done', claim_token: 'claim-x', clock: null, sounds: ROWS, found_sounds: ROWS })})`);
+  await until("document.getElementById('gather-status').textContent === 'Gathered.'");
+  await shoot(ev, 'gather-percent-done-phone.png', phone);
+  ws.close();
+
+  // 4. Total unknown: no number, no bar, no fake progress.
+  ({ ev, until } = await open({ width: 1100 }, "NC.findChords = function () { return []; }; var tl0 = NC.timeline; NC.timeline = function () { var t = tl0(); return t ? Object.assign({}, t, {chords: []}) : t; };"));
+  await ev("document.getElementById('gatherBtn').click()");
+  await until("!!window.__es");
+  await ev(`window.__push(${JSON.stringify({ id: G, gather_id: G, state: 'gathering', percent: 40, found_sounds: ROWS.slice(0, 3) })})`);
+  await sleep(150);
+  s = await lines(ev);
+  check(s.pct === s.pctEnd && s.bar === s.barEnd, 'unknown total: the two lines differ');
+  check(s.top === 'Gathering…' && s.pct === '' && s.bar === '', 'unknown total: Gathering… with no %, got ' + s.top + ' ' + s.pct + ' ' + s.bar);
   ws.close();
 } finally {
   proc.kill();
