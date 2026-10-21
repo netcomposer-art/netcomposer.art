@@ -153,29 +153,23 @@
   function bar(type, id, primary) {
     var row = document.createElement('div');
     row.className = 'hack-bar';
-    var drag = document.createElement('button');
-    drag.type = 'button';
-    drag.className = 'hack-drag';
-    drag.setAttribute('aria-label', 'Drag ' + LABELS[type]);
-    drag.textContent = 'Drag';
     var h = document.createElement('h3');
     h.textContent = LABELS[type];
     var up = document.createElement('button');
     up.type = 'button';
-    up.className = 'hack-up';
+    up.className = 'hack-up hack-move';
     up.setAttribute('aria-label', 'Move ' + LABELS[type] + ' up');
-    up.textContent = 'Up';
+    up.textContent = '↑';
     var down = document.createElement('button');
     down.type = 'button';
-    down.className = 'hack-down';
+    down.className = 'hack-down hack-move';
     down.setAttribute('aria-label', 'Move ' + LABELS[type] + ' down');
-    down.textContent = 'Down';
+    down.textContent = '↓';
     var by = document.createElement('button');
     by.type = 'button';
     by.className = 'hack-bypass';
     by.setAttribute('aria-pressed', 'false');
     by.textContent = 'Bypass';
-    row.appendChild(drag);
     row.appendChild(h);
     row.appendChild(up);
     row.appendChild(down);
@@ -381,8 +375,8 @@
     root.addEventListener('input', onEdit);
     root.addEventListener('change', onEdit);
     root.addEventListener('click', function (e) {
-      var t = e.target;
-      if (!t || !t.closest) return;
+      var t = e.target && e.target.closest ? e.target.closest('button') : null;
+      if (!t) return;
       var art = t.closest('article.hack');
       if (!art || art.hasAttribute('data-fixed')) return;
       if (t.classList.contains('hack-up')) move(art, -1);
@@ -398,42 +392,6 @@
         if (hooks.onChange) hooks.onChange();
       }
     });
-    var drag = null;
-    root.addEventListener('pointerdown', function (e) {
-      var t = e.target;
-      if (!t || !t.classList || !t.classList.contains('hack-drag')) return;
-      if (e.button != null && e.button !== 0) return;
-      var art = t.closest('article.hack');
-      if (!art) return;
-      e.preventDefault();
-      drag = art;
-      art.classList.add('dragging');
-      try { t.setPointerCapture(e.pointerId); } catch (err) {}
-    });
-    root.addEventListener('pointermove', function (e) {
-      if (!drag) return;
-      var y = e.clientY;
-      var list = movable();
-      var before = null;
-      var i;
-      for (i = 0; i < list.length; i++) {
-        if (list[i] === drag) continue;
-        var r = list[i].getBoundingClientRect();
-        if (y < r.top + r.height / 2) { before = list[i]; break; }
-      }
-      var lim = $('hack-limiter');
-      if (before) stack().insertBefore(drag, before);
-      else if (lim) stack().insertBefore(drag, lim);
-    });
-    function endDrag() {
-      if (!drag) return;
-      drag.classList.remove('dragging');
-      drag = null;
-      buttons();
-      if (hooks.onChange) hooks.onChange();
-    }
-    root.addEventListener('pointerup', endDrag);
-    root.addEventListener('pointercancel', endDrag);
     var btn = $('hack-add-btn');
     if (btn) btn.addEventListener('click', function () {
       var sel = $('hack-type');
