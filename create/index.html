@@ -37,9 +37,10 @@ button:disabled{color:#999;border-color:#999;cursor:default}button:focus-visible
 details.fold{margin:1.8rem 0}details.fold>summary{cursor:pointer;color:#555;font-size:.85rem}
 #status:empty,#progmeta:empty,#lstatus:empty,#src-now:empty{display:none}
 #perform-out{margin-top:3.2rem}
-#perform-line{display:flex;flex-wrap:wrap;align-items:baseline;gap:.15rem .7rem}#perform-status.story{display:flex;flex-direction:column;gap:.12rem}
-#perform-stop,#gather-again,#gather-list button{font:inherit;font-size:.85rem;line-height:inherit;color:#555;background:transparent;border:0;border-radius:0;padding:0;margin:0;min-width:0;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
-#perform-stop:hover,#gather-again:hover,#gather-list button:hover{color:#000}#perform-stop:disabled,#gather-again:disabled,#gather-list button:disabled{color:#999;background:transparent;border:0;cursor:default}
+#perform-wait{margin-left:.3rem}#perform-wait[hidden]{display:none}#perform-line:has(>#perform-status:empty):has(>#perform-stop[hidden]){display:none}#gather-again-row:has(>#gather-again[hidden]){display:none}#arrangement-h{margin:0 0 .4rem}
+#perform-line,#gather-line{display:flex;flex-wrap:wrap;align-items:baseline;gap:.15rem .7rem}#perform-status.story{display:flex;flex-direction:column;gap:.12rem}
+#perform-stop,#gather-stop,#gather-again,#gather-list button{font:inherit;font-size:.85rem;line-height:inherit;color:#555;background:transparent;border:0;border-radius:0;padding:0;margin:0;min-width:0;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+#perform-stop:hover,#gather-stop:hover,#gather-again:hover,#gather-list button:hover{color:#000}#perform-stop:disabled,#gather-stop:disabled,#gather-again:disabled,#gather-list button:disabled{color:#999;background:transparent;border:0;cursor:default}
 #gather-box{margin:1.8rem 0 .4rem}#gather-list{list-style:none;margin:0;padding:0}#gather-list li{margin:0 0 1.7rem;line-height:1.45}#gather-list .g-chord,#plan-src .g-chord{display:block;margin:0 0 .2rem;color:#555}#gather-list .g-title{margin-left:.65rem}#gather-list .g-meta{display:block;margin:.15rem 0 0}#gather-list li.pending,#gather-list li.pending .g-chord,#gather-list li.pending .g-wait{color:#ccc}
 #plan-src{list-style:none;margin:.2rem 0 1.4rem;padding:0}#plan-src li{margin:0 0 1.15rem;line-height:1.45}#plan-seed{color:#bbb;margin:-.4rem 0 1.2rem}
 #perform-trim{color:#666;font-size:.8rem;margin:.05rem 0 .35rem}
@@ -85,7 +86,7 @@ code{font:inherit;overflow-wrap:anywhere;word-break:break-word}#shareurl{font-si
 .further{margin-top:4.8rem;border-top:0;padding-top:0;font-size:.9rem}.further h3{font-size:.9rem;margin:1.6rem 0 .4rem}.further button{font-size:.85rem}
 footer{max-width:46rem;margin:0 auto;padding:1.2rem 1.5rem 4rem;font-size:.85rem;color:#555}#foot-tester{color:#ccc;margin-left:.7rem}
 @media(min-width:760px){body{font-size:18px}main{padding:3rem 1.5rem 6rem}.two{grid-template-columns:1fr 1fr}}
-#performBtn,#gatherBtn{background:#000;color:#fff;min-width:6.5rem}#performBtn:disabled,#gatherBtn:disabled{background:#fff;color:#999}#perform-bar{width:min(100%,28rem);height:.5rem;margin:.35rem 0;accent-color:#000}#perform-turnstile{margin:.5rem 0}#perform-vis{text-transform:none;letter-spacing:normal;color:#000;font-size:.95rem;display:inline-flex;margin:0}#perform h3{font-size:.95rem;margin:1.8rem 0 .4rem}#live .hack{border-left:2px solid #000;padding:.4rem .85rem .55rem .8rem;margin:.9rem 0}#live .hack h3{font-size:.95rem;font-weight:bold;margin:0;flex:1 1 auto;min-width:0;white-space:nowrap;line-height:1.2}#hack-stack{margin:1rem 0 0}.hack-bar{display:flex;flex-wrap:nowrap;align-items:center;gap:.5rem;margin:0 0 .95rem}.hack-bar button{min-height:0;margin:0;padding:0;border:0;background:transparent;color:#6f6f6f;line-height:0;cursor:pointer}.hack-bar button:disabled{color:#c4c4c4;border-color:transparent;cursor:default}.hack-fixed .hack-bar span{color:#555;font-size:.85rem}#hack-add{margin:.4rem 0 1rem}#lcpu{font-variant-numeric:tabular-nums}
+#performBtn,#gatherBtn{background:#000;color:#fff;min-width:6.5rem}#performBtn:disabled,#gatherBtn:disabled{background:#fff;color:#999}#perform-bar{width:min(100%,28rem);height:.5rem;margin:.35rem 0;accent-color:#000}#perform-turnstile{margin:.5rem 0}#perform-vis{text-transform:none;letter-spacing:normal;color:#000;font-size:.95rem;display:inline-flex;margin:0}#perform h3,#gather h3{font-size:.95rem;margin:1.8rem 0 .4rem}#live .hack{border-left:2px solid #000;padding:.4rem .85rem .55rem .8rem;margin:.9rem 0}#live .hack h3{font-size:.95rem;font-weight:bold;margin:0;flex:1 1 auto;min-width:0;white-space:nowrap;line-height:1.2}#hack-stack{margin:1rem 0 0}.hack-bar{display:flex;flex-wrap:nowrap;align-items:center;gap:.5rem;margin:0 0 .95rem}.hack-bar button{min-height:0;margin:0;padding:0;border:0;background:transparent;color:#6f6f6f;line-height:0;cursor:pointer}.hack-bar button:disabled{color:#c4c4c4;border-color:transparent;cursor:default}.hack-fixed .hack-bar span{color:#555;font-size:.85rem}#hack-add{margin:.4rem 0 1rem}#lcpu{font-variant-numeric:tabular-nums}
 .dial{display:grid;grid-template-columns:7.2rem minmax(0,1fr);grid-template-rows:auto auto;align-items:center;column-gap:.75rem;row-gap:0;margin:.22rem 0 .28rem}.dial>*{min-width:0}.dial label{grid-column:1;grid-row:1;margin:0}.dial input[type=range],.dial select{grid-column:2;grid-row:1;width:100%;max-width:100%;margin:0}.dial input[type=range]{height:1.65rem}
 .dial output{grid-column:2;grid-row:2;justify-self:end;margin:-.05rem 0 0;font-size:.72rem;line-height:1.1;color:#999;text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}.dial select{padding:.35rem .5rem;font-size:.9rem}.dial.auto output{text-decoration:underline}
 #lrec.on{background:#000;color:#fff}.toggle{display:inline-flex;align-items:center;gap:.4rem;font-size:.95rem;margin:.3rem .4rem}
@@ -138,9 +139,20 @@ footer{max-width:46rem;margin:0 auto;padding:1.2rem 1.5rem 4rem;font-size:.85rem
 <p class="m" id="sinenote" hidden></p>
 </section>
 
+<section id="gather">
+<h2 id="gather-h">Gather</h2>
+<p>One openly licensed recording for each chord.</p>
+<div class="row" id="gather-row"><button id="gatherBtn" type="button" hidden disabled>Gather</button></div>
+<p class="m" id="gather-line"><span id="gather-status" aria-live="polite">Checking whether Perform is awake…</span><button type="button" id="gather-stop" hidden>Stop</button></p>
+<div id="gather-box" hidden>
+<ul id="gather-list"></ul>
+</div>
+<div class="row" id="gather-again-row"><button type="button" id="gather-again" hidden>Gather again</button></div>
+</section>
+
 <section id="perform">
 <h2 id="perform-h">Perform</h2>
-<p>One openly licensed recording for each chord, placed in order and level-matched. No further processing.</p>
+<p>The recordings in order, level-matched, through your hacks.</p>
 <!-- Performance prompt hidden by Petrus 2026-10-20: Perform gathers the chord files the Composition needs and plays them by the Composition's rules plus your hacks. Markup and logic stay; remove the hidden attribute to restore it. While hidden, the page sends an empty prompt. -->
 <div id="perf-box" hidden>
 <label for="perf">Performance prompt</label>
@@ -152,12 +164,9 @@ footer{max-width:46rem;margin:0 auto;padding:1.2rem 1.5rem 4rem;font-size:.85rem
 <span class="m" id="notes-status" role="status" aria-live="polite"></span>
 </div>
 </div>
-<div id="gather-box" hidden>
-<ul id="gather-list"></ul>
-</div>
-<div class="row"><button id="gatherBtn" type="button" hidden disabled>Gather</button><button id="performBtn" type="button" disabled>Perform</button><button type="button" id="gather-again" hidden>Gather again</button><!-- "List it after a day" hidden by Petrus 2026-10-20: the only listing is the /api/feed JSON, which no page shows. Hidden and unchecked, Save sends listed=false (unlisted). Remove the hidden attribute to restore it. --><label class="toggle" id="perform-vis" for="perform-public" hidden><input id="perform-public" type="checkbox"> List it after a day</label></div>
+<div class="row" id="perform-row"><button id="performBtn" type="button" disabled>Perform</button><span class="m" id="perform-wait">Gather first.</span><!-- "List it after a day" hidden by Petrus 2026-10-20: the only listing is the /api/feed JSON, which no page shows. Hidden and unchecked, Save sends listed=false (unlisted). Remove the hidden attribute to restore it. --><label class="toggle" id="perform-vis" for="perform-public" hidden><input id="perform-public" type="checkbox"> List it after a day</label></div>
 <div id="perform-turnstile" hidden></div>
-<p class="m" id="perform-line"><span id="perform-status" aria-live="polite">Checking whether Perform is awake…</span><button type="button" id="perform-stop" hidden>Stop</button></p>
+<p class="m" id="perform-line"><span id="perform-status" aria-live="polite"></span><button type="button" id="perform-stop" hidden>Stop</button></p>
 <progress id="perform-bar" hidden max="100" value="0"></progress>
 <details class="fold" id="piece-more">
 <summary>Title, speed, link</summary>
@@ -174,7 +183,7 @@ footer{max-width:46rem;margin:0 auto;padding:1.2rem 1.5rem 4rem;font-size:.85rem
 <h3 id="perform-title"></h3>
 <audio id="perform-audio" controls preload="metadata" crossorigin="anonymous"></audio>
 <p class="m" id="perform-trim" hidden></p>
-<div id="src-time" hidden><div id="src-lanes"></div><p class="m" id="src-lock" hidden aria-live="polite">These lengths are written in the Composition, so they can't be moved or lengthened here. You can shorten a chord.</p><p class="m" id="src-now"></p></div>
+<div id="src-time" hidden><h3 id="arrangement-h">Arrangement</h3><div id="src-lanes"></div><p class="m" id="src-lock" hidden aria-live="polite">These lengths are written in the Composition, so they can't be moved or lengthened here. You can shorten a chord.</p><p class="m" id="src-now"></p></div>
 <ul id="plan-src" hidden></ul>
 <p class="m" id="plan-seed" hidden></p>
 <section id="live" hidden>
