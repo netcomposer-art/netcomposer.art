@@ -103,6 +103,12 @@ footer{max-width:46rem;margin:0 auto;padding:1.2rem 1.5rem 4rem;font-size:.85rem
 .hack-nudge .hack-down::after{left:-6px;right:-10px;top:-2px;bottom:-10px}
 .hack-tools{margin-left:auto;display:flex;align-items:center;gap:.5rem;flex:none}
 .hack-bypass,.hack-remove{position:relative;display:flex;align-items:center;justify-content:center;width:32px;height:32px;flex:none}
+.hack-die{position:relative;display:flex;align-items:center;justify-content:center;width:32px;height:32px;flex:none}.hack-undo{position:relative;display:flex;align-items:center;justify-content:center;width:28px;height:32px;flex:none}.hack-die::after,.hack-undo::after{content:"";position:absolute;left:-4px;right:-4px;top:-6px;bottom:-6px}
+.hack-undo:disabled{visibility:hidden}
+.live-head{display:flex;align-items:center;justify-content:space-between;margin:.4rem 0 .5rem}#live .live-head h3{margin:0}
+#live-die{min-height:0;min-width:0;margin:0;padding:0;border:0;background:transparent;color:#6f6f6f;line-height:0;cursor:pointer;width:32px;height:32px}
+.live-confirm{display:flex;flex-wrap:wrap;align-items:center;gap:.5rem;margin:0 0 .8rem;font-size:.9rem}.live-confirm[hidden]{display:none}.live-confirm span{flex:1 1 100%}
+@media(max-width:520px){#live .hack h3{white-space:normal;overflow-wrap:anywhere}.hack-bar{gap:.3rem}.hack-tools{gap:.2rem}.hack-nudge{margin-right:.15rem}.hack-undo{width:22px}#live .hack{padding-right:.35rem;padding-left:.55rem}}
 .hack-bypass svg [hidden]{display:none}#perform-vis[hidden]{display:none}
 .hack-bypass[aria-pressed="true"] .hack-wave{opacity:.28}
 .hack-bypass::after{left:-6px;right:-3px;top:-6px;bottom:-6px}
@@ -187,7 +193,10 @@ footer{max-width:46rem;margin:0 auto;padding:1.2rem 1.5rem 4rem;font-size:.85rem
 <ul id="plan-src" hidden></ul>
 <p class="m" id="plan-seed" hidden></p>
 <section id="live" hidden>
+<div class="live-head"><h3 id="live-h">Live</h3><button type="button" id="live-die" class="hack-die" aria-label="Randomize all hacks" aria-controls="live-confirm" aria-expanded="false"></button></div>
+<div id="live-confirm" class="live-confirm" role="group" aria-labelledby="live-confirm-q" hidden><span id="live-confirm-q">Replace all hacks with a random set?</span><button type="button" id="live-replace">Replace</button><button type="button" id="live-cancel">Cancel</button></div>
 <label class="toggle" for="lloop"><input id="lloop" type="checkbox" checked> Loop</label>
+<!-- Speaker (bypass) icon: credited to "speaker on" by masmooh, Noun Project, CC BY 3.0 (footer #foot-speaker). The die is in hacks/icons.js. -->
 <div id="hack-stack">
 <article class="hack" id="hack-lp" data-id="lowpass-1" data-type="lowpass" data-primary="1">
 <div class="hack-bar"><span class="hack-grip" aria-hidden="true">⋮⋮</span><span class="hack-nudge"><button type="button" class="hack-up hack-move" aria-label="Move Low-pass filter up"><svg viewBox="0 0 20 18" width="20" height="18" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M10 1.5 18.5 16.5H1.5Z"/></svg></button><button type="button" class="hack-down hack-move" aria-label="Move Low-pass filter down"><svg viewBox="0 0 20 18" width="20" height="18" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M10 16.5 1.5 1.5h17Z"/></svg></button></span><h3>Low-pass filter</h3><span class="hack-tools"><button type="button" class="hack-bypass" aria-pressed="false" aria-label="Bypass Low-pass filter"><svg viewBox="0 0 32 32" width="32" height="32" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3.4 12.2h5.4v7.6H3.4z"/><path d="M8.8 12.2 16 7.2v17.6L8.8 19.8z"/><path class="hack-wave" d="M19.4 11.2Q28.2 16 19.4 20.8"/><path class="hack-wave" d="M23.2 7.4Q36.2 16 23.2 24.6"/><path class="hack-slash" d="M3.2 27.4 30.2 4.6" hidden/></svg></button><button type="button" class="hack-remove" aria-label="Remove Low-pass filter"><svg viewBox="0 0 32 32" width="32" height="32" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M7.5 7.5 24.5 24.5M24.5 7.5 7.5 24.5"/></svg></button></span></div>
@@ -270,7 +279,7 @@ nc perform composition.md -o out/           # any OpenAI-compatible LLM</pre>
 <p class="m">Submissions go through issues on the site repository (or a pull request adding an entry to suppliers.json). This channel is proposed and may change. <a href="https://github.com/netcomposer-art/netcomposer.art/issues">Issues</a>.</p>
 </details>
 </main>
-<footer>— Peter Semmelhack · <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a> · <span id="foot-src">sounds from openly licensed sources</span><span id="foot-tester" hidden>tester</span></footer>
+<footer>— Peter Semmelhack · <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a> · <span id="foot-src">sounds from openly licensed sources</span> · <span id="foot-die">die by Hamed Mirhashemi from <a href="https://thenounproject.com/browse/icons/term/die/" target="_blank" title="die Icons">Noun Project</a> (CC BY 3.0)</span> · <span id="foot-speaker">speaker on by masmooh from <a href="https://thenounproject.com/browse/icons/term/speaker-on/" target="_blank" title="speaker on Icons">Noun Project</a> (CC BY 3.0)</span><span id="foot-tester" hidden>tester</span></footer>
 <script type="application/json" id="starters">
 [
   {
@@ -306,6 +315,8 @@ nc perform composition.md -o out/           # any OpenAI-compatible LLM</pre>
 <script src="app.js"></script>
 <script src="hacks/dsp.js"></script>
 <script src="hacks/engine.js"></script>
+<script src="hacks/icons.js"></script>
+<script src="hacks/random.js"></script>
 <script src="hacks/stack.js"></script>
 <script src="hacks/scope.js"></script>
 <script src="live.js"></script>
