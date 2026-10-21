@@ -221,7 +221,6 @@ try {
   // desktop width and on a phone, and each one answers.
   for (const view of (process.env.ONLY === 'playhead' ? [] : [{ width: 1000 }, { width: 1300 }, { width: 390, mobile: true }])) {
     const tag = view.mobile ? 'phone' : view.width + ' px';
-    if (process.env.DEBUG) console.log('view', tag);
     ({ ev, ready } = await run(null, TEN, view));
     check(ready, tag + ': the ten-chord strip did not appear');
     const tb = await bars(ev);
@@ -231,10 +230,9 @@ try {
       await ev(`document.querySelector('[data-chord="${id}"].src-span').scrollIntoView({block: 'center'})`);
       await sleep(30);
       const bb = (await bars(ev))[i];
-      check((await hitAt(ev, bb.x + bb.w / 2, bb.y)) === id + ':move', tag + ': lane ' + (i + 1) + ' body is grabbable, got ' + (await hitAt(ev, bb.x + bb.w / 2, bb.y)));
-      check((await hitAt(ev, bb.x - grip, bb.y)) === id + ':start', tag + ': lane ' + (i + 1) + ' start edge is grabbable, got ' + (await hitAt(ev, bb.x - grip, bb.y)));
-      check((await hitAt(ev, bb.x + bb.w + grip, bb.y)) === id + ':end', tag + ': lane ' + (i + 1) + ' end edge is grabbable, got ' + (await hitAt(ev, bb.x + bb.w + grip, bb.y)));
-      if (process.env.DEBUG) console.log(' lane', i, problems.length);
+      { const h = await hitAt(ev, bb.x + bb.w / 2, bb.y); check(h === id + ':move', tag + ': lane ' + (i + 1) + ' body is grabbable, got ' + h); }
+      { const h = await hitAt(ev, bb.x - grip, bb.y); check(h === id + ':start', tag + ': lane ' + (i + 1) + ' start edge is grabbable, got ' + h); }
+      { const h = await hitAt(ev, bb.x + bb.w + grip, bb.y); check(h === id + ':end', tag + ': lane ' + (i + 1) + ' end edge is grabbable, got ' + h); }
       const p0 = (await plan(ev))[i];
       await drag(bb.x + bb.w + grip, bb.y, -Math.max(6, bb.w / 3));
       const p1 = (await plan(ev))[i];
@@ -248,6 +246,17 @@ try {
       const p3 = (await plan(ev))[i];
       check(p3[1] > p2[1] && p3[2] === p2[2], tag + ': lane ' + (i + 1) + ' moves, got ' + p2 + ' -> ' + p3);
     }
+    check((await ev('document.documentElement.scrollWidth <= document.documentElement.clientWidth')), tag + ': the Arrangement never widens the page');
+    if (view.mobile) {
+      // Phone: tap the ruler to seek.
+      await ev("(() => { var a = document.getElementById('perform-audio'); a.pause(); document.querySelector('.src-ruler').scrollIntoView({block: 'center'}); })()");
+      await sleep(100);
+      const rt = await ev("(() => { var t = document.querySelector('.src-track').getBoundingClientRect(), r = document.querySelector('.src-ruler').getBoundingClientRect(); return {x: t.left, w: t.width, y: r.top + r.height / 2}; })()");
+      const pd = await ev("document.getElementById('perform-audio').duration");
+      await drag(rt.x + rt.w * 0.5, rt.y, 0);
+      const pt = await ev("document.getElementById('perform-audio').currentTime");
+      check(Math.abs(pt - pd * 0.5) < pd * 0.03, tag + ': a tap on the ruler seeks, got ' + pt + ' of ' + pd);
+    }
     // The top three are whole 4 s recordings: lengthening says why it stops.
     ({ ev, ready } = await run(null, TEN, view));
     const top = (await bars(ev))[1];
@@ -258,7 +267,6 @@ try {
   }
 
   // The playhead: its own row above lane 1, never over a bar.
-  if (process.env.DEBUG) console.log('playhead');
   ({ ev, ready } = await run(null, TEN, { width: 1100 }));
   const geo = await ev(`(() => {
     var r = document.querySelector('.src-ruler'), k = document.querySelector('.src-knob'), l = document.querySelector('.src-lane'), h = document.getElementById('arrangement-h');
