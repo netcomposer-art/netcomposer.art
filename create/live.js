@@ -53,6 +53,10 @@ function adjusted() {
       if ((p.wet || 0) !== 0) return true;
     } else if (w.type === 'plate') {
       if ((p.mix || 0) !== 0) return true;
+    } else if (w.type === 'highpass') {
+      if ((p.cutoff || 0) !== 0) return true;
+    } else if (w.type === 'bandpass') {
+      return true;
     } else if (w.type === 'eq') {
       if ((p.low_db || 0) !== 0 || (p.mid_db || 0) !== 0 || (p.high_db || 0) !== 0) return true;
     } else if (w.type === 'drive') {
@@ -669,7 +673,7 @@ function freshLog(follow) {
     credits: [{role: 'performance', name: PERF.creditName, link: PERF.record, license: 'CC-BY-SA-4.0', record_id: PERF.id, audio_sha256: PERF.sha}],
     playback: {bpm: PERF.bpm, tempo_source: PERF.tempoSource, quarter_s: +beatS().toFixed(4), pitch_shift: false, time_stretch: false, source: 'page player, then the hack stack'},
     graph: 'player -> hacks, top to bottom -> limiter (-1 dBFS) -> out',
-    hacks: {lowpass: {type: 'biquad lowpass, Q 0.707', cutoff_map: '0 = open; v in 1..100 -> 20000 * (150/20000)^(v/100) Hz'}, delay: {timing_unit: 'quarter note of this Performance (60 BPM until the record names a tempo)', feedback_max: 0.9, mix: 'equal-power'}, plate: {kind: 'Dattorro plate, JAES 1997', predelay_s: '0..0.2', size: '0.5 is the paper size', mix: 'equal-power, default silent'}, eq: {kind: 'RBJ biquads: low shelf 250 Hz, bell 200 Hz..5 kHz Q 0.9, high shelf 4 kHz', range_db: '-12..12', neutral: 'all 0 dB = dry'}, drive: {kind: 'tanh with first-order antiderivative anti-aliasing', drive_db: '0..24, 0 = dry', gain_comp: '-12 dBFS keeps its level'}, compressor: {kind: 'feed-forward, stereo-linked peak, 6 dB soft knee (Giannoulis 2012)', neutral: 'ratio 1:1, makeup 0 dB'}, width: {kind: 'mid/side; mono input has no side, so width leaves it unchanged', neutral: '100%, centre'}, limiter: {fixed: true, ceiling_db: -1, lookahead_s: 0.0015}},
+    hacks: {lowpass: {type: 'biquad lowpass, Q 0.707', cutoff_map: '0 = open; v in 1..100 -> 20000 * (150/20000)^(v/100) Hz'}, delay: {timing_unit: 'quarter note of this Performance (60 BPM until the record names a tempo)', feedback_max: 0.9, mix: 'equal-power'}, plate: {kind: 'Dattorro plate, JAES 1997', predelay_s: '0..0.2', size: '0.5 is the paper size', mix: 'equal-power, default silent'}, eq: {kind: 'RBJ biquads: low shelf 150 Hz, bell 200 Hz..5 kHz Q 0.3..6, high shelf 6 kHz (v2; v1 was 250 Hz / Q 0.9 / 4 kHz, +-12 dB)', range_db: '-18..18', neutral: 'all 0 dB = dry'}, highpass: {kind: 'RBJ biquad high-pass', cutoff_map: '0 = off; v in 1..100 -> 20 * 100^(v/100) Hz', q: '0.71..8'}, bandpass: {kind: 'RBJ biquad band-pass, 0 dB peak', centre_hz: '100..8000', q: '0.4..8', mix: 'linear dry/wet'}, drive: {kind: 'tanh with first-order antiderivative anti-aliasing', drive_db: '0..24, 0 = dry', gain_comp: '-12 dBFS keeps its level'}, compressor: {kind: 'feed-forward, stereo-linked peak, 6 dB soft knee (Giannoulis 2012)', neutral: 'ratio 1:1, makeup 0 dB'}, width: {kind: 'mid/side; mono input has no side, so width leaves it unchanged', neutral: '100%, centre'}, limiter: {fixed: true, ceiling_db: -1, lookahead_s: 0.0015}},
     performer: 'human', based_on: follow ? {file: LOG.name, started_at: LOG.log.started_at || null} : null,
     initial: settings(), events: [], audio: null, license: 'CC BY-SA 4.0'};
 }

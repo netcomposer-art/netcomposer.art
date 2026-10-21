@@ -299,7 +299,9 @@
     out[1] = dryG * xR + wetG * yr;
   }
 
-  // ---------- EQ: three RBJ biquads (Bristow-Johnson, "Audio EQ Cookbook"): low shelf 250 Hz, a bell, high shelf 4 kHz.
+  // ---------- EQ: three RBJ biquads (Bristow-Johnson, "Audio EQ Cookbook"): a low shelf, a bell, a high shelf.
+  // Widgets from 2026-10-21 on send low_hz 150, high_hz 6000, mid_q and ±18 dB. A saved stack without those
+  // fields is the first voicing (250 Hz, 4 kHz, Q 0.9, ±12 dB) and rebuilds as it was.
   // All bands at 0 dB is the dry signal, passed through untouched.
   function ncBiquad() { return { b0: 1, b1: 0, b2: 0, a1: 0, a2: 0, z1L: 0, z2L: 0, z1R: 0, z2R: 0 }; }
   function ncBiquadSet(f, kind, hz, db, q, sr) {
@@ -349,6 +351,7 @@
     return {
       type: 'eq', sr: sr, f: [ncBiquad(), ncBiquad(), ncBiquad()],
       lowS: 0, lowT: 0, midS: 0, midT: 0, hiS: 0, hiT: 0, logHzS: 6.907755278982137, logHzT: 6.907755278982137,
+      lowHz: 250, highHz: 4000, midQ: 0.9, range: 12,
       flat: true, dirty: true, tick: 0,
       bypass: 1, bypassT: 1, kFast: ncCoef(0.02, sr), kSlow: ncCoef(0.08, sr), immediate: false
     };
@@ -359,9 +362,15 @@
       if (x !== x) x = d;
       return x < lo ? lo : x > hi ? hi : x;
     }
-    st.lowT = clamp(p.low_db, st.lowT, -12, 12);
-    st.midT = clamp(p.mid_db, st.midT, -12, 12);
-    st.hiT = clamp(p.high_db, st.hiT, -12, 12);
+    var v2 = p.low_hz != null || p.high_hz != null || p.mid_q != null;
+    if (v2) st.range = 18;
+    if (p.low_hz != null) st.lowHz = clamp(p.low_hz, st.lowHz, 40, 400);
+    if (p.high_hz != null) st.highHz = clamp(p.high_hz, st.highHz, 2000, 12000);
+    if (p.mid_q != null) st.midQ = clamp(p.mid_q, st.midQ, 0.3, 6);
+    var r = st.range;
+    st.lowT = clamp(p.low_db, st.lowT, -r, r);
+    st.midT = clamp(p.mid_db, st.midT, -r, r);
+    st.hiT = clamp(p.high_db, st.hiT, -r, r);
     var hz = clamp(p.mid_hz, Math.exp(st.logHzT), 200, 5000);
     st.logHzT = Math.log(hz);
     st.dirty = true;
@@ -392,9 +401,9 @@
     if (moving) { st.dirty = true; redo = (st.tick++ & 15) === 0; }
     else if (st.dirty) { redo = true; st.dirty = false; st.tick = 0; }
     if (redo) {
-      ncBiquadSet(st.f[0], 0, 250, st.lowS, 0.7071, st.sr);
-      ncBiquadSet(st.f[1], 1, Math.exp(st.logHzS), st.midS, 0.9, st.sr);
-      ncBiquadSet(st.f[2], 2, 4000, st.hiS, 0.7071, st.sr);
+      ncBiquadSet(st.f[0], 0, st.lowHz, st.lowS, 0.7071, st.sr);
+      ncBiquadSet(st.f[1], 1, Math.exp(st.logHzS), st.midS, st.midQ, st.sr);
+      ncBiquadSet(st.f[2], 2, st.highHz, st.hiS, 0.7071, st.sr);
     }
     ncBiquadStep(st.f[0], xL, xR, out);
     ncBiquadStep(st.f[1], out[0], out[1], out);
@@ -403,6 +412,86 @@
   function ncEqClear(st) {
     var i;
     for (i = 0; i < 3; i++) { st.f[i].z1L = 0; st.f[i].z2L = 0; st.f[i].z1R = 0; st.f[i].z2R = 0; }
+  }
+
+  // ---------- High-pass and band-pass: RBJ biquads, coefficients follow the dials every 16 samples while they move.
+  // High-pass dial 0 is off (the dry signal); 1..100 sweeps 20 Hz..2 kHz on a log scale. Band-pass has no off:
+  // centre 100 Hz..8 kHz, Q from wide (0.4, about 3 octaves) to narrow (8), and a dry/wet mix.
+  function ncPassSet(f, kind, hz, q, sr) {
+    var w0 = 6.283185307179586 * hz / sr;
+    var c = Math.cos(w0), s = Math.sin(w0);
+    var alpha = s / (2 * q), a0 = 1 + alpha;
+    if (kind === 'hp') {
+      f.b0 = (1 + c) * 0.5 / a0; f.b1 = -(1 + c) / a0; f.b2 = (1 + c) * 0.5 / a0;
+    } else {
+      f.b0 = alpha / a0; f.b1 = 0; f.b2 = -alpha / a0;
+    }
+    f.a1 = -2 * c / a0; f.a2 = (1 - alpha) / a0;
+  }
+  function ncPassCreate(type, sr) {
+    var hp = type === 'highpass';
+    return {
+      type: type, sr: sr, f: ncBiquad(), tick: 0, dirty: true,
+      openS: hp ? 1 : 0, openT: hp ? 1 : 0,
+      logS: hp ? 2.995732273553991 : 6.907755278982137, logT: hp ? 2.995732273553991 : 6.907755278982137,
+      qS: hp ? 0.7071 : 0.7, qT: hp ? 0.7071 : 0.7, mixS: 1, mixT: 1,
+      bypass: 1, bypassT: 1, kFast: ncCoef(0.02, sr), kSlow: ncCoef(0.08, sr), immediate: false
+    };
+  }
+  function ncPassApply(st, p, snap) {
+    function clamp(v, d, lo, hi) {
+      var x = v == null ? d : +v;
+      if (x !== x) x = d;
+      return x < lo ? lo : x > hi ? hi : x;
+    }
+    var ny = st.sr * 0.45;
+    if (st.type === 'highpass') {
+      var c = clamp(p.cutoff, st.openT ? 0 : 1, 0, 100);
+      st.openT = c <= 0 ? 1 : 0;
+      if (c > 0) {
+        var hz = clamp(p.cutoff_hz, 20 * Math.pow(100, c / 100), 20, 2000);
+        st.logT = Math.log(hz > ny ? ny : hz);
+      }
+      st.qT = clamp(p.q, st.qT, 0.5, 8);
+    } else {
+      var hz2 = clamp(p.centre_hz, Math.exp(st.logT), 100, 8000);
+      st.logT = Math.log(hz2 > ny ? ny : hz2);
+      st.qT = clamp(p.q, st.qT, 0.4, 8);
+      st.mixT = clamp(p.mix, st.mixT, 0, 1);
+    }
+    st.dirty = true;
+    if (snap) { st.openS = st.openT; st.logS = st.logT; st.qS = st.qT; st.mixS = st.mixT; }
+  }
+  function ncPassStep(st, xL, xR, out) {
+    var k = st.immediate ? 1 : st.kFast;
+    var moving = st.openS !== st.openT || st.logS !== st.logT || st.qS !== st.qT || st.mixS !== st.mixT;
+    if (moving) {
+      st.openS += (st.openT - st.openS) * k;
+      st.logS += (st.logT - st.logS) * k;
+      st.qS += (st.qT - st.qS) * k;
+      st.mixS += (st.mixT - st.mixS) * k;
+      if (Math.abs(st.openT - st.openS) < 1e-4) st.openS = st.openT;
+      if (Math.abs(st.logT - st.logS) < 1e-5) st.logS = st.logT;
+      if (Math.abs(st.qT - st.qS) < 1e-5) st.qS = st.qT;
+      if (Math.abs(st.mixT - st.mixS) < 1e-6) st.mixS = st.mixT;
+    }
+    if (st.openS === 1) {
+      var f0 = st.f;
+      f0.z1L = 0; f0.z2L = 0; f0.z1R = 0; f0.z2R = 0;
+      st.dirty = true;
+      out[0] = xL; out[1] = xR;
+      return;
+    }
+    var redo = false;
+    if (moving) { st.dirty = true; redo = (st.tick++ & 15) === 0; }
+    else if (st.dirty) { redo = true; st.dirty = false; st.tick = 0; }
+    if (redo) ncPassSet(st.f, st.type === 'highpass' ? 'hp' : 'bp', Math.exp(st.logS), st.qS, st.sr);
+    ncBiquadStep(st.f, xL, xR, out);
+    var o = st.type === 'highpass' ? st.openS : 1 - st.mixS;
+    if (o > 0) {
+      out[0] = o * xL + (1 - o) * out[0];
+      out[1] = o * xR + (1 - o) * out[1];
+    }
   }
 
   // ---------- Drive: tanh soft saturation with first-order antiderivative anti-aliasing
@@ -591,6 +680,7 @@
     if (type === 'delay') return ncDelayCreate(sr);
     if (type === 'plate') return ncPlateCreate(sr);
     if (type === 'eq') return ncEqCreate(sr);
+    if (type === 'highpass' || type === 'bandpass') return ncPassCreate(type, sr);
     if (type === 'drive') return ncDriveCreate(sr);
     if (type === 'compressor') return ncCompCreate(sr);
     if (type === 'width') return ncWidthCreate(sr);
@@ -602,6 +692,7 @@
     else if (st.type === 'delay') ncDelayApply(st, p, snap);
     else if (st.type === 'plate') ncPlateApply(st, p, snap);
     else if (st.type === 'eq') ncEqApply(st, p, snap);
+    else if (st.type === 'highpass' || st.type === 'bandpass') ncPassApply(st, p, snap);
     else if (st.type === 'drive') ncDriveApply(st, p, snap);
     else if (st.type === 'compressor') ncCompApply(st, p, snap);
     else if (st.type === 'width') ncWidthApply(st, p, snap);
@@ -615,6 +706,7 @@
     if (st.type === 'lowpass') { st.z1L = 0; st.z2L = 0; st.z1R = 0; st.z2R = 0; return; }
     if (st.type === 'delay') { st.bufL.fill(0); st.bufR.fill(0); st.w = 0; return; }
     if (st.type === 'eq') { ncEqClear(st); return; }
+    if (st.type === 'highpass' || st.type === 'bandpass') { st.f.z1L = 0; st.f.z2L = 0; st.f.z1R = 0; st.f.z2R = 0; return; }
     if (st.type === 'drive') { st.u[0] = 0; st.u[1] = 0; st.f[0] = 0; st.f[1] = 0; return; }
     if (st.type === 'compressor') { st.yl = 0; st.gr = 0; return; }
     if (st.type === 'plate') {
@@ -634,6 +726,7 @@
     else if (st.type === 'delay') ncDelayStep(st, xL, xR, out);
     else if (st.type === 'plate') ncPlateStep(st, xL, xR, out);
     else if (st.type === 'eq') ncEqStep(st, xL, xR, out);
+    else if (st.type === 'highpass' || st.type === 'bandpass') ncPassStep(st, xL, xR, out);
     else if (st.type === 'drive') ncDriveStep(st, xL, xR, out);
     else if (st.type === 'compressor') ncCompStep(st, xL, xR, out);
     else if (st.type === 'width') ncWidthStep(st, xL, xR, out);
@@ -789,6 +882,7 @@
       ncDelayCreate, ncDelayApply, ncDelayStep,
       ncDiff2, ncPlateCreate, ncPlateApply, ncTank, ncPlateStep,
       ncBiquad, ncBiquadSet, ncBiquadStep, ncEqCreate, ncEqApply, ncEqStep, ncEqClear,
+      ncPassSet, ncPassCreate, ncPassApply, ncPassStep,
       ncLogCosh, ncTanhAdaa, ncDriveCreate, ncDriveApply, ncDriveStep,
       ncCompCreate, ncCompApply, ncCompStep,
       ncWidthCreate, ncWidthApply, ncWidthStep,

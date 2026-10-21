@@ -5,7 +5,22 @@
   var $ = function (id) { return document.getElementById(id); };
   var hooks = { onDial: null, onChange: null };
   var quarter = 1;
-  var LABELS = { lowpass: 'Low-pass filter', delay: 'Delay', plate: 'Plate', eq: 'EQ', drive: 'Drive', compressor: 'Compressor', width: 'Width' };
+  // What people see. The type ids stay as saved (plate is shown as Reverb).
+  var LABELS = { lowpass: 'Low-pass filter', highpass: 'High-pass filter', bandpass: 'Band-pass filter', delay: 'Delay', plate: 'Reverb', eq: 'EQ', drive: 'Drive', compressor: 'Compressor', width: 'Width' };
+  // EQ v2: shelves at 150 Hz and 6 kHz, ±18 dB, bell Q 0.3..6 on a log dial (40 = Q 1.0).
+  var EQ_LOW_HZ = 150, EQ_HIGH_HZ = 6000;
+  function eqQ(v) { return +(0.3 * Math.pow(20, v / 100)).toFixed(2); }
+  function eqQDial(q) { return Math.round(100 * Math.log(q / 0.3) / Math.log(20)); }
+  // High-pass: 0 = off, 1..100 = 20 Hz..2 kHz. Resonance 0..100 = Q 0.71..8.
+  function hpHz(v) { return v <= 0 ? null : Math.round(20 * Math.pow(100, v / 100)); }
+  function hpDial(hz) { return Math.max(1, Math.round(100 * Math.log(hz / 20) / Math.log(100))); }
+  function hpQ(v) { return +(0.7071 * Math.pow(8 / 0.7071, v / 100)).toFixed(3); }
+  function hpQDial(q) { return Math.round(100 * Math.log(q / 0.7071) / Math.log(8 / 0.7071)); }
+  // Band-pass: centre 100 Hz..8 kHz (53 = about 1 kHz). Q 0.4 (about 3 octaves wide) .. 8 (narrow).
+  function bpHz(v) { return Math.round(100 * Math.pow(80, v / 100)); }
+  function bpDial(hz) { return Math.round(100 * Math.log(hz / 100) / Math.log(80)); }
+  function bpQ(v) { return +(0.4 * Math.pow(20, v / 100)).toFixed(2); }
+  function bpQDial(q) { return Math.round(100 * Math.log(q / 0.4) / Math.log(20)); }
   // The first lowpass, delay and plate keep the page's original dial ids (lcut, ltime...). Every other hack gets ids from its own.
   var PRIMARY = { lowpass: 'hack-lp', delay: 'hack-delay', plate: 'hack-plate' };
   // EQ bell 200 Hz to 5 kHz on a log dial, 50 = 1 kHz. Compressor ratio 1:1 to 20:1 on a log dial.
@@ -73,12 +88,26 @@
       };
     }
     if (type === 'eq') {
-      return {
+      var eqp = {
         low_db: +field(art, 'low_db').value,
         mid_db: +field(art, 'mid_db').value,
         mid_hz: midHz(+field(art, 'mid_hz').value),
         high_db: +field(art, 'high_db').value
       };
+      // A stack saved with the first EQ voicing keeps it (no low_hz/high_hz/mid_q, ±12 dB in the DSP).
+      if (art.getAttribute('data-voicing') !== '1') {
+        eqp.low_hz = EQ_LOW_HZ;
+        eqp.high_hz = EQ_HIGH_HZ;
+        eqp.mid_q = eqQ(+field(art, 'mid_q').value);
+      }
+      return eqp;
+    }
+    if (type === 'highpass') {
+      var hc = +field(art, 'cutoff').value;
+      return { cutoff: hc, cutoff_hz: hpHz(hc), q: hpQ(+field(art, 'q').value) };
+    }
+    if (type === 'bandpass') {
+      return { centre_hz: bpHz(+field(art, 'centre_hz').value), q: bpQ(+field(art, 'q').value), mix: +field(art, 'mix').value / 100 };
     }
     if (type === 'drive') {
       return {
@@ -137,6 +166,20 @@
         });
         var mh = outOf(art, 'mid_hz');
         if (mh) mh.textContent = fmtHz(midHz(+field(art, 'mid_hz').value));
+        var mq = outOf(art, 'mid_q');
+        if (mq) mq.textContent = 'Q ' + eqQ(+field(art, 'mid_q').value).toFixed(1);
+      } else if (type === 'highpass') {
+        var hco = outOf(art, 'cutoff');
+        if (hco) { var hh = hpHz(+field(art, 'cutoff').value); hco.textContent = hh == null ? 'off' : fmtHz(hh); }
+        var hq = outOf(art, 'q');
+        if (hq) hq.textContent = 'Q ' + hpQ(+field(art, 'q').value).toFixed(1);
+      } else if (type === 'bandpass') {
+        var bc = outOf(art, 'centre_hz');
+        if (bc) bc.textContent = fmtHz(bpHz(+field(art, 'centre_hz').value));
+        var bq = outOf(art, 'q');
+        if (bq) bq.textContent = 'Q ' + bpQ(+field(art, 'q').value).toFixed(1);
+        var bm = outOf(art, 'mix');
+        if (bm) bm.textContent = field(art, 'mix').value + '% wet';
       } else if (type === 'drive') {
         var dd = outOf(art, 'drive_db');
         if (dd) dd.textContent = +field(art, 'drive_db').value === 0 ? 'clean' : fmtDb(+field(art, 'drive_db').value);
@@ -176,10 +219,11 @@
         });
         return;
       }
+      var t = art.getAttribute('data-type');
       out.push({
         id: art.getAttribute('data-id'),
-        type: art.getAttribute('data-type'),
-        version: 1,
+        type: t,
+        version: t === 'eq' && art.getAttribute('data-voicing') !== '1' ? 2 : 1,
         bypass: art.getAttribute('data-bypass') === '1',
         params: paramsOf(art)
       });
@@ -468,10 +512,22 @@
       var mix = range(primary ? 'pmix' : p + 'mix', 'mix', 0, 100, 0, '');
       art.appendChild(dial('Mix', mix, output(primary ? 'pmixv' : p + 'mixv', '0% wet'), 'mix'));
     } else if (type === 'eq') {
-      art.appendChild(dial('Low', range(p + 'low', 'low_db', -12, 12, 0, ''), output(p + 'lowv', '0 dB'), 'low_db'));
-      art.appendChild(dial('Mid', range(p + 'mid', 'mid_db', -12, 12, 0, ''), output(p + 'midv', '0 dB'), 'mid_db'));
+      art.appendChild(dial('Low', range(p + 'low', 'low_db', -18, 18, 0, ''), output(p + 'lowv', '0 dB'), 'low_db'));
+      art.appendChild(dial('Mid', range(p + 'mid', 'mid_db', -18, 18, 0, ''), output(p + 'midv', '0 dB'), 'mid_db'));
       art.appendChild(dial('Mid at', range(p + 'midhz', 'mid_hz', 0, 100, 50, ''), output(p + 'midhzv', '1.0 kHz'), 'mid_hz'));
-      art.appendChild(dial('High', range(p + 'high', 'high_db', -12, 12, 0, ''), output(p + 'highv', '0 dB'), 'high_db'));
+      art.appendChild(dial('Mid Q', range(p + 'midq', 'mid_q', 0, 100, 40, ''), output(p + 'midqv', 'Q 1.0'), 'mid_q'));
+      art.appendChild(dial('High', range(p + 'high', 'high_db', -18, 18, 0, ''), output(p + 'highv', '0 dB'), 'high_db'));
+      var eqn = document.createElement('p');
+      eqn.className = 'm hack-note';
+      eqn.textContent = 'Low shelf 150 Hz, high shelf 6 kHz.';
+      art.appendChild(eqn);
+    } else if (type === 'highpass') {
+      art.appendChild(dial('Cutoff', range(p + 'cut', 'cutoff', 0, 100, 0, ''), output(p + 'cutv', 'off'), 'cutoff'));
+      art.appendChild(dial('Resonance', range(p + 'res', 'q', 0, 100, 0, ''), output(p + 'resv', 'Q 0.7'), 'q'));
+    } else if (type === 'bandpass') {
+      art.appendChild(dial('Centre', range(p + 'centre', 'centre_hz', 0, 100, 53, ''), output(p + 'centrev', '1.0 kHz'), 'centre_hz'));
+      art.appendChild(dial('Q', range(p + 'q', 'q', 0, 100, 0, ''), output(p + 'qv', 'Q 0.4'), 'q'));
+      art.appendChild(dial('Mix', range(p + 'mix', 'mix', 0, 100, 100, ''), output(p + 'mixv', '100% wet'), 'mix'));
     } else if (type === 'drive') {
       art.appendChild(dial('Drive', range(p + 'drive', 'drive_db', 0, 24, 0, ''), output(p + 'drivev', 'clean'), 'drive_db'));
       art.appendChild(dial('Output', range(p + 'out', 'output_db', -12, 12, 0, ''), output(p + 'outv', '0 dB'), 'output_db'));
@@ -521,6 +577,19 @@
     if (type === 'eq') {
       ['low_db', 'mid_db', 'high_db'].forEach(function (k) { if (p[k] != null) field(art, k).value = String(Math.round(+p[k])); });
       if (p.mid_hz != null) field(art, 'mid_hz').value = String(midDial(+p.mid_hz));
+      if (p.mid_q != null) field(art, 'mid_q').value = String(eqQDial(+p.mid_q));
+      if (p.low_hz == null && p.high_hz == null && p.mid_q == null && (p.low_db != null || p.mid_db != null || p.high_db != null)) art.setAttribute('data-voicing', '1');
+      else art.removeAttribute('data-voicing');
+    }
+    if (type === 'highpass') {
+      if (p.cutoff != null) field(art, 'cutoff').value = String(Math.round(+p.cutoff));
+      else if (p.cutoff_hz != null) field(art, 'cutoff').value = String(hpDial(+p.cutoff_hz));
+      if (p.q != null) field(art, 'q').value = String(hpQDial(+p.q));
+    }
+    if (type === 'bandpass') {
+      if (p.centre_hz != null) field(art, 'centre_hz').value = String(bpDial(+p.centre_hz));
+      if (p.q != null) field(art, 'q').value = String(bpQDial(+p.q));
+      if (p.mix != null) field(art, 'mix').value = String(Math.round(+p.mix * 100));
     }
     if (type === 'drive') {
       if (p.drive_db != null) field(art, 'drive_db').value = String(Math.round(+p.drive_db));
