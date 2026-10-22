@@ -189,6 +189,36 @@
     return r;
   }
 
+  // One chord gathered again (Peter, 2026-10-21). Every other bar keeps its
+  // edits. The re-gathered bar takes its fresh length (fresh is the same take
+  // rebuilt with the new recording, same seed). Starts fixed by a written
+  // clock or a stated gap (keepStarts) stay put. Otherwise the bar keeps its
+  // start and every later bar moves by the change at its end, so a
+  // back-to-back take stays back to back and gaps the edits made stay too.
+  // Returns null when the result would not fit (the page rebuilds instead).
+  function regather(entries, fresh, index, keepStarts) {
+    if (!entries || !fresh || !fresh.entries || entries.length !== fresh.entries.length || !entries[index]) return null;
+    var f = fresh.entries[index], old = entries[index], next = entries.slice(), i;
+    var at = keepStarts ? +f.at_s : +old.at_s;
+    var len = Math.min(+f.len_s, secs(MAX_TOTAL_S - at));
+    if (!(len >= MIN_LEN_S)) return null;
+    var bar = copyTiming(f, at, len);
+    next[index] = bar;
+    if (!keepStarts) {
+      var delta = secs((at + len) - (+old.at_s + +old.len_s));
+      for (i = index + 1; i < next.length && delta !== 0; i++) {
+        var e = next[i], to = secs(Math.max(0, +e.at_s + delta));
+        // A later bar is never cut to fit: past 180 s the page rebuilds instead.
+        if (to + +e.len_s > MAX_TOTAL_S + 1e-9) return null;
+        next[i] = copyTiming(e, to, +e.len_s);
+      }
+      for (i = 1; i < next.length; i++) if (+next[i].at_s < +next[i - 1].at_s) return null;
+    }
+    var total = retotal(next, 0);
+    if (keepStarts && +fresh.total_s > total) total = secs(+fresh.total_s);
+    return { entries: next, total_s: total };
+  }
+
     // ---------- the playhead ----------
   // The time under a pointer, clamped to the take.
   function timeAt(x, left, width, dur) {
@@ -297,6 +327,7 @@
     timeAt: timeAt,
     playhead: playhead,
     edit: edit,
+    regather: regather,
     chords: chords,
     idOf: idOf,
     indexOf: indexOf,

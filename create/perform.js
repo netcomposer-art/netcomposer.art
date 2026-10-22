@@ -71,6 +71,9 @@
   var gatherNames = [], gatherLive = [], playerJob = '', assembleTimer = null, warmAsked = false, warmSent = false;
   var clipBuffers = {}, clipJobs = {}, decodeCtx = null, localPlan = null, localUrl = '', clockDur = 0, asmGen = 0;
   var drag = null, refitting = false, planBase = 0;
+  // Re-gather one sound: the slot being gathered again (-1: none), and the last row's error.
+  var regathering = -1, regatherErr = null, regatherGen = 0;
+  var planStartsFixed = false;
   var preview = new Audio(), previewBtn = null;
   preview.preload = 'none';
   preview.addEventListener('ended', function () { stopPreview(); });
@@ -174,6 +177,7 @@
     syncActions();
   }
   function syncActions() {
+    syncRegather();
     var gBtn = $('gatherBtn'), pBtn = $('performBtn'), again = $('gather-again'), box = $('gather-box');
     var on = !!(cfg && cfg.perform_enabled);
     var chords = !!(window.NC && NC.timeline && NC.timeline());
@@ -1688,8 +1692,11 @@
     }
     var written = !!(gatherClock && gatherClock.written && gatherClock.slots && gatherClock.slots.length === n);
     var asm = window.NCAssembly;
+    var gap = asm.explicitGap(pieceWords());
+    // The same test placeChords makes: are the starts the clock's, or back to back?
+    planStartsFixed = !!(written || (gap && slots.every(function (s) { return s && isFinite(s.dur); })));
     // Back to back unless the Composition wrote the clock or asked for a gap.
-    var placed = asm.placeChords(slots, caps, { written: written, gap: asm.explicitGap(pieceWords()) });
+    var placed = asm.placeChords(slots, caps, { written: written, gap: gap });
     var entries = placed.entries.map(function (p, i) {
       return {
         pos: i,
@@ -2127,13 +2134,183 @@
       var meta = document.createElement('span');
       meta.className = 'm g-meta';
       meta.textContent = [who, licenseLabel(s.license) || s.license].filter(Boolean).join(' · ');
+      var slot = s.slot >= 0 ? s.slot : -1;
+      var again = canRegather() && slot >= 0 ? regatherButton(slot) : null;
+      if (again && regathering === slot) {
+        li.className = 'g-busy';
+        meta.textContent = 'Finding another recording…';
+      }
+      if (again) li.appendChild(again);
       li.appendChild(btn);
       li.appendChild(title);
       li.appendChild(meta);
+      if (regatherErr && regatherErr.slot === slot && regathering < 0) {
+        var note = document.createElement('span');
+        note.className = 'm warn g-note';
+        note.setAttribute('role', 'status');
+        note.textContent = regatherErr.text;
+        li.appendChild(note);
+      }
       list.appendChild(li);
     });
     previewBtn = still;
     if (playing && !still) stopPreview();
+  }
+  // The Performer says it can gather one sound again (cfg.regather). Older
+  // Performers would start a whole new Gather, so no icon until then.
+  function canRegather() {
+    return !!(cfg && cfg.regather && gatherOn && gatherId && browserAssembly());
+  }
+  var REGATHER_SVG = '<svg viewBox="0 0 32 32" width="32" height="32" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"><path d="M23.4 19.5A8 8 0 1 1 22.6 11.4"/><path d="M23.5 6.5v5.5H18"/></svg>';
+  function regatherButton(slot) {
+    var b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'g-again';
+    b.setAttribute('aria-label', 'Re-gather this sound');
+    b.title = 'Re-gather this sound';
+    b.innerHTML = REGATHER_SVG;
+    b.disabled = regathering >= 0 || busy || phase === 'gather' || phase === 'perform';
+    if (regathering === slot) b.setAttribute('aria-busy', 'true');
+    b.onclick = function () { regather(slot); };
+    return b;
+  }
+  // The icons follow busy and phase, which change after the rows are painted.
+  function syncRegather() {
+    var list = $('gather-list');
+    if (!list || !list.querySelectorAll) return;
+    var off = regathering >= 0 || busy || phase === 'gather' || phase === 'perform';
+    Array.prototype.forEach.call(list.querySelectorAll('.g-again'), function (b) { if (b.disabled !== off) b.disabled = off; });
+  }
+  function regatherFail(slot, gen, text) {
+    if (gen !== regatherGen) return;
+    regathering = -1;
+    regatherErr = { slot: slot, text: text || 'Could not re-gather that sound. The old one stays.' };
+    $('perform-turnstile').hidden = true;
+    idle();
+    paintGather(gatherSounds, true);
+  }
+  function regatherWait(id, slot, gen, started) {
+    if (gen !== regatherGen) return;
+    // A re-gather is one search and one copy. Stop waiting after five minutes.
+    if (Date.now() - started > 300000) { regatherFail(slot, gen, 'That took too long. The old sound stays.'); return; }
+    fetch(API + '/api/jobs/' + encodeURIComponent(id), { cache: 'no-store' }).then(function (r) {
+      return read(r).then(function (j) { return { ok: r.ok, status: r.status, j: j }; });
+    }).then(function (x) {
+      if (gen !== regatherGen) return;
+      var j = x.j || {};
+      if (!x.ok || !j.state) { regatherFail(slot, gen, gatherMessage(x.status, j)); return; }
+      if (j.state === 'done') {
+        var col = GATHER.collection(j);
+        if (col) { regatherTake(col, slot, gen); return; }
+        fetch(API + '/api/gather/' + encodeURIComponent(j.gather_id || id)).then(function (r) {
+          return read(r).then(function (b) { return { ok: r.ok, status: r.status, b: b }; });
+        }).then(function (y) {
+          if (gen !== regatherGen) return;
+          var got = y.ok && GATHER.collection(y.b);
+          if (got) regatherTake(got, slot, gen);
+          else regatherFail(slot, gen, y.ok ? '' : gatherMessage(y.status, y.b));
+        }, function () { regatherFail(slot, gen, ''); });
+        return;
+      }
+      if (ended(j.state)) {
+        regatherFail(slot, gen, limitMessage(j) || soften(j.error) || soften(j.reason) || '');
+        return;
+      }
+      setTimeout(function () { regatherWait(id, slot, gen, started); }, 1500);
+    }, function () {
+      if (gen === regatherGen) setTimeout(function () { regatherWait(id, slot, gen, started); }, 3000);
+    });
+  }
+  // The new Gather: the same chords, one new recording. Every other clip is the
+  // same bytes under the new id, so the decoded buffers move across and only
+  // the new one is fetched. A take on screen is rebuilt with its seed, so the
+  // Arrangement, Live and Save all use the new sound.
+  function regatherTake(col, slot, gen) {
+    var old = gatherSounds || [];
+    var fresh = col.sounds;
+    if (fresh.length !== old.length) { regatherFail(slot, gen, ''); return; }
+    var previous = gatherId, k;
+    for (k = 0; k < fresh.length; k++) {
+      if (!fresh[k].symbol && old[k]) fresh[k].symbol = old[k].symbol;
+      if (!fresh[k].gather_id) fresh[k].gather_id = col.id;
+      if (fresh[k].slot === slot) continue;
+      var was = old[k] && clipBuffers[clipKey(old[k])];
+      if (was) clipBuffers[clipKey(fresh[k])] = was;
+    }
+    gatherId = col.id;
+    if (col.clock !== null) gatherClock = col.clock;
+    if (gatherClaim) { try { sessionStorage.setItem('nc-claim:' + gatherId, gatherClaim); } catch (e) {} }
+    gatherSounds = fresh;
+    if (previous && previous !== col.id) dropGatherCache(previous);
+    regathering = -1;
+    regatherErr = null;
+    $('perform-turnstile').hidden = true;
+    var seed = localPlan ? localPlan.seed : null;
+    var edited = localPlan ? localPlan.entries.slice() : null;
+    paintGather(gatherSounds, true);
+    preloadClips(gatherSounds);
+    if (seed == null) { idle(); gstatus('Gathered.'); return; }
+    var audio = $('perform-audio');
+    if (audio) { try { audio.pause(); } catch (e2) {} }
+    if (window.NCLive && NCLive.stopClips) NCLive.stopClips();
+    var mine = ++asmGen;
+    Promise.all(gatherSounds.map(loadClip)).then(function (bufs) {
+      if (mine !== asmGen) return;
+      var missing = [];
+      bufs.forEach(function (b, i) { if (!b) missing.push(i); });
+      idle();
+      if (missing.length) {
+        var err = new Error('clip');
+        err.ncMissing = missing;
+        var line = $('perform-status');
+        line.textContent = assemblyMessage(gatherSounds, err);
+        line.className = 'm warn';
+        return;
+      }
+      // Keep the other bars' Arrangement edits; only this bar resets.
+      var fresh = buildPlan(seed, bufs);
+      var row = -1;
+      for (var q = 0; q < gatherSounds.length; q++) if (gatherSounds[q].slot === slot) row = q;
+      var kept = row >= 0 && window.NCTimelineEdit && NCTimelineEdit.regather && NCTimelineEdit.regather(edited, fresh, row, planStartsFixed);
+      if (kept) { fresh.entries = kept.entries; fresh.total_s = kept.total_s; }
+      revealTake(fresh);
+      gstatus('Gathered.');
+    });
+  }
+  function regather(slot) {
+    if (!canRegather() || busy || regathering >= 0 || phase === 'gather' || phase === 'perform') return;
+    var claimNow = '';
+    try { claimNow = sessionStorage.getItem('nc-claim:' + gatherId) || ''; } catch (e) {}
+    claimNow = claimNow || gatherClaim;
+    if (!claimNow) { regatherErr = { slot: slot, text: 'This tab does not have the key for this Gather. Gather again.' }; paintGather(gatherSounds, true); return; }
+    stopPreview();
+    var gen = ++regatherGen;
+    var from = gatherId;
+    regathering = slot;
+    regatherErr = null;
+    busy = true;
+    syncActions();
+    paintGather(gatherSounds, true);
+    askToken().then(function (tok) {
+      if (gen !== regatherGen) return null;
+      var body = { regather_gather_id: from, regather_chord: slot, claim_token: claimNow };
+      if (tok) body.turnstile_token = tok;
+      return fetch(API + '/api/gather', { method: 'POST', headers: apiHeaders(), body: JSON.stringify(body) }).then(function (r) {
+        return read(r).then(function (j) { return { ok: r.ok, status: r.status, j: j }; });
+      });
+    }).then(function (x) {
+      if (!x || gen !== regatherGen) return;
+      token = null;
+      $('perform-turnstile').hidden = true;
+      if (!x.ok || !x.j || !x.j.id) { regatherFail(slot, gen, x.ok ? '' : gatherMessage(x.status, x.j)); return; }
+      if (x.j.claim_token) {
+        gatherClaim = x.j.claim_token;
+        try { sessionStorage.setItem('nc-claim:' + x.j.id, x.j.claim_token); } catch (e2) {}
+      }
+      regatherWait(x.j.id, slot, gen, Date.now());
+    }).catch(function (err) {
+      regatherFail(slot, gen, err && err.message ? soften(err.message) : '');
+    });
   }
   function chordNames() {
     var tl = window.NC && NC.timeline && NC.timeline();
@@ -2304,6 +2481,7 @@
       dropGatherCache(previous);
     }
     gatherId = col.id;
+    regatherErr = null;
     // A clip requested while this Gather was still copying can 404. Do not
     // let that promise answer Perform. Bytes already stored under this gather stay.
     dropGatherCache(col.id, true);
@@ -2575,10 +2753,10 @@
     var gen = ++askGen;
     var box = $('perform-turnstile');
     // The check sits under whichever step asked for it: Gather, or Save in Perform.
-    var anchor = phase === 'gather' ? $('gather-line') : $('perform-row');
+    var anchor = (phase === 'gather' || regathering >= 0) ? $('gather-line') : $('perform-row');
     if (anchor && anchor.parentNode && anchor.nextSibling !== box && anchor.parentNode.insertBefore) anchor.parentNode.insertBefore(box, anchor.nextSibling);
     box.hidden = false;
-    if (!(phase === 'gather' && gatherSounds && gatherSounds.length)) (phase === 'gather' ? gstatus : status)('One check, then it starts.');
+    if (regathering < 0 && !(phase === 'gather' && gatherSounds && gatherSounds.length)) (phase === 'gather' ? gstatus : status)('One check, then it starts.');
     return loadTurnstile().then(function () {
       return new Promise(function (ok, no) {
         if (gen !== askGen) return;
