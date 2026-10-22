@@ -73,6 +73,7 @@
   var drag = null, refitting = false, planBase = 0;
   // Re-gather one sound: the slot being gathered again (-1: none), and the last row's error.
   var regathering = -1, regatherErr = null, regatherGen = 0;
+  var planStartsFixed = false;
   var preview = new Audio(), previewBtn = null;
   preview.preload = 'none';
   preview.addEventListener('ended', function () { stopPreview(); });
@@ -1691,8 +1692,11 @@
     }
     var written = !!(gatherClock && gatherClock.written && gatherClock.slots && gatherClock.slots.length === n);
     var asm = window.NCAssembly;
+    var gap = asm.explicitGap(pieceWords());
+    // The same test placeChords makes: are the starts the clock's, or back to back?
+    planStartsFixed = !!(written || (gap && slots.every(function (s) { return s && isFinite(s.dur); })));
     // Back to back unless the Composition wrote the clock or asked for a gap.
-    var placed = asm.placeChords(slots, caps, { written: written, gap: asm.explicitGap(pieceWords()) });
+    var placed = asm.placeChords(slots, caps, { written: written, gap: gap });
     var entries = placed.entries.map(function (p, i) {
       return {
         pos: i,
@@ -2242,6 +2246,7 @@
     regatherErr = null;
     $('perform-turnstile').hidden = true;
     var seed = localPlan ? localPlan.seed : null;
+    var edited = localPlan ? localPlan.entries.slice() : null;
     paintGather(gatherSounds, true);
     preloadClips(gatherSounds);
     if (seed == null) { idle(); gstatus('Gathered.'); return; }
@@ -2262,7 +2267,13 @@
         line.className = 'm warn';
         return;
       }
-      revealTake(buildPlan(seed, bufs));
+      // Keep the other bars' Arrangement edits; only this bar resets.
+      var fresh = buildPlan(seed, bufs);
+      var row = -1;
+      for (var q = 0; q < gatherSounds.length; q++) if (gatherSounds[q].slot === slot) row = q;
+      var kept = row >= 0 && window.NCTimelineEdit && NCTimelineEdit.regather && NCTimelineEdit.regather(edited, fresh, row, planStartsFixed);
+      if (kept) { fresh.entries = kept.entries; fresh.total_s = kept.total_s; }
+      revealTake(fresh);
       gstatus('Gathered.');
     });
   }

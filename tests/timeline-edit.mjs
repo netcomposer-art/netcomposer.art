@@ -256,6 +256,36 @@ check(r.clipBlock !== true && r.entries[0].at_s === 0, 'time 0, not the clip, st
 r = E.edit(stacks, 'chord-1', 'end', 60, { caps: stackCaps, written: [9, 11, 8, 12], base: 40 });
 check(r.writtenBlock === true && r.clipBlock !== true, 'past a written length, the written note wins');
 
+// Re-gather one chord (Peter, 2026-10-21): other bars keep their edits.
+{
+  const ends = (es) => es.map((e) => [e.at_s, e.len_s]);
+  // Edited take: C shortened to 1.5 (gap before Am), Am 2–4, F 4–7.
+  const edited = [chord(0, 'C', 0, 1.5, -3), chord(1, 'Am', 2, 2, -1.5), chord(2, 'F', 4, 3, 0)];
+  // Rebuilt with a new Am of 3.25 s: back to back from scratch.
+  const fresh = { entries: [chord(0, 'C', 0, 2, -3), chord(1, 'Am', 2, 3.25, -6), chord(2, 'F', 5.25, 3, 0)], total_s: 8.25 };
+  let g = E.regather(edited, fresh, 1, false);
+  check(JSON.stringify(ends(g.entries)) === JSON.stringify([[0, 1.5], [2, 3.25], [5.25, 3]]) && g.total_s === 8.25, 'a longer new Am: C keeps its edit, F moves with it, got ' + JSON.stringify(ends(g.entries)));
+  check(g.entries[0] === edited[0] && g.entries[1].gain_db === -6 && g.entries[2].gain_db === 0, 'the other bars keep their own voice');
+  const short = { entries: [chord(0, 'C', 0, 2, -3), chord(1, 'Am', 2, 1, -6), chord(2, 'F', 3, 3, 0)], total_s: 6 };
+  g = E.regather(edited, short, 1, false);
+  check(JSON.stringify(ends(g.entries)) === JSON.stringify([[0, 1.5], [2, 1], [3, 3]]) && g.total_s === 6, 'a shorter new Am closes up behind it, got ' + JSON.stringify(ends(g.entries)));
+  // An overlap the edits made stays an overlap.
+  const overlap = [chord(0, 'C', 0, 2, -3), chord(1, 'Am', 2, 2, -1.5), chord(2, 'F', 3.5, 3, 0)];
+  g = E.regather(overlap, fresh, 1, false);
+  check(g.entries[2].at_s === 4.75, 'an edited overlap keeps its spacing, got ' + g.entries[2].at_s);
+  // A clock's starts stay put; the bar is its fresh length.
+  const clocked = { entries: [chord(0, 'C', 0, 2, -3), chord(1, 'Am', 2, 1.5, -6), chord(2, 'F', 4, 3, 0)], total_s: 7 };
+  g = E.regather([chord(0, 'C', 0, 1, -3), chord(1, 'Am', 2.5, 1.5, -1.5), chord(2, 'F', 4, 2, 0)], clocked, 1, true);
+  check(JSON.stringify(ends(g.entries)) === JSON.stringify([[0, 1], [2, 1.5], [4, 2]]) && g.total_s === 7, 'fixed starts: only the bar resets, got ' + JSON.stringify(ends(g.entries)));
+  // The last bar, and a mismatch.
+  g = E.regather(edited, { entries: [chord(0, 'C', 0, 2, -3), chord(1, 'Am', 2, 2, -1.5), chord(2, 'F', 4, 1, -2)], total_s: 5 }, 2, false);
+  check(g.entries[2].len_s === 1 && g.total_s === 5 && g.entries[0].len_s === 1.5, 'the last bar resets alone');
+  check(E.regather(edited, { entries: fresh.entries.slice(0, 2) }, 1, false) === null, 'a different chord count is not merged');
+  // Past 180 s it refuses, and the page rebuilds.
+  const long = [chord(0, 'C', 0, 100, 0), chord(1, 'Am', 100, 75, 0), chord(2, 'F', 175, 4, 0)];
+  check(E.regather(long, { entries: [chord(0, 'C', 0, 100, 0), chord(1, 'Am', 100, 79, 0), chord(2, 'F', 179, 4, 0)], total_s: 183 }, 1, false) === null, 'no room past 180 s: null');
+}
+
 // Playhead math.
 check(E.timeAt(100, 100, 500, 60) === 0 && E.timeAt(600, 100, 500, 60) === 60 && E.timeAt(350, 100, 500, 60) === 30, 'timeAt maps the track to the take');
 check(E.timeAt(20, 100, 500, 60) === 0 && E.timeAt(900, 100, 500, 60) === 60, 'timeAt clamps to the take');

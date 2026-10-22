@@ -243,13 +243,24 @@ try {
     check(/G13 other take 1/.test(plan[1]) && plan.every((p, i) => i === 1 || p.includes(before[i].title)), tag + ': the Arrangement lists the new sound, got ' + JSON.stringify(plan));
     const seed = await ev("(document.getElementById('plan-seed') || {}).textContent");
 
-    // 3. Re-gather with a take on screen: rebuilt with the same seed.
+    // 3. Re-gather with a take on screen: rebuilt with the same seed, and the
+    // other bars keep their Arrangement edits. Shorten the first bar by 0.3 s.
+    await until("document.querySelectorAll('#src-lanes .src-span[data-edit]').length === 5");
+    await ev("(() => { var a = document.getElementById('perform-audio'); if (a) a.pause(); document.querySelectorAll('#src-lanes .src-span[data-edit]')[0].focus(); })()");
+    for (let k = 0; k < 3; k++) {
+      await send('Input.dispatchKeyEvent', { type: 'keyDown', key: 'ArrowDown', code: 'ArrowDown', windowsVirtualKeyCode: 40 });
+      await send('Input.dispatchKeyEvent', { type: 'keyUp', key: 'ArrowDown', code: 'ArrowDown', windowsVirtualKeyCode: 40 });
+    }
+    await sleep(200);
     await ev("document.querySelectorAll('#gather-list .g-again')[3].click()");
     await until(`(${rows})[3].title === 'G13 other take 1' && (${rows}).every(function (x) { return !x.disabled; })`, 8000);
     await until(`(${planLines}).length === 5 && /G13 other take 1/.test((${planLines})[3])`, 8000);
     plan = await ev(planLines);
     check(/G13 other take 1/.test(plan[3]) && /G13 other take 1/.test(plan[1]) && plan[0].includes(before[0].title), tag + ': the take is rebuilt with the new sound, got ' + JSON.stringify(plan));
     check((await ev("(document.getElementById('plan-seed') || {}).textContent")) === seed, tag + ': the same seed');
+    const bars = await ev("[...document.querySelectorAll('#plan-src li')].map(function (li) { return [+li.dataset.at, +li.dataset.len]; })");
+    const want = [[0, 5.9], [6.2, 3.25], [9.45, 8], [17.45, 3.25], [20.7, 8]];
+    check(JSON.stringify(bars) === JSON.stringify(want), tag + ': the first bar keeps its edit, bar 4 is its new length, back to back after it, got ' + JSON.stringify(bars));
     check(asked[1] && asked[1].regather_gather_id === first && asked[1].claim_token === 'claim-1', tag + ': the second re-gather starts from the first, with its key, got ' + JSON.stringify(asked[1]));
     const keep = await ev("!document.getElementById('perform-keep').disabled");
     check(keep, tag + ': Save stays available');
