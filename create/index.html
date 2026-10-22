@@ -110,6 +110,7 @@ footer{max-width:46rem;margin:0 auto;padding:1.2rem 1.5rem 4rem;font-size:.85rem
 .hack-undo:disabled{visibility:hidden}
 .live-head{display:flex;align-items:center;justify-content:space-between;margin:.4rem 0 .5rem}#live .live-head h3{margin:0}
 #live-die{min-height:0;min-width:0;margin:0;padding:0;border:0;background:transparent;color:#6f6f6f;line-height:0;cursor:pointer;width:32px;height:32px}
+.page-head{display:flex;align-items:baseline;justify-content:space-between;gap:1rem;margin:0 0 2.2rem}.page-head h1{margin:0}#reset{flex:none;min-width:0;min-height:0;margin:0;padding:.35rem 0 .35rem .6rem;border:0;border-radius:0;background:transparent;color:#6f6f6f;font:inherit;font-size:.85rem;line-height:1.2;text-decoration:underline;text-underline-offset:3px;cursor:pointer}#reset:hover{color:#000}#reset-confirm{margin:-1.4rem 0 2.2rem}
 .live-confirm{display:flex;flex-wrap:wrap;align-items:center;gap:.5rem;margin:0 0 .8rem;font-size:.9rem}.live-confirm[hidden]{display:none}.live-confirm span{flex:1 1 100%}
 @media(max-width:520px){#live .hack h3{white-space:normal;overflow-wrap:anywhere}.hack-bar{gap:.3rem}.hack-tools{gap:.2rem}.hack-nudge{margin-right:.15rem}.hack-undo{width:22px}#live .hack{padding-right:.35rem;padding-left:.55rem}}
 .hack-bypass svg [hidden]{display:none}#perform-vis[hidden]{display:none}
@@ -127,7 +128,8 @@ footer{max-width:46rem;margin:0 auto;padding:1.2rem 1.5rem 4rem;font-size:.85rem
 <body>
 <main>
 <p class="m"><a href="../">NetComposer</a></p>
-<h1>Create</h1>
+<div class="page-head"><h1>Create</h1><button type="button" id="reset" aria-label="Reset everything" title="Start over: an empty page, as on a first visit" aria-controls="reset-confirm" aria-expanded="false">Reset</button></div>
+<div id="reset-confirm" class="live-confirm" role="group" aria-labelledby="reset-confirm-q" hidden><span id="reset-confirm-q">Reset everything? The Composition, the Gather, the take and Live go back to a blank page. Saved Performances stay.</span><button type="button" id="reset-go">Reset</button><button type="button" id="reset-cancel">Cancel</button></div>
 
 <section id="write">
 <h2 id="write-h">Write</h2>
@@ -326,5 +328,6 @@ nc perform composition.md -o out/           # any OpenAI-compatible LLM</pre>
 <script src="assembly.js"></script>
 <script src="timeline-edit.js"></script>
 <script src="perform.js"></script>
+<script src="reset.js"></script>
 </body>
 </html>
