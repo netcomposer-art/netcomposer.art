@@ -397,7 +397,7 @@ function b64d(s) { s = s.replace(/-/g, '+').replace(/_/g, '/'); while (s.length 
 // A visit with no #c= starts empty. The Composition is not stored. Share links, a refresh of a page that already has #c=, and any record link that uses that hash still fill the fields. The only localStorage key is nc_tester, for a hidden tester pass.
 function raw() { var S = {t: $('title').value, by: $('by').value, c: $('comp').value, p: $('perf').value}; if (SEED && SEED.c === S.c) S.sd = SEED.seed; return S; }
 var persistT = null;
-function persist() { clearTimeout(persistT); persistT = null; history.replaceState(null, '', location.href.split('#')[0] + '#c=' + b64e(JSON.stringify(raw()))); }
+function persist() { clearTimeout(persistT); persistT = null; if (window.NC_RESETTING) return; history.replaceState(null, '', location.href.split('#')[0] + '#c=' + b64e(JSON.stringify(raw()))); }
 function persistSoon() { clearTimeout(persistT); persistT = setTimeout(persist, 400); }
 function shareUrl() { persist(); return location.href; }
 function matchStarter(S) {
