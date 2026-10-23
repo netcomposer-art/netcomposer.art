@@ -921,12 +921,49 @@
     "clock": "legacy",
     "seed": null,
     "meter": "4/4",
-    "gather": ["Cm", "Fm9", "Gm7", "Bb"],
+    "gather": [
+      "Cm",
+      "Fm9",
+      "Gm7",
+      "Bb"
+    ],
     "played": [
-      {"kind": "chord", "symbol": "Cm", "bass": null, "beats": null, "bars": null, "seconds": null, "recording": 0},
-      {"kind": "chord", "symbol": "Fm9", "bass": null, "beats": null, "bars": null, "seconds": null, "recording": 1},
-      {"kind": "chord", "symbol": "Gm7", "bass": null, "beats": null, "bars": null, "seconds": null, "recording": 2},
-      {"kind": "chord", "symbol": "Bb", "bass": null, "beats": null, "bars": null, "seconds": null, "recording": 3}
+      {
+        "kind": "chord",
+        "symbol": "Cm",
+        "bass": null,
+        "beats": null,
+        "bars": null,
+        "seconds": null,
+        "recording": 0
+      },
+      {
+        "kind": "chord",
+        "symbol": "Fm9",
+        "bass": null,
+        "beats": null,
+        "bars": null,
+        "seconds": null,
+        "recording": 1
+      },
+      {
+        "kind": "chord",
+        "symbol": "Gm7",
+        "bass": null,
+        "beats": null,
+        "bars": null,
+        "seconds": null,
+        "recording": 2
+      },
+      {
+        "kind": "chord",
+        "symbol": "Bb",
+        "bass": null,
+        "beats": null,
+        "bars": null,
+        "seconds": null,
+        "recording": 3
+      }
     ],
     "hacks": [],
     "words": [],
@@ -960,7 +997,9 @@
     "played": [],
     "hacks": [],
     "words": [],
-    "notes": ["C7#11 does not map to the synth chord library."],
+    "notes": [
+      "C7#11 does not map to the synth chord library."
+    ],
     "iread": "arp C7#11 up 16ths (1|)\nC7#11 does not map to the synth chord library.",
     "arp": [
       {
@@ -977,7 +1016,9 @@
         "instrument": ""
       }
     ],
-    "unmapped": ["C7#11"]
+    "unmapped": [
+      "C7#11"
+    ]
   },
   {
     "name": "notes-line",
@@ -986,11 +1027,39 @@
     "clock": "legacy",
     "seed": null,
     "meter": "4/4",
-    "gather": ["Cm", "Fm9", "Gm7"],
+    "gather": [
+      "Cm",
+      "Fm9",
+      "Gm7"
+    ],
     "played": [
-      {"kind": "chord", "symbol": "Cm", "bass": null, "beats": null, "bars": null, "seconds": null, "recording": 0},
-      {"kind": "chord", "symbol": "Fm9", "bass": null, "beats": null, "bars": null, "seconds": null, "recording": 1},
-      {"kind": "chord", "symbol": "Gm7", "bass": null, "beats": null, "bars": null, "seconds": null, "recording": 2}
+      {
+        "kind": "chord",
+        "symbol": "Cm",
+        "bass": null,
+        "beats": null,
+        "bars": null,
+        "seconds": null,
+        "recording": 0
+      },
+      {
+        "kind": "chord",
+        "symbol": "Fm9",
+        "bass": null,
+        "beats": null,
+        "bars": null,
+        "seconds": null,
+        "recording": 1
+      },
+      {
+        "kind": "chord",
+        "symbol": "Gm7",
+        "bass": null,
+        "beats": null,
+        "bars": null,
+        "seconds": null,
+        "recording": 2
+      }
     ],
     "hacks": [],
     "words": [],
@@ -1011,6 +1080,1451 @@
         "instrument": ""
       }
     ],
+    "unmapped": []
+  },
+  {
+    "name": "style-sd1",
+    "text": "sd 1\nstyle hopkins-like",
+    "bpm": 62,
+    "clock": "language",
+    "seed": 1,
+    "meter": "4/4",
+    "gather": [
+      "Bb",
+      "F",
+      "Bbmaj7",
+      "F7",
+      "Bb",
+      "F7",
+      "Bb",
+      "F7",
+      "F#m",
+      "Dbm",
+      "F#m7",
+      "Dbm",
+      "F#m7",
+      "Dbm7",
+      "F#m"
+    ],
+    "played": [
+      {
+        "kind": "chord",
+        "symbol": "Bb",
+        "bass": null,
+        "beats": 2,
+        "bars": null,
+        "seconds": 1.935,
+        "recording": 0
+      },
+      {
+        "kind": "chord",
+        "symbol": "F",
+        "bass": null,
+        "beats": 4,
+        "bars": null,
+        "seconds": 3.871,
+        "recording": 1
+      },
+      {
+        "kind": "chord",
+        "symbol": "Bbmaj7",
+        "bass": null,
+        "beats": 4,
+        "bars": null,
+        "seconds": 3.871,
+        "recording": 2
+      },
+      {
+        "kind": "chord",
+        "symbol": "F7",
+        "bass": null,
+        "beats": 4,
+        "bars": null,
+        "seconds": 3.871,
+        "recording": 3
+      },
+      {
+        "kind": "chord",
+        "symbol": "Bb",
+        "bass": null,
+        "beats": 2,
+        "bars": null,
+        "seconds": 1.935,
+        "recording": 4
+      },
+      {
+        "kind": "chord",
+        "symbol": "F7",
+        "bass": null,
+        "beats": 4,
+        "bars": null,
+        "seconds": 3.871,
+        "recording": 5
+      },
+      {
+        "kind": "chord",
+        "symbol": "Bb",
+        "bass": null,
+        "beats": 8,
+        "bars": null,
+        "seconds": 7.742,
+        "recording": 6
+      },
+      {
+        "kind": "chord",
+        "symbol": "F7",
+        "bass": null,
+        "beats": 2,
+        "bars": null,
+        "seconds": 1.935,
+        "recording": 7
+      },
+      {
+        "kind": "chord",
+        "symbol": "F#m",
+        "bass": null,
+        "beats": 4,
+        "bars": null,
+        "seconds": 3.871,
+        "recording": 8
+      },
+      {
+        "kind": "chord",
+        "symbol": "Dbm",
+        "bass": null,
+        "beats": 8,
+        "bars": null,
+        "seconds": 7.742,
+        "recording": 9
+      },
+      {
+        "kind": "chord",
+        "symbol": "F#m7",
+        "bass": null,
+        "beats": 2,
+        "bars": null,
+        "seconds": 1.935,
+        "recording": 10
+      },
+      {
+        "kind": "chord",
+        "symbol": "Dbm",
+        "bass": null,
+        "beats": 4,
+        "bars": null,
+        "seconds": 3.871,
+        "recording": 11
+      },
+      {
+        "kind": "chord",
+        "symbol": "F#m7",
+        "bass": null,
+        "beats": 2,
+        "bars": null,
+        "seconds": 1.935,
+        "recording": 12
+      },
+      {
+        "kind": "chord",
+        "symbol": "Dbm7",
+        "bass": null,
+        "beats": 4,
+        "bars": null,
+        "seconds": 3.871,
+        "recording": 13
+      },
+      {
+        "kind": "chord",
+        "symbol": "F#m",
+        "bass": null,
+        "beats": 8,
+        "bars": null,
+        "seconds": 7.742,
+        "recording": 14
+      }
+    ],
+    "hacks": [],
+    "words": [],
+    "notes": [],
+    "iread": "sd1; style hopkins-like → q62 Bb major, then -4 (mode change) to F# minor; Bb(2) F(4) Bbmaj7(4) F7(4) Bb(2) F7(4) Bb(8) F7(2) F#m(4) Dbm(8) F#m7(2) Dbm(4) F#m7(2) Dbm7(4) F#m(8)",
+    "arp": [],
+    "unmapped": []
+  },
+  {
+    "name": "style-sd2",
+    "text": "sd 2\nstyle hopkins-like",
+    "bpm": 77,
+    "clock": "language",
+    "seed": 2,
+    "meter": "4/4",
+    "gather": [
+      "F#",
+      "Bmaj7",
+      "F#"
+    ],
+    "played": [
+      {
+        "kind": "chord",
+        "symbol": "F#",
+        "bass": null,
+        "beats": 4,
+        "bars": null,
+        "seconds": 3.117,
+        "recording": 0
+      },
+      {
+        "kind": "chord",
+        "symbol": "Bmaj7",
+        "bass": null,
+        "beats": 8,
+        "bars": null,
+        "seconds": 6.234,
+        "recording": 1
+      },
+      {
+        "kind": "chord",
+        "symbol": "F#",
+        "bass": null,
+        "beats": 4,
+        "bars": null,
+        "seconds": 3.117,
+        "recording": 2
+      },
+      {
+        "kind": "chord",
+        "symbol": "F#",
+        "bass": null,
+        "beats": 4,
+        "bars": null,
+        "seconds": 3.117,
+        "recording": 0
+      },
+      {
+        "kind": "chord",
+        "symbol": "Bmaj7",
+        "bass": null,
+        "beats": 8,
+        "bars": null,
+        "seconds": 6.234,
+        "recording": 1
+      },
+      {
+        "kind": "chord",
+        "symbol": "F#",
+        "bass": null,
+        "beats": 4,
+        "bars": null,
+        "seconds": 3.117,
+        "recording": 2
+      }
+    ],
+    "hacks": [],
+    "words": [],
+    "notes": [
+      "The loop uses the same recordings."
+    ],
+    "iread": "sd2; style hopkins-like → q77 B major; [F#(4) Bmaj7(8) F#(4)]x2\nThe loop uses the same recordings.",
+    "arp": [],
+    "unmapped": []
+  },
+  {
+    "name": "style-unseeded",
+    "text": "style hopkins-like",
+    "bpm": 62,
+    "clock": "language",
+    "seed": null,
+    "meter": "4/4",
+    "gather": [
+      "Bb",
+      "F",
+      "Bbmaj7",
+      "F7",
+      "Bb",
+      "F7",
+      "Bb",
+      "F7",
+      "F#m",
+      "Dbm",
+      "F#m7",
+      "Dbm",
+      "F#m7",
+      "Dbm7",
+      "F#m"
+    ],
+    "played": [
+      {
+        "kind": "chord",
+        "symbol": "Bb",
+        "bass": null,
+        "beats": 2,
+        "bars": null,
+        "seconds": 1.935,
+        "recording": 0
+      },
+      {
+        "kind": "chord",
+        "symbol": "F",
+        "bass": null,
+        "beats": 4,
+        "bars": null,
+        "seconds": 3.871,
+        "recording": 1
+      },
+      {
+        "kind": "chord",
+        "symbol": "Bbmaj7",
+        "bass": null,
+        "beats": 4,
+        "bars": null,
+        "seconds": 3.871,
+        "recording": 2
+      },
+      {
+        "kind": "chord",
+        "symbol": "F7",
+        "bass": null,
+        "beats": 4,
+        "bars": null,
+        "seconds": 3.871,
+        "recording": 3
+      },
+      {
+        "kind": "chord",
+        "symbol": "Bb",
+        "bass": null,
+        "beats": 2,
+        "bars": null,
+        "seconds": 1.935,
+        "recording": 4
+      },
+      {
+        "kind": "chord",
+        "symbol": "F7",
+        "bass": null,
+        "beats": 4,
+        "bars": null,
+        "seconds": 3.871,
+        "recording": 5
+      },
+      {
+        "kind": "chord",
+        "symbol": "Bb",
+        "bass": null,
+        "beats": 8,
+        "bars": null,
+        "seconds": 7.742,
+        "recording": 6
+      },
+      {
+        "kind": "chord",
+        "symbol": "F7",
+        "bass": null,
+        "beats": 2,
+        "bars": null,
+        "seconds": 1.935,
+        "recording": 7
+      },
+      {
+        "kind": "chord",
+        "symbol": "F#m",
+        "bass": null,
+        "beats": 4,
+        "bars": null,
+        "seconds": 3.871,
+        "recording": 8
+      },
+      {
+        "kind": "chord",
+        "symbol": "Dbm",
+        "bass": null,
+        "beats": 8,
+        "bars": null,
+        "seconds": 7.742,
+        "recording": 9
+      },
+      {
+        "kind": "chord",
+        "symbol": "F#m7",
+        "bass": null,
+        "beats": 2,
+        "bars": null,
+        "seconds": 1.935,
+        "recording": 10
+      },
+      {
+        "kind": "chord",
+        "symbol": "Dbm",
+        "bass": null,
+        "beats": 4,
+        "bars": null,
+        "seconds": 3.871,
+        "recording": 11
+      },
+      {
+        "kind": "chord",
+        "symbol": "F#m7",
+        "bass": null,
+        "beats": 2,
+        "bars": null,
+        "seconds": 1.935,
+        "recording": 12
+      },
+      {
+        "kind": "chord",
+        "symbol": "Dbm7",
+        "bass": null,
+        "beats": 4,
+        "bars": null,
+        "seconds": 3.871,
+        "recording": 13
+      },
+      {
+        "kind": "chord",
+        "symbol": "F#m",
+        "bass": null,
+        "beats": 8,
+        "bars": null,
+        "seconds": 7.742,
+        "recording": 14
+      }
+    ],
+    "hacks": [],
+    "words": [],
+    "notes": [
+      "No seed was written. The style uses seed 1."
+    ],
+    "iread": "style hopkins-like → q62 Bb major, then -4 (mode change) to F# minor; Bb(2) F(4) Bbmaj7(4) F7(4) Bb(2) F7(4) Bb(8) F7(2) F#m(4) Dbm(8) F#m7(2) Dbm(4) F#m7(2) Dbm7(4) F#m(8)\nNo seed was written. The style uses seed 1.",
+    "arp": [],
+    "unmapped": []
+  },
+  {
+    "name": "style-tempo-wins",
+    "text": "sd 1\nq100\nstyle hopkins-like",
+    "bpm": 100,
+    "clock": "language",
+    "seed": 1,
+    "meter": "4/4",
+    "gather": [
+      "Bb",
+      "F",
+      "Bbmaj7",
+      "F7",
+      "Bb",
+      "F7",
+      "Bb",
+      "F7",
+      "F#m",
+      "Dbm",
+      "F#m7",
+      "Dbm",
+      "F#m7",
+      "Dbm7",
+      "F#m",
+      "Dbm"
+    ],
+    "played": [
+      {
+        "kind": "chord",
+        "symbol": "Bb",
+        "bass": null,
+        "beats": 2,
+        "bars": null,
+        "seconds": 1.2,
+        "recording": 0
+      },
+      {
+        "kind": "chord",
+        "symbol": "F",
+        "bass": null,
+        "beats": 4,
+        "bars": null,
+        "seconds": 2.4,
+        "recording": 1
+      },
+      {
+        "kind": "chord",
+        "symbol": "Bbmaj7",
+        "bass": null,
+        "beats": 4,
+        "bars": null,
+        "seconds": 2.4,
+        "recording": 2
+      },
+      {
+        "kind": "chord",
+        "symbol": "F7",
+        "bass": null,
+        "beats": 4,
+        "bars": null,
+        "seconds": 2.4,
+        "recording": 3
+      },
+      {
+        "kind": "chord",
+        "symbol": "Bb",
+        "bass": null,
+        "beats": 2,
+        "bars": null,
+        "seconds": 1.2,
+        "recording": 4
+      },
+      {
+        "kind": "chord",
+        "symbol": "F7",
+        "bass": null,
+        "beats": 4,
+        "bars": null,
+        "seconds": 2.4,
+        "recording": 5
+      },
+      {
+        "kind": "chord",
+        "symbol": "Bb",
+        "bass": null,
+        "beats": 8,
+        "bars": null,
+        "seconds": 4.8,
+        "recording": 6
+      },
+      {
+        "kind": "chord",
+        "symbol": "F7",
+        "bass": null,
+        "beats": 2,
+        "bars": null,
+        "seconds": 1.2,
+        "recording": 7
+      },
+      {
+        "kind": "chord",
+        "symbol": "F#m",
+        "bass": null,
+        "beats": 4,
+        "bars": null,
+        "seconds": 2.4,
+        "recording": 8
+      },
+      {
+        "kind": "chord",
+        "symbol": "Dbm",
+        "bass": null,
+        "beats": 8,
+        "bars": null,
+        "seconds": 4.8,
+        "recording": 9
+      },
+      {
+        "kind": "chord",
+        "symbol": "F#m7",
+        "bass": null,
+        "beats": 2,
+        "bars": null,
+        "seconds": 1.2,
+        "recording": 10
+      },
+      {
+        "kind": "chord",
+        "symbol": "Dbm",
+        "bass": null,
+        "beats": 4,
+        "bars": null,
+        "seconds": 2.4,
+        "recording": 11
+      },
+      {
+        "kind": "chord",
+        "symbol": "F#m7",
+        "bass": null,
+        "beats": 2,
+        "bars": null,
+        "seconds": 1.2,
+        "recording": 12
+      },
+      {
+        "kind": "chord",
+        "symbol": "Dbm7",
+        "bass": null,
+        "beats": 4,
+        "bars": null,
+        "seconds": 2.4,
+        "recording": 13
+      },
+      {
+        "kind": "chord",
+        "symbol": "F#m",
+        "bass": null,
+        "beats": 8,
+        "bars": null,
+        "seconds": 4.8,
+        "recording": 14
+      },
+      {
+        "kind": "chord",
+        "symbol": "Dbm",
+        "bass": null,
+        "beats": 2,
+        "bars": null,
+        "seconds": 1.2,
+        "recording": 15
+      }
+    ],
+    "hacks": [],
+    "words": [],
+    "notes": [],
+    "iread": "sd1; q100; style hopkins-like → Bb major, then -4 (mode change) to F# minor; Bb(2) F(4) Bbmaj7(4) F7(4) Bb(2) F7(4) Bb(8) F7(2) F#m(4) Dbm(8) F#m7(2) Dbm(4) F#m7(2) Dbm7(4) F#m(8) Dbm(2)",
+    "arp": [],
+    "unmapped": []
+  },
+  {
+    "name": "style-chords-win",
+    "text": "sd 1\nstyle hopkins-like\nC(4) G(4)",
+    "bpm": 62,
+    "clock": "language",
+    "seed": 1,
+    "meter": "4/4",
+    "gather": [
+      "C",
+      "G"
+    ],
+    "played": [
+      {
+        "kind": "chord",
+        "symbol": "C",
+        "bass": null,
+        "beats": 4,
+        "bars": null,
+        "seconds": 3.871,
+        "recording": 0
+      },
+      {
+        "kind": "chord",
+        "symbol": "G",
+        "bass": null,
+        "beats": 4,
+        "bars": null,
+        "seconds": 3.871,
+        "recording": 1
+      }
+    ],
+    "hacks": [],
+    "words": [],
+    "notes": [],
+    "iread": "sd1; style hopkins-like → q62; C(4) G(4)",
+    "arp": [],
+    "unmapped": []
+  },
+  {
+    "name": "style-unknown",
+    "text": "sd 1\nstyle nope",
+    "bpm": null,
+    "clock": "legacy",
+    "seed": 1,
+    "meter": "4/4",
+    "gather": [],
+    "played": [],
+    "hacks": [],
+    "words": [],
+    "notes": [
+      "nope is not a style."
+    ],
+    "iread": "sd1; style nope\nnope is not a style.",
+    "arp": [],
+    "unmapped": []
+  },
+  {
+    "name": "style-arp",
+    "text": "sd 1\nstyle hopkins-like\narp up 16ths",
+    "bpm": 62,
+    "clock": "language",
+    "seed": 1,
+    "meter": "4/4",
+    "gather": [
+      "Bb",
+      "F",
+      "Bbmaj7",
+      "F7",
+      "Bb",
+      "F7",
+      "Bb",
+      "F7",
+      "F#m",
+      "Dbm",
+      "F#m7",
+      "Dbm",
+      "F#m7",
+      "Dbm7",
+      "F#m"
+    ],
+    "played": [
+      {
+        "kind": "chord",
+        "symbol": "Bb",
+        "bass": null,
+        "beats": 2,
+        "bars": null,
+        "seconds": 1.935,
+        "recording": 0
+      },
+      {
+        "kind": "chord",
+        "symbol": "F",
+        "bass": null,
+        "beats": 4,
+        "bars": null,
+        "seconds": 3.871,
+        "recording": 1
+      },
+      {
+        "kind": "chord",
+        "symbol": "Bbmaj7",
+        "bass": null,
+        "beats": 4,
+        "bars": null,
+        "seconds": 3.871,
+        "recording": 2
+      },
+      {
+        "kind": "chord",
+        "symbol": "F7",
+        "bass": null,
+        "beats": 4,
+        "bars": null,
+        "seconds": 3.871,
+        "recording": 3
+      },
+      {
+        "kind": "chord",
+        "symbol": "Bb",
+        "bass": null,
+        "beats": 2,
+        "bars": null,
+        "seconds": 1.935,
+        "recording": 4
+      },
+      {
+        "kind": "chord",
+        "symbol": "F7",
+        "bass": null,
+        "beats": 4,
+        "bars": null,
+        "seconds": 3.871,
+        "recording": 5
+      },
+      {
+        "kind": "chord",
+        "symbol": "Bb",
+        "bass": null,
+        "beats": 8,
+        "bars": null,
+        "seconds": 7.742,
+        "recording": 6
+      },
+      {
+        "kind": "chord",
+        "symbol": "F7",
+        "bass": null,
+        "beats": 2,
+        "bars": null,
+        "seconds": 1.935,
+        "recording": 7
+      },
+      {
+        "kind": "chord",
+        "symbol": "F#m",
+        "bass": null,
+        "beats": 4,
+        "bars": null,
+        "seconds": 3.871,
+        "recording": 8
+      },
+      {
+        "kind": "chord",
+        "symbol": "Dbm",
+        "bass": null,
+        "beats": 8,
+        "bars": null,
+        "seconds": 7.742,
+        "recording": 9
+      },
+      {
+        "kind": "chord",
+        "symbol": "F#m7",
+        "bass": null,
+        "beats": 2,
+        "bars": null,
+        "seconds": 1.935,
+        "recording": 10
+      },
+      {
+        "kind": "chord",
+        "symbol": "Dbm",
+        "bass": null,
+        "beats": 4,
+        "bars": null,
+        "seconds": 3.871,
+        "recording": 11
+      },
+      {
+        "kind": "chord",
+        "symbol": "F#m7",
+        "bass": null,
+        "beats": 2,
+        "bars": null,
+        "seconds": 1.935,
+        "recording": 12
+      },
+      {
+        "kind": "chord",
+        "symbol": "Dbm7",
+        "bass": null,
+        "beats": 4,
+        "bars": null,
+        "seconds": 3.871,
+        "recording": 13
+      },
+      {
+        "kind": "chord",
+        "symbol": "F#m",
+        "bass": null,
+        "beats": 8,
+        "bars": null,
+        "seconds": 7.742,
+        "recording": 14
+      }
+    ],
+    "hacks": [],
+    "words": [],
+    "notes": [],
+    "iread": "sd1; style hopkins-like → q62 Bb major, then -4 (mode change) to F# minor; Bb(2) F(4) Bbmaj7(4) F7(4) Bb(2) F7(4) Bb(8) F7(2) F#m(4) Dbm(8) F#m7(2) Dbm(4) F#m7(2) Dbm7(4) F#m(8); arp up 16ths",
+    "arp": [
+      {
+        "chord": null,
+        "chordId": null,
+        "order": "up",
+        "rate": "16ths",
+        "octaves": 1,
+        "spread": "compact",
+        "inversion": 0,
+        "fmDepth": null,
+        "beats": null,
+        "bars": null,
+        "instrument": ""
+      }
+    ],
+    "unmapped": []
+  },
+  {
+    "name": "style-notes-fm",
+    "text": "sd 1\nstyle hopkins-like\nn C5(2) Eb5 G5 fm 3",
+    "bpm": 62,
+    "clock": "language",
+    "seed": 1,
+    "meter": "4/4",
+    "gather": [
+      "Bb",
+      "F",
+      "Bbmaj7",
+      "F7",
+      "Bb",
+      "F7",
+      "Bb",
+      "F7",
+      "F#m",
+      "Dbm",
+      "F#m7",
+      "Dbm",
+      "F#m7",
+      "Dbm7",
+      "F#m"
+    ],
+    "played": [
+      {
+        "kind": "chord",
+        "symbol": "Bb",
+        "bass": null,
+        "beats": 2,
+        "bars": null,
+        "seconds": 1.935,
+        "recording": 0
+      },
+      {
+        "kind": "chord",
+        "symbol": "F",
+        "bass": null,
+        "beats": 4,
+        "bars": null,
+        "seconds": 3.871,
+        "recording": 1
+      },
+      {
+        "kind": "chord",
+        "symbol": "Bbmaj7",
+        "bass": null,
+        "beats": 4,
+        "bars": null,
+        "seconds": 3.871,
+        "recording": 2
+      },
+      {
+        "kind": "chord",
+        "symbol": "F7",
+        "bass": null,
+        "beats": 4,
+        "bars": null,
+        "seconds": 3.871,
+        "recording": 3
+      },
+      {
+        "kind": "chord",
+        "symbol": "Bb",
+        "bass": null,
+        "beats": 2,
+        "bars": null,
+        "seconds": 1.935,
+        "recording": 4
+      },
+      {
+        "kind": "chord",
+        "symbol": "F7",
+        "bass": null,
+        "beats": 4,
+        "bars": null,
+        "seconds": 3.871,
+        "recording": 5
+      },
+      {
+        "kind": "chord",
+        "symbol": "Bb",
+        "bass": null,
+        "beats": 8,
+        "bars": null,
+        "seconds": 7.742,
+        "recording": 6
+      },
+      {
+        "kind": "chord",
+        "symbol": "F7",
+        "bass": null,
+        "beats": 2,
+        "bars": null,
+        "seconds": 1.935,
+        "recording": 7
+      },
+      {
+        "kind": "chord",
+        "symbol": "F#m",
+        "bass": null,
+        "beats": 4,
+        "bars": null,
+        "seconds": 3.871,
+        "recording": 8
+      },
+      {
+        "kind": "chord",
+        "symbol": "Dbm",
+        "bass": null,
+        "beats": 8,
+        "bars": null,
+        "seconds": 7.742,
+        "recording": 9
+      },
+      {
+        "kind": "chord",
+        "symbol": "F#m7",
+        "bass": null,
+        "beats": 2,
+        "bars": null,
+        "seconds": 1.935,
+        "recording": 10
+      },
+      {
+        "kind": "chord",
+        "symbol": "Dbm",
+        "bass": null,
+        "beats": 4,
+        "bars": null,
+        "seconds": 3.871,
+        "recording": 11
+      },
+      {
+        "kind": "chord",
+        "symbol": "F#m7",
+        "bass": null,
+        "beats": 2,
+        "bars": null,
+        "seconds": 1.935,
+        "recording": 12
+      },
+      {
+        "kind": "chord",
+        "symbol": "Dbm7",
+        "bass": null,
+        "beats": 4,
+        "bars": null,
+        "seconds": 3.871,
+        "recording": 13
+      },
+      {
+        "kind": "chord",
+        "symbol": "F#m",
+        "bass": null,
+        "beats": 8,
+        "bars": null,
+        "seconds": 7.742,
+        "recording": 14
+      }
+    ],
+    "hacks": [],
+    "words": [],
+    "notes": [],
+    "iread": "sd1; style hopkins-like → q62 Bb major, then -4 (mode change) to F# minor; Bb(2) F(4) Bbmaj7(4) F7(4) Bb(2) F7(4) Bb(8) F7(2) F#m(4) Dbm(8) F#m7(2) Dbm(4) F#m7(2) Dbm7(4) F#m(8); notes C5(2) Eb5 G5 fm 3",
+    "arp": [],
+    "unmapped": []
+  },
+  {
+    "name": "style-key",
+    "text": "sd 1\nkey C minor\nstyle hopkins-like",
+    "bpm": 62,
+    "clock": "language",
+    "seed": 1,
+    "meter": "4/4",
+    "gather": [
+      "C",
+      "G",
+      "Cmaj7",
+      "G7",
+      "C",
+      "G7",
+      "C",
+      "G7",
+      "Abm",
+      "Ebm",
+      "Abm7",
+      "Ebm",
+      "Abm7",
+      "Ebm7",
+      "Abm"
+    ],
+    "played": [
+      {
+        "kind": "chord",
+        "symbol": "C",
+        "bass": null,
+        "beats": 2,
+        "bars": null,
+        "seconds": 1.935,
+        "recording": 0
+      },
+      {
+        "kind": "chord",
+        "symbol": "G",
+        "bass": null,
+        "beats": 4,
+        "bars": null,
+        "seconds": 3.871,
+        "recording": 1
+      },
+      {
+        "kind": "chord",
+        "symbol": "Cmaj7",
+        "bass": null,
+        "beats": 4,
+        "bars": null,
+        "seconds": 3.871,
+        "recording": 2
+      },
+      {
+        "kind": "chord",
+        "symbol": "G7",
+        "bass": null,
+        "beats": 4,
+        "bars": null,
+        "seconds": 3.871,
+        "recording": 3
+      },
+      {
+        "kind": "chord",
+        "symbol": "C",
+        "bass": null,
+        "beats": 2,
+        "bars": null,
+        "seconds": 1.935,
+        "recording": 4
+      },
+      {
+        "kind": "chord",
+        "symbol": "G7",
+        "bass": null,
+        "beats": 4,
+        "bars": null,
+        "seconds": 3.871,
+        "recording": 5
+      },
+      {
+        "kind": "chord",
+        "symbol": "C",
+        "bass": null,
+        "beats": 8,
+        "bars": null,
+        "seconds": 7.742,
+        "recording": 6
+      },
+      {
+        "kind": "chord",
+        "symbol": "G7",
+        "bass": null,
+        "beats": 2,
+        "bars": null,
+        "seconds": 1.935,
+        "recording": 7
+      },
+      {
+        "kind": "chord",
+        "symbol": "Abm",
+        "bass": null,
+        "beats": 4,
+        "bars": null,
+        "seconds": 3.871,
+        "recording": 8
+      },
+      {
+        "kind": "chord",
+        "symbol": "Ebm",
+        "bass": null,
+        "beats": 8,
+        "bars": null,
+        "seconds": 7.742,
+        "recording": 9
+      },
+      {
+        "kind": "chord",
+        "symbol": "Abm7",
+        "bass": null,
+        "beats": 2,
+        "bars": null,
+        "seconds": 1.935,
+        "recording": 10
+      },
+      {
+        "kind": "chord",
+        "symbol": "Ebm",
+        "bass": null,
+        "beats": 4,
+        "bars": null,
+        "seconds": 3.871,
+        "recording": 11
+      },
+      {
+        "kind": "chord",
+        "symbol": "Abm7",
+        "bass": null,
+        "beats": 2,
+        "bars": null,
+        "seconds": 1.935,
+        "recording": 12
+      },
+      {
+        "kind": "chord",
+        "symbol": "Ebm7",
+        "bass": null,
+        "beats": 4,
+        "bars": null,
+        "seconds": 3.871,
+        "recording": 13
+      },
+      {
+        "kind": "chord",
+        "symbol": "Abm",
+        "bass": null,
+        "beats": 8,
+        "bars": null,
+        "seconds": 7.742,
+        "recording": 14
+      }
+    ],
+    "hacks": [],
+    "words": [],
+    "notes": [],
+    "iread": "sd1; key C minor; style hopkins-like → q62 C minor, then -4 (mode change) to Ab major; C(2) G(4) Cmaj7(4) G7(4) C(2) G7(4) C(8) G7(2) Abm(4) Ebm(8) Abm7(2) Ebm(4) Abm7(2) Ebm7(4) Abm(8)",
+    "arp": [],
+    "unmapped": []
+  },
+  {
+    "name": "style-bars",
+    "text": "sd 1\n8 bars\nstyle hopkins-like",
+    "bpm": 62,
+    "clock": "language",
+    "seed": 1,
+    "meter": "4/4",
+    "gather": [
+      "Bb",
+      "F",
+      "Bbmaj7",
+      "F7",
+      "Bb",
+      "F7",
+      "Bb",
+      "F7",
+      "Bb"
+    ],
+    "played": [
+      {
+        "kind": "chord",
+        "symbol": "Bb",
+        "bass": null,
+        "beats": 2,
+        "bars": null,
+        "seconds": 1.935,
+        "recording": 0
+      },
+      {
+        "kind": "chord",
+        "symbol": "F",
+        "bass": null,
+        "beats": 4,
+        "bars": null,
+        "seconds": 3.871,
+        "recording": 1
+      },
+      {
+        "kind": "chord",
+        "symbol": "Bbmaj7",
+        "bass": null,
+        "beats": 4,
+        "bars": null,
+        "seconds": 3.871,
+        "recording": 2
+      },
+      {
+        "kind": "chord",
+        "symbol": "F7",
+        "bass": null,
+        "beats": 4,
+        "bars": null,
+        "seconds": 3.871,
+        "recording": 3
+      },
+      {
+        "kind": "chord",
+        "symbol": "Bb",
+        "bass": null,
+        "beats": 2,
+        "bars": null,
+        "seconds": 1.935,
+        "recording": 4
+      },
+      {
+        "kind": "chord",
+        "symbol": "F7",
+        "bass": null,
+        "beats": 4,
+        "bars": null,
+        "seconds": 3.871,
+        "recording": 5
+      },
+      {
+        "kind": "chord",
+        "symbol": "Bb",
+        "bass": null,
+        "beats": 8,
+        "bars": null,
+        "seconds": 7.742,
+        "recording": 6
+      },
+      {
+        "kind": "chord",
+        "symbol": "F7",
+        "bass": null,
+        "beats": 2,
+        "bars": null,
+        "seconds": 1.935,
+        "recording": 7
+      },
+      {
+        "kind": "chord",
+        "symbol": "Bb",
+        "bass": null,
+        "beats": 2,
+        "bars": null,
+        "seconds": 1.935,
+        "recording": 8
+      }
+    ],
+    "hacks": [],
+    "words": [],
+    "notes": [],
+    "iread": "sd1; 8 bars; style hopkins-like → q62 Bb major; Bb(2) F(4) Bbmaj7(4) F7(4) Bb(2) F7(4) Bb(8) F7(2) Bb(2)",
+    "arp": [],
+    "unmapped": []
+  },
+  {
+    "name": "style-second",
+    "text": "sd 1\nstyle hopkins-like\nstyle other",
+    "bpm": 62,
+    "clock": "language",
+    "seed": 1,
+    "meter": "4/4",
+    "gather": [
+      "Bb",
+      "F",
+      "Bbmaj7",
+      "F7",
+      "Bb",
+      "F7",
+      "Bb",
+      "F7",
+      "F#m",
+      "Dbm",
+      "F#m7",
+      "Dbm",
+      "F#m7",
+      "Dbm7",
+      "F#m"
+    ],
+    "played": [
+      {
+        "kind": "chord",
+        "symbol": "Bb",
+        "bass": null,
+        "beats": 2,
+        "bars": null,
+        "seconds": 1.935,
+        "recording": 0
+      },
+      {
+        "kind": "chord",
+        "symbol": "F",
+        "bass": null,
+        "beats": 4,
+        "bars": null,
+        "seconds": 3.871,
+        "recording": 1
+      },
+      {
+        "kind": "chord",
+        "symbol": "Bbmaj7",
+        "bass": null,
+        "beats": 4,
+        "bars": null,
+        "seconds": 3.871,
+        "recording": 2
+      },
+      {
+        "kind": "chord",
+        "symbol": "F7",
+        "bass": null,
+        "beats": 4,
+        "bars": null,
+        "seconds": 3.871,
+        "recording": 3
+      },
+      {
+        "kind": "chord",
+        "symbol": "Bb",
+        "bass": null,
+        "beats": 2,
+        "bars": null,
+        "seconds": 1.935,
+        "recording": 4
+      },
+      {
+        "kind": "chord",
+        "symbol": "F7",
+        "bass": null,
+        "beats": 4,
+        "bars": null,
+        "seconds": 3.871,
+        "recording": 5
+      },
+      {
+        "kind": "chord",
+        "symbol": "Bb",
+        "bass": null,
+        "beats": 8,
+        "bars": null,
+        "seconds": 7.742,
+        "recording": 6
+      },
+      {
+        "kind": "chord",
+        "symbol": "F7",
+        "bass": null,
+        "beats": 2,
+        "bars": null,
+        "seconds": 1.935,
+        "recording": 7
+      },
+      {
+        "kind": "chord",
+        "symbol": "F#m",
+        "bass": null,
+        "beats": 4,
+        "bars": null,
+        "seconds": 3.871,
+        "recording": 8
+      },
+      {
+        "kind": "chord",
+        "symbol": "Dbm",
+        "bass": null,
+        "beats": 8,
+        "bars": null,
+        "seconds": 7.742,
+        "recording": 9
+      },
+      {
+        "kind": "chord",
+        "symbol": "F#m7",
+        "bass": null,
+        "beats": 2,
+        "bars": null,
+        "seconds": 1.935,
+        "recording": 10
+      },
+      {
+        "kind": "chord",
+        "symbol": "Dbm",
+        "bass": null,
+        "beats": 4,
+        "bars": null,
+        "seconds": 3.871,
+        "recording": 11
+      },
+      {
+        "kind": "chord",
+        "symbol": "F#m7",
+        "bass": null,
+        "beats": 2,
+        "bars": null,
+        "seconds": 1.935,
+        "recording": 12
+      },
+      {
+        "kind": "chord",
+        "symbol": "Dbm7",
+        "bass": null,
+        "beats": 4,
+        "bars": null,
+        "seconds": 3.871,
+        "recording": 13
+      },
+      {
+        "kind": "chord",
+        "symbol": "F#m",
+        "bass": null,
+        "beats": 8,
+        "bars": null,
+        "seconds": 7.742,
+        "recording": 14
+      }
+    ],
+    "hacks": [],
+    "words": [],
+    "notes": [
+      "Another style was written. The first is kept."
+    ],
+    "iread": "sd1; style hopkins-like → q62 Bb major, then -4 (mode change) to F# minor; Bb(2) F(4) Bbmaj7(4) F7(4) Bb(2) F7(4) Bb(8) F7(2) F#m(4) Dbm(8) F#m7(2) Dbm(4) F#m7(2) Dbm7(4) F#m(8)\nAnother style was written. The first is kept.",
+    "arp": [],
     "unmapped": []
   }
 ]

@@ -2,7 +2,7 @@
 // contract nc-performer should adopt. This file also checks that the old
 // chord finder and the old assembly clock still agree where the slice says
 // they must. The page half needs Chrome; the rest always runs.
-import { readFileSync, writeFileSync, mkdtempSync, mkdirSync } from 'fs';
+import { readFileSync, writeFileSync, mkdtempSync, mkdirSync, readdirSync } from 'fs';
 import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
 import { spawn, execFileSync } from 'node:child_process';
@@ -27,6 +27,13 @@ const sb = {}; sb.globalThis = sb; sb.Map = Map; sb.Set = Set; vm.createContext(
 load('create/chord-library.js', sb);
 load('create/language.js', sb);
 const L = sb.NCLanguage;
+for (const name of readdirSync(join(root, 'styles'))) {
+  if (!name.endsWith('.json')) continue;
+  const style = JSON.parse(readFileSync(join(root, 'styles', name), 'utf8'));
+  check(style.schema === 'nc-style/1' && L.registerStyle(style), 'register ' + name);
+  check(!style.title && !style.artist && !style.audio, name + ' ships patterns only');
+  check(!/\.(?:wav|mp3|flac|aiff|aif|ogg|m4a)\b/i.test(JSON.stringify(style)), name + ' has no audio filename');
+}
 function project(text) {
   const p = L.parse(text, { known });
   return {
@@ -95,6 +102,18 @@ check(L.parse('arp Cm max', { known }).iread.indexOf('maximum') >= 0, 'max is th
 ['seed 4182', 'seed4182', 'sd4182', 'sd 4182'].forEach((t) => {
   check(L.parse(t + ' C', { known }).seed === 4182, 'seed form ' + t);
 });
+const styleA = L.parse('sd 1\nstyle hopkins-like', { known });
+const styleB = L.parse('sd 1\nstyle hopkins-like', { known });
+check(styleA.iread === styleB.iread && JSON.stringify(styleA.played) === JSON.stringify(styleB.played), 'a style line repeats for one seed');
+check(L.parse('sd 2\nstyle hopkins-like', { known }).iread !== styleA.iread, 'sd 2 draws a different line');
+check(L.parse('style hopkins-like', { known }).seed == null && L.parse('style hopkins-like', { known }).iread.indexOf('The style uses seed 1.') >= 0, 'a missing seed stays null and is named');
+check(L.parse('sd 1\nstyle nope', { known }).iread.indexOf('nope is not a style.') >= 0 && L.parse('sd 1\nstyle nope', { known }).gather.length === 0, 'an unknown style is a message');
+const styleArp = L.parse('sd 1\nstyle hopkins-like\narp up 16ths fm 3', { known });
+check(styleArp.gather.length > 0 && styleArp.arp[0] && !styleArp.arp[0].chord && styleArp.arp[0].order === 'up' && styleArp.arp[0].rate === '16ths' && styleArp.arp[0].fmDepth === 3 && styleArp.gather.indexOf('Fm') < 0, 'a bare arp follows the style chords and fm 3 is a depth');
+const styleNotes = L.parse('sd 1\nstyle hopkins-like\nn C5(2) Eb5 fm 3', { known });
+check(styleNotes.gather.indexOf('Fm') < 0 && styleNotes.iread.indexOf('notes C5(2) Eb5 fm 3') >= 0, 'fm 3 on the notes line stays a depth beside a style');
+const styleBeats = styleA.played.reduce((sum, ev) => sum + (ev.beats || 0), 0);
+check(styleA.bpm > 0 && styleBeats * 60 / styleA.bpm >= 20 && styleBeats * 60 / styleA.bpm <= 60 + 1e-6, 'an unlengthened style line is 20 to 60 seconds');
 
 // The finder the page used before this slice. Starters and published
 // Compositions must list the same chords, including bass.
@@ -124,7 +143,14 @@ function same(name, text) {
 }
 const html = readFileSync(join(root, 'create/index.html'), 'utf8');
 const starters = JSON.parse(html.split('<script type="application/json" id="starters">')[1].split('</script>')[0]);
-starters.forEach((s) => same('starter ' + s.id, s.composition));
+starters.forEach((s) => {
+  if (/\bstyle\s+[A-Za-z]/.test(s.composition)) {
+    const p = L.parse(s.composition, { known });
+    check(p.gather.length > 0 && p.iread.indexOf('style ' + s.id + ' →') >= 0, 'style starter ' + s.id + ' yields chords, got ' + p.iread);
+    return;
+  }
+  same('starter ' + s.id, s.composition);
+});
 ['blues-a.md', 'canon-d.md', 'bwv846-harmony-only.md', 'bwv847-harmony-only.md', 'bwv853-harmony-only.md', 'bwv862-harmony-only.md'].forEach((f) => {
   const t = readFileSync(join(root, 'composition', f), 'utf8');
   const m = /^## Composition[^\n]*\n([\s\S]*?)(?=^##\s)/m.exec(t);

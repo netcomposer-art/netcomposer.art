@@ -860,7 +860,14 @@ window.NC = {timeline: timeline, toPlan: toPlan, toMd: toMd, parseMd: parseMd, s
   fromText: fromText, makeSurprise: makeSurprise, progression: progression, start: start, stop: stop, undo: undo, sched: function () { return SCHED.slice(); },
   catalog: function () { return CAT; }, audition: function (ac, chords) { return window.MM.prepare(ac, chords, CAT, $('inst').value || 'piano'); }, showSources: showSources, creditsFor: creditsFor, chordLabel: chordLabel, instrument: function () { return $('inst').value || 'piano'; }, creditSentence: creditSentence,
   PREVIEW_TEMPO: PREVIEW_TEMPO, perform: PERFORM, showPerformance: showPerformance, performStatus: performStatus, pushUndo: pushUndo, persist: persist, commitNotes: commitNotes, growNotes: growNotes};
-fetch('chords.json').then(function (r) { return r.json(); }).then(function (c) {
+var styleP = fetch('../styles/hopkins-like.json').then(function (r) {
+  if (!r.ok) throw new Error('style');
+  return r.json();
+}).then(function (s) {
+  if (window.NCLanguage && NCLanguage.registerStyle) NCLanguage.registerStyle(s);
+}).catch(function () {});
+Promise.all([fetch('chords.json').then(function (r) { return r.json(); }), styleP]).then(function (xs) {
+  var c = xs[0];
   CAT = c; Object.keys(c.chords).forEach(function (k) { QUALS[k.replace(/^[A-G](#|b)?/, '')] = 1; });
   if (!fromHash()) refresh();
   document.body.setAttribute('data-ready', '1');

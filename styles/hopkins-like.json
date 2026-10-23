@@ -1,0 +1,1039 @@
+{
+  "schema": "nc-style/1",
+  "name": "hopkins-like",
+  "source": {
+    "n": 39,
+    "note": "Patterns only. No song titles, artists, or audio."
+  },
+  "tempo": {
+    "min": 47.6,
+    "p25": 61.9,
+    "median": 71.9,
+    "p75": 110.3,
+    "max": 181.8,
+    "sample": [
+      62,
+      110
+    ],
+    "flagged_half_double": 21
+  },
+  "meter": [
+    {
+      "value": "4/4",
+      "weight": 38
+    },
+    {
+      "value": "3/4",
+      "weight": 1
+    }
+  ],
+  "keys": [
+    {
+      "tonic": "Ab",
+      "mode": "major",
+      "weight": 4
+    },
+    {
+      "tonic": "F",
+      "mode": "major",
+      "weight": 3
+    },
+    {
+      "tonic": "C",
+      "mode": "major",
+      "weight": 3
+    },
+    {
+      "tonic": "B",
+      "mode": "major",
+      "weight": 3
+    },
+    {
+      "tonic": "Db",
+      "mode": "major",
+      "weight": 3
+    },
+    {
+      "tonic": "G",
+      "mode": "major",
+      "weight": 3
+    },
+    {
+      "tonic": "Bb",
+      "mode": "major",
+      "weight": 2
+    },
+    {
+      "tonic": "Eb",
+      "mode": "minor",
+      "weight": 2
+    },
+    {
+      "tonic": "A",
+      "mode": "major",
+      "weight": 2
+    },
+    {
+      "tonic": "Eb",
+      "mode": "major",
+      "weight": 2
+    },
+    {
+      "tonic": "C",
+      "mode": "minor",
+      "weight": 2
+    },
+    {
+      "tonic": "E",
+      "mode": "major",
+      "weight": 2
+    },
+    {
+      "tonic": "A",
+      "mode": "minor",
+      "weight": 2
+    },
+    {
+      "tonic": "E",
+      "mode": "minor",
+      "weight": 1
+    },
+    {
+      "tonic": "B",
+      "mode": "minor",
+      "weight": 1
+    },
+    {
+      "tonic": "F#",
+      "mode": "major",
+      "weight": 1
+    },
+    {
+      "tonic": "F",
+      "mode": "minor",
+      "weight": 1
+    },
+    {
+      "tonic": "F#",
+      "mode": "minor",
+      "weight": 1
+    },
+    {
+      "tonic": "D",
+      "mode": "major",
+      "weight": 1
+    }
+  ],
+  "modes": [
+    {
+      "mode": "major",
+      "weight": 29
+    },
+    {
+      "mode": "minor",
+      "weight": 10
+    }
+  ],
+  "modulation": {
+    "share": 0.54,
+    "moves": [
+      {
+        "semitones": -5,
+        "mode_change": false,
+        "weight": 9
+      },
+      {
+        "semitones": -4,
+        "mode_change": true,
+        "weight": 9
+      },
+      {
+        "semitones": 5,
+        "mode_change": false,
+        "weight": 8
+      },
+      {
+        "semitones": -3,
+        "mode_change": true,
+        "weight": 8
+      },
+      {
+        "semitones": 4,
+        "mode_change": true,
+        "weight": 6
+      },
+      {
+        "semitones": 3,
+        "mode_change": true,
+        "weight": 4
+      },
+      {
+        "semitones": 2,
+        "mode_change": true,
+        "weight": 3
+      },
+      {
+        "semitones": 2,
+        "mode_change": false,
+        "weight": 2
+      },
+      {
+        "semitones": -5,
+        "mode_change": true,
+        "weight": 2
+      },
+      {
+        "semitones": 0,
+        "mode_change": true,
+        "weight": 2
+      },
+      {
+        "semitones": -2,
+        "mode_change": true,
+        "weight": 1
+      },
+      {
+        "semitones": 5,
+        "mode_change": true,
+        "weight": 1
+      },
+      {
+        "semitones": 3,
+        "mode_change": false,
+        "weight": 1
+      }
+    ]
+  },
+  "chords": [
+    {
+      "roman": "I",
+      "weight": 0.424
+    },
+    {
+      "roman": "i",
+      "weight": 0.125
+    },
+    {
+      "roman": "V",
+      "weight": 0.083
+    },
+    {
+      "roman": "iii",
+      "weight": 0.058
+    },
+    {
+      "roman": "IV",
+      "weight": 0.057
+    },
+    {
+      "roman": "VI",
+      "weight": 0.047
+    },
+    {
+      "roman": "vi",
+      "weight": 0.045
+    },
+    {
+      "roman": "III",
+      "weight": 0.034
+    },
+    {
+      "roman": "II",
+      "weight": 0.023
+    },
+    {
+      "roman": "VII",
+      "weight": 0.017
+    },
+    {
+      "roman": "ii",
+      "weight": 0.017
+    },
+    {
+      "roman": "v",
+      "weight": 0.016
+    },
+    {
+      "roman": "vii",
+      "weight": 0.014
+    },
+    {
+      "roman": "iv",
+      "weight": 0.01
+    },
+    {
+      "roman": "bVII",
+      "weight": 0.006
+    },
+    {
+      "roman": "bII",
+      "weight": 0.003
+    },
+    {
+      "roman": "iiø",
+      "weight": 0.002
+    },
+    {
+      "roman": "viø",
+      "weight": 0.002
+    },
+    {
+      "roman": "iiiø",
+      "weight": 0.002
+    },
+    {
+      "roman": "bIII",
+      "weight": 0.002
+    },
+    {
+      "roman": "bii",
+      "weight": 0.002
+    },
+    {
+      "roman": "#iv°",
+      "weight": 0.002
+    },
+    {
+      "roman": "#ivø",
+      "weight": 0.001
+    },
+    {
+      "roman": "viiø",
+      "weight": 0.001
+    },
+    {
+      "roman": "ivø",
+      "weight": 0.001
+    }
+  ],
+  "diatonic_share": 0.9,
+  "seventh_share": 0.3,
+  "transitions": [
+    {
+      "roman": [
+        "V",
+        "I"
+      ],
+      "weight": 176
+    },
+    {
+      "roman": [
+        "I",
+        "iii"
+      ],
+      "weight": 114
+    },
+    {
+      "roman": [
+        "I",
+        "V"
+      ],
+      "weight": 144
+    },
+    {
+      "roman": [
+        "IV",
+        "I"
+      ],
+      "weight": 83
+    },
+    {
+      "roman": [
+        "iii",
+        "I"
+      ],
+      "weight": 82
+    },
+    {
+      "roman": [
+        "I",
+        "IV"
+      ],
+      "weight": 85
+    },
+    {
+      "roman": [
+        "I",
+        "vi"
+      ],
+      "weight": 60
+    },
+    {
+      "roman": [
+        "I",
+        "II"
+      ],
+      "weight": 35
+    },
+    {
+      "roman": [
+        "vi",
+        "I"
+      ],
+      "weight": 50
+    },
+    {
+      "roman": [
+        "i",
+        "VI"
+      ],
+      "weight": 32
+    },
+    {
+      "roman": [
+        "VI",
+        "i"
+      ],
+      "weight": 44
+    },
+    {
+      "roman": [
+        "III",
+        "i"
+      ],
+      "weight": 24
+    },
+    {
+      "roman": [
+        "i",
+        "v"
+      ],
+      "weight": 19
+    },
+    {
+      "roman": [
+        "V",
+        "iii"
+      ],
+      "weight": 19
+    },
+    {
+      "roman": [
+        "II",
+        "I"
+      ],
+      "weight": 32
+    },
+    {
+      "roman": [
+        "I",
+        "V",
+        "I"
+      ],
+      "weight": 94
+    },
+    {
+      "roman": [
+        "I",
+        "iii",
+        "I"
+      ],
+      "weight": 61
+    },
+    {
+      "roman": [
+        "iii",
+        "I",
+        "iii"
+      ],
+      "weight": 51
+    },
+    {
+      "roman": [
+        "I",
+        "IV",
+        "I"
+      ],
+      "weight": 48
+    },
+    {
+      "roman": [
+        "V",
+        "I",
+        "iii"
+      ],
+      "weight": 29
+    },
+    {
+      "roman": [
+        "V",
+        "I",
+        "V"
+      ],
+      "weight": 75
+    },
+    {
+      "roman": [
+        "IV",
+        "I",
+        "IV"
+      ],
+      "weight": 38
+    },
+    {
+      "roman": [
+        "V",
+        "I",
+        "vi"
+      ],
+      "weight": 20
+    },
+    {
+      "roman": [
+        "i",
+        "VI",
+        "i"
+      ],
+      "weight": 17
+    },
+    {
+      "roman": [
+        "I",
+        "II",
+        "I"
+      ],
+      "weight": 14
+    },
+    {
+      "roman": [
+        "V",
+        "I",
+        "IV"
+      ],
+      "weight": 14
+    },
+    {
+      "roman": [
+        "IV",
+        "I",
+        "V"
+      ],
+      "weight": 13
+    },
+    {
+      "roman": [
+        "V",
+        "I",
+        "II"
+      ],
+      "weight": 11
+    },
+    {
+      "roman": [
+        "IV",
+        "V",
+        "I"
+      ],
+      "weight": 20
+    },
+    {
+      "roman": [
+        "I",
+        "vi",
+        "I"
+      ],
+      "weight": 19
+    },
+    {
+      "roman": [
+        "I",
+        "V",
+        "I",
+        "V"
+      ],
+      "weight": 62
+    },
+    {
+      "roman": [
+        "V",
+        "I",
+        "V",
+        "I"
+      ],
+      "weight": 61
+    },
+    {
+      "roman": [
+        "I",
+        "iii",
+        "I",
+        "iii"
+      ],
+      "weight": 43
+    },
+    {
+      "roman": [
+        "iii",
+        "I",
+        "iii",
+        "I"
+      ],
+      "weight": 40
+    },
+    {
+      "roman": [
+        "I",
+        "IV",
+        "I",
+        "IV"
+      ],
+      "weight": 31
+    },
+    {
+      "roman": [
+        "IV",
+        "I",
+        "IV",
+        "I"
+      ],
+      "weight": 27
+    },
+    {
+      "roman": [
+        "I",
+        "V",
+        "I",
+        "iii"
+      ],
+      "weight": 7
+    },
+    {
+      "roman": [
+        "VI",
+        "i",
+        "VI",
+        "i"
+      ],
+      "weight": 11
+    },
+    {
+      "roman": [
+        "II",
+        "I",
+        "V",
+        "I"
+      ],
+      "weight": 9
+    },
+    {
+      "roman": [
+        "V",
+        "I",
+        "iii",
+        "I"
+      ],
+      "weight": 7
+    },
+    {
+      "roman": [
+        "I",
+        "V",
+        "I",
+        "II"
+      ],
+      "weight": 7
+    },
+    {
+      "roman": [
+        "iii",
+        "I",
+        "V",
+        "I"
+      ],
+      "weight": 6
+    },
+    {
+      "roman": [
+        "I",
+        "iii",
+        "V",
+        "I"
+      ],
+      "weight": 18
+    },
+    {
+      "roman": [
+        "V",
+        "I",
+        "II",
+        "I"
+      ],
+      "weight": 7
+    },
+    {
+      "roman": [
+        "I",
+        "IV",
+        "V",
+        "I"
+      ],
+      "weight": 6
+    }
+  ],
+  "loops": [
+    {
+      "roman": [
+        "I",
+        "IV6",
+        "iii7",
+        "vi7",
+        "IV"
+      ],
+      "weight": 0.18
+    },
+    {
+      "roman": [
+        "I",
+        "IVmaj7"
+      ],
+      "weight": 0.39
+    },
+    {
+      "roman": [
+        "I",
+        "vi7",
+        "I",
+        "I",
+        "vi7"
+      ],
+      "weight": 0.5
+    },
+    {
+      "roman": [
+        "I",
+        "V6"
+      ],
+      "weight": 0.1
+    },
+    {
+      "roman": [
+        "I6",
+        "II"
+      ],
+      "weight": 0.08
+    },
+    {
+      "roman": [
+        "i",
+        "v",
+        "VImaj7",
+        "VII6"
+      ],
+      "weight": 0.14
+    },
+    {
+      "roman": [
+        "Imaj7",
+        "V6"
+      ],
+      "weight": 0.23
+    },
+    {
+      "roman": [
+        "I",
+        "vi",
+        "IV",
+        "V"
+      ],
+      "weight": 0.13
+    },
+    {
+      "roman": [
+        "i7",
+        "IIImaj7"
+      ],
+      "weight": 0.17
+    },
+    {
+      "roman": [
+        "Imaj7",
+        "I"
+      ],
+      "weight": 0.43
+    },
+    {
+      "roman": [
+        "I",
+        "v7",
+        "iiø7"
+      ],
+      "weight": 0.26
+    },
+    {
+      "roman": [
+        "I",
+        "II7",
+        "IV6"
+      ],
+      "weight": 0.2
+    },
+    {
+      "roman": [
+        "Imaj7",
+        "V6",
+        "Imaj7",
+        "I6"
+      ],
+      "weight": 1
+    },
+    {
+      "roman": [
+        "I",
+        "Imaj7"
+      ],
+      "weight": 0.74
+    },
+    {
+      "roman": [
+        "i",
+        "VII6"
+      ],
+      "weight": 0.13
+    },
+    {
+      "roman": [
+        "I6",
+        "iii7",
+        "V",
+        "I6",
+        "iii",
+        "V"
+      ],
+      "weight": 0.48
+    },
+    {
+      "roman": [
+        "i",
+        "iv7"
+      ],
+      "weight": 0.15
+    },
+    {
+      "roman": [
+        "I",
+        "IVmaj7",
+        "Imaj7"
+      ],
+      "weight": 1
+    },
+    {
+      "roman": [
+        "Imaj7",
+        "Vmaj7",
+        "vi"
+      ],
+      "weight": 0.44
+    },
+    {
+      "roman": [
+        "I",
+        "bIII6",
+        "v",
+        "I",
+        "bIII6",
+        "V"
+      ],
+      "weight": 0.37
+    },
+    {
+      "roman": [
+        "I",
+        "V",
+        "Imaj7",
+        "V"
+      ],
+      "weight": 0.22
+    },
+    {
+      "roman": [
+        "I",
+        "iii"
+      ],
+      "weight": 0.61
+    },
+    {
+      "roman": [
+        "I",
+        "iii7"
+      ],
+      "weight": 0.41
+    },
+    {
+      "roman": [
+        "Imaj7",
+        "Vmaj7"
+      ],
+      "weight": 0.14
+    },
+    {
+      "roman": [
+        "I6",
+        "IVmaj7",
+        "vi"
+      ],
+      "weight": 0.56
+    },
+    {
+      "roman": [
+        "i7",
+        "VII",
+        "IIImaj7",
+        "i7",
+        "IIImaj7"
+      ],
+      "weight": 0.22
+    },
+    {
+      "roman": [
+        "I",
+        "vi",
+        "II",
+        "vii"
+      ],
+      "weight": 0.23
+    },
+    {
+      "roman": [
+        "i",
+        "IV",
+        "I",
+        "V"
+      ],
+      "weight": 0.43
+    },
+    {
+      "roman": [
+        "i",
+        "III6",
+        "VImaj7"
+      ],
+      "weight": 0.47
+    },
+    {
+      "roman": [
+        "Imaj7",
+        "ii",
+        "Imaj7",
+        "vii7",
+        "vi7",
+        "vii7"
+      ],
+      "weight": 0.99
+    },
+    {
+      "roman": [
+        "Imaj7",
+        "iii7",
+        "Imaj7",
+        "III"
+      ],
+      "weight": 0.28
+    },
+    {
+      "roman": [
+        "I",
+        "IV"
+      ],
+      "weight": 0.04
+    },
+    {
+      "roman": [
+        "Imaj7",
+        "I6"
+      ],
+      "weight": 0.09
+    }
+  ],
+  "chord_length": {
+    "median_beats": 4.9,
+    "p25_beats": 3.4,
+    "p75_beats": 7.1,
+    "classes": [
+      {
+        "bars": 1,
+        "weight": 22
+      },
+      {
+        "bars": 0.5,
+        "weight": 8
+      },
+      {
+        "bars": 2,
+        "weight": 9
+      }
+    ]
+  },
+  "phrase": {
+    "bars_median": 5.0,
+    "bars_p25": 3.0,
+    "bars_p75": 10.5,
+    "lengths": [
+      {
+        "bars": 2,
+        "weight": 124
+      },
+      {
+        "bars": 4,
+        "weight": 83
+      },
+      {
+        "bars": 8,
+        "weight": 52
+      },
+      {
+        "bars": 12,
+        "weight": 45
+      },
+      {
+        "bars": 3,
+        "weight": 40
+      },
+      {
+        "bars": 16,
+        "weight": 39
+      }
+    ]
+  },
+  "forms": [
+    {
+      "form": "AB",
+      "weight": 3
+    },
+    {
+      "form": "ABCABCABCABCD",
+      "weight": 1
+    },
+    {
+      "form": "ABCDBEABCDFGHABCD",
+      "weight": 1
+    },
+    {
+      "form": "A",
+      "weight": 1
+    },
+    {
+      "form": "ABCBDEB",
+      "weight": 1
+    },
+    {
+      "form": "ABCABD",
+      "weight": 1
+    },
+    {
+      "form": "ABCDCECDCF",
+      "weight": 1
+    },
+    {
+      "form": "ABCBD",
+      "weight": 1
+    },
+    {
+      "form": "ABCB",
+      "weight": 1
+    },
+    {
+      "form": "ABCBCDBDCEFG",
+      "weight": 1
+    }
+  ]
+}
