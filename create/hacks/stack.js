@@ -865,8 +865,66 @@
     buttons();
     readouts();
   }
+  // The Composition's hacks are Live's starting chain for the whole piece.
+  // A person can still move a dial; the next keystroke does not put it back
+  // unless the written value itself changed. reset() returns to that start.
+  var composed = {}, startList = [];
+  function firstArt(type) {
+    var list = arts(), i;
+    for (i = 0; i < list.length; i++) {
+      if (list[i].getAttribute('data-type') === type && !list[i].hasAttribute('data-fixed')) return list[i];
+    }
+    return null;
+  }
+  function restoreDial(type, art) {
+    if (type === 'lowpass' || type === 'highpass') setParams(art, { cutoff: 0 });
+    else if (type === 'delay') setParams(art, { wet: 0 });
+    else if (type === 'plate') setParams(art, { mix: 0 });
+    else art.remove();
+  }
+  function applyStart(list) {
+    var want = {}, order = [];
+    (list || []).forEach(function (h) {
+      if (!h || !h.type || LABELS[h.type] == null) return;
+      if (!want[h.type]) order.push(h.type);
+      want[h.type] = h;
+    });
+    var sig = JSON.stringify(order.map(function (t) { return [t, want[t].value]; }));
+    if (sig === applyStart.sig) return;
+    if (!order.length && !Object.keys(composed).length) { applyStart.sig = sig; startList = []; return; }
+    applyStart.sig = sig;
+    startList = order.map(function (t) { return want[t]; });
+    Object.keys(composed).forEach(function (type) {
+      if (want[type]) return;
+      var rec = composed[type], art = byId(rec.id);
+      delete composed[type];
+      if (!art) return;
+      if (rec.added) art.remove();
+      else restoreDial(type, art);
+    });
+    order.forEach(function (type) {
+      var h = want[type], art = firstArt(type), added = false;
+      if (!art) {
+        art = add(type, true);
+        if (!art) return;
+        added = true;
+        art.setAttribute('data-from-composition', '1');
+      }
+      setParams(art, h.params || {});
+      var prev = composed[type];
+      composed[type] = { id: art.getAttribute('data-id'), added: prev ? prev.added : added };
+    });
+    buttons();
+    readouts();
+    if (hooks.onChange) hooks.onChange();
+  }
   function reset() {
+    var again = startList.slice();
+    startList = [];
+    composed = {};
+    applyStart.sig = '';
     applyList(defaults());
+    if (again.length) applyStart(again);
   }
   function add(type, quiet) {
     if (movable().length >= 10) { cap(); return null; }
@@ -955,6 +1013,7 @@
     chain: chain,
     reset: reset,
     applyChain: applyList,
+    applyStart: applyStart,
     count: function () { return movable().length; },
     // For tests and the console: a seeded randomize, and the before/after state of one hack.
     seed: function (n) { rngOverride = n == null || !window.NCRandom ? null : NCRandom.rng(n); },
