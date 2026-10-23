@@ -1827,7 +1827,7 @@
     sounds = sounds || [];
     if (!line || sounds.some(isSynth)) return Promise.resolve(sounds);
     var seed = drawSeed();
-    var settings = NCSynth.mergeSettings(null);
+    var settings = NCSynth.mergeSettings(line.fmDepth == null ? null : { fmDepth: line.fmDepth });
     var notes = NCSynth.scheduleLine(line, settings);
     return NCSynth.renderNotes(notes, settings, seed).then(function (buf) {
       var sound = synthSound(line, buf, seed, settings, notes);
@@ -2151,7 +2151,7 @@
     put(view, recRow('Sound', synth.title));
     put(view, recRow('Line', synth.symbol));
     put(view, recRow('Settings', synth.detail));
-    if (synth.synth && synth.synth.settings && synth.synth.settings.fmDepth != null) put(view, recRow('FM depth', String(Math.round(+synth.synth.settings.fmDepth * 100) / 100)));
+    if (synth.synth && synth.synth.settings && synth.synth.settings.fmDepth > 0) put(view, recRow('FM depth', String(Math.round(+synth.synth.settings.fmDepth * 100) / 100)));
     if (synth.synth && synth.synth.modulated_by && synth.synth.modulated_by.length) put(view, recRow('Modulated by', synth.synth.modulated_by.join(', ')));
     put(view, recRow('Code', 'MIT'));
     put(view, recRow('Output license', 'CC BY-SA 4.0'));

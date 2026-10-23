@@ -19,8 +19,10 @@ const sb = { Math, JSON, Float32Array, WeakMap, Promise, Blob, DataView, ArrayBu
 sb.window = sb;
 sb.globalThis = sb;
 vm.createContext(sb);
+vm.runInContext(readFileSync(join(root, 'create/language.js'), 'utf8'), sb);
 vm.runInContext(readFileSync(join(root, 'create/nc-synth.js'), 'utf8'), sb);
 const S = sb.NCSynth;
+const L = sb.NCLanguage;
 
 const line = S.readLine('n F4 Ab4 C5 Bb4');
 check(line && !line.instrument && line.notes.length === 4, 'n F4 Ab4 C5 Bb4 is four pitches and no instrument, got ' + JSON.stringify(line));
@@ -39,8 +41,51 @@ const bad = S.mergeSettings({ cutoff: 999999, waveform: 'nope', subLevel: 2, att
 check(bad.waveform === 'saw' && bad.subLevel === 1, 'mergeSettings rejects a bad wave and clamps sub level, got ' + JSON.stringify(bad && { waveform: bad.waveform, subLevel: bad.subLevel }));
 check(bad.cutoff === 999999 && bad.attack === -4, 'cutoff and attack pass through; the voice path clamps them');
 check(bad.subEnabled === true && bad.filter === 'lowpass' && bad.tempo === 96, 'the page patch keeps the sub, the low-pass, and tempo 96');
-check(S.mergeSettings(null).fmDepth === 3, 'FM depth defaults to 3');
+check(S.mergeSettings(null).fmDepth === 0, 'FM depth defaults to 0');
 check(S.mergeSettings({ fmDepth: 12 }).fmDepth === 10 && S.mergeSettings({ fmDepth: -1 }).fmDepth === 0, 'FM depth stays inside 0–10, and 0 is allowed');
+check(S.describe(null, 1).indexOf('FM depth') < 0, 'the gathered line leaves FM out when it is off, got ' + S.describe(null, 1));
+check(S.describe({ fmDepth: 3 }, 1).indexOf('saw, sine sub -1, low-pass 1400 Hz, FM depth 3') >= 0, 'the gathered line names FM when it is on, got ' + S.describe({ fmDepth: 3 }, 1));
+
+// The same tempo the Composition parser keeps. A missing tempo stays 0 so
+// scheduleLine uses the patch (96), which is what the chords use when they
+// have no written tempo either.
+const tempoForms = [
+  ['90 BPM', 90], ['90BPM', 90], ['tempo 90', 90], ['tempo90', 90],
+  ['q90', 90], ['q 90', 90], ['quarter = 90', 90], ['quarter note = 90', 90],
+  ['quarter≈80', 80], ['quarter notes = 72', 72], ['q=90', 90], ['tempo = 90', 90],
+  ['tempo 80, 90 BPM', 90], ['# 120 BPM\nq90', 90], ['"120 BPM" q80', 80]
+];
+tempoForms.forEach(([text, bpm]) => {
+  const body = text + '; n C5';
+  const parsed = L.parse(body, {});
+  const line = S.readLine(body);
+  check(line && line.bpm === bpm && parsed && parsed.bpm === bpm, text + ' read ' + (line && line.bpm) + ', parser ' + (parsed && parsed.bpm));
+});
+const q90 = S.readLine('q90; [Cm Fm9 Gm7]x2; n C5(2) Eb5 G5(4)');
+check(q90 && q90.bpm === 90 && q90.fmDepth == null && q90.label === 'C5 Eb5 G5' && q90.notes[0].beats === 2 && q90.notes[1].beats === 1 && q90.notes[2].beats === 4, 'q90 line keeps the notes, got ' + JSON.stringify(q90));
+const q90sched = S.scheduleLine(q90, null);
+check(q90sched.length === 3 && Math.abs(q90sched[0].length - 120 / 90) < 1e-9 && Math.abs(q90sched[1].length - 60 / 90) < 1e-9 && Math.abs(q90sched[2].length - 240 / 90) < 1e-9, 'q90 uses a 90 BPM quarter, got ' + JSON.stringify(q90sched));
+const unset = S.readLine('n C5 Eb5');
+check(unset && unset.bpm === 0 && unset.fmDepth == null, 'no tempo and no fm stay unset, got ' + JSON.stringify(unset));
+const at96 = S.scheduleLine(unset, null);
+check(at96.length === 2 && Math.abs(at96[0].length - 60 / 96) < 1e-9, 'no tempo uses the patch 96, got ' + JSON.stringify(at96));
+const fm = S.readLine('n C5(2) Eb5 G5 fm 3');
+check(fm && fm.fmDepth === 3 && fm.label === 'C5 Eb5 G5' && fm.notes[0].beats === 2 && fm.notes[2].beats === 1, 'fm 3 is a depth, not a pitch, got ' + JSON.stringify(fm));
+const glued = S.readLine('n C5 fm3');
+check(glued && glued.fmDepth === 3 && glued.notes.length === 1 && glued.notes[0].pitch === 'C5', 'fm3 is depth 3, not pitch M3, got ' + JSON.stringify(glued));
+const bareFm = S.readLine('n C5 fm Eb5');
+check(bareFm && bareFm.fmDepth == null && bareFm.label === 'C5 Eb5', 'a bare fm is not a pitch, got ' + JSON.stringify(bareFm));
+const trackFm = S.readLine('n C5 fm t2 3');
+check(trackFm && trackFm.fmDepth == null && trackFm.notes.length === 1 && trackFm.notes[0].pitch === 'C5', 'fm t2 3 is not a notes-line depth, got ' + JSON.stringify(trackFm));
+const wordsFm = S.readLine('n C5; fm "pad" 3');
+check(wordsFm && wordsFm.fmDepth == null && wordsFm.notes.length === 1 && wordsFm.notes[0].pitch === 'C5', 'fm "words" 3 is not a notes-line depth, got ' + JSON.stringify(wordsFm));
+check(S.readLine('n C5 fm 12').fmDepth === 10 && S.readLine('n C5 fm 0').fmDepth === 0, 'fm depth stays inside 0–10');
+const alone = { Math, JSON, Float32Array, WeakMap, Promise, Blob, DataView, ArrayBuffer, Uint8Array, console };
+alone.window = alone; alone.globalThis = alone;
+vm.createContext(alone);
+vm.runInContext(readFileSync(join(root, 'create/nc-synth.js'), 'utf8'), alone);
+check(alone.NCSynth.readLine('90 BPM; n C5').bpm === 90 && alone.NCSynth.readLine('quarter = 80; n C5').bpm === 80, 'without the parser, 90 BPM and quarter = 80 are still read');
+check(alone.NCSynth.readLine('q90; n C5').bpm === 0, 'without the parser, q90 is not guessed by a second regex');
 const noiseA = S.mulberry32(4182), noiseB = S.mulberry32(4182), noiseC = S.mulberry32(7);
 const seqA = [noiseA(), noiseA(), noiseA()], seqB = [noiseB(), noiseB(), noiseB()];
 check(seqA.join() === seqB.join() && seqA.join() !== [noiseC(), noiseC(), noiseC()].join(), 'the seeded RNG repeats for one seed');
@@ -286,7 +331,7 @@ if (!chrome || typeof WebSocket === 'undefined') {
       return { text: (document.getElementById('gather-list') || {}).textContent || '', status: (document.getElementById('gather-status') || {}).textContent || '' };
     })()`);
     check(row && row.text && row.text.indexOf('NC Synth (Peter Semmelhack)') >= 0, 'gathered list names the synth, got ' + JSON.stringify(row));
-    check(row && row.text.indexOf('FM depth 3') >= 0, 'the row records the FM depth, got ' + JSON.stringify(row));
+    check(row && row.text.indexOf('FM depth') < 0, 'the row leaves FM out when the line does not ask for it, got ' + JSON.stringify(row));
     check(row && row.text.indexOf('CC BY-SA 4.0') >= 0 && row.text.indexOf('code MIT') >= 0 && row.text.indexOf('seed ') >= 0, 'the row shows the license, the code license and the seed, got ' + JSON.stringify(row));
     check(row && row.text.indexOf('F4 Ab4 C5 Bb4') >= 0, 'the row shows the notes, got ' + JSON.stringify(row));
     const take = await ev(`(async () => {
@@ -298,7 +343,7 @@ if (!chrome || typeof WebSocket === 'undefined') {
       return { plan: plan, seed: (document.getElementById('plan-seed') || {}).textContent || '', live: document.getElementById('live').hidden, dur: audio && audio.duration, status: (document.getElementById('perform-status') || {}).textContent || '', rec: rec };
     })()`);
     check(take && take.plan.indexOf('NC Synth (Peter Semmelhack)') >= 0 && take.plan.indexOf('code MIT') >= 0, 'the take lists the synth, got ' + JSON.stringify(take));
-    check(take && take.rec && take.rec.indexOf('FM depth') >= 0 && take.rec.indexOf('3') >= 0, 'the record stores the FM depth, got ' + JSON.stringify(take && take.rec));
+    check(take && take.rec && take.rec.indexOf('FM depth') < 0, 'the record leaves FM out when it is off, got ' + JSON.stringify(take && take.rec));
     check(take && take.dur > 2 && take.live === false && !take.status, 'Perform puts the buffer on the player, got ' + JSON.stringify(take));
 
     const live = await ev(`(async () => {
@@ -406,6 +451,31 @@ if (!chrome || typeof WebSocket === 'undefined') {
     })()`);
     if (drift) console.log('onset residual (live minus rendered, lead removed): ' + (drift.residual == null ? 'n/a' : (drift.residual * 1000).toFixed(2) + ' ms') + ' ' + JSON.stringify(drift));
     check(!drift || drift.residual == null || Math.abs(drift.residual) < 0.08, 'live onset is not seconds away from the rendered note, got ' + JSON.stringify(drift));
+
+    const fmLine = await ev(`(async () => {
+      var comp = document.getElementById('comp');
+      comp.value = 'n F4 Ab4 C5 Bb4 fm 3';
+      comp.dispatchEvent(new Event('input', { bubbles: true }));
+      var again = document.getElementById('gather-again');
+      var btn = document.getElementById('gatherBtn');
+      var click = (again && !again.hidden && !again.disabled) ? again : btn;
+      if (!click || click.disabled) return { error: 'no gather', again: again && { hidden: again.hidden, disabled: again.disabled }, btn: btn && { hidden: btn.hidden, disabled: btn.disabled } };
+      click.click();
+      var text = '';
+      for (var i = 0; i < 80; i++) {
+        var list = document.getElementById('gather-list');
+        text = list ? list.textContent.replace(/\\s+/g, ' ').trim() : '';
+        if (text.indexOf('FM depth 3') >= 0 && text.indexOf('F4 Ab4 C5 Bb4') >= 0) break;
+        await new Promise(function (r) { setTimeout(r, 50); });
+      }
+      document.getElementById('performBtn').click();
+      for (var j = 0; j < 80 && (document.getElementById('perform-out').hidden || ((document.getElementById('perform-record-view') || {}).textContent || '').indexOf('FM depth') < 0); j++) await new Promise(function (r) { setTimeout(r, 50); });
+      var rec = ((document.getElementById('perform-record-view') || {}).textContent || '').replace(/\\s+/g, ' ').trim();
+      var read = NCSynth.readLine(comp.value);
+      return { text: text, rec: rec, value: comp.value, fm: read && read.fmDepth, status: ((document.getElementById('gather-status') || {}).textContent || '') + ' | ' + ((document.getElementById('perform-status') || {}).textContent || '') };
+    })()`);
+    check(fmLine && fmLine.text && fmLine.text.indexOf('FM depth 3') >= 0 && fmLine.text.indexOf('saw, sine sub -1, low-pass 1400 Hz') >= 0, 'fm 3 is named on the gathered row, got ' + JSON.stringify(fmLine));
+    check(fmLine && fmLine.rec && /FM depth\s*3/.test(fmLine.rec), 'the record names FM depth when it is on, got ' + JSON.stringify(fmLine && fmLine.rec));
     ws.close();
   } finally {
     proc.kill('SIGKILL');

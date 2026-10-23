@@ -56,6 +56,10 @@ check(peter && peter.played[0].seconds === 2.667 && peter.played[1].seconds === 
 check(peter && peter.hacks[0] && peter.hacks[0].value === 500 && peter.hacks[0].ramp === 200, 'peter hack keeps the start');
 check(peter && peter.iread.startsWith('q90; [Cm(4) Fm9 Gm7]x4; lp500\n'), 'peter I read');
 check(L.lpDial(500) === 75, '500 Hz is lowpass dial 75');
+check(L.parse('fm', { known }).gather[0] === 'Fm', 'fm is still F minor');
+check(L.parse('fm9', { known }).gather[0] === 'Fm9', 'fm9 stays Fm9');
+check(L.parse('n C5(2) Eb5 G5 fm 3', { known }).gather.indexOf('Fm') < 0, 'fm 3 on a notes line is not the chord Fm');
+check(L.parse('fm t2 3', { known }).gather[0] === 'Fm', 'fm t2 is left for the later modulator form');
 ['seed 4182', 'seed4182', 'sd4182', 'sd 4182'].forEach((t) => {
   check(L.parse(t + ' C', { known }).seed === 4182, 'seed form ' + t);
 });

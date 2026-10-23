@@ -438,6 +438,16 @@
       if (times > 1) s += 'x' + times;
       return s;
     }
+    // `fm 3` is a depth on the notes line, not the chord F minor. `fm t2`
+    // and `fm "words"` are a different form and stay untouched.
+    function tryNotesFm() {
+      var t = tokens[i];
+      if (!t || t.type !== 'word' || !/^fm$/i.test(t.text)) return false;
+      var n = tokens[i + 1];
+      if (!n || n.type !== 'word' || !/^\d+(?:\.\d+)?$/.test(n.text)) return false;
+      i += 2;
+      return true;
+    }
     function atStatement() {
       if (tryHack()) return true;
       if (tryTempo()) return true;
@@ -446,6 +456,7 @@
       if (tryLength()) return true;
       var rest = tryRest();
       if (rest) { assign(rest); stamp(rest); syntax.push({ kind: 'rest', text: renderRest(rest) }); return true; }
+      if (tryNotesFm()) return true;
       var ch = tryChord(false);
       if (ch) { assign(ch); stamp(ch); syntax.push({ kind: 'chord', text: renderChord(ch) }); return true; }
       var times = tryLoop();
@@ -465,6 +476,7 @@
         if (tryTempo() || trySeed() || tryMeter() || tryLength()) continue;
         var rest = tryRest();
         if (rest) { items.push(rest); continue; }
+        if (tryNotesFm()) continue;
         var ch = tryChord(true);
         if (ch) { items.push(ch); continue; }
         if (t.type === 'word') { addWord(t.text); i++; continue; }

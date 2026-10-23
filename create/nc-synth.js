@@ -21,7 +21,10 @@
  *   knee 6, ratio 12, attack 0.003, release 0.12, then master/100.
  *   Noise: 2 s loop, mulberry32(seed) * 2 - 1. 48000 Hz stereo.
  *   Wavetable is not selected; that patch plays its plain waveform.
- *   FM index fmDepth is 0–10 (0 is no FM, page default 3). A gathered clip is
+ *   FM index fmDepth is 0–10. 0 is no FM, and 0 is the page default: the
+ *   line is the oscillator until the notes statement writes `fm <depth>`
+ *   (for example `n C5 fm 3`). `fm t2 3` and `fm "words" 3` name a modulator
+ *   source; they are not a depth on the notes line. A gathered clip is
  *   the modulator only: gain into the carrier frequency is fmDepth * 100 Hz
  *   per full-scale sample. The clip is not pitch-shifted and is not mixed
  *   into the synth output. An optional envelope follower (absolute value,
@@ -73,7 +76,7 @@
     vcoMods: [{source: 'none', destination: 'pitch', amount: 0}, {source: 'none', destination: 'pitch', amount: 0}],
     vcfMods: [{source: 'none', destination: 'cutoff', amount: 0}, {source: 'none', destination: 'resonance', amount: 0}],
     vcaMods: [{source: 'none', destination: 'level', amount: 0}, {source: 'none', destination: 'sustain', amount: 0}],
-    fmDepth: 3
+    fmDepth: 0
   };
 
   function clamp(v, lo, hi) { return Math.min(hi, Math.max(lo, v)); }
@@ -138,24 +141,46 @@
     return out;
   }
 
+  // The chords use NCLanguage.parse().bpm. Reuse that result, including
+  // q90, tempo 90, tempo=90, quarter notes = 90, and a BPM word winning
+  // over an earlier form. This file still reads "90 BPM" and "quarter = 90"
+  // when the parser is not loaded.
   function bpmOf(text) {
+    var lang = root.NCLanguage;
+    if (lang && typeof lang.parse === 'function') {
+      try {
+        var parsed = lang.parse(text || '', {});
+        return parsed && parsed.bpm > 0 ? parsed.bpm : 0;
+      } catch (e) {}
+    }
     var m = /(\d+(?:\.\d+)?)\s*BPM\b/i.exec(text || '') || /quarter(?:\s+note)?\s*[=≈]\s*(\d+(?:\.\d+)?)/i.exec(text || '');
     return m && +m[1] > 0 ? +m[1] : 0;
+  }
+  // `fm 3` and `fm3` on the notes statement set the depth. `fm t2 3` and
+  // `fm "words" 3` name a source, so a non-number after fm is left in place.
+  function fmDepthOf(rest) {
+    var depth = null;
+    var cleaned = String(rest || '').replace(/(^|[\s,);])fm\s*(\d+(?:\.\d+)?)(?=$|[\s,);])/gi, function (_, lead, num) {
+      if (depth == null) depth = clamp(+num, 0, 10);
+      return lead;
+    });
+    return { rest: cleaned, fmDepth: depth };
   }
   function beatsPerBar(text) {
     var m = /\b(\d+)\s*\/\s*(2|4|8)\b/.exec(text || '');
     if (!m) return 4;
     return +m[1] * (4 / +m[2]);
   }
-  // Today's notes / n term only. Not the Composition parser: one statement,
-  // pitches after notes or n, optional (beats) or (bars|). @name on that
-  // statement is a written instrument, so the synth stays out.
+  // Today's notes / n term only. Pitches follow notes or n, with an optional
+  // (beats) or (bars|). @name on that statement is a written instrument, so
+  // the synth stays out. `fm <depth>` on that statement is FM, not a pitch.
   function readLine(text) {
     var bpm = bpmOf(text), bar = beatsPerBar(text), found = null;
     String(text || '').split(/[\n;]+/).some(function (stmt) {
       var km = /(?:^|\s)(?:notes|n)\s+(.+)$/i.exec(stmt);
       if (!km) return false;
-      var rest = km[1], re = /([A-Ga-g])(#|b)?(-?\d+)(?:\((\d+(?:\.\d+)?)(\|)?\))?/g, tok, notes = [];
+      var taken = fmDepthOf(km[1]);
+      var rest = taken.rest, re = /([A-Ga-g])(#|b)?(-?\d+)(?:\((\d+(?:\.\d+)?)(\|)?\))?/g, tok, notes = [];
       while ((tok = re.exec(rest))) {
         var beats = tok[4] ? +tok[4] : 1;
         if (!(beats > 0)) beats = 1;
@@ -170,6 +195,7 @@
         notes: notes,
         instrument: inst ? inst[1].toLowerCase() : '',
         bpm: bpm,
+        fmDepth: taken.fmDepth,
         label: notes.map(function (n) { return n.pitch; }).join(' ')
       };
       return true;
