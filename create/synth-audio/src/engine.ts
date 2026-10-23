@@ -19,7 +19,22 @@ interface Voice {
   midi: number; velocity: number; start: number; gate: number; end: number; env: Envelope;
   filter: BiquadFilterNode; envelope: GainNode; level: GainNode;
   sources: SoundSource[]; released: boolean; cleaned: boolean;
+  modSources: AudioBufferSourceNode[]; modNodes: AudioNode[];
 }
+/** A gathered clip used as a modulator. It is never mixed into the audio output. */
+export interface NoteModulator {
+  buffer: AudioBuffer;
+  offset?: number;
+  /** FM index, 0–10. 0 means no FM. */
+  depth: number;
+  /** Envelope-follower addition to cutoff, in Hz. 0 leaves the cutoff alone. */
+  followCutoff?: number;
+  /** Envelope-follower addition to loudness. 0 leaves the level alone. */
+  followLevel?: number;
+}
+// Peter's index is 0–10. A full-scale modulator sample shifts the carrier by
+// index × 100 Hz, so 0 is silent FM, 3 is moderate, and 10 is heavy.
+const FM_HZ_PER_INDEX = 100;
 interface Trigger { time: number; notes: string; serial: number }
 const midiName = (midi: number) => `${NOTE_NAMES[midi % 12]}${Math.floor(midi / 12) - 1}`;
 const frequency = (midi: number) => 440 * Math.pow(2, (midi - 69) / 12);
@@ -430,11 +445,18 @@ export class SynthEngine {
   }
 
   /** One written note on the existing voice path. Live patterns still use schedule(). */
-  scheduleNote(midi: number, time: number, duration: number, velocity = 1) {
-    this.createVoice(midi, time, duration, velocity);
+  scheduleNote(midi: number, time: number, duration: number, velocity = 1, modulator?: NoteModulator | null) {
+    this.createVoice(midi, time, duration, velocity, modulator);
   }
 
-  private createVoice(midi: number, start: number, duration: number, velocity = 1) {
+  /** Buffer sources currently feeding a carrier. Panic and stop clear this. */
+  activeModulators() {
+    let n = 0;
+    for (const voice of this.voices) if (!voice.cleaned) n += voice.modSources.length;
+    return n;
+  }
+
+  private createVoice(midi: number, start: number, duration: number, velocity = 1, modulator?: NoteModulator | null) {
     const context = this.context!;
     this.voices = this.voices.filter(v => !v.cleaned);
     const active = this.voices.filter(v => !v.cleaned && v.end > context.currentTime);
@@ -451,7 +473,7 @@ export class SynthEngine {
     const level = context.createGain();
     filter.connect(envelope).connect(level).connect(this.bus!);
     const voice: Voice = { midi, velocity, start, gate: start + duration, end: start + duration + env.release + 0.01,
-      env, filter, envelope, level, sources: [], released: false, cleaned: false };
+      env, filter, envelope, level, sources: [], modSources: [], modNodes: [], released: false, cleaned: false };
     this.voices.push(voice);
     this.setVoiceControls(voice, values);
     const g = envelope.gain;
@@ -464,6 +486,82 @@ export class SynthEngine {
     g.linearRampToValueAtTime(0, voice.gate + env.release);
     this.addSource(voice, 'main', start, values, false);
     if (this.subAmount() > 0) this.addSource(voice, 'sub', start, values, false);
+    this.attachModulator(voice, modulator);
+  }
+
+  /** Audio-rate FM into the main oscillator only. The clip is not a carrier and is not heard on its own. */
+  private attachModulator(voice: Voice, mod?: NoteModulator | null) {
+    if (!mod || !mod.buffer || !this.context) return;
+    if (this.settings.oscillatorMode === 'wavetable') return;
+    const depth = Math.max(0, Math.min(10, +mod.depth || 0));
+    const followCut = Math.max(0, +mod.followCutoff || 0);
+    const followLvl = Math.max(0, +mod.followLevel || 0);
+    if (!(depth > 0) && !(followCut > 0) && !(followLvl > 0)) return;
+    const main = voice.sources.find(s => s.role === 'main');
+    const freq = main?.unit.frequency;
+    if (!freq) return;
+    const offset = Math.max(0, +mod.offset || 0);
+    const remain = mod.buffer.duration - offset;
+    if (!(remain > 0.001)) return;
+    const src = this.context.createBufferSource();
+    src.buffer = mod.buffer;
+    src.loop = false;
+    if (depth > 0) {
+      const gain = this.context.createGain();
+      gain.gain.value = depth * FM_HZ_PER_INDEX;
+      src.connect(gain);
+      gain.connect(freq);
+      voice.modNodes.push(gain);
+    }
+    if (followCut > 0 || followLvl > 0) {
+      const env = this.envelopeFollower(src);
+      voice.modNodes.push(...env.nodes);
+      if (followCut > 0) {
+        const gain = this.context.createGain();
+        gain.gain.value = followCut;
+        env.out.connect(gain);
+        gain.connect(voice.filter.frequency);
+        voice.modNodes.push(gain);
+      }
+      if (followLvl > 0) {
+        const gain = this.context.createGain();
+        gain.gain.value = followLvl;
+        env.out.connect(gain);
+        gain.connect(voice.level.gain);
+        voice.modNodes.push(gain);
+      }
+    }
+    const play = Math.min(Math.max(0.001, voice.end - voice.start), remain);
+    try { src.start(voice.start, offset, play); } catch { /* context already closed */ }
+    voice.modSources.push(src);
+  }
+
+  /** Full-wave rectify, then a slow low-pass. Same clip as the FM input. */
+  private envelopeFollower(source: AudioNode) {
+    const context = this.context!;
+    const shaper = context.createWaveShaper();
+    const curve = new Float32Array(256);
+    for (let i = 0; i < curve.length; i++) curve[i] = Math.abs((i / (curve.length - 1)) * 2 - 1);
+    shaper.curve = curve;
+    shaper.oversample = 'none';
+    const low = context.createBiquadFilter();
+    low.type = 'lowpass';
+    low.frequency.value = 30;
+    low.Q.value = 0.707;
+    source.connect(shaper);
+    shaper.connect(low);
+    return { out: low as AudioNode, nodes: [shaper, low] as AudioNode[] };
+  }
+
+  private stopModulators(voice: Voice) {
+    for (const node of voice.modNodes) { try { node.disconnect(); } catch { /* already gone */ } }
+    const when = this.context?.currentTime ?? 0;
+    for (const src of voice.modSources) {
+      try { src.disconnect(); } catch { /* already gone */ }
+      try { src.stop(when); } catch { /* not started yet, or already stopped */ }
+    }
+    voice.modSources = [];
+    voice.modNodes = [];
   }
 
   private envelopeAt(voice: Voice, time: number): number {
@@ -586,6 +684,7 @@ export class SynthEngine {
     voice.gate = now;
     voice.end = Math.min(voice.end, time + release + 0.005);
     voice.released = true;
+    this.stopModulators(voice);
     for (const source of voice.sources) {
       source.unit.stop(voice.end);
     }
@@ -594,6 +693,7 @@ export class SynthEngine {
   private cleanup(voice: Voice) {
     if (voice.cleaned) return;
     voice.cleaned = true;
+    this.stopModulators(voice);
     for (const source of voice.sources) {
       source.unit.stop(this.context?.currentTime ?? 0);
       source.unit.dispose();

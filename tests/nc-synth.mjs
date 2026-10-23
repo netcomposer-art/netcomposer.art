@@ -39,6 +39,8 @@ const bad = S.mergeSettings({ cutoff: 999999, waveform: 'nope', subLevel: 2, att
 check(bad.waveform === 'saw' && bad.subLevel === 1, 'mergeSettings rejects a bad wave and clamps sub level, got ' + JSON.stringify(bad && { waveform: bad.waveform, subLevel: bad.subLevel }));
 check(bad.cutoff === 999999 && bad.attack === -4, 'cutoff and attack pass through; the voice path clamps them');
 check(bad.subEnabled === true && bad.filter === 'lowpass' && bad.tempo === 96, 'the page patch keeps the sub, the low-pass, and tempo 96');
+check(S.mergeSettings(null).fmDepth === 3, 'FM depth defaults to 3');
+check(S.mergeSettings({ fmDepth: 12 }).fmDepth === 10 && S.mergeSettings({ fmDepth: -1 }).fmDepth === 0, 'FM depth stays inside 0–10, and 0 is allowed');
 const noiseA = S.mulberry32(4182), noiseB = S.mulberry32(4182), noiseC = S.mulberry32(7);
 const seqA = [noiseA(), noiseA(), noiseA()], seqB = [noiseB(), noiseB(), noiseB()];
 check(seqA.join() === seqB.join() && seqA.join() !== [noiseC(), noiseC(), noiseC()].join(), 'the seeded RNG repeats for one seed');
@@ -136,6 +138,128 @@ if (!chrome || typeof WebSocket === 'undefined') {
       await writeFile('/opt/cursor/artifacts/nc_synth_line.wav', bytes);
     }
 
+    const fm = await ev(`(async () => {
+      function hashBuf(buf) {
+        var d = buf.getChannelData(0), h = 2166136261, i;
+        for (i = 0; i < d.length; i++) h = Math.imul(h ^ (d[i] * 1000000 | 0), 16777619) >>> 0;
+        return h >>> 0;
+      }
+      function hashBytes(bytes) {
+        var h = 2166136261, i;
+        for (i = 0; i < bytes.length; i++) h = Math.imul(h ^ bytes[i], 16777619) >>> 0;
+        return h >>> 0;
+      }
+      async function playClip(buffer) {
+        var ctx = new OfflineAudioContext(buffer.numberOfChannels, buffer.length, buffer.sampleRate);
+        var src = ctx.createBufferSource();
+        src.buffer = buffer;
+        src.connect(ctx.destination);
+        src.start(0);
+        return ctx.startRendering();
+      }
+      function spectrum(buf) {
+        var ch = buf.getChannelData(0), rate = buf.sampleRate, N = 1024;
+        var i0 = Math.floor(0.35 * rate), re = new Float64Array(N), im = new Float64Array(N), k, n, w, mag = new Float64Array(N / 2), sum = 0;
+        for (n = 0; n < N; n++) {
+          w = 0.5 - 0.5 * Math.cos(2 * Math.PI * n / (N - 1));
+          re[n] = (ch[i0 + n] || 0) * w;
+        }
+        for (k = 0; k < N / 2; k++) {
+          var rr = 0, ii = 0;
+          for (n = 0; n < N; n++) {
+            var ang = -2 * Math.PI * k * n / N;
+            rr += re[n] * Math.cos(ang);
+            ii += re[n] * Math.sin(ang);
+          }
+          mag[k] = Math.sqrt(rr * rr + ii * ii);
+          sum += mag[k];
+        }
+        return { mag: mag, sum: sum };
+      }
+      var hold = new OfflineAudioContext(1, 48000 * 3, 48000);
+      var mod = hold.createBuffer(1, 48000 * 3, 48000);
+      var md = mod.getChannelData(0), i, t;
+      for (i = 0; i < md.length; i++) {
+        t = i / 48000;
+        md[i] = 0.45 * Math.sin(2 * Math.PI * 98 * t) + 0.35 * Math.sin(2 * Math.PI * 147 * t) + 0.25 * Math.sin(2 * Math.PI * 220 * t);
+      }
+      var snap = new Float32Array(md);
+      var clipBefore = hashBytes(new Uint8Array(await NCSynth.wavBlob(await playClip(mod)).arrayBuffer()));
+      var line = NCSynth.readLine('n F4 Ab4 C5 Bb4');
+      var base = NCSynth.mergeSettings(null);
+      var notes = NCSynth.scheduleLine(line, base);
+      function withMod(depth, follow) {
+        var settings = NCSynth.mergeSettings(Object.assign({}, base, { fmDepth: depth }));
+        var list = notes.map(function (n) {
+          return { midi: n.midi, velocity: n.velocity, start: n.start, length: n.length, modulator: { buffer: mod, offset: n.start, followLevel: follow || 0 } };
+        });
+        return NCSynth.renderNotes(list, settings, 4182);
+      }
+      var dry = await NCSynth.renderNotes(notes, base, 4182);
+      var zero = await withMod(0, 0);
+      var mid = await withMod(3, 0);
+      var heavy = await withMod(10, 0);
+      var followed = await withMod(3, 0.8);
+      var same = snap.length === md.length;
+      for (i = 0; same && i < snap.length; i++) if (snap[i] !== md[i]) same = false;
+      var clipAfter = hashBytes(new Uint8Array(await NCSynth.wavBlob(await playClip(mod)).arrayBuffer()));
+      var specDry = spectrum(dry), specHeavy = spectrum(heavy), diff = 0, k;
+      for (k = 0; k < specDry.mag.length; k++) diff += Math.abs(specDry.mag[k] - specHeavy.mag[k]);
+      var rel = specDry.sum > 0 ? diff / specDry.sum : 0;
+      var gap = Math.round(0.35 * 48000);
+      var frames = dry.length + mid.length + heavy.length + gap * 2;
+      var mix = new OfflineAudioContext(2, frames, 48000);
+      function place(buf, when) {
+        var src = mix.createBufferSource();
+        src.buffer = buf;
+        src.connect(mix.destination);
+        src.start(when);
+      }
+      place(dry, 0);
+      place(mid, dry.duration + 0.35);
+      place(heavy, dry.duration + 0.35 + mid.duration + 0.35);
+      var compare = await mix.startRendering();
+      var blob = NCSynth.wavBlob(compare);
+      var bytes = new Uint8Array(await blob.arrayBuffer());
+      var s = '';
+      for (i = 0; i < bytes.length; i++) s += String.fromCharCode(bytes[i]);
+      var off = new OfflineAudioContext(2, 48000, 48000);
+      var eng = new NCSynthEngine.SynthEngine(NCSynthEngine.mergeSettings(base));
+      await eng.open(off, NCSynth.mulberry32(4182));
+      eng.scheduleNote(65, 0.05, 0.4, 0.8, { buffer: mod, offset: 0, depth: 3 });
+      var armed = eng.activeModulators();
+      eng.panic();
+      var stopped = eng.activeModulators();
+      var wavetable = -1;
+      try {
+        var wt = new NCSynthEngine.SynthEngine(NCSynthEngine.mergeSettings(Object.assign({}, base, { oscillatorMode: 'wavetable' })));
+        var off2 = new OfflineAudioContext(2, 4800, 48000);
+        await wt.open(off2, NCSynth.mulberry32(1));
+        wt.scheduleNote(65, 0.05, 0.2, 0.8, { buffer: mod, offset: 0, depth: 10 });
+        wavetable = wt.activeModulators();
+      } catch (e) { wavetable = 0; }
+      return {
+        dry: hashBuf(dry), zero: hashBuf(zero), mid: hashBuf(mid), heavy: hashBuf(heavy),
+        follow: hashBuf(followed), same: same, clipBefore: clipBefore, clipAfter: clipAfter,
+        rel: rel, armed: armed, stopped: stopped, wavetable: wt.activeModulators(),
+        wav: btoa(s)
+      };
+    })()`);
+    check(fm && fm.dry === fm.zero, 'depth 0 matches no FM, so the clip is not mixed into the synth, got ' + JSON.stringify(fm && { dry: fm.dry, zero: fm.zero }));
+    check(fm && fm.mid !== fm.dry && fm.heavy !== fm.dry && fm.heavy !== fm.mid, 'moderate and heavy FM change the render, got ' + JSON.stringify(fm && { dry: fm.dry, mid: fm.mid, heavy: fm.heavy }));
+    check(fm && fm.rel > 0.05, 'heavy FM changes the spectrum, got ' + JSON.stringify(fm && fm.rel));
+    check(fm && fm.same === true && fm.clipBefore === fm.clipAfter, 'the gathered clip output stays byte-identical, got ' + JSON.stringify(fm && { same: fm.same, clipBefore: fm.clipBefore, clipAfter: fm.clipAfter }));
+    check(fm && fm.follow !== fm.mid, 'the envelope follower changes loudness when asked, got ' + JSON.stringify(fm && { follow: fm.follow, mid: fm.mid }));
+    check(fm && fm.armed === 1 && fm.stopped === 0, 'panic stops the live modulator, got ' + JSON.stringify(fm && { armed: fm.armed, stopped: fm.stopped }));
+    check(fm && fm.wavetable === 0, 'wavetable does not take the FM path, got ' + JSON.stringify(fm && fm.wavetable));
+    if (fm && typeof fm.wav === 'string') {
+      const compare = Buffer.from(fm.wav, 'base64');
+      check(compare.slice(0, 4).toString() === 'RIFF', 'FM comparison wav starts with RIFF');
+      await mkdir('/opt/cursor/artifacts', { recursive: true });
+      await writeFile('/opt/cursor/artifacts/nc_synth_fm_compare.wav', compare);
+      console.log('fm spectrum distance (heavy vs none): ' + (fm.rel * 100).toFixed(1) + '%');
+    }
+
     await send('Page.navigate', { url: `http://127.0.0.1:${port}/create/` });
     for (let i = 0; i < 150 && !(await ev("document.body && document.body.getAttribute('data-ready') === '1' && window.NCPerform")); i++) await sleep(100);
     const skipped = await ev(`(function () {
@@ -162,6 +286,7 @@ if (!chrome || typeof WebSocket === 'undefined') {
       return { text: (document.getElementById('gather-list') || {}).textContent || '', status: (document.getElementById('gather-status') || {}).textContent || '' };
     })()`);
     check(row && row.text && row.text.indexOf('NC Synth (Peter Semmelhack)') >= 0, 'gathered list names the synth, got ' + JSON.stringify(row));
+    check(row && row.text.indexOf('FM depth 3') >= 0, 'the row records the FM depth, got ' + JSON.stringify(row));
     check(row && row.text.indexOf('CC BY-SA 4.0') >= 0 && row.text.indexOf('code MIT') >= 0 && row.text.indexOf('seed ') >= 0, 'the row shows the license, the code license and the seed, got ' + JSON.stringify(row));
     check(row && row.text.indexOf('F4 Ab4 C5 Bb4') >= 0, 'the row shows the notes, got ' + JSON.stringify(row));
     const take = await ev(`(async () => {
@@ -169,9 +294,11 @@ if (!chrome || typeof WebSocket === 'undefined') {
       var audio = document.getElementById('perform-audio');
       for (var i = 0; i < 80 && (document.getElementById('perform-out').hidden || !(audio.duration > 0)); i++) await new Promise(function (r) { setTimeout(r, 50); });
       var plan = (document.getElementById('plan-src').textContent || '').replace(/\\s+/g, ' ').trim();
-      return { plan: plan, seed: (document.getElementById('plan-seed') || {}).textContent || '', live: document.getElementById('live').hidden, dur: audio && audio.duration, status: (document.getElementById('perform-status') || {}).textContent || '' };
+      var rec = ((document.getElementById('perform-record-view') || {}).textContent || '').replace(/\\s+/g, ' ').trim();
+      return { plan: plan, seed: (document.getElementById('plan-seed') || {}).textContent || '', live: document.getElementById('live').hidden, dur: audio && audio.duration, status: (document.getElementById('perform-status') || {}).textContent || '', rec: rec };
     })()`);
     check(take && take.plan.indexOf('NC Synth (Peter Semmelhack)') >= 0 && take.plan.indexOf('code MIT') >= 0, 'the take lists the synth, got ' + JSON.stringify(take));
+    check(take && take.rec && take.rec.indexOf('FM depth') >= 0 && take.rec.indexOf('3') >= 0, 'the record stores the FM depth, got ' + JSON.stringify(take && take.rec));
     check(take && take.dur > 2 && take.live === false && !take.status, 'Perform puts the buffer on the player, got ' + JSON.stringify(take));
 
     const live = await ev(`(async () => {

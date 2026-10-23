@@ -400,14 +400,22 @@ function startSynth(when, offset) {
     if (gen !== synthGen || !synthWanted() || !a || a.paused) return;
     if (AC && AC.state === 'running') when = AC.currentTime + 0.03;
     engine.panic();
+    var depth = part.depth > 0 ? part.depth : 0;
     var notes = [];
-    (part.notes || []).forEach(function (n) {
+    (part.notes || []).forEach(function (n, i) {
       if (!n || !(n.length > 0) || !(n.midi >= 0)) return;
       if (n.start + n.length <= offset + 0.001) return;
       var dur = n.length - Math.max(0, offset - n.start);
       if (!(dur > 0.001)) return;
       var at = when + Math.max(0, n.start - offset);
-      engine.scheduleNote(n.midi, at, dur, n.velocity == null ? 0.82 : n.velocity);
+      var spec = part.mods && part.mods[i];
+      var skipped = Math.max(0, offset - n.start);
+      var fm = spec && spec.buffer && depth > 0 ? {
+        buffer: spec.buffer,
+        offset: Math.max(0, (spec.offset || 0) + skipped),
+        depth: depth
+      } : null;
+      engine.scheduleNote(n.midi, at, dur, n.velocity == null ? 0.82 : n.velocity, fm);
       notes.push({ midi: n.midi, take: n.start, at: at });
     });
     lastNotes = notes;
@@ -415,11 +423,16 @@ function startSynth(when, offset) {
   }).catch(function () {});
 }
 function setSynthPart(part) {
+  var depth = part && part.settings && part.settings.fmDepth != null ? +part.settings.fmDepth : (part && +part.depth) || 0;
+  if (!(depth >= 0)) depth = 0;
+  if (depth > 10) depth = 10;
   var next = part && part.notes && part.notes.length ? {
     title: part.title || 'NC Synth (Peter Semmelhack)',
     notes: part.notes,
     settings: part.settings || null,
-    seed: (part.seed >>> 0) || 1
+    seed: (part.seed >>> 0) || 1,
+    depth: depth,
+    mods: part.mods || []
   } : null;
   if (synthEngine && (!next || !SYNTH || next.seed !== SYNTH.seed)) {
     try { synthEngine.panic(); } catch (e) {}

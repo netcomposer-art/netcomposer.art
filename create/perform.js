@@ -559,6 +559,7 @@
     localPlan.total_s = next.total_s;
     syncChord(localPlan, index);
     followTake();
+    syncLiveSynth();
     driveClips();
     return next;
   }
@@ -569,8 +570,11 @@
     syncTakeFromPlan(localPlan);
     if (take && take.duration !== scale) layoutStrip();
     followTake();
-    fitClock();
-    driveClips();
+    refreshSynthFm(localPlan).then(function () {
+      syncLiveSynth();
+      fitClock();
+      driveClips();
+    });
   }
   function onBarKey(ev, sp) {
     if (!localPlan || !(sp.entry >= 0) || drag) return;
@@ -1695,6 +1699,92 @@
     return a[0] || 1;
   }
   function isSynth(s) { return !!(s && s.kind === 'nc-synth'); }
+  // Chord clips already in the take. A language plan carries one entry per
+  // played chord (a loop repeats a recording), so beds follow those entries.
+  // With no plan yet, the recordings sit back to back. The synth is never a bed.
+  function chordBeds(plan) {
+    var sounds = gatherSounds || [], beds = [], t = 0, i, s, buf, at, len, origin;
+    if (plan && plan.entries && plan.entries.length) {
+      plan.entries.forEach(function (e, ei) {
+        var si = soundIndex(e, ei);
+        s = sounds[si];
+        if (!s || isSynth(s)) return;
+        buf = s.buffer || clipBuffers[clipKey(s)];
+        if (!buf) return;
+        origin = s.start_s > 0 ? s.start_s : 0;
+        at = +e.at_s || 0;
+        len = +e.len_s || 0;
+        if (!(len > 0)) return;
+        beds.push({ buffer: buf, at: at, len: len, origin: origin, title: s.title || s.symbol || e.chord || 'recording' });
+      });
+      return beds;
+    }
+    for (i = 0; i < sounds.length; i++) {
+      s = sounds[i];
+      if (!s || isSynth(s)) continue;
+      buf = s.buffer || clipBuffers[clipKey(s)];
+      if (!buf) continue;
+      origin = s.start_s > 0 ? s.start_s : 0;
+      at = t;
+      len = Math.max(0, buf.duration - origin);
+      t += len;
+      if (!(len > 0)) continue;
+      beds.push({ buffer: buf, at: at, len: len, origin: origin, title: s.title || s.symbol || 'recording' });
+    }
+    return beds;
+  }
+  // The clip sounding under each written note. Offset is into that recording.
+  function modsFor(notes, beds) {
+    return (notes || []).map(function (n) {
+      var hit = null, i, b, offset;
+      for (i = 0; i < beds.length; i++) {
+        b = beds[i];
+        if (n.start >= b.at - 0.0005 && n.start < b.at + b.len - 0.0005) { hit = b; break; }
+      }
+      if (!hit) return null;
+      offset = hit.origin + (n.start - hit.at);
+      if (!(offset < hit.buffer.duration - 0.0005)) return null;
+      return { buffer: hit.buffer, offset: Math.max(0, offset), title: hit.title };
+    });
+  }
+  var fmGen = 0;
+  // Re-render the synth buffer with those clips as modulators. Depth 0, or no
+  // clip under a note, leaves that note unmodulated. The clip bytes are only read.
+  function refreshSynthFm(plan) {
+    var gen = ++fmGen;
+    var sounds = gatherSounds || [], synth = null, i;
+    for (i = 0; i < sounds.length; i++) if (isSynth(sounds[i])) synth = sounds[i];
+    if (!synth || !synth.notes || !synth.synth || !window.NCSynth) return Promise.resolve();
+    var depth = +synth.synth.settings.fmDepth;
+    if (!(depth >= 0)) depth = 0;
+    var mods = modsFor(synth.notes, chordBeds(plan));
+    var titles = [];
+    mods.forEach(function (m) { if (m && titles.indexOf(m.title) < 0) titles.push(m.title); });
+    synth.synth.fm_depth = depth;
+    synth.synth.modulated_by = titles;
+    var key = depth + '|' + mods.map(function (m) { return m ? m.title + '@' + m.offset.toFixed(3) + '#' + m.buffer.length : '-'; }).join(',');
+    var credit = titles.length && depth > 0 ? NCSynth.CREDIT + ', modulated by ' + titles.join(', ') : NCSynth.CREDIT;
+    synth.title = credit;
+    synth.credit = credit + '. Code MIT. Output CC BY-SA 4.0.';
+    synth.detail = NCSynth.describe(synth.synth.settings, synth.synth.seed);
+    if (!titles.length || !(depth > 0) || (synth._fmKey === key && synth.buffer)) return Promise.resolve();
+    var notes = synth.notes.map(function (n, ni) {
+      var note = { midi: n.midi, pitch: n.pitch, velocity: n.velocity, start: n.start, length: n.length };
+      if (mods[ni]) note.modulator = { buffer: mods[ni].buffer, offset: mods[ni].offset };
+      return note;
+    });
+    return NCSynth.renderNotes(notes, synth.synth.settings, synth.synth.seed).then(function (buf) {
+      if (gen !== fmGen || !buf) return;
+      synth.buffer = buf;
+      synth.duration_s = buf.duration;
+      try { if (synth.url) URL.revokeObjectURL(synth.url); } catch (e) {}
+      try { synth.url = URL.createObjectURL(NCSynth.wavBlob(buf)); } catch (e2) { synth.url = synth.url || ''; }
+      var id = clipKey(synth);
+      if (id) clipBuffers[id] = buf;
+      synth._fmKey = key;
+      paintGather(gatherSounds, true);
+    }).catch(function () {});
+  }
   // A written notes / n line with no @instrument. The Composition language
   // owns chords, tempo and placement. This only asks whether that line
   // should become a synth buffer.
@@ -2039,7 +2129,16 @@
     var sounds = gatherSounds || [], synth = null, i;
     for (i = 0; i < sounds.length; i++) if (isSynth(sounds[i])) synth = sounds[i];
     if (!synth || !synth.notes || !synth.notes.length || !synth.synth) { NCLive.setSynthPart(null); return; }
-    NCLive.setSynthPart({ title: synth.title, notes: synth.notes, settings: synth.synth.settings, seed: synth.synth.seed });
+    var depth = +synth.synth.settings.fmDepth;
+    if (!(depth >= 0)) depth = 0;
+    NCLive.setSynthPart({
+      title: synth.title,
+      notes: synth.notes,
+      settings: synth.synth.settings,
+      seed: synth.synth.seed,
+      depth: depth,
+      mods: modsFor(synth.notes, chordBeds(localPlan))
+    });
   }
   function noteSynthRecord(plan) {
     var sounds = gatherSounds || [], synth = null, i;
@@ -2052,6 +2151,8 @@
     put(view, recRow('Sound', synth.title));
     put(view, recRow('Line', synth.symbol));
     put(view, recRow('Settings', synth.detail));
+    if (synth.synth && synth.synth.settings && synth.synth.settings.fmDepth != null) put(view, recRow('FM depth', String(Math.round(+synth.synth.settings.fmDepth * 100) / 100)));
+    if (synth.synth && synth.synth.modulated_by && synth.synth.modulated_by.length) put(view, recRow('Modulated by', synth.synth.modulated_by.join(', ')));
     put(view, recRow('Code', 'MIT'));
     put(view, recRow('Output license', 'CC BY-SA 4.0'));
     if (plan && plan.seed != null) put(view, recRow('Seed', String(plan.seed)));
@@ -2116,8 +2217,12 @@
         throw err;
       }
       phase = (gatherSounds && gatherSounds.length) ? 'collection' : '';
-      revealTake(buildPlan(seed, bufs));
-      idle();
+      var draft = buildPlan(seed, bufs);
+      return refreshSynthFm(draft).then(function () {
+        if (gen !== asmGen) return;
+        revealTake(buildPlan(seed, bufs));
+        idle();
+      });
     }).catch(function (err) {
       if (gen !== asmGen) return;
       phase = (gatherSounds && gatherSounds.length) ? 'collection' : '';
@@ -2465,8 +2570,11 @@
       for (var q = 0; q < gatherSounds.length; q++) if (gatherSounds[q].slot === slot) row = q;
       var kept = row >= 0 && window.NCTimelineEdit && NCTimelineEdit.regather && NCTimelineEdit.regather(edited, fresh, row, planStartsFixed);
       if (kept) { fresh.entries = kept.entries; fresh.total_s = kept.total_s; }
-      revealTake(fresh);
-      gstatus('Gathered.');
+      refreshSynthFm(fresh).then(function () {
+        if (mine !== asmGen) return;
+        revealTake(fresh);
+        gstatus('Gathered.');
+      });
     });
   }
   function regather(slot) {
@@ -2701,6 +2809,12 @@
     gstatus('Gathered.');
     var gid = gatherId;
     ensureSynth(gatherSounds).then(function () {
+      if (gatherId !== gid || phase !== 'collection') return;
+      return Promise.all((gatherSounds || []).map(loadClip));
+    }).then(function () {
+      if (gatherId !== gid || phase !== 'collection') return;
+      return refreshSynthFm(null);
+    }).then(function () {
       if (gatherId !== gid || phase !== 'collection') return;
       paintGather(gatherSounds);
       preloadClips(gatherSounds);
