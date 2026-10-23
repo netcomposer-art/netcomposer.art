@@ -1,8 +1,8 @@
 // The Composition language, first slice (Peter, 2026-10-22). Deterministic only:
 // tempo, chords, durations, groups, loops, rests, comments, seeds, and the
-// starting hack values for Live. One reading, shared with nc-performer through
-// tests/language-vectors.json. Words this file does not recognise, and anything
-// in quotes, stay words for the AI. Nothing here calls a model.
+// starting hack values for Live, and an fm modulator source. One reading, shared
+// with nc-performer through tests/language-vectors.json. Words this file does not
+// recognise, and anything in quotes, stay words for the AI. Nothing here calls a model.
 //
 // A duration belongs to its own chord. A chord with none plays its whole
 // recording. loop(n) and xn repeat a group with the same recordings. A hack
@@ -221,17 +221,23 @@
     var known = opts.known || function () { return false; };
     var src = String(text || '');
     var tokens = tokenize(src);
-    var i = 0, syntax = [], words = [], notes = [], played = [], hacks = [];
+    var i = 0, syntax = [], words = [], notes = [], played = [], hacks = [], fm = [];
     var seen = {}, flags = { paren: false, rest: false, loop: false, lower: false, quoteChord: false };
-    var meter = '4/4', seed = null, tempos = [], seeds = [], nextRec = 0, quoted = false;
+    var meter = '4/4', seed = null, tempos = [], seeds = [], nextRec = 0, quoted = false, currentTrack = 1;
     function note(s) { if (s && !seen[s]) { seen[s] = 1; notes.push(s); } }
-    function addWord(w) { if (w) words.push(w); }
+    function addWord(w) {
+      if (!w) return;
+      var tm = /^t(\d+)$/i.exec(w);
+      if (tm && +tm[1] > 0) currentTrack = +tm[1];
+      words.push(w);
+    }
 
     function stamp(ev) {
       var copy = {
         kind: ev.kind, symbol: ev.symbol, bass: ev.bass == null ? null : ev.bass,
         beats: ev.beats, bars: ev.bars, openDur: !!ev.openDur, recording: ev.recording
       };
+      if (ev.kind === 'chord') copy.track = ev.track || 1;
       played.push(copy);
       return copy;
     }
@@ -446,11 +452,43 @@
       if (tryLength()) return true;
       var rest = tryRest();
       if (rest) { assign(rest); stamp(rest); syntax.push({ kind: 'rest', text: renderRest(rest) }); return true; }
+      if (tryFm(false)) return true;
       var ch = tryChord(false);
-      if (ch) { assign(ch); stamp(ch); syntax.push({ kind: 'chord', text: renderChord(ch) }); return true; }
+      if (ch) { ch.track = currentTrack; assign(ch); stamp(ch); syntax.push({ kind: 'chord', text: renderChord(ch) }); return true; }
       var times = tryLoop();
       if (times) { note('loop needs a group.'); flags.loop = true; return true; }
       return false;
+    }
+    // fm t2 3 uses that track's own rendered audio. fm "words" 3 names a search.
+    // The first source is kept. Depth is 0–10, and a missing number is 3.
+    function tryFm(inGroup) {
+      var t = tokens[i];
+      if (!t || t.type !== 'word' || !/^fm$/i.test(t.text)) return false;
+      var n = tokens[i + 1];
+      if (!n) return false;
+      var spec = null, eat = 2;
+      if (n.type === 'quote') spec = { kind: 'words', query: n.text };
+      else if (n.type === 'word') {
+        var tm = /^t(\d+)$/i.exec(n.text);
+        if (!tm || !(+tm[1] > 0)) return false;
+        spec = { kind: 'track', track: +tm[1] };
+      } else return false;
+      var depth = 3, dtok = tokens[i + eat];
+      if (dtok && dtok.type === 'word' && /^\d+(?:\.\d+)?$/.test(dtok.text)) {
+        depth = +dtok.text;
+        eat++;
+      }
+      i += eat;
+      if (!(depth >= 0)) depth = 0;
+      if (depth > 10) { note('FM depth stays within 0–10.'); depth = 10; }
+      spec.depth = depth;
+      var shown = spec.kind === 'track'
+        ? 'fm t' + spec.track + ' ' + trimNum(depth)
+        : 'fm "' + spec.query + '" ' + trimNum(depth);
+      if (fm.length) note('Another fm was written. The first is kept.');
+      else { fm.push(spec); syntax.push({ kind: 'fm', text: shown }); }
+      if (inGroup) note('fm is for the whole piece.');
+      return true;
     }
     function parseGroup() {
       i++;
@@ -462,11 +500,12 @@
         if (t.type === 'bar') { items.push({ kind: 'bar' }); i++; continue; }
         if (t.type === 'quote') { takeQuote(); continue; }
         if (tryHack()) { note('Hacks are for the whole piece.'); continue; }
+        if (tryFm(true)) continue;
         if (tryTempo() || trySeed() || tryMeter() || tryLength()) continue;
         var rest = tryRest();
         if (rest) { items.push(rest); continue; }
         var ch = tryChord(true);
-        if (ch) { items.push(ch); continue; }
+        if (ch) { ch.track = currentTrack; items.push(ch); continue; }
         if (t.type === 'word') { addWord(t.text); i++; continue; }
         i++;
       }
@@ -501,6 +540,7 @@
       chord.beats = bars ? null : n;
       chord.bars = bars ? n : null;
       chord.paren = false;
+      chord.track = currentTrack;
       assign(chord);
       stamp(chord);
       syntax.push({ kind: 'chord', text: renderChord(chord) });
@@ -578,7 +618,7 @@
     return {
       bpm: bpm, meter: meter, seed: seed, clock: clock, hacks: hacks,
       played: played, gather: gather, words: words, notes: notes, quoted: quoted,
-      iread: iread
+      fm: fm, iread: iread
     };
   }
 

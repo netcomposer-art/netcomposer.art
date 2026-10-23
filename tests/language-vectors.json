@@ -883,5 +883,174 @@
       "Words are left for the AI."
     ],
     "iread": "C\n\"90 BPM\" \"Cm\"\nQuoted words stay words.\nWords are left for the AI."
+  },
+  {
+    "name": "fm-track",
+    "text": "q90; T1 [Cm(4) Fm9]; T2 [Bb(4)]; fm t2 3",
+    "bpm": 90,
+    "clock": "language",
+    "seed": null,
+    "meter": "4/4",
+    "gather": [
+      "Cm",
+      "Fm9",
+      "Bb"
+    ],
+    "played": [
+      {
+        "kind": "chord",
+        "symbol": "Cm",
+        "bass": null,
+        "beats": 4,
+        "bars": null,
+        "seconds": 2.667,
+        "recording": 0
+      },
+      {
+        "kind": "chord",
+        "symbol": "Fm9",
+        "bass": null,
+        "beats": null,
+        "bars": null,
+        "seconds": null,
+        "recording": 1
+      },
+      {
+        "kind": "chord",
+        "symbol": "Bb",
+        "bass": null,
+        "beats": 4,
+        "bars": null,
+        "seconds": 2.667,
+        "recording": 2
+      }
+    ],
+    "hacks": [],
+    "words": [
+      "T1",
+      "T2"
+    ],
+    "notes": [
+      "A duration stays on its own chord. The others play their whole recordings.",
+      "Words are left for the AI."
+    ],
+    "iread": "q90; [Cm(4) Fm9] [Bb(4)]; fm t2 3\nT1 T2\nA duration stays on its own chord. The others play their whole recordings.\nWords are left for the AI.",
+    "fm": [
+      {
+        "kind": "track",
+        "track": 2,
+        "depth": 3
+      }
+    ],
+    "tracks": [
+      1,
+      1,
+      2
+    ]
+  },
+  {
+    "name": "fm-words",
+    "text": "fm \"field recording of rain\" 3",
+    "bpm": null,
+    "clock": "legacy",
+    "seed": null,
+    "meter": "4/4",
+    "gather": [],
+    "played": [],
+    "hacks": [],
+    "words": [],
+    "notes": [],
+    "iread": "fm \"field recording of rain\" 3",
+    "fm": [
+      {
+        "kind": "words",
+        "query": "field recording of rain",
+        "depth": 3
+      }
+    ],
+    "tracks": []
+  },
+  {
+    "name": "fm-words-default",
+    "text": "fm \"a short dialog\"",
+    "bpm": null,
+    "clock": "legacy",
+    "seed": null,
+    "meter": "4/4",
+    "gather": [],
+    "played": [],
+    "hacks": [],
+    "words": [],
+    "notes": [],
+    "iread": "fm \"a short dialog\" 3",
+    "fm": [
+      {
+        "kind": "words",
+        "query": "a short dialog",
+        "depth": 3
+      }
+    ],
+    "tracks": []
+  },
+  {
+    "name": "fm-depth",
+    "text": "fm t2 12; fm \"other words\" 1",
+    "bpm": null,
+    "clock": "legacy",
+    "seed": null,
+    "meter": "4/4",
+    "gather": [],
+    "played": [],
+    "hacks": [],
+    "words": [],
+    "notes": [
+      "FM depth stays within 0–10.",
+      "Another fm was written. The first is kept."
+    ],
+    "iread": "fm t2 10\nFM depth stays within 0–10.\nAnother fm was written. The first is kept.",
+    "fm": [
+      {
+        "kind": "track",
+        "track": 2,
+        "depth": 10
+      }
+    ],
+    "tracks": []
+  },
+  {
+    "name": "fm-chord-stays",
+    "text": "Fm; fm t2 3",
+    "bpm": null,
+    "clock": "legacy",
+    "seed": null,
+    "meter": "4/4",
+    "gather": [
+      "Fm"
+    ],
+    "played": [
+      {
+        "kind": "chord",
+        "symbol": "Fm",
+        "bass": null,
+        "beats": null,
+        "bars": null,
+        "seconds": null,
+        "recording": 0
+      }
+    ],
+    "hacks": [],
+    "words": [],
+    "notes": [],
+    "iread": "Fm; fm t2 3",
+    "fm": [
+      {
+        "kind": "track",
+        "track": 2,
+        "depth": 3
+      }
+    ],
+    "tracks": [
+      1
+    ]
   }
 ]
