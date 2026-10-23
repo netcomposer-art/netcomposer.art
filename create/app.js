@@ -378,8 +378,66 @@ function playMeta(total, clk) {
     trimNum(bars) + (Math.abs(bars - 1) < 1e-9 ? ' bar' : ' bars') + ' · ' + secText(sec) + ' · ' +
     trimNum(clk.bpm) + ' BPM' + (clk.tempoSketch ? ' sketch' : '');
 }
+var clockEdit = null, clockSkip = false;
+function syncClock(parsed) {
+  var tempo = $('tempo'), meter = $('meter');
+  if (!tempo || !meter) return;
+  var bpmWritten = !!(parsed && parsed.bpm > 0);
+  var meterWritten = !!(parsed && parsed.meterWritten);
+  if (clockEdit !== 'tempo') {
+    tempo.value = trimNum(bpmWritten ? parsed.bpm : ((window.NCLanguage && NCLanguage.sketchBpm) || 96));
+    tempo.classList.toggle('deflt', !bpmWritten);
+  }
+  if (clockEdit !== 'meter') {
+    meter.value = (parsed && parsed.meter) || '4/4';
+    meter.classList.toggle('deflt', !meterWritten);
+  }
+}
+function commitTempo() {
+  if (!window.NCLanguage || !NCLanguage.setTempo) return;
+  var parsed = readLang($('comp').value), raw = $('tempo').value.trim();
+  if (!/^\d+(?:\.\d+)?$/.test(raw) || !(+raw > 0)) { syncClock(parsed); return; }
+  var n = +raw, written = parsed && parsed.bpm > 0 ? parsed.bpm : null;
+  var shown = written != null ? written : ((NCLanguage.sketchBpm) || 96);
+  if (Math.abs(n - shown) < 1e-9) { syncClock(parsed); return; }
+  $('comp').value = NCLanguage.setTempo($('comp').value, n);
+  $('comp').dispatchEvent(new Event('input', { bubbles: true }));
+}
+function commitMeter() {
+  if (!window.NCLanguage || !NCLanguage.setMeter) return;
+  var parsed = readLang($('comp').value), raw = $('meter').value.replace(/\s+/g, '');
+  if (!/^(\d+)\/(2|4|8)$/.test(raw) || !(+raw.split('/')[0] > 0)) { syncClock(parsed); return; }
+  var cur = (parsed && parsed.meter) || '4/4';
+  var written = !!(parsed && parsed.meterWritten);
+  if (raw === cur && (raw !== '4/4' || written)) { syncClock(parsed); return; }
+  if (raw === '4/4' && !written) { syncClock(parsed); return; }
+  $('comp').value = NCLanguage.setMeter($('comp').value, raw);
+  $('comp').dispatchEvent(new Event('input', { bubbles: true }));
+}
+function wireClock(id, commit) {
+  var el = $(id);
+  if (!el) return;
+  el.addEventListener('focus', function () { clockEdit = id; });
+  el.addEventListener('input', function () { clockEdit = id; });
+  el.addEventListener('blur', function () {
+    if (clockSkip) { clockSkip = false; clockEdit = null; return; }
+    clockEdit = null;
+    commit();
+  });
+  el.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') { e.preventDefault(); el.blur(); }
+    else if (e.key === 'Escape') {
+      e.preventDefault();
+      clockSkip = true;
+      clockEdit = null;
+      syncClock(readLang($('comp').value));
+      el.blur();
+    }
+  });
+}
 function refresh() {
   var parsed = readLang($('comp').value);
+  syncClock(parsed);
   var tl = CAT && timeline(), el = $('prog');
   if (!CAT) { el.textContent = 'Loading the chord set…'; return; }
   el.innerHTML = '';
@@ -1015,6 +1073,8 @@ sel.onchange = function () { if (sel.value === '') return;
   if (id === 'perf') noteBurst();
   refresh(); persistSoon(); if (!timeline()) stop(); else restartSoon();
 }); });
+wireClock('tempo', commitTempo);
+wireClock('meter', commitMeter);
 $('comp').addEventListener('blur', function () { refresh(); });
 ['title', 'by'].forEach(function (id) { $(id).addEventListener('input', persistSoon); });
 $('play').onclick = toggle;

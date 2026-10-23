@@ -93,7 +93,7 @@ function hasCode(expr) { return /`[^`]+`/.test(expr); }
   check(m && hasCode(m[0]), name + ' template has no code span');
 });
 check(/function lengthNote[\s\S]*?codeList\(/.test(langSrc), 'length notes are built from code spans');
-check(callArgs('say').some((args) => /at the start/.test(args) && hasCode(args)), 'tempo note must name where `90 BPM` goes');
+check(!/No tempo written/.test(langSrc), 'the default tempo is not an I-read note');
 const probes = [
   'Cm', '[Cm(4) Fm9]x4', '90 BPM [Cm(4) Fm9(2|)]x4', 'Cmaj13b', 'Cm, let it breathe',
   'C5', 'a slow melody', 'x4', 'loop(2.5)', '[ [Cm] ]', '[Cm lp500]', 'Cm(?)',
@@ -107,7 +107,16 @@ probes.concat(rows.map((r) => r.text)).forEach((text) => {
 });
 const cm = L.parse('Cm', { known });
 check(cm.iread.indexOf('96 BPM · Cm 1 bar* · 4 beats · 2.5 s') === 0, 'Cm echo: ' + cm.iread);
-check(cm.notes.some((n) => n.indexOf('Add `90 BPM` at the start') >= 0) && cm.notes.some((n) => n.indexOf('`Cm(4)`') >= 0 && n.indexOf('`Cm(2|)`') >= 0), 'Cm notes: ' + JSON.stringify(cm.notes));
+check(!cm.notes.some((n) => /tempo/i.test(n)) && cm.notes.some((n) => n.indexOf('`Cm(4)`') >= 0 && n.indexOf('`Cm(2|)`') >= 0), 'Cm notes keep the length and drop the tempo: ' + JSON.stringify(cm.notes));
+check(L.parse('3/4 Cm', { known }).iread.indexOf('96 BPM · Cm 1 bar* · 3 beats · ~1.9 s · 3/4') === 0, '3/4 sketch: ' + L.parse('3/4 Cm', { known }).iread);
+check(L.parse('6/8 Cm(1|)', { known }).played[0].bars === 1 && L.parse('6/8 Cm(1|)', { known }).played[0].seconds === 1.875 && L.parse('6/8 Cm(1|)', { known }).iread.indexOf('3 beats') >= 0, '6/8 bar is three quarter-beats');
+check(L.parse('3/4 Cm(2|)', { known }).played[0].seconds === 3.75 && L.parse('90 BPM 3/4 [Cm(3) | Fm(3)]', { known }).notes.length === 0, 'a bar in 3/4 is 3 beats');
+check(L.parse('3/4 [Cm(2) | Fm(3)]', { known }).notes.some((n) => n.indexOf('not 3') >= 0), 'a short bar in 3/4 is still an error');
+check(L.parse('4/4 Cm', { known }).meterWritten === true && L.parse('Cm', { known }).meterWritten === false && L.parse('"3/4" Cm', { known }).meterWritten === false, 'a written 4/4 is not the quiet default');
+check(L.setTempo('Cm', 90) === '90 BPM Cm' && L.setTempo('90 BPM Cm', 96) === 'Cm' && L.setTempo('tempo 90 Cm', 100) === '100 BPM Cm' && L.setTempo('q90\nCm', 80) === '80 BPM\nCm', 'tempo field writes 90 BPM and 96 takes it away');
+check(L.setTempo('3/4 Cm', 90) === '90 BPM 3/4 Cm' && L.setMeter('Cm', '3/4') === '3/4 Cm' && L.setMeter('90 BPM Cm', '6/8') === '90 BPM 6/8 Cm' && L.setMeter('90 BPM 3/4 Cm', '4/4') === '90 BPM Cm', 'meter field writes 3/4 after the tempo and 4/4 takes it away');
+check(L.setMeter('3/4 Cm 6/8', '4/4') === 'Cm' && L.setMeter('Cm 6/8', '5/4') === 'Cm 5/4', 'setting 4/4 removes every written time');
+check(L.parse(L.setMeter(L.setTempo('Cm', 72), '6/8'), { known }).bpm === 72 && L.parse(L.setMeter(L.setTempo('Cm', 72), '6/8'), { known }).meter === '6/8', 'the written statements are what the fields show');
 const looped = L.parse('[Cm(4) Fm9]x4', { known });
 check(looped.iread.indexOf('96 BPM · [Cm 4 beats, Fm9 1 bar*] ×4 · 32 beats · 20 s') === 0, 'loop echo: ' + looped.iread);
 check(looped.notes.some((n) => n.indexOf('Write `Fm9(4)` for 4 beats or `Fm9(2|)` for 2 bars.') >= 0), 'length note names the chord: ' + JSON.stringify(looped.notes));
@@ -323,6 +332,7 @@ if (!chrome || typeof WebSocket === 'undefined') {
         el.dispatchEvent(new Event('input', {bubbles: true}));
         var codes = Array.prototype.map.call(document.querySelectorAll('#iread code'), function (c) { return c.textContent; });
         var times = document.querySelector('#prog .times');
+        var tempo = document.getElementById('tempo'), meter = document.getElementById('meter');
         return {
           chips: document.querySelectorAll('#prog .ch').length,
           times: times ? times.textContent : '',
@@ -330,13 +340,17 @@ if (!chrome || typeof WebSocket === 'undefined') {
           iread: document.getElementById('iread').textContent,
           hidden: document.getElementById('iread').hidden,
           codes: codes,
-          links: Array.prototype.map.call(document.querySelectorAll('#iread a.how'), function (a) { return a.getAttribute('href'); })
+          links: Array.prototype.map.call(document.querySelectorAll('#iread a.how'), function (a) { return a.getAttribute('href'); }),
+          tempo: tempo.value, meter: meter.value,
+          tempoDefault: tempo.classList.contains('deflt'),
+          meterDefault: meter.classList.contains('deflt')
         };
       })()`);
     }
     const just = await put('Cm');
-    check(just && just.chips === 1 && just.meta.indexOf('1 bar') >= 0 && just.meta.indexOf('4 beats') >= 0 && just.meta.indexOf('2.5 s') >= 0 && just.iread.indexOf('96 BPM') >= 0 && just.codes.indexOf('90 BPM') >= 0 && just.codes.indexOf('Cm(4)') >= 0, 'Cm is one bar: ' + JSON.stringify(just));
-    check(just && just.links.indexOf('/create/help/#tempo') >= 0 && just.links.indexOf('/create/help/#durations') >= 0, 'Cm notes link to the help page: ' + JSON.stringify(just && just.links));
+    check(just && just.chips === 1 && just.meta.indexOf('1 bar') >= 0 && just.meta.indexOf('4 beats') >= 0 && just.meta.indexOf('2.5 s') >= 0 && just.iread.indexOf('96 BPM') >= 0 && just.iread.indexOf('No tempo') < 0 && just.codes.indexOf('90 BPM') < 0 && just.codes.indexOf('Cm(4)') >= 0, 'Cm is one bar: ' + JSON.stringify(just));
+    check(just && just.links.indexOf('/create/help/#durations') >= 0 && just.links.indexOf('/create/help/#tempo') < 0, 'Cm notes link to lengths, not a tempo reminder: ' + JSON.stringify(just && just.links));
+    check(just && just.tempo === '96' && just.meter === '4/4' && just.tempoDefault === true && just.meterDefault === true, 'Cm leaves the header on the defaults: ' + JSON.stringify(just));
     await shotPlay('play-cm-desktop.png', 1280, 900, false);
     await shotPlay('play-cm-phone.png', 390, 844, true);
     const grp = await put('[Cm(4) Fm9]x4');
@@ -356,9 +370,49 @@ if (!chrome || typeof WebSocket === 'undefined') {
     await shotPlay('play-words-desktop.png', 1280, 900, false);
     await shotPlay('play-words-phone.png', 390, 844, true);
     const blank = await put('');
-    check(blank && blank.chips === 0 && blank.meta === '' && blank.hidden === true, 'empty field: ' + JSON.stringify(blank));
+    check(blank && blank.chips === 0 && blank.meta === '' && blank.hidden === true && blank.tempo === '96' && blank.meter === '4/4' && blank.tempoDefault && blank.meterDefault, 'empty field still shows 96 and 4/4: ' + JSON.stringify(blank));
+    await send('Emulation.setDeviceMetricsOverride', { width: 1280, height: 900, deviceScaleFactor: 1, mobile: false });
+    await sleep(80);
+    const clockBox = await ev(`(() => {
+      var label = document.querySelector('.comp-head label').getBoundingClientRect();
+      var clock = document.querySelector('.comp-clock').getBoundingClientRect();
+      var labelText = document.querySelector('.comp-head label').textContent;
+      return { label: labelText, clockW: clock.width, clockH: clock.height, right: clock.right >= label.right - 1, sameRow: Math.abs(clock.top - label.top) < 8, overlap: !(clock.left >= label.right - 1 || label.left >= clock.right - 1 || clock.top >= label.bottom || label.top >= clock.bottom) };
+    })()`);
+    check(clockBox && clockBox.label === 'Composition elements' && clockBox.clockW > 40 && clockBox.clockH > 8 && clockBox.sameRow && !clockBox.overlap, 'header clock sits beside the label: ' + JSON.stringify(clockBox));
     await shotPlay('play-empty-desktop.png', 1280, 900, false);
     await shotPlay('play-empty-phone.png', 390, 844, true);
+    const waltz = await put('3/4 Cm');
+    check(waltz && waltz.chips === 1 && waltz.meta.indexOf('3 beats') >= 0 && waltz.meta.indexOf('1 bar') >= 0 && waltz.tempo === '96' && waltz.tempoDefault === true && waltz.meter === '3/4' && waltz.meterDefault === false && waltz.iread.indexOf('3/4') >= 0, '3/4 is written and 96 stays the quiet default: ' + JSON.stringify(waltz));
+    await shotPlay('play-34-desktop.png', 1280, 900, false);
+    await shotPlay('play-34-phone.png', 390, 844, true);
+    const edited = await ev(`(() => {
+      var comp = document.getElementById('comp');
+      comp.value = 'Cm';
+      comp.dispatchEvent(new Event('input', { bubbles: true }));
+      var tempo = document.getElementById('tempo');
+      tempo.value = '90';
+      tempo.dispatchEvent(new Event('blur'));
+      var afterTempo = comp.value;
+      var meter = document.getElementById('meter');
+      meter.value = '3/4';
+      meter.dispatchEvent(new Event('blur'));
+      var afterMeter = comp.value;
+      tempo.value = '96';
+      tempo.dispatchEvent(new Event('blur'));
+      var afterDefaultTempo = comp.value;
+      meter.value = '4/4';
+      meter.dispatchEvent(new Event('blur'));
+      var afterDefaultMeter = comp.value;
+      comp.value = 'tempo 72 Cm';
+      comp.dispatchEvent(new Event('input', { bubbles: true }));
+      var shown = tempo.value;
+      tempo.value = '80';
+      tempo.dispatchEvent(new Event('blur'));
+      return { afterTempo: afterTempo, afterMeter: afterMeter, afterDefaultTempo: afterDefaultTempo, afterDefaultMeter: afterDefaultMeter, shown: shown, updated: comp.value, tempoClass: tempo.className, meterClass: meter.className };
+    })()`);
+    check(edited && edited.afterTempo === '90 BPM Cm' && edited.afterMeter === '90 BPM 3/4 Cm' && edited.afterDefaultTempo === '3/4 Cm' && edited.afterDefaultMeter === 'Cm', 'editing the fields writes and clears the statements: ' + JSON.stringify(edited));
+    check(edited && edited.shown === '72' && edited.updated === '80 BPM Cm' && edited.tempoClass.indexOf('deflt') < 0 && edited.meterClass.indexOf('deflt') >= 0, 'a written tempo 72 shows in the field and an edit replaces it: ' + JSON.stringify(edited));
     const surprise = await ev(`(() => { var bad = []; for (var s = 1; s <= 40; s++) { var P = NC.makeSurprise(s * 2654435761 >>> 0); if (!P) { bad.push('none'); continue; } var f = NC.findChords(P.composition); if (f.length !== P.chords.length || f.some(function (c, i) { return c.sym !== P.chords[i]; })) bad.push(P.composition); } return bad; })()`);
     check(surprise && surprise.length === 0, 'Surprise chords changed: ' + JSON.stringify(surprise && surprise.slice(0, 3)));
     check(await ev("NCAssembly.statedSeconds('32 bars, tempo 90') === NCAssembly.statedSeconds('32 bars 90 BPM')"), 'page length agrees');

@@ -206,10 +206,9 @@
     "hacks": [],
     "words": [],
     "notes": [
-      "No tempo written, using 96 BPM. Add `90 BPM` at the start to set the tempo.",
       "A and E have no length, so Play sketches each as 1 bar and Gather uses the whole recording. Write `A(4)` or `E(4)` for 4 beats or `A(2|)` or `E(2|)` for 2 bars."
     ],
-    "iread": "96 BPM · [A 1 bar*, E 1 bar*] · 8 beats · 5 s\nNo tempo written, using 96 BPM. Add `90 BPM` at the start to set the tempo.\nA and E have no length, so Play sketches each as 1 bar and Gather uses the whole recording. Write `A(4)` or `E(4)` for 4 beats or `A(2|)` or `E(2|)` for 2 bars."
+    "iread": "96 BPM · [A 1 bar*, E 1 bar*] · 8 beats · 5 s\nA and E have no length, so Play sketches each as 1 bar and Gather uses the whole recording. Write `A(4)` or `E(4)` for 4 beats or `A(2|)` or `E(2|)` for 2 bars."
   },
   {
     "name": "lowercase-quality",
@@ -235,10 +234,9 @@
     "hacks": [],
     "words": [],
     "notes": [
-      "No tempo written, using 96 BPM. Add `90 BPM` at the start to set the tempo.",
       "Am has no length, so Play sketches it as 1 bar and Gather uses the whole recording. Write `Am(4)` for 4 beats or `Am(2|)` for 2 bars."
     ],
-    "iread": "96 BPM · Am 1 bar* · 4 beats · 2.5 s\nNo tempo written, using 96 BPM. Add `90 BPM` at the start to set the tempo.\nAm has no length, so Play sketches it as 1 bar and Gather uses the whole recording. Write `Am(4)` for 4 beats or `Am(2|)` for 2 bars."
+    "iread": "96 BPM · Am 1 bar* · 4 beats · 2.5 s\nAm has no length, so Play sketches it as 1 bar and Gather uses the whole recording. Write `Am(4)` for 4 beats or `Am(2|)` for 2 bars."
   },
   {
     "name": "lowercase-duration",
@@ -263,10 +261,8 @@
     ],
     "hacks": [],
     "words": [],
-    "notes": [
-      "No tempo written, using 96 BPM. Add `90 BPM` at the start to set the tempo."
-    ],
-    "iread": "96 BPM · A 4 beats · 4 beats · 2.5 s\nNo tempo written, using 96 BPM. Add `90 BPM` at the start to set the tempo."
+    "notes": [],
+    "iread": "96 BPM · A 4 beats · 4 beats · 2.5 s"
   },
   {
     "name": "quality-parens",
@@ -292,10 +288,9 @@
     "hacks": [],
     "words": [],
     "notes": [
-      "No tempo written, using 96 BPM. Add `90 BPM` at the start to set the tempo.",
       "Cm-maj7 has no length, so Play sketches it as 1 bar and Gather uses the whole recording. Write `Cm-maj7(4)` for 4 beats or `Cm-maj7(2|)` for 2 bars."
     ],
-    "iread": "96 BPM · Cm-maj7 1 bar* · 4 beats · 2.5 s\nNo tempo written, using 96 BPM. Add `90 BPM` at the start to set the tempo.\nCm-maj7 has no length, so Play sketches it as 1 bar and Gather uses the whole recording. Write `Cm-maj7(4)` for 4 beats or `Cm-maj7(2|)` for 2 bars."
+    "iread": "96 BPM · Cm-maj7 1 bar* · 4 beats · 2.5 s\nCm-maj7 has no length, so Play sketches it as 1 bar and Gather uses the whole recording. Write `Cm-maj7(4)` for 4 beats or `Cm-maj7(2|)` for 2 bars."
   },
   {
     "name": "quote-and-mix",
@@ -461,9 +456,9 @@
     "words": [],
     "notes": [
       "Another seed was written. Keep the first, and delete the later `sd 9`.",
-      "No tempo written, using 96 BPM. Add `90 BPM` at the start to set the tempo."
+      "Cm has no length, so Play sketches it as 1 bar and Gather uses the whole recording. Write `Cm(4)` for 4 beats or `Cm(2|)` for 2 bars."
     ],
-    "iread": "96 BPM · Cm 1 bar* · 4 beats · 2.5 s · sd4182\nAnother seed was written. Keep the first, and delete the later `sd 9`.\nNo tempo written, using 96 BPM. Add `90 BPM` at the start to set the tempo."
+    "iread": "96 BPM · Cm 1 bar* · 4 beats · 2.5 s · sd4182\nAnother seed was written. Keep the first, and delete the later `sd 9`.\nCm has no length, so Play sketches it as 1 bar and Gather uses the whole recording. Write `Cm(4)` for 4 beats or `Cm(2|)` for 2 bars."
   },
   {
     "name": "comment",
@@ -499,10 +494,9 @@
     "hacks": [],
     "words": [],
     "notes": [
-      "No tempo written, using 96 BPM. Add `90 BPM` at the start to set the tempo.",
       "Cm and F have no length, so Play sketches each as 1 bar and Gather uses the whole recording. Write `Cm(4)` or `F(4)` for 4 beats or `Cm(2|)` or `F(2|)` for 2 bars."
     ],
-    "iread": "96 BPM · Cm 1 bar* · F 1 bar* · 8 beats · 5 s\nNo tempo written, using 96 BPM. Add `90 BPM` at the start to set the tempo.\nCm and F have no length, so Play sketches each as 1 bar and Gather uses the whole recording. Write `Cm(4)` or `F(4)` for 4 beats or `Cm(2|)` or `F(2|)` for 2 bars."
+    "iread": "96 BPM · Cm 1 bar* · F 1 bar* · 8 beats · 5 s\nCm and F have no length, so Play sketches each as 1 bar and Gather uses the whole recording. Write `Cm(4)` or `F(4)` for 4 beats or `Cm(2|)` or `F(2|)` for 2 bars."
   },
   {
     "name": "bar-line",
@@ -743,10 +737,9 @@
     "hacks": [],
     "words": [],
     "notes": [
-      "No tempo written, using 96 BPM. Add `90 BPM` at the start to set the tempo.",
       "C and F have no length, so Play sketches each as 1 bar and Gather uses the whole recording. Write `C(4)` or `F(4)` for 4 beats or `C(2|)` or `F(2|)` for 2 bars."
     ],
-    "iread": "96 BPM · [C 1 bar*, F 1 bar*] ×3 · 24 beats · 15 s\nNo tempo written, using 96 BPM. Add `90 BPM` at the start to set the tempo.\nC and F have no length, so Play sketches each as 1 bar and Gather uses the whole recording. Write `C(4)` or `F(4)` for 4 beats or `C(2|)` or `F(2|)` for 2 bars."
+    "iread": "96 BPM · [C 1 bar*, F 1 bar*] ×3 · 24 beats · 15 s\nC and F have no length, so Play sketches each as 1 bar and Gather uses the whole recording. Write `C(4)` or `F(4)` for 4 beats or `C(2|)` or `F(2|)` for 2 bars."
   },
   {
     "name": "open-duration",
@@ -772,10 +765,9 @@
     "hacks": [],
     "words": [],
     "notes": [
-      "No tempo written, using 96 BPM. Add `90 BPM` at the start to set the tempo.",
       "`Cm(?)` plays the whole recording when gathered. Play sketches 1 bar. Write `Cm(4)` for 4 beats or `Cm(1|)` for 1 bar in its place."
     ],
-    "iread": "96 BPM · Cm 1 bar* · 4 beats · 2.5 s\nNo tempo written, using 96 BPM. Add `90 BPM` at the start to set the tempo.\n`Cm(?)` plays the whole recording when gathered. Play sketches 1 bar. Write `Cm(4)` for 4 beats or `Cm(1|)` for 1 bar in its place."
+    "iread": "96 BPM · Cm 1 bar* · 4 beats · 2.5 s\n`Cm(?)` plays the whole recording when gathered. Play sketches 1 bar. Write `Cm(4)` for 4 beats or `Cm(1|)` for 1 bar in its place."
   },
   {
     "name": "article",
@@ -901,10 +893,10 @@
     ],
     "notes": [
       "A chord inside quotes stays words. Delete the quotes around `Cm` to play it.",
-      "No tempo written, using 96 BPM. Add `90 BPM` at the start to set the tempo.",
+      "C has no length, so Play sketches it as 1 bar and Gather uses the whole recording. Write `C(4)` for 4 beats or `C(2|)` for 2 bars.",
       "Words are left for the AI. Quote them `\"like this\"` to keep them words."
     ],
-    "iread": "96 BPM · C 1 bar* · 4 beats · 2.5 s\n\"90 BPM\" \"Cm\"\nA chord inside quotes stays words. Delete the quotes around `Cm` to play it.\nNo tempo written, using 96 BPM. Add `90 BPM` at the start to set the tempo.\nWords are left for the AI. Quote them `\"like this\"` to keep them words."
+    "iread": "96 BPM · C 1 bar* · 4 beats · 2.5 s\n\"90 BPM\" \"Cm\"\nA chord inside quotes stays words. Delete the quotes around `Cm` to play it.\nC has no length, so Play sketches it as 1 bar and Gather uses the whole recording. Write `C(4)` for 4 beats or `C(2|)` for 2 bars.\nWords are left for the AI. Quote them `\"like this\"` to keep them words."
   },
   {
     "name": "arp-pendulum",
@@ -1107,5 +1099,93 @@
       }
     ],
     "unmapped": []
+  },
+  {
+    "name": "meter-three-four",
+    "text": "90 BPM 3/4 [Cm(3) | Fm(3)]",
+    "bpm": 90,
+    "clock": "language",
+    "seed": null,
+    "meter": "3/4",
+    "gather": [
+      "Cm",
+      "Fm"
+    ],
+    "played": [
+      {
+        "kind": "chord",
+        "symbol": "Cm",
+        "bass": null,
+        "beats": 3,
+        "bars": null,
+        "seconds": 2,
+        "recording": 0
+      },
+      {
+        "kind": "chord",
+        "symbol": "Fm",
+        "bass": null,
+        "beats": 3,
+        "bars": null,
+        "seconds": 2,
+        "recording": 1
+      }
+    ],
+    "hacks": [],
+    "words": [],
+    "notes": [],
+    "iread": "90 BPM · [Cm 3 beats, Fm 3 beats] · 6 beats · 4 s · 3/4"
+  },
+  {
+    "name": "meter-six-eight",
+    "text": "6/8 Cm(1|)",
+    "bpm": null,
+    "clock": "language",
+    "seed": null,
+    "meter": "6/8",
+    "gather": [
+      "Cm"
+    ],
+    "played": [
+      {
+        "kind": "chord",
+        "symbol": "Cm",
+        "bass": null,
+        "beats": null,
+        "bars": 1,
+        "seconds": 1.875,
+        "recording": 0
+      }
+    ],
+    "hacks": [],
+    "words": [],
+    "notes": [],
+    "iread": "96 BPM · Cm 1 bar · 3 beats · ~1.9 s · 6/8"
+  },
+  {
+    "name": "meter-two-bars",
+    "text": "3/4 Cm(2|)",
+    "bpm": null,
+    "clock": "language",
+    "seed": null,
+    "meter": "3/4",
+    "gather": [
+      "Cm"
+    ],
+    "played": [
+      {
+        "kind": "chord",
+        "symbol": "Cm",
+        "bass": null,
+        "beats": null,
+        "bars": 2,
+        "seconds": 3.75,
+        "recording": 0
+      }
+    ],
+    "hacks": [],
+    "words": [],
+    "notes": [],
+    "iread": "96 BPM · Cm 2 bars · 6 beats · ~3.8 s · 3/4"
   }
 ]

@@ -10,7 +10,9 @@
 // recording when gathered; Play sketches it as one bar. loop(n) and xn repeat
 // a group with the same recordings. A hack sets Live's starting chain for the
 // whole piece. A ramp keeps the start value. With no written tempo, Play and
-// a written duration use 96 BPM (the NC Synth page default).
+// a written duration use 96 BPM (the NC Synth page default). A time signature
+// (`3/4`, `6/8`, and the other n/2, n/4, n/8 marks) sets the bar in quarter
+// notes. With none written, the bar is 4/4. `(n|)` is n of those bars.
 (function (root) {
   'use strict';
   var PC = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
@@ -97,6 +99,103 @@
     if (quarter) cands.push({ i: quarter.index, bpm: +quarter[1], source: 'quarter' });
     cands.sort(function (a, b) { return a.i - b.i; });
     return cands.length ? cands[0] : null;
+  }
+
+  // The header fields write these statements. The text stays the source of truth.
+  function spaces(n) { var a = ''; while (a.length < n) a += ' '; return a; }
+  function maskComposition(text) {
+    return String(text || '')
+      .replace(/"(?:[^"\\]|\\.)*"/g, function (m) { return spaces(m.length); })
+      .replace(/(^|\n|\s)#[^\n]*/g, function (m, lead) { return lead + spaces(m.length - lead.length); })
+      .replace(/\b(?:at|from)\s+bar\s+\d+\b[^.\n]{0,40}?\d+(?:\.\d+)?\s*BPM\b|\bbar\s+\d+\s*:\s*\d+(?:\.\d+)?\s*BPM\b/gi, function (m) { return spaces(m.length); });
+  }
+  function tempoSpan(text) {
+    var blank = maskComposition(text);
+    var bpm = /(\d+(?:\.\d+)?)\s*BPM\b/i.exec(blank);
+    if (bpm) return { start: bpm.index, end: bpm.index + bpm[0].length };
+    var cands = [];
+    function push(re, word) {
+      var m = re.exec(blank);
+      if (!m) return;
+      var at = m[0].toLowerCase().indexOf(word);
+      cands.push({ start: m.index + (at < 0 ? 0 : at), end: m.index + m[0].length });
+    }
+    push(/(?:^|[\s;,.(])tempo\s*\d+(?:\.\d+)?/i, 'tempo');
+    push(/(?:^|[\s;,.(])q\s*\d+(?:\.\d+)?/i, 'q');
+    push(/quarter(?:\s*note)?\s*[=≈]\s*\d+(?:\.\d+)?/i, 'quarter');
+    cands.sort(function (a, b) { return a.start - b.start; });
+    return cands.length ? cands[0] : null;
+  }
+  function meterSpans(text) {
+    var blank = maskComposition(text), spans = [], i = 0, n = blank.length;
+    function brk(c, start) {
+      if (' \n\t\r,;[]|"·.!:=≈–—→←×{}~*•'.indexOf(c) >= 0) return true;
+      if (c === '#' && start) return true;
+      return false;
+    }
+    while (i < n) {
+      var c = blank[i];
+      if (brk(c, true) || c === ':') { i++; continue; }
+      var start = i, word = '';
+      while (i < n && !brk(blank[i], false)) {
+        if (blank[i] === '(') {
+          word += blank[i++];
+          while (i < n && blank[i] !== ')') word += blank[i++];
+          if (i < n && blank[i] === ')') word += blank[i++];
+          continue;
+        }
+        word += blank[i++];
+      }
+      if (/^\d+\/(?:2|4|8)$/.test(word)) spans.push({ start: start, end: i });
+    }
+    return spans;
+  }
+  function cutSpan(text, start, end) {
+    var before = text.slice(0, start), after = text.slice(end);
+    if (/^\s*$/.test(before)) return after.replace(/^[ \t]*\n?/, '');
+    if (/^\s*$/.test(after)) return before.replace(/[ \t]*\n?$/, '');
+    if (/[ \t]$/.test(before) && /^[ \t]/.test(after)) return before.replace(/[ \t]$/, '') + after;
+    if (/\n$/.test(before) && /^\n/.test(after)) return before.replace(/\n$/, '') + after;
+    return before + after;
+  }
+  function insertFront(text, statement) {
+    if (!text || /^\s*$/.test(text)) return statement;
+    if (/^\s/.test(text)) {
+      var rest = text.replace(/^\s+/, '');
+      return rest ? statement + ' ' + rest : statement;
+    }
+    return statement + ' ' + text;
+  }
+  // Writing the default takes that statement back out.
+  function setTempo(text, bpm) {
+    text = String(text || '');
+    var n = +bpm, span = tempoSpan(text);
+    if (!(n > 0) || Math.abs(n - SKETCH_BPM) < 1e-9) return span ? cutSpan(text, span.start, span.end) : text;
+    var stmt = trimNum(n) + ' BPM';
+    if (!span) return insertFront(text, stmt);
+    return text.slice(0, span.start) + stmt + text.slice(span.end);
+  }
+  function setMeter(text, meter) {
+    text = String(text || '');
+    if (!/^\d+\/(?:2|4|8)$/.test(meter)) return text;
+    var spans = meterSpans(text), i;
+    if (meter === '4/4') {
+      for (i = spans.length - 1; i >= 0; i--) text = cutSpan(text, spans[i].start, spans[i].end);
+      return text;
+    }
+    if (!spans.length) {
+      var tempo = tempoSpan(text);
+      if (tempo && /^\s*$/.test(text.slice(0, tempo.start))) {
+        var after = text.slice(tempo.end);
+        if (/^\s*$/.test(after)) return text.slice(0, tempo.end) + ' ' + meter;
+        if (/^\n/.test(after)) return text.slice(0, tempo.end) + ' ' + meter + after;
+        if (/^\s/.test(after)) return text.slice(0, tempo.end) + ' ' + meter + after;
+        return text.slice(0, tempo.end) + ' ' + meter + ' ' + after;
+      }
+      return insertFront(text, meter);
+    }
+    var last = spans[spans.length - 1];
+    return text.slice(0, last.start) + meter + text.slice(last.end);
   }
 
   function tokenize(text) {
@@ -275,9 +374,9 @@
     var tokens = tokenize(src);
     var i = 0, syntax = [], words = [], notes = [], played = [], hacks = [];
     var seen = {}, flags = { paren: false, rest: false, loop: false, lower: false, quoteChord: false };
-    var meter = '4/4', seed = null, tempos = [], seeds = [], nextRec = 0, quoted = false;
+    var meter = '4/4', meterWritten = false, seed = null, tempos = [], seeds = [], nextRec = 0, quoted = false;
     var arps = [], unmapped = [];
-    var errors = [], tempoNotes = [], lengthNotes = [], otherNotes = [], aiNotes = [];
+    var errors = [], lengthNotes = [], otherNotes = [], aiNotes = [];
     function say(list, s) { if (s && !seen[s]) { seen[s] = 1; list.push(s); } }
     function note(s) { say(otherNotes, s); }
     function err(s) { say(errors, s); }
@@ -442,6 +541,7 @@
       var t = tokens[i];
       if (!t || t.type !== 'word' || !/^\d+\/(?:2|4|8)$/.test(t.text)) return false;
       meter = t.text;
+      meterWritten = true;
       i++;
       if (meter !== '4/4') syntax.push({ kind: 'meter', text: meter });
       return true;
@@ -942,16 +1042,15 @@
       gather.push(c.symbol);
     });
     var echo = musicalEcho();
-    if (echo && echo.music && !(bpm > 0)) say(tempoNotes, 'No tempo written, using ' + trimNum(SKETCH_BPM) + ' BPM. Add `90 BPM` at the start to set the tempo.');
     if (echo && echo.loose.length) say(lengthNotes, lengthNote(echo.loose));
     else if (echo && echo.open.length) say(lengthNotes, openNote(echo.open));
-    notes = errors.concat(otherNotes, tempoNotes, lengthNotes).slice(0, 2).concat(aiNotes);
+    notes = errors.concat(otherNotes, lengthNotes).slice(0, 2).concat(aiNotes);
     var line = echo && echo.line ? echo.line : joinSyntax(syntax);
     var iread = line;
     if (words.length) iread += (iread ? '\n' : '') + words.join(' ');
     notes.forEach(function (s) { iread += (iread ? '\n' : '') + s; });
     return {
-      bpm: bpm, meter: meter, seed: seed, clock: clock, hacks: hacks,
+      bpm: bpm, meter: meter, meterWritten: meterWritten, seed: seed, clock: clock, hacks: hacks,
       played: played, gather: gather, words: words, notes: notes, quoted: quoted,
       iread: iread, arp: arps, unmapped: unmapped, syntax: syntax
     };
@@ -1103,6 +1202,8 @@
     hackParams: hackParams,
     lpDial: lpDial,
     pretty: pretty,
-    sketchBpm: SKETCH_BPM
+    sketchBpm: SKETCH_BPM,
+    setTempo: setTempo,
+    setMeter: setMeter
   };
 })(typeof globalThis !== 'undefined' ? globalThis : this);

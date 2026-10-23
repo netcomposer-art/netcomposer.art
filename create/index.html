@@ -62,6 +62,17 @@ label.hold,#progcap.hold{color:transparent}
 #prog .len{display:block;font-family:var(--nc-mono);font-variant-numeric:tabular-nums;font-size:11px;color:var(--nc-sub);line-height:1.25}
 #prog .play-line{font-family:var(--nc-mono);font-variant-numeric:tabular-nums;font-size:12px;color:var(--nc-sub);margin:.35rem 0 0}
 #comp{min-height:calc(7.5em + 1.1rem + 2px);padding-right:2rem}
+.comp-head{display:flex;align-items:baseline;justify-content:space-between;gap:.35rem 1rem;flex-wrap:wrap;margin:1.05rem 0 .4rem}
+.comp-head>label{margin:0}
+.comp-clock{display:flex;align-items:baseline;gap:1rem;margin-left:auto;font-family:var(--nc-mono);font-variant-numeric:tabular-nums;font-size:13px;line-height:1.4}
+.clock{display:inline-flex;align-items:baseline;gap:.3rem}
+.clock .bpm{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--nc-sub)}
+#tempo.clock-in,#meter.clock-in{width:4.6ch;margin:0;padding:0 0 1px;font-family:var(--nc-mono);font-variant-numeric:tabular-nums;font-size:13px;line-height:1.4;text-align:right;color:var(--nc-text);background:transparent;border:0;border-bottom:1px solid transparent;border-radius:0}
+#tempo.clock-in{width:3.4ch}
+#tempo.clock-in.deflt,#meter.clock-in.deflt{color:var(--nc-sub)}
+#tempo.clock-in:hover,#meter.clock-in:hover{border-bottom-color:var(--nc-div)}
+#tempo.clock-in:focus,#meter.clock-in:focus{outline:none;border-bottom-color:var(--nc-acc);color:var(--nc-text)}
+@media(pointer:coarse){#tempo.clock-in,#meter.clock-in{font-size:16px}}
 .comp-wrap{position:relative}
 .comp-help{position:absolute;top:7px;right:7px;z-index:1;display:flex;align-items:center;justify-content:center;width:1.35rem;height:1.35rem;font-family:var(--nc-mono);font-size:13px;line-height:1;color:var(--nc-sub);text-decoration:none}
 .comp-help:hover{color:var(--nc-acc)}
@@ -279,7 +290,13 @@ button.rewind:hover,button.rewind:active{background:transparent;transform:none}
 <h2 id="write-h">Write</h2>
 <label for="starter" class="hold">Start from</label>
 <div class="pick"><select id="starter"><option value="">Choose a starter…</option></select><button id="surprise" type="button" title="A new progression: another key, mood and shape">Surprise me</button><button id="undo" type="button" hidden>Undo</button></div>
+<div class="comp-head">
 <label for="comp">Composition elements</label>
+<div class="comp-clock">
+<span class="clock"><input id="tempo" class="clock-in deflt" type="text" inputmode="decimal" value="96" aria-label="Tempo" autocomplete="off" spellcheck="false"><span class="bpm">BPM</span></span>
+<input id="meter" class="clock-in deflt" type="text" value="4/4" aria-label="Time signature" autocomplete="off" spellcheck="false">
+</div>
+</div>
 <div class="comp-wrap">
 <textarea id="comp" rows="5" placeholder="Input your chord instructions here."></textarea>
 <a id="comp-help" class="comp-help" href="/create/help/" target="_blank" rel="noopener" aria-label="How to write a composition">?</a>

@@ -41,7 +41,7 @@ blocks.forEach((m, i) => {
 
 const style = /<section id="style"[\s\S]*?<\/section>/.exec(html);
 check(style && /\bhidden\b/.test(style[0].slice(0, 40)) && !/<pre class="ex">/.test(style[0]), 'style stays a hidden placeholder with no example');
-['first', 'chords', 'durations', 'tempo', 'groups', 'notes', 'fm', 'arp', 'words', 'instrument', 'hacks', 'iread', 'play', 'also', 'style'].forEach((id) => {
+['first', 'chords', 'durations', 'tempo', 'time', 'groups', 'notes', 'fm', 'arp', 'words', 'instrument', 'hacks', 'iread', 'play', 'also', 'style'].forEach((id) => {
   check(html.indexOf('id="' + id + '"') >= 0, 'missing section ' + id);
 });
 const create = readFileSync(join(root, 'create/index.html'), 'utf8');
