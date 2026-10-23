@@ -191,7 +191,7 @@ try {
         wide: document.documentElement.scrollWidth > document.documentElement.clientWidth, h1: Math.round(t.top), next: Math.round(document.getElementById('write-h').getBoundingClientRect().top) };
     })()`);
     check(geo.label === 'Reset everything' && geo.text === 'Reset', tag + ': label "Reset everything", text "Reset", got ' + geo.label + ' / ' + geo.text);
-    check(/monospace/.test(geo.font) && geo.border === '0px' && /rgba\(0, 0, 0, 0\)|transparent/.test(geo.bg), tag + ': a quiet monospace text button, got ' + JSON.stringify(geo));
+    check(/Inter/.test(geo.font) && geo.border === '0px' && /rgba\(0, 0, 0, 0\)|transparent/.test(geo.bg), tag + ': a quiet text button, got ' + JSON.stringify(geo));
     check(geo.sameLine && geo.after && Math.abs(geo.right - geo.main) < 1.5 && !geo.wide, tag + ': top right, opposite the title, inside the page, got ' + JSON.stringify(geo));
     check(geo.h >= 24 && geo.w >= 40, tag + ': big enough to tap, got ' + geo.w + 'x' + geo.h);
     await shot(tag, !!view.mobile);
