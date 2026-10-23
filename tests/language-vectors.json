@@ -883,5 +883,100 @@
       "Words are left for the AI."
     ],
     "iread": "C\n\"90 BPM\" \"Cm\"\nQuoted words stay words.\nWords are left for the AI."
+  },
+  {
+    "name": "arp-pendulum",
+    "text": "90 BPM; arp Cm9 pendulum 16ths 2oct wide inv1 (2|)",
+    "bpm": 90,
+    "clock": "legacy",
+    "seed": null,
+    "meter": "4/4",
+    "gather": [],
+    "played": [],
+    "hacks": [],
+    "words": [],
+    "notes": [],
+    "iread": "q90; arp Cm9 pendulum 16ths 2oct wide inv1 (2|)",
+    "arp": [
+      {
+        "chord": "Cm9",
+        "chordId": "minor-9",
+        "order": "pendulum",
+        "rate": "16ths",
+        "octaves": 2,
+        "spread": "wide",
+        "inversion": 1,
+        "fmDepth": null,
+        "beats": null,
+        "bars": 2,
+        "instrument": ""
+      }
+    ],
+    "unmapped": []
+  },
+  {
+    "name": "arp-follow",
+    "text": "90 BPM; [Cm Fm9 Gm7 Bb]; arp up-down 16ths 2oct",
+    "bpm": 90,
+    "clock": "legacy",
+    "seed": null,
+    "meter": "4/4",
+    "gather": ["Cm", "Fm9", "Gm7", "Bb"],
+    "played": [
+      {"kind": "chord", "symbol": "Cm", "bass": null, "beats": null, "bars": null, "seconds": null, "recording": 0},
+      {"kind": "chord", "symbol": "Fm9", "bass": null, "beats": null, "bars": null, "seconds": null, "recording": 1},
+      {"kind": "chord", "symbol": "Gm7", "bass": null, "beats": null, "bars": null, "seconds": null, "recording": 2},
+      {"kind": "chord", "symbol": "Bb", "bass": null, "beats": null, "bars": null, "seconds": null, "recording": 3}
+    ],
+    "hacks": [],
+    "words": [],
+    "notes": [],
+    "iread": "q90; [Cm Fm9 Gm7 Bb]; arp up-down 16ths 2oct",
+    "arp": [
+      {
+        "chord": null,
+        "chordId": null,
+        "order": "up-down",
+        "rate": "16ths",
+        "octaves": 2,
+        "spread": "compact",
+        "inversion": 0,
+        "fmDepth": null,
+        "beats": null,
+        "bars": null,
+        "instrument": ""
+      }
+    ],
+    "unmapped": []
+  },
+  {
+    "name": "arp-unmapped",
+    "text": "arp C7#11 (1|)",
+    "bpm": null,
+    "clock": "legacy",
+    "seed": null,
+    "meter": "4/4",
+    "gather": [],
+    "played": [],
+    "hacks": [],
+    "words": [],
+    "notes": ["C7#11 does not map to the synth chord library."],
+    "iread": "arp C7#11 up 16ths (1|)\nC7#11 does not map to the synth chord library.",
+    "arp": [
+      {
+        "chord": "C7#11",
+        "chordId": null,
+        "order": "up",
+        "rate": "16ths",
+        "octaves": 1,
+        "spread": "compact",
+        "inversion": 0,
+        "fmDepth": null,
+        "beats": null,
+        "bars": 1,
+        "instrument": ""
+      }
+    ],
+    "unmapped": ["C7#11"]
   }
 ]
