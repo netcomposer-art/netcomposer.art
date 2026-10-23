@@ -1,4 +1,4 @@
-// The dice on /create/ Live, in headless Chrome: the confirm only when the stack has hacks, a seeded section
+// The dice on /create/ Live, in headless Chrome, and the five-shade stack: the confirm only when the stack has hacks, a seeded section
 // randomize, a per-hack A/B undo that restores exact dials, a hand move that ends it, the cap, labels and icon sizes.
 // Needs Chrome (CHROME=… or google-chrome on PATH) and Node 22 (or node --experimental-websocket).
 import { createServer } from 'node:http';
@@ -113,6 +113,33 @@ try {
   ok(await ev("(() => { const xs = [...document.querySelectorAll('article.hack:not([data-fixed]) .hack-die')].map(d => Math.round(d.getBoundingClientRect().left)); return xs.every(x => x === xs[0]); })()"), 'the dice line up in one column');
   ok(await ev("(() => { const f = document.getElementById('foot-die'); const a = f && f.querySelector('a'); return !!a && a.href === 'https://thenounproject.com/browse/icons/term/die/' && /Hamed Mirhashemi/.test(f.textContent) && /CC BY 3\\.0/.test(f.textContent); })()"), 'the footer credits the die (Hamed Mirhashemi, Noun Project, CC BY 3.0)');
   ok(await ev("(() => { const f = document.getElementById('foot-speaker'); const a = f && f.querySelector('a'); return !!a && a.href === 'https://thenounproject.com/browse/icons/term/speaker-on/' && a.target === '_blank' && /masmooh/.test(f.textContent) && /CC BY 3\\.0/.test(f.textContent); })()"), 'the footer credits the speaker (masmooh, Noun Project, CC BY 3.0)');
+  // Stack shades step light to dark every five positions, then wrap. The limiter is in the stack.
+  // Add, remove, and reorder only change DOM order; the colour follows the new position.
+  const STEPS = ['rgb(255, 255, 255)', 'rgb(248, 248, 245)', 'rgb(241, 241, 238)', 'rgb(234, 234, 231)', 'rgb(228, 228, 225)'];
+  const readShades = `(() => [...document.querySelectorAll('#hack-stack > article.hack')].map(a => getComputedStyle(a).backgroundColor))()`;
+  const fits = (colors) => colors.length > 0 && colors.every((c, i) => c === STEPS[i % 5]);
+  ok((await ev('getComputedStyle(document.body).backgroundColor')) === 'rgb(255, 255, 255)', 'the page background is white');
+  const load = (n) => ev(`(() => { const chain = []; for (let i = 1; i <= ${n}; i++) chain.push({ id: 'delay-' + i, type: 'delay', params: { delay_beats: 0.75, feedback: 0.35, wet: 0 } }); NCStack.applyChain(chain); return NCStack.count(); })()`);
+  ok((await load(7)) === 7, 'seven hacks load under the cap');
+  let colors = await ev(readShades);
+  ok(colors.length === 8 && fits(colors), `seven hacks plus the limiter: 1–5 step, 6 matches 1, 7 matches 2 (${colors.join(' | ')})`);
+  ok(colors[5] === colors[0] && colors[6] === colors[1], 'hack 6 is the lightest again and hack 7 is the second shade');
+  const firstId = await ev(`document.querySelector('#hack-stack > article.hack').getAttribute('data-id')`);
+  await ev(`document.querySelector('#hack-stack > article.hack .hack-down').click()`);
+  colors = await ev(readShades);
+  ok((await ev(`document.querySelectorAll('#hack-stack > article.hack')[1].getAttribute('data-id')`)) === firstId && fits(colors), 'after moving the first hack down, each position keeps its shade');
+  await ev(`document.querySelector('#hack-stack > article.hack:nth-child(3) .hack-remove').click()`);
+  colors = await ev(readShades);
+  ok(colors.length === 7 && fits(colors), 'after removing a hack in the middle, the shades close up and the wrap still lands on position 6');
+  ok((await load(10)) === 10, 'ten hacks is the full stack');
+  colors = await ev(readShades);
+  ok(colors.length === 11 && fits(colors) && colors[5] === STEPS[0] && colors[10] === STEPS[0], 'ten hacks plus the limiter: positions 6 and 11 are the lightest');
+  ok((await load(1)) === 1, 'one hack loads');
+  colors = await ev(readShades);
+  ok(colors.length === 2 && colors[0] === STEPS[0] && colors[1] === STEPS[1], 'one hack is the lightest and the limiter takes the second shade');
+  await ev('NCStack.applyChain([])');
+  colors = await ev(readShades);
+  ok(colors.length === 1 && colors[0] === STEPS[0], 'with no hacks, the limiter is the lightest');
 } catch (e) { fails++; console.log('FAIL', e.message); }
 ws.close(); proc.kill(); server.close();
 if (fails) { console.log(fails + ' failed'); process.exit(1); }

@@ -174,11 +174,13 @@ footer{max-width:46rem;margin:0 auto;padding:1.2rem 1.5rem 4rem;font-size:13px;c
 #perform-turnstile{margin:.5rem 0}
 #perform-vis{text-transform:none;letter-spacing:normal;color:var(--nc-text);font-size:13px;display:inline-flex;margin:0}
 #perform h3,#gather h3{font-size:11px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:var(--nc-sub);margin:1.4rem 0 .4rem}
-#live .hack{border:0;border-bottom:1px solid var(--nc-div);padding:18px 16px 12px;margin:0;background:#F3F3F0}
-#hack-stack article.hack:nth-child(4n+1){background:#F3F3F0}
-#hack-stack article.hack:nth-child(4n+2){background:#EEEEEB}
-#hack-stack article.hack:nth-child(4n+3){background:#E9E9E6}
-#hack-stack article.hack:nth-child(4n+4){background:#E4E4E1}
+#live{--hack-1:#FFFFFF;--hack-2:#F8F8F5;--hack-3:#F1F1EE;--hack-4:#EAEAE7;--hack-5:#E4E4E1}
+#live .hack{border:0;border-bottom:1px solid var(--nc-div);padding:18px 16px 12px;margin:0;background:var(--hack-1)}
+#hack-stack article.hack:nth-child(5n+1){background:var(--hack-1)}
+#hack-stack article.hack:nth-child(5n+2){background:var(--hack-2)}
+#hack-stack article.hack:nth-child(5n+3){background:var(--hack-3)}
+#hack-stack article.hack:nth-child(5n+4){background:var(--hack-4)}
+#hack-stack article.hack:nth-child(5n+5){background:var(--hack-5)}
 #live .hack h3{font-family:Inter,sans-serif;font-size:15px;font-weight:400;letter-spacing:-.01em;text-transform:none;color:var(--nc-text);margin:0;flex:1 1 auto;min-width:0;white-space:nowrap;line-height:1.2}
 #hack-stack{margin:.6rem 0 0;border-top:1px solid var(--nc-div)}
 .hack-bar{display:flex;flex-wrap:nowrap;align-items:center;gap:.5rem;margin:0 0 .7rem}
