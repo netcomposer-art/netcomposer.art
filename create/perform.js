@@ -950,6 +950,34 @@
     var base = 'Unlisted audio is kept 90 days unless you press Keep. Listed audio waits a day, then joins the feed.';
     $('perform-meta').textContent = (signed ? 'Signed record. ' : (sig.status ? 'Record. ' : '')) + base;
   }
+  function liveFmBlock() {
+    if (!window.NCLive || !NCLive.liveFmGate) return '';
+    return NCLive.liveFmGate() || '';
+  }
+  function savePermitted() {
+    var block = liveFmBlock();
+    if (block) return false;
+    var local = !!(localPlan && browserAssembly());
+    if (local) {
+      if (gatherClaim) return true;
+      var credited = window.NCLive && NCLive.liveFmCredit && NCLive.liveFmCredit();
+      return !!(credited && credited.ok && gatherId === 'nc-synth');
+    }
+    return !!(jobId && sessionStorage.getItem('nc-claim:' + jobId));
+  }
+  function syncSave() {
+    var keep = $('perform-keep');
+    if (!keep) return;
+    var label = keep.textContent || '';
+    if (keeping || label.indexOf('Kept') === 0 || label.indexOf('Saved') === 0 || label.indexOf('Saving') === 0 || label.indexOf('Keeping') === 0 || label.indexOf('Rendering') === 0) return;
+    var block = liveFmBlock();
+    if (localPlan && browserAssembly()) keep.textContent = 'Save';
+    keep.disabled = !savePermitted();
+    if (localPlan) noteSynthRecord(localPlan);
+    var note = $('perform-keep-note');
+    if (block && note) { note.hidden = false; note.textContent = block; return; }
+    keepNote();
+  }
   function keepNote() {
     var note = $('perform-keep-note');
     var label = $('perform-keep').textContent;
@@ -1052,7 +1080,7 @@
     keeping = false;
     var local = !!(localPlan && browserAssembly());
     $('perform-keep').textContent = local ? 'Save' : 'Keep';
-    $('perform-keep').disabled = !(localPlan && gatherClaim) && !sessionStorage.getItem('nc-claim:' + jobId);
+    syncSave();
     if (local) {
       var quiet = $('perform-status');
       quiet.className = 'm';
@@ -1062,7 +1090,7 @@
     var line = clean || (local ? 'Could not save this Performance. Try again in a moment.' : 'Could not keep this Performance. Try again in a moment.');
     if (!plain && clean && !/try again/i.test(clean)) line = clean + ' Try again in a moment.';
     showKept(line, true);
-    keepNote();
+    if (!liveFmBlock()) keepNote();
   }
   var LANDING_MS = 60000;
   function retryFetch(url, gen) {
@@ -2243,10 +2271,9 @@
     $('perform-out').hidden = false;
     $('perform-bar').hidden = true;
     $('perform-keep').textContent = 'Save';
-    $('perform-keep').disabled = !gatherClaim;
     $('perform-kept').hidden = true;
     keeping = false;
-    keepNote();
+    syncSave();
     $('perform-meta').textContent = 'In this browser until you Save.';
     hideStop();
     var s = $('perform-status');
@@ -2298,12 +2325,26 @@
     if (!view) return;
     view.hidden = false;
     view.textContent = '';
-    put(view, recRow('Sound', synth.title));
+    var liveFm = window.NCLive && NCLive.liveFmRecord && NCLive.liveFmRecord();
+    var sound = synth.title;
+    if (liveFm && liveFm.title && window.NCSynth) {
+      var licName = liveFm.licenseName || licenseLabel(liveFm.license) || '';
+      sound = NCSynth.CREDIT + ', modulated by ' + liveFm.title + (licName ? ' (' + licName + ')' : '');
+    }
+    put(view, recRow('Sound', sound));
     put(view, recRow('Line', synth.symbol));
     put(view, recRow('Settings', synth.detail));
     if (synth.synth && synth.synth.settings && synth.synth.settings.fmDepth != null) put(view, recRow('FM depth', String(Math.round(+synth.synth.settings.fmDepth * 100) / 100)));
     if (synth.synth && synth.synth.modulated_by && synth.synth.modulated_by.length) put(view, recRow('Modulated by', synth.synth.modulated_by.join(', ')));
     if (synth.synth && synth.synth.modulator_license && synth.synth.modulator_license.length) put(view, recRow('License', synth.synth.modulator_license.map(function (id) { return licenseLabel(id) || id; }).join(', ')));
+    if (liveFm) {
+      var who = [liveFm.title, liveFm.author, liveFm.licenseName || licenseLabel(liveFm.license) || liveFm.license].filter(Boolean).join(', ');
+      put(view, recRow('Live FM', who || (liveFm.kind === 'tab' ? 'shared tab' : 'microphone')));
+      if (liveFm.url) put(view, recRow('Source', extLink(liveFm.url, liveFm.url)));
+      if (liveFm.spans && liveFm.spans.length) {
+        put(view, recRow('FM span', liveFm.spans.map(function (sp) { return sp.from_s.toFixed(1) + '–' + sp.to_s.toFixed(1) + ' s'; }).join(', ')));
+      }
+    }
     put(view, recRow('Code', 'MIT'));
     put(view, recRow('Output license', 'CC BY-SA 4.0'));
     if (plan && plan.seed != null) put(view, recRow('Seed', String(plan.seed)));
@@ -2437,7 +2478,7 @@
     });
   }
   function takeBody(plan, chain) {
-    return {
+    var state = {
       nc_take_version: '2',
       plan: {
         nc_assembly_version: '1',
@@ -2448,6 +2489,17 @@
       },
       processing: processingOf(chain)
     };
+    var liveFm = window.NCLive && NCLive.liveFmRecord && NCLive.liveFmRecord();
+    if (liveFm && liveFm.url) state.fm_live = {
+      url: liveFm.url,
+      title: liveFm.title || '',
+      author: liveFm.author || '',
+      license: liveFm.license || '',
+      depth: liveFm.depth,
+      kind: liveFm.kind || '',
+      spans: liveFm.spans || []
+    };
+    return state;
   }
   function rejectionText(j) {
     j = j || {};
@@ -2478,7 +2530,7 @@
     once();
   }
   function saveLocal() {
-    if (keeping || !localPlan || !window.NCLive || !NCLive.renderBuffers) return;
+    if (keeping || !localPlan || !window.NCLive || !NCLive.renderBuffers || !savePermitted()) return;
     keeping = true;
     $('perform-keep').disabled = true;
     $('perform-keep').textContent = 'Saving…';
@@ -3463,6 +3515,7 @@
   $('perform-keep').onclick = function () {
     var label = $('perform-keep').textContent;
     if (keeping || label.indexOf('Kept') === 0 || label.indexOf('Saved') === 0) return;
+    if (liveFmBlock()) { syncSave(); return; }
     if (localPlan && browserAssembly()) { saveLocal(); return; }
     if (!jobId || !sessionStorage.getItem('nc-claim:' + jobId)) {
       keepFail('This tab does not have the keep key for this Performance.');
@@ -3544,7 +3597,7 @@
     if (n == null) { var m = /Seed\s+(\d+)/.exec(seedBtn.textContent || ''); n = m ? +m[1] : null; }
     if (n != null && window.NC && NC.reuseSeed) NC.reuseSeed(n);
   });
-  window.NCPerform = { api: API, messageFor: messageFor, go: go, post: post, showDone: showDone, fail: fail, audioMiss: audioMiss, showRecord: showRecord, foundLines: foundLines, showStory: showStory, seed: function () { return serverSeed; }, sync: syncActions };
+  window.NCPerform = { api: API, messageFor: messageFor, go: go, post: post, showDone: showDone, fail: fail, audioMiss: audioMiss, showRecord: showRecord, foundLines: foundLines, showStory: showStory, seed: function () { return serverSeed; }, sync: syncActions, syncSave: syncSave };
   var booted = false;
   var wait = setInterval(function () {
     if (!document.body.getAttribute('data-ready') || booted) return;

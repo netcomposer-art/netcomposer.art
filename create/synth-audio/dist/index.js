@@ -1,10 +1,8 @@
-/* NC Synth audio engine. Copyright (c) 2026 Peter Semmelhack. MIT. Vendored from NetComposer-Synth; see ../SOURCE.md. */
 var NCSynthEngine = (() => {
   var __defProp = Object.defineProperty;
   var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
   var __getOwnPropNames = Object.getOwnPropertyNames;
   var __hasOwnProp = Object.prototype.hasOwnProperty;
-  var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
   var __export = (target, all) => {
     for (var name in all)
       __defProp(target, name, { get: all[name], enumerable: true });
@@ -18,7 +16,6 @@ var NCSynthEngine = (() => {
     return to;
   };
   var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
-  var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
 
   // create/synth-audio/src/index.ts
   var index_exports = {};
@@ -125,9 +122,7 @@ var NCSynthEngine = (() => {
   // create/synth-audio/src/signals.ts
   var clamp = (value, min, max) => Math.min(max, Math.max(min, value));
   var SignalRegistry = class {
-    constructor() {
-      __publicField(this, "sources", /* @__PURE__ */ new Map());
-    }
+    sources = /* @__PURE__ */ new Map();
     register(source) {
       this.sources.set(source.id, source);
     }
@@ -150,14 +145,18 @@ var NCSynthEngine = (() => {
   };
   var LfoSource = class {
     constructor(id, displayName, shape, rate) {
-      __publicField(this, "id", id);
-      __publicField(this, "displayName", displayName);
-      __publicField(this, "shape", shape);
-      __publicField(this, "rate", rate);
-      __publicField(this, "sourceType", "internal");
-      __publicField(this, "phase", 0);
-      __publicField(this, "lastTime", 0);
+      this.id = id;
+      this.displayName = displayName;
+      this.shape = shape;
+      this.rate = rate;
     }
+    id;
+    displayName;
+    shape;
+    rate;
+    sourceType = "internal";
+    phase = 0;
+    lastTime = 0;
     sample(time) {
       this.phase = (this.phase + Math.max(0, time - this.lastTime) * this.rate) % 1;
       this.lastTime = time;
@@ -167,15 +166,19 @@ var NCSynthEngine = (() => {
   };
   var SmoothedSource = class {
     constructor(id, displayName, sourceType, smoothing = 0.06) {
-      __publicField(this, "id", id);
-      __publicField(this, "displayName", displayName);
-      __publicField(this, "sourceType", sourceType);
-      __publicField(this, "smoothing", smoothing);
-      __publicField(this, "value", 0);
-      __publicField(this, "target", 0);
-      __publicField(this, "lastTime", 0);
-      __publicField(this, "updatedAt", 0);
+      this.id = id;
+      this.displayName = displayName;
+      this.sourceType = sourceType;
+      this.smoothing = smoothing;
     }
+    id;
+    displayName;
+    sourceType;
+    smoothing;
+    value = 0;
+    target = 0;
+    lastTime = 0;
+    updatedAt = 0;
     push(value, timestamp) {
       this.target = clamp(value, -1, 1);
       this.updatedAt = timestamp;
@@ -276,14 +279,12 @@ var NCSynthEngine = (() => {
     return Math.max(0, Math.min(count - 1, index + Math.sign(delta) * steps));
   }
   var MusicInterpreter = class {
-    constructor() {
-      __publicField(this, "signature", "");
-      __publicField(this, "index", 0);
-      __publicField(this, "previous", null);
-      __publicField(this, "last", null);
-      __publicField(this, "nextChordTime", 0);
-      __publicField(this, "eventIndex", 0);
-    }
+    signature = "";
+    index = 0;
+    previous = null;
+    last = null;
+    nextChordTime = 0;
+    eventIndex = 0;
     reset() {
       this.signature = "";
       this.previous = null;
@@ -328,12 +329,10 @@ var NCSynthEngine = (() => {
 
   // create/synth-audio/src/event-queue.ts
   var MusicalEventQueue = class {
-    constructor() {
-      __publicField(this, "queue", []);
-      __publicField(this, "seen", /* @__PURE__ */ new Set());
-      __publicField(this, "lastAccepted", -Infinity);
-      __publicField(this, "dropped", 0);
-    }
+    queue = [];
+    seen = /* @__PURE__ */ new Set();
+    lastAccepted = -Infinity;
+    dropped = 0;
     push(event, audioTime, minimumSeconds) {
       if (this.seen.has(event.id)) return "duplicate";
       this.seen.add(event.id);
@@ -408,12 +407,10 @@ var NCSynthEngine = (() => {
     }
   }
   var SemanticController = class {
-    constructor() {
-      __publicField(this, "config", defaultSemanticConfig());
-      __publicField(this, "beat", 0);
-      __publicField(this, "lastTime", null);
-      __publicField(this, "wasPlaying", false);
-    }
+    config = defaultSemanticConfig();
+    beat = 0;
+    lastTime = null;
+    wasPlaying = false;
     setConfig(config) {
       if (config.analysis?.id !== this.config.analysis?.id) this.beat = 0;
       this.config = structuredClone(config);
@@ -561,17 +558,18 @@ var NCSynthEngine = (() => {
   var unisonCents = (index, count, spread) => count === 1 ? 0 : (index / (count - 1) * 2 - 1) * clamp3(spread) * 35;
   var WavetableDSP = class {
     constructor(id, unison, position = 0, warp = 0, spread = 0) {
-      __publicField(this, "unison", unison);
-      __publicField(this, "phases", new Float64Array(4));
-      __publicField(this, "position");
-      __publicField(this, "warp");
-      __publicField(this, "spread");
-      __publicField(this, "bank");
+      this.unison = unison;
       this.bank = getBank(id);
       this.position = position;
       this.warp = warp;
       this.spread = spread;
     }
+    unison;
+    phases = new Float64Array(4);
+    position;
+    warp;
+    spread;
+    bank;
     render(output, sampleRate, frequency2, detune, position, warp, spread) {
       const smooth = 1 - Math.exp(-1 / (0.012 * sampleRate));
       for (let sample = 0; sample < output.length; sample++) {
@@ -767,13 +765,15 @@ var NCSynthEngine = (() => {
   // create/synth-audio/src/midi-playback.ts
   var MidiPlayback = class {
     constructor(file, loop = false) {
-      __publicField(this, "file", file);
-      __publicField(this, "loop", loop);
-      __publicField(this, "index", 0);
-      __publicField(this, "cycle", 0);
-      __publicField(this, "origin", 0);
-      __publicField(this, "lastCycle", Infinity);
+      this.file = file;
+      this.loop = loop;
     }
+    file;
+    loop;
+    index = 0;
+    cycle = 0;
+    origin = 0;
+    lastCycle = Infinity;
     start(time) {
       this.index = 0;
       this.cycle = 0;
@@ -826,47 +826,42 @@ var NCSynthEngine = (() => {
     vcaMods: s.vcaMods.map((m) => ({ ...m }))
   });
   var SynthEngine = class {
-    constructor(settings) {
-      __publicField(this, "settings");
-      __publicField(this, "context", null);
-      // Live Play keeps Math.random. Offline render and the page's Live toggle pass a seeded RNG into open().
-      __publicField(this, "noiseRandom", Math.random);
-      // When set, the master chain feeds this node instead of context.destination
-      // (the page routes it into Live's hack chain).
-      __publicField(this, "outputNode", null);
-      __publicField(this, "bus", null);
-      __publicField(this, "master", null);
-      __publicField(this, "analyser", null);
-      __publicField(this, "noise", null);
-      __publicField(this, "voices", []);
-      __publicField(this, "timer", null);
-      __publicField(this, "playing", false);
-      __publicField(this, "nextTime", 0);
-      __publicField(this, "step", 0);
-      __publicField(this, "serial", 0);
-      __publicField(this, "triggers", []);
-      __publicField(this, "currentNotes", "\u2014");
-      __publicField(this, "currentSerial", 0);
-      __publicField(this, "disposed", false);
-      __publicField(this, "wavetableReady", false);
-      __publicField(this, "midi", null);
-      __publicField(this, "midiStoppedPosition", 0);
-      __publicField(this, "transportRequest", 0);
-      __publicField(this, "signals", new SignalRegistry());
-      __publicField(this, "lfo1", new LfoSource("lfo1", "LFO 1", "sine", 0.5));
-      __publicField(this, "lfo2", new LfoSource("lfo2", "LFO 2", "triangle", 0.25));
-      __publicField(this, "manual", new SmoothedSource("manual", "Manual", "internal", 0.04));
-      __publicField(this, "situationSources", /* @__PURE__ */ new Map());
-      __publicField(this, "interpreter", new MusicInterpreter());
-      __publicField(this, "eventQueue", new MusicalEventQueue());
-      __publicField(this, "decisionListener", null);
-      __publicField(this, "semantic", new SemanticController());
-      this.settings = copySettings(settings);
-      this.signals.register(this.lfo1);
-      this.signals.register(this.lfo2);
-      this.signals.register(this.manual);
-      this.update(settings);
-    }
+    settings;
+    context = null;
+    // Live Play keeps Math.random. Offline render and the page's Live toggle pass a seeded RNG into open().
+    noiseRandom = Math.random;
+    // When set, the master chain feeds this node instead of context.destination
+    // (the page routes it into Live's hack chain).
+    outputNode = null;
+    bus = null;
+    master = null;
+    analyser = null;
+    noise = null;
+    voices = [];
+    timer = null;
+    playing = false;
+    nextTime = 0;
+    step = 0;
+    serial = 0;
+    triggers = [];
+    currentNotes = "\u2014";
+    currentSerial = 0;
+    disposed = false;
+    wavetableReady = false;
+    midi = null;
+    midiStoppedPosition = 0;
+    transportRequest = 0;
+    signals = new SignalRegistry();
+    lfo1 = new LfoSource("lfo1", "LFO 1", "sine", 0.5);
+    lfo2 = new LfoSource("lfo2", "LFO 2", "triangle", 0.25);
+    manual = new SmoothedSource("manual", "Manual", "internal", 0.04);
+    situationSources = /* @__PURE__ */ new Map();
+    interpreter = new MusicInterpreter();
+    eventQueue = new MusicalEventQueue();
+    decisionListener = null;
+    semantic = new SemanticController();
+    /** A microphone or shared tab. The gain feeds oscillator frequency only. */
+    liveFm = null;
     setSemanticConfig(config) {
       this.semantic.sample(this.context?.currentTime ?? 0, this.playing, this.settings.tempo);
       this.semantic.setConfig(config);
@@ -983,6 +978,13 @@ var NCSynthEngine = (() => {
         loop: this.midi.loop,
         position: this.playing ? this.midi.position(this.context?.currentTime ?? 0) : this.midiStoppedPosition
       } : null;
+    }
+    constructor(settings) {
+      this.settings = copySettings(settings);
+      this.signals.register(this.lfo1);
+      this.signals.register(this.lfo2);
+      this.signals.register(this.manual);
+      this.update(settings);
     }
     update(settings) {
       this.semantic.sample(this.context?.currentTime ?? 0, this.playing, this.settings?.tempo ?? settings.tempo);
@@ -1105,6 +1107,12 @@ var NCSynthEngine = (() => {
       this.triggers = [];
       this.currentNotes = "\u2014";
       const now = this.context?.currentTime ?? 0;
+      if (this.liveFm) {
+        try {
+          this.liveFm.gain.disconnect();
+        } catch {
+        }
+      }
       for (const voice of this.voices) {
         voice.envelope.gain.cancelScheduledValues(now);
         voice.envelope.gain.setValueAtTime(0, now);
@@ -1121,6 +1129,7 @@ var NCSynthEngine = (() => {
       }
     }
     dispose() {
+      this.clearLiveModulator();
       this.panic();
       this.disposed = true;
       void this.context?.close();
@@ -1310,7 +1319,55 @@ var NCSynthEngine = (() => {
       g.linearRampToValueAtTime(0, voice.gate + env.release);
       this.addSource(voice, "main", start, values, false);
       if (this.subAmount() > 0) this.addSource(voice, "sub", start, values, false);
-      this.attachModulator(voice, modulator);
+      if (this.liveFm && this.liveFm.depth > 0) this.connectLive(voice);
+      else this.attachModulator(voice, modulator);
+    }
+    /**
+     * Microphone or a shared tab. MediaStreamSource into a depth gain, then into
+     * each carrier frequency. Nothing here reaches the output. Depth 0 connects nothing.
+     * The page stops the tracks; this only disconnects the nodes.
+     */
+    setLiveModulator(stream, depth = 0) {
+      this.clearLiveModulator();
+      if (!stream || !this.context || this.context instanceof OfflineAudioContext) return;
+      const d = Math.max(0, Math.min(10, +depth || 0));
+      const src = this.context.createMediaStreamSource(stream);
+      const gain = this.context.createGain();
+      gain.gain.value = d * FM_HZ_PER_INDEX;
+      src.connect(gain);
+      this.liveFm = { src, gain, depth: d };
+      for (const voice of this.voices) this.connectLive(voice);
+    }
+    clearLiveModulator() {
+      if (!this.liveFm) return;
+      try {
+        this.liveFm.src.disconnect();
+      } catch {
+      }
+      try {
+        this.liveFm.gain.disconnect();
+      } catch {
+      }
+      this.liveFm = null;
+      for (const voice of this.voices) voice.liveFm = false;
+    }
+    /** Frequency params currently fed by the live stream. */
+    liveModulatorTargets() {
+      if (!this.liveFm || !(this.liveFm.depth > 0)) return 0;
+      let n = 0;
+      for (const voice of this.voices) if (!voice.cleaned && voice.liveFm) n++;
+      return n;
+    }
+    connectLive(voice) {
+      if (!this.liveFm || !(this.liveFm.depth > 0) || voice.cleaned || voice.liveFm) return;
+      if (this.settings.oscillatorMode === "wavetable") return;
+      const freq = voice.sources.find((s) => s.role === "main")?.unit.frequency;
+      if (!freq) return;
+      try {
+        this.liveFm.gain.connect(freq);
+        voice.liveFm = true;
+      } catch {
+      }
     }
     /** Audio-rate FM into the main oscillator only. The clip is not a carrier and is not heard on its own. */
     attachModulator(voice, mod) {
