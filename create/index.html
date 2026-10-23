@@ -21,7 +21,7 @@ body{margin:0;color:var(--nc-text);background:var(--nc-bg);font:16px/1.6 Inter,s
 main{max-width:46rem;margin:0 auto;padding:2.6rem 1.5rem 6rem}
 h1{font-size:24px;font-weight:400;letter-spacing:-.01em;line-height:1.2;margin:0}
 h2{font-size:11px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:var(--nc-sub);margin:0 0 .9rem}
-main>section+section{border-top:1px solid var(--nc-div);margin-top:2.25rem;padding-top:1.25rem}
+main>section+section{border-top:1px solid var(--nc-div);margin-top:4.5rem;padding-top:1.25rem}
 #write>h2{margin-top:0}
 a{color:var(--nc-text);text-underline-offset:3px}a:hover{color:var(--nc-acc)}
 p{margin:.85rem 0}
@@ -52,6 +52,7 @@ button:focus-visible,.btn:focus-visible,summary:focus-visible,a:focus-visible{ou
 .two{display:grid;grid-template-columns:1fr;gap:0 1rem}
 .pick{display:flex;flex-wrap:wrap;gap:.5rem;align-items:flex-end}.pick select{flex:1;min-width:0}.pick button{margin:0;white-space:nowrap}
 #progcap{margin:.15rem 0 .35rem;font-size:11px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:var(--nc-sub)}
+label.hold,#progcap.hold{color:transparent}
 #prog{margin:.15rem 0 .1rem;line-height:1.65;font-size:13px}#prog.empty{min-height:1.65em}#prog.empty::before{content:'—';color:var(--nc-div)}
 #comp{min-height:calc(7.5em + 1.1rem + 2px)}
 .ch{display:inline-block;border-bottom:2px solid transparent;padding:0 .06rem;margin:0 .45rem .15rem 0;font-size:13px}
@@ -264,7 +265,7 @@ button.rewind:hover,button.rewind:active{background:transparent;transform:none}
 
 <section id="write">
 <h2 id="write-h">Write</h2>
-<label for="starter">Start from</label>
+<label for="starter" class="hold">Start from</label>
 <div class="pick"><select id="starter"><option value="">Choose a starter…</option></select><button id="surprise" type="button" title="A new progression: another key, mood and shape">Surprise me</button><button id="undo" type="button" hidden>Undo</button></div>
 <label for="comp">Composition elements</label>
 <textarea id="comp" rows="5" placeholder="Input your chord instructions here."></textarea>
@@ -273,7 +274,7 @@ button.rewind:hover,button.rewind:active{background:transparent;transform:none}
 
 <section id="play-s">
 <h2 id="play-h">Play</h2>
-<p id="progcap">chords</p>
+<p id="progcap" class="hold">chords</p>
 <div id="prog" aria-live="polite" aria-labelledby="progcap">Loading the chord set…</div>
 <p class="m" id="progmeta"></p>
 <div class="row" id="playrow"><button id="play" type="button" disabled>Play</button>
