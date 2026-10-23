@@ -60,11 +60,69 @@ rows.forEach((row) => {
     if (JSON.stringify(placed) !== JSON.stringify(row.place)) problems.push(row.name + ' place ' + JSON.stringify(placed));
   }
 });
+// Every I-read note template carries a typeable example in backticks.
+const langSrc = readFileSync(join(root, 'create/language.js'), 'utf8');
+function callArgs(name) {
+  const out = [];
+  const needle = name + '(';
+  let i = 0;
+  while ((i = langSrc.indexOf(needle, i)) !== -1) {
+    const before = langSrc.slice(Math.max(0, i - 12), i);
+    if (/function\s+$/.test(before)) { i += needle.length; continue; }
+    let j = i + needle.length, depth = 1;
+    while (j < langSrc.length && depth) {
+      const c = langSrc[j];
+      if (c === '(') depth++;
+      else if (c === ')') depth--;
+      j++;
+    }
+    out.push(langSrc.slice(i + needle.length, j - 1).trim());
+    i = j;
+  }
+  return out;
+}
+function hasCode(expr) { return /`[^`]+`/.test(expr); }
+['err', 'note', 'say'].forEach((name) => {
+  callArgs(name).forEach((args) => {
+    if (!/['"`]/.test(args)) return;
+    check(hasCode(args), name + '() template has no code span: ' + args.slice(0, 220));
+  });
+});
+['codeList', 'openNote'].forEach((name) => {
+  const m = new RegExp('function ' + name + '\\([\\s\\S]*?\\n    \\}').exec(langSrc);
+  check(m && hasCode(m[0]), name + ' template has no code span');
+});
+check(/function lengthNote[\s\S]*?codeList\(/.test(langSrc), 'length notes are built from code spans');
+check(callArgs('say').some((args) => /at the start/.test(args) && hasCode(args)), 'tempo note must name where `90 BPM` goes');
+const probes = [
+  'Cm', '[Cm(4) Fm9]x4', '90 BPM [Cm(4) Fm9(2|)]x4', 'Cmaj13b', 'Cm, let it breathe',
+  'C5', 'a slow melody', 'x4', 'loop(2.5)', '[ [Cm] ]', '[Cm lp500]', 'Cm(?)',
+  '"Cm', 'seed 1 seed 2 C', '90 BPM 80 BPM C', '90 BPM\nat bar 5 100 BPM\nC(4)',
+  'lp500 lp200 C', 'arp C7#11', '[C(1) D(1) | E(2)]', '90 BPM'
+];
+probes.concat(rows.map((r) => r.text)).forEach((text) => {
+  L.parse(text, { known }).notes.forEach((n) => {
+    check(/`[^`]+`/.test(n), 'note missing a code example: ' + n);
+  });
+});
+const cm = L.parse('Cm', { known });
+check(cm.iread.indexOf('96 BPM · Cm 1 bar* · 4 beats · 2.5 s') === 0, 'Cm echo: ' + cm.iread);
+check(cm.notes.some((n) => n.indexOf('Add `90 BPM` at the start') >= 0) && cm.notes.some((n) => n.indexOf('`Cm(4)`') >= 0 && n.indexOf('`Cm(2|)`') >= 0), 'Cm notes: ' + JSON.stringify(cm.notes));
+const looped = L.parse('[Cm(4) Fm9]x4', { known });
+check(looped.iread.indexOf('96 BPM · [Cm 4 beats, Fm9 1 bar*] ×4 · 32 beats · 20 s') === 0, 'loop echo: ' + looped.iread);
+check(looped.notes.some((n) => n.indexOf('Write `Fm9(4)` for 4 beats or `Fm9(2|)` for 2 bars.') >= 0), 'length note names the chord: ' + JSON.stringify(looped.notes));
+const set = L.parse('90 BPM [Cm(4) Fm9(2|)]x4', { known });
+check(set.notes.length === 0 && set.iread.indexOf('90 BPM · [Cm 4 beats, Fm9 2 bars] ×4 · 48 beats · 32 s') === 0, 'written loop has no notes: ' + set.iread);
+const typo = L.parse('Cmaj13b', { known });
+check(typo.notes.some((n) => n.indexOf('Did you mean `Cmaj13`?') >= 0), 'typo suggests Cmaj13: ' + JSON.stringify(typo.notes));
+const mixed = L.parse('Cm, let it breathe', { known });
+check(mixed.words.join(' ').indexOf('let') >= 0 && mixed.notes.some((n) => n.indexOf('Words are left for the AI.') === 0 && n.indexOf('`"like this"`') >= 0), 'AI marking keeps a code span: ' + JSON.stringify(mixed.notes));
+
 const peter = rows.find((r) => r.name === 'peter-line');
 check(peter && peter.gather.join(',') === 'Cm,Fm9,Gm7' && peter.played.length === 12, 'peter line');
 check(peter && peter.played[0].seconds === 2.667 && peter.played[1].seconds === null && peter.played[0].recording === peter.played[3].recording, 'peter durations and loop');
 check(peter && peter.hacks[0] && peter.hacks[0].value === 500 && peter.hacks[0].ramp === 200, 'peter hack keeps the start');
-check(peter && peter.iread.startsWith('q90; [Cm(4) Fm9 Gm7]x4; lp500\n'), 'peter I read');
+check(peter && peter.iread.indexOf('90 BPM') === 0 && peter.iread.indexOf('×4') > 0 && peter.iread.indexOf('lp500') > 0, 'peter I read: ' + (peter && peter.iread));
 check(L.lpDial(500) === 75, '500 Hz is lowpass dial 75');
 check(L.parse('fm', { known }).gather[0] === 'Fm', 'fm is still F minor');
 check(L.parse('fm9', { known }).gather[0] === 'Fm9', 'fm9 stays Fm9');
@@ -75,10 +133,10 @@ check(notesLine.gather.length === 0 && notesLine.words.length === 0 && notesLine
 check(L.parse('notes C4 Eb4 G4(2)', { known }).iread === 'notes C4 Eb4 G4(2)', 'the notes keyword is the same line, got ' + L.parse('notes C4 Eb4 G4(2)', { known }).iread);
 check(L.parse('notes create melody', { known }).words.join(' ') === 'notes create melody' && L.parse('notes create melody', { known }).iread.indexOf('is not a chord') < 0, 'notes without a pitch stays words');
 const notesEdge = L.parse('n C5(2) Eb5 G5 Bb4\nC5', { known });
-check(notesEdge.iread.indexOf('notes C5(2) Eb5 G5 Bb4') >= 0 && notesEdge.iread.indexOf('C5 is not a chord.') >= 0 && notesEdge.iread.split('is not a chord').length === 2, 'a pitch on the next line is still not a chord, got ' + notesEdge.iread);
+check(notesEdge.iread.indexOf('notes C5(2) Eb5 G5 Bb4') >= 0 && notesEdge.iread.indexOf('`C5` is a pitch, not a chord.') >= 0 && notesEdge.iread.split('is a pitch').length === 2, 'a pitch on the next line is still not a chord, got ' + notesEdge.iread);
 const arpPitches = L.parse('arp Cm9 pendulum 16ths C5 Eb5 G5', { known });
 check(arpPitches.arp[0].chord === 'Cm9' && arpPitches.arp[0].order === 'pendulum' && arpPitches.iread === 'arp Cm9 pendulum 16ths C5 Eb5 G5' && arpPitches.notes.length === 0, 'pitches on an arp line are not failed chords, got ' + arpPitches.iread);
-check(L.parse('C5', { known }).iread.indexOf('C5 is not a chord.') >= 0 && L.parse('steady', { known }).iread.indexOf('Words are left for the AI.') >= 0, 'a real non-chord is still reported');
+check(L.parse('C5', { known }).iread.indexOf('`C5` is a pitch, not a chord.') >= 0 && L.parse('steady', { known }).iread.indexOf('Words are left for the AI.') >= 0, 'a real non-chord is still reported');
 const arpLine = L.parse('90 BPM; arp Cm9 pendulum 16ths 2oct wide inv1 (2|)', { known });
 check(arpLine.gather.length === 0 && arpLine.clock === 'legacy' && arpLine.arp[0].chordId === 'minor-9' && arpLine.arp[0].bars === 2, 'an arp chord is not gathered and its bar length does not change the clock, got ' + JSON.stringify(arpLine.arp));
 check(arpLine.iread.indexOf('arp Cm9 pendulum 16ths 2oct wide inv1 (2|)') >= 0, 'I read keeps the arp statement, got ' + arpLine.iread);
@@ -214,9 +272,9 @@ if (!chrome || typeof WebSocket === 'undefined') {
         found: NC.findChords(el.value).length
       };
     })()`);
-    check(shown && shown.hidden === false && shown.iread.indexOf('I read  q90; [Cm(4) Fm9 Gm7]x4; lp500') === 0, 'I read line: ' + (shown && shown.iread));
-    check(shown && shown.iread.indexOf('->200 is a ramp') >= 0 && shown.iread.indexOf('left for the AI') >= 0, 'I read notes');
-    check(shown && shown.chords === 12 && shown.found === 12, 'twelve chords, got ' + JSON.stringify(shown));
+    check(shown && shown.hidden === false && shown.iread.indexOf('I read  90 BPM') === 0 && shown.iread.indexOf('×4') > 0, 'I read line: ' + (shown && shown.iread));
+    check(shown && shown.iread.indexOf('in Live') >= 0 && shown.iread.indexOf('left for the AI') >= 0, 'I read notes: ' + (shown && shown.iread));
+    check(shown && shown.chords === 3 && shown.found === 12 && shown.prog.indexOf('×4') >= 0, 'one group of three, played twelve times, got ' + JSON.stringify(shown));
     check(shown && shown.prog.indexOf('Cm') >= 0 && shown.prog.indexOf('Fm9') >= 0 && shown.prog.indexOf('Gm7') >= 0, 'progression shows the chords');
     check(shown && shown.lcut === '75', 'lowpass dial ' + (shown && shown.lcut));
     await shot('create-peter-desktop.png', 1280, 900, false);
@@ -246,8 +304,58 @@ if (!chrome || typeof WebSocket === 'undefined') {
       el.dispatchEvent(new Event('input', {bubbles: true}));
       return document.getElementById('iread').textContent;
     })()`);
-    check(notesShown && notesShown.indexOf('I read  q72; [Cm Fm9 Gm7]; notes C5(2) Eb5 G5 Bb4; notes C4 Eb4 G4(2); arp Cm9 pendulum 16ths C5 Eb5') === 0, 'page echoes notes and arp pitches: ' + notesShown);
-    check(notesShown && notesShown.indexOf('C5 is not a chord.') >= 0 && notesShown.split('is not a chord').length === 2, 'page still reports a pitch that is not on a notes or arp line: ' + notesShown);
+    check(notesShown && notesShown.indexOf('I read  72 BPM') === 0 && notesShown.indexOf('notes C5(2) Eb5 G5 Bb4') > 0 && notesShown.indexOf('arp Cm9 pendulum 16ths C5 Eb5') > 0, 'page echoes notes and arp pitches: ' + notesShown);
+    check(notesShown && notesShown.indexOf('C5 is a pitch, not a chord.') >= 0 && notesShown.split('is a pitch').length === 2 && notesShown.indexOf('notes C5') >= 0, 'page still reports a pitch that is not on a notes or arp line: ' + notesShown);
+    async function shotPlay(name, width, height, mobile) {
+      await send('Emulation.setDeviceMetricsOverride', { width, height, deviceScaleFactor: 1, mobile: !!mobile });
+      await sleep(80);
+      await ev("document.getElementById('write').scrollIntoView({block:'start'})");
+      await sleep(40);
+      const r = await ev("(() => { var a = document.getElementById('write').getBoundingClientRect(); var b = document.getElementById('play-s').getBoundingClientRect(); var top = Math.max(0, a.top + scrollY - 8); var bot = b.bottom + scrollY + 12; return {x: 0, y: top, width: " + width + ", height: Math.ceil(bot - top)}; })()");
+      const img = await send('Page.captureScreenshot', { format: 'png', clip: { x: r.x, y: r.y, width: r.width, height: r.height, scale: 1 }, captureBeyondViewport: true });
+      try { mkdirSync('/opt/cursor/artifacts', { recursive: true }); writeFileSync(join('/opt/cursor/artifacts', name), Buffer.from(img.data, 'base64')); } catch (e) {}
+    }
+    async function put(text) {
+      return ev(`(() => {
+        var el = document.getElementById('comp');
+        el.value = ${JSON.stringify(text)};
+        el.dispatchEvent(new Event('input', {bubbles: true}));
+        var codes = Array.prototype.map.call(document.querySelectorAll('#iread code'), function (c) { return c.textContent; });
+        var times = document.querySelector('#prog .times');
+        return {
+          chips: document.querySelectorAll('#prog .ch').length,
+          times: times ? times.textContent : '',
+          meta: document.getElementById('progmeta').textContent,
+          iread: document.getElementById('iread').textContent,
+          hidden: document.getElementById('iread').hidden,
+          codes: codes
+        };
+      })()`);
+    }
+    const just = await put('Cm');
+    check(just && just.chips === 1 && just.meta.indexOf('1 bar') >= 0 && just.meta.indexOf('4 beats') >= 0 && just.meta.indexOf('2.5 s') >= 0 && just.iread.indexOf('96 BPM') >= 0 && just.codes.indexOf('90 BPM') >= 0 && just.codes.indexOf('Cm(4)') >= 0, 'Cm is one bar: ' + JSON.stringify(just));
+    await shotPlay('play-cm-desktop.png', 1280, 900, false);
+    await shotPlay('play-cm-phone.png', 390, 844, true);
+    const grp = await put('[Cm(4) Fm9]x4');
+    check(grp && grp.chips === 2 && grp.times === '×4' && grp.meta.indexOf('32 beats') >= 0 && grp.meta.indexOf('8 bars') >= 0 && grp.meta.indexOf('20 s') >= 0 && grp.codes.indexOf('Fm9(4)') >= 0 && grp.codes.indexOf('Fm9(2|)') >= 0, 'loop group: ' + JSON.stringify(grp));
+    await shotPlay('play-loop-desktop.png', 1280, 900, false);
+    await shotPlay('play-loop-phone.png', 390, 844, true);
+    const full = await put('90 BPM [Cm(4) Fm9(2|)]x4');
+    check(full && full.chips === 2 && full.times === '×4' && full.meta.indexOf('48 beats') >= 0 && full.meta.indexOf('32 s') >= 0 && full.meta.indexOf('90 BPM') >= 0 && full.iread.indexOf('No tempo') < 0 && full.iread.indexOf('no length') < 0, 'written loop: ' + JSON.stringify(full));
+    await shotPlay('play-written-desktop.png', 1280, 900, false);
+    await shotPlay('play-written-phone.png', 390, 844, true);
+    const bad = await put('Cmaj13b');
+    check(bad && bad.chips === 0 && bad.codes.indexOf('Cmaj13') >= 0 && bad.iread.indexOf('Did you mean') >= 0, 'typo: ' + JSON.stringify(bad));
+    await shotPlay('play-typo-desktop.png', 1280, 900, false);
+    await shotPlay('play-typo-phone.png', 390, 844, true);
+    const words = await put('Cm, let it breathe');
+    check(words && words.chips === 1 && words.iread.indexOf('let it breathe') >= 0 && words.iread.indexOf('Words are left for the AI') >= 0 && words.codes.indexOf('"like this"') >= 0, 'words for the AI: ' + JSON.stringify(words));
+    await shotPlay('play-words-desktop.png', 1280, 900, false);
+    await shotPlay('play-words-phone.png', 390, 844, true);
+    const blank = await put('');
+    check(blank && blank.chips === 0 && blank.meta === '' && blank.hidden === true, 'empty field: ' + JSON.stringify(blank));
+    await shotPlay('play-empty-desktop.png', 1280, 900, false);
+    await shotPlay('play-empty-phone.png', 390, 844, true);
     const surprise = await ev(`(() => { var bad = []; for (var s = 1; s <= 40; s++) { var P = NC.makeSurprise(s * 2654435761 >>> 0); if (!P) { bad.push('none'); continue; } var f = NC.findChords(P.composition); if (f.length !== P.chords.length || f.some(function (c, i) { return c.sym !== P.chords[i]; })) bad.push(P.composition); } return bad; })()`);
     check(surprise && surprise.length === 0, 'Surprise chords changed: ' + JSON.stringify(surprise && surprise.slice(0, 3)));
     check(await ev("NCAssembly.statedSeconds('32 bars, tempo 90') === NCAssembly.statedSeconds('32 bars 90 BPM')"), 'page length agrees');

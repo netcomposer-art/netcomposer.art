@@ -1,5 +1,8 @@
 // NetComposer /create/: write a Composition, hear a sketch, download, share. Static; no server.
-// The Play preview runs at double the Composition's tempo (still two strikes per chord). The length under the chords is the written clock: tempo, meter and chord lengths. The rendered Performance keeps that clock, plus the Performer's tail.
+// Play follows the writing. Each chord is shown once, a loop is the group times N,
+// and the length is the written clock (96 BPM when no tempo is written). A chord
+// with no duration is one bar in this sketch and its whole recording when gathered.
+// The rendered Performance keeps that clock, plus the Performer's tail.
 // Surprise me, Undo and Play all work in place; the work in progress is kept in the URL hash.
 (function () {
 'use strict';
@@ -152,13 +155,29 @@ function writtenDurations(text, chords) {
   rounded[rounded.length - 1] = +(rounded[rounded.length - 1] + (target - sum)).toFixed(3);
   return rounded;
 }
+function appendCoded(el, text) {
+  var re = /`([^`]+)`/g, last = 0, m;
+  while ((m = re.exec(text))) {
+    if (m.index > last) el.appendChild(document.createTextNode(text.slice(last, m.index)));
+    var code = document.createElement('code');
+    code.textContent = m[1];
+    el.appendChild(code);
+    last = m.index + m[0].length;
+  }
+  if (last < text.length) el.appendChild(document.createTextNode(text.slice(last)));
+}
 function showIRead(parsed) {
   var el = $('iread');
   if (!el) return;
   var line = parsed && parsed.iread ? parsed.iread : '';
   if (!line) { el.textContent = ''; el.hidden = true; return; }
   el.hidden = false;
-  el.textContent = 'I read  ' + line;
+  el.textContent = '';
+  el.appendChild(document.createTextNode('I read  '));
+  line.split('\n').forEach(function (part, i) {
+    if (i) el.appendChild(document.createElement('br'));
+    appendCoded(el, part);
+  });
 }
 var hackSig = '';
 function applyHacks(parsed) {
@@ -206,12 +225,39 @@ function timelineFrom(parsed) {
   }
   return {L: written ? t : null, chords: chords, unique: (parsed.gather || []).slice(), written: written, language: true, seed: parsed.seed, bpm: parsed.bpm};
 }
+// One bar at the written tempo, or at 96 BPM when none was written.
+// The old Play path repeated chords until they filled 120 seconds, about 9 seconds
+// each: one chord became round(120 / 9) = 13 copies, and the length read "2 min".
+function sketchClock(parsed) {
+  var bpm = parsed && parsed.bpm > 0 ? parsed.bpm : ((window.NCLanguage && NCLanguage.sketchBpm) || 96);
+  var qpb = 4, m;
+  if (parsed && parsed.meter && (m = /^(\d+)\/(2|4|8)$/.exec(parsed.meter))) qpb = +m[1] * (4 / +m[2]);
+  return { bpm: bpm, qpb: qpb, bar: qpb * 60 / bpm, tempoSketch: !(parsed && parsed.bpm > 0) };
+}
+function trimNum(n) {
+  if (Math.abs(n - Math.round(n)) < 1e-9) return String(Math.round(n));
+  return String(+n.toFixed(3)).replace(/0+$/, '').replace(/\.$/, '');
+}
+function secText(s) {
+  var shown = Math.round(s * 10) / 10, approx = Math.abs(s - shown) > 1e-6;
+  var num = Math.abs(shown - Math.round(shown)) < 1e-9 ? String(Math.round(shown)) : String(shown);
+  return (approx ? '~' : '') + num + ' s';
+}
 // the timeline, the same rule as `nc interpret --stub`
 function timeline() {
   var comp = $('comp').value, parsed = readLang(comp);
   showIRead(parsed);
   applyHacks(parsed);
-  if (parsed && parsed.clock === 'language') return timelineFrom(parsed);
+  if (parsed && parsed.played && parsed.played.some(function (e) { return e.kind === 'chord'; })) {
+    var tl = timelineFrom(parsed);
+    if (tl) {
+      var clk = sketchClock(parsed);
+      tl.chords.forEach(function (c) { if (c.slot == null) c.sketchDur = clk.bar; });
+      tl.sketch = clk;
+      tl.syntax = parsed.syntax || [];
+      return tl;
+    }
+  }
   var words = comp + ' ' + promptWords(), fromComp = true;
   var found = findChords(comp);
   if (!found.length) { found = findChords(words); fromComp = false; }
@@ -221,12 +267,10 @@ function timeline() {
   if (written) {
     seq = found; durs = written; L = written.reduce(function (a, b) { return a + b; }, 0);
   } else {
-    L = lengthOf(words);
-    var B = bars(words), n = found.length, reps = (B && B.n === n) ? 1 : Math.max(1, Math.round(L / (n * 9)));
-    seq = [];
-    for (var r = 0; r < reps; r++) seq = seq.concat(found);
-    var dur = L / seq.length;
-    durs = seq.map(function () { return dur; });
+    seq = found;
+    var bar = sketchClock(parsed).bar;
+    durs = seq.map(function () { return bar; });
+    L = bar * seq.length;
   }
   var prev = null, out = [], t = 0;
   seq.forEach(function (c, i) {
@@ -242,18 +286,133 @@ function nn(m) { return NAMES[m % 12] + (Math.floor(m / 12) - 1); }
 function slug(s) { return (s || 'untitled').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 40) || 'untitled'; }
 
 // ---------- render the progression list ----------
+function markChord(i) {
+  document.querySelectorAll('#prog .ch.on').forEach(function (e) { e.classList.remove('on'); });
+  if (!(i >= 0)) return;
+  document.querySelectorAll('#prog .ch').forEach(function (e) {
+    var at = (e.getAttribute('data-at') || '').split(',');
+    if (at.indexOf(String(i)) >= 0) e.classList.add('on');
+  });
+}
+function chipLen(ev) {
+  if (!ev || ev.openDur || (ev.beats == null && ev.bars == null)) return { text: '1 bar*', sketch: true };
+  if (ev.bars != null) return { text: trimNum(ev.bars) + (ev.bars === 1 ? ' bar' : ' bars'), sketch: false };
+  return { text: trimNum(ev.beats) + (Math.abs(ev.beats - 1) < 1e-9 ? ' beat' : ' beats'), sketch: false };
+}
+function chipBeats(ev, qpb) {
+  if (!ev) return qpb;
+  if (ev.bars != null) return ev.bars * qpb;
+  if (ev.beats != null) return ev.beats;
+  return qpb;
+}
+function chipName(ev) {
+  if (!ev || ev.kind === 'rest') return 'rest';
+  return prettySym(ev.symbol) + (ev.bass != null ? '/' + SPELL[ev.bass] : '');
+}
+function makeChip(ev, at, title) {
+  var len = chipLen(ev);
+  var s = document.createElement('span');
+  s.className = 'ch';
+  if (at && at.length) s.setAttribute('data-at', at.join(','));
+  if (title) s.title = title;
+  var sym = document.createElement('span');
+  sym.className = 'sym';
+  sym.textContent = chipName(ev);
+  var lab = document.createElement('span');
+  lab.className = 'len' + (len.sketch ? ' sketch' : '');
+  lab.textContent = len.text;
+  s.appendChild(sym);
+  s.appendChild(lab);
+  return s;
+}
+function groupMetaOf(s) {
+  var times = s.times > 0 ? s.times : 1, slots = s.slots > 0 ? s.slots : 0;
+  if (!(s.slots > 0)) {
+    var m = /^\[([\s\S]*)\](?:x(\d+))?$/.exec(s.text || '');
+    if (m) {
+      slots = m[1].trim() ? m[1].trim().split(/\s+/).filter(function (t) { return t !== '|'; }).length : 0;
+      if (m[2]) times = +m[2];
+    }
+  }
+  return { times: times, slots: slots };
+}
+function playMeta(total, clk) {
+  if (!(total > 0) || !clk) return '';
+  var bars = total / clk.qpb, sec = total * 60 / clk.bpm;
+  return trimNum(total) + (Math.abs(total - 1) < 1e-9 ? ' beat' : ' beats') + ' · ' +
+    trimNum(bars) + (Math.abs(bars - 1) < 1e-9 ? ' bar' : ' bars') + ' · ' + secText(sec) + ' · ' +
+    trimNum(clk.bpm) + ' BPM' + (clk.tempoSketch ? ' sketch' : '');
+}
 function refresh() {
+  var parsed = readLang($('comp').value);
   var tl = CAT && timeline(), el = $('prog');
   if (!CAT) { el.textContent = 'Loading the chord set…'; return; }
-  if (!tl) { $('progmeta').textContent = ''; el.textContent = ''; el.classList.add('empty'); $('play').disabled = true; if (window.NCPerform && NCPerform.sync) NCPerform.sync(); return; }
-  el.classList.remove('empty');
-  $('play').disabled = false;
   el.innerHTML = '';
-  tl.chords.forEach(function (c, i) {
-    var s = document.createElement('span'); s.className = 'ch'; s.id = 'ch' + i;
-    s.title = c.voicing.map(nn).join(' ') + ' · ' + c.path; s.textContent = prettySym(c.symbol); el.appendChild(s); el.appendChild(document.createTextNode(' '));
+  var syntax = (parsed && parsed.syntax) || [], played = (parsed && parsed.played) || [];
+  var clk = sketchClock(parsed), pi = 0, chordI = 0, total = 0, any = false;
+  function take(n) {
+    var out = [];
+    while (out.length < n && pi < played.length) out.push(played[pi++]);
+    return out;
+  }
+  function addChip(parent, ev, at) {
+    var title = '';
+    if (tl && at && at.length && tl.chords[at[0]]) title = tl.chords[at[0]].voicing.map(nn).join(' ') + ' · ' + tl.chords[at[0]].path;
+    parent.appendChild(makeChip(ev, at, title));
+  }
+  syntax.forEach(function (s) {
+    if (s.kind === 'notes' || s.kind === 'arp') {
+      var line = document.createElement('p');
+      line.className = 'play-line';
+      line.textContent = s.text;
+      el.appendChild(line);
+      any = true;
+      return;
+    }
+    if (s.kind !== 'chord' && s.kind !== 'rest' && s.kind !== 'group') return;
+    if (s.kind === 'group') {
+      var meta = groupMetaOf(s), evs = take(meta.slots * meta.times), once = evs.slice(0, meta.slots);
+      if (!once.length) return;
+      var chords = once.filter(function (ev) { return ev.kind === 'chord'; });
+      var base = chordI;
+      chordI += chords.length * meta.times;
+      once.forEach(function (ev) { total += chipBeats(ev, clk.qpb) * meta.times; });
+      var g = document.createElement('span');
+      g.className = 'grp';
+      var ci = 0;
+      once.forEach(function (ev) {
+        if (ev.kind !== 'chord') { addChip(g, ev, []); return; }
+        var at = [], p;
+        for (p = 0; p < meta.times; p++) at.push(base + p * chords.length + ci);
+        addChip(g, ev, at);
+        ci++;
+      });
+      if (meta.times > 1) {
+        var times = document.createElement('span');
+        times.className = 'times';
+        times.textContent = '×' + meta.times;
+        g.appendChild(times);
+      }
+      el.appendChild(g);
+      any = true;
+      return;
+    }
+    var ev = take(1)[0];
+    if (!ev) return;
+    total += chipBeats(ev, clk.qpb);
+    var at = ev.kind === 'chord' ? [chordI++] : [];
+    addChip(el, ev, at);
+    any = true;
   });
-  $('progmeta').textContent = (tl.language && !(tl.L > 0)) ? '' : previewLen(tl.L);
+  if (!any) {
+    $('progmeta').textContent = '';
+    el.classList.add('empty');
+    $('play').disabled = true;
+  } else {
+    el.classList.remove('empty');
+    $('progmeta').textContent = playMeta(total, clk);
+    $('play').disabled = !(tl && tl.chords && tl.chords.length);
+  }
   if (window.NCPerform && NCPerform.sync) NCPerform.sync();
 }
 
@@ -365,10 +524,11 @@ function playLanguage(tl, from, speed, master, my) {
     var cursor = 0, rows = [];
     chords.forEach(function (c, i) {
       var clip = clips[i], cap = clip && clip.buffer && clip.buffer.duration > 0 ? clip.buffer.duration : 2;
-      var play = c.slot == null ? cap : c.slot;
+      var sketch = c.sketchDur > 0 ? c.sketchDur : 0;
+      var play = c.slot == null ? (sketch || cap) : c.slot;
       if (clip && clip.buffer && play > clip.buffer.duration) play = clip.buffer.duration;
       if (!(play > 0)) play = 0.1;
-      var advance = c.slot == null ? play : c.slot;
+      var advance = c.slot != null ? c.slot : (sketch || play);
       var at = cursor + (c.gapBefore || 0);
       rows.push({c: c, i: i, at: at, play: play, clip: clip});
       cursor = at + advance;
@@ -381,8 +541,7 @@ function playLanguage(tl, from, speed, master, my) {
       timers.push(setTimeout(function () {
         if (my !== gen) return;
         cur = row.i;
-        document.querySelectorAll('.ch.on').forEach(function (e) { e.classList.remove('on'); });
-        var e = $('ch' + row.i); if (e) e.classList.add('on');
+        markChord(row.i);
       }, Math.max(0, (t - AC.currentTime) * 1000)));
       if (!clip || !clip.buffer) {
         sine(c.voicing, t, row.play / speed, master);
@@ -397,7 +556,7 @@ function playLanguage(tl, from, speed, master, my) {
       SCHED.push({i: row.i, symbol: c.symbol, path: c.path, strike: 1, at: t, d: hear, src: clip.kind, url: clip.url || null});
     });
     var last = rows[rows.length - 1];
-    var endAt = (last.at - base + (last.c.slot == null ? last.play : last.c.slot)) / speed;
+    var endAt = (last.at - base + (last.c.slot != null ? last.c.slot : (last.c.sketchDur > 0 ? last.c.sketchDur : last.play))) / speed;
     timers.push(setTimeout(function () { if (my === gen) { stop(); cur = 0; } }, (endAt + 0.35) * 1000));
   }).catch(function () {
     if (my !== gen) return;
@@ -443,8 +602,7 @@ function go(chords, from, speed, out, fn) {
     var t = t0 + (c.t - base) / speed, d = c.dur / speed; fn(c, i, t, d);
     timers.push(setTimeout(function () {
       cur = from + i;
-      document.querySelectorAll('.ch.on').forEach(function (e) { e.classList.remove('on'); });
-      var e = $('ch' + (from + i)); if (e) e.classList.add('on');
+      markChord(from + i);
     }, (t - AC.currentTime) * 1000));
   });
   var last = chords[chords.length - 1];
@@ -477,9 +635,9 @@ function toPlan(S) {
     if (tl.seed != null) seed = tl.seed;
     var cursor = 0;
     drawn = tl.chords.map(function (c) {
-      var loose = c.slot == null, dur = loose ? 4 : c.slot;
+      var loose = c.slot == null, dur = loose ? (c.sketchDur > 0 ? c.sketchDur : 4) : c.slot;
       if (!(dur >= 0.1)) dur = 0.1;
-      if (loose) noteOpen = 'Open chords are drawn as 4 s here. They play their whole recordings. Nothing is stretched.';
+      if (loose) noteOpen = 'Open chords are drawn as one bar here. They play their whole recordings. Nothing is stretched.';
       var at = +(cursor + (c.gapBefore || 0)).toFixed(3);
       cursor = +(at + dur).toFixed(3);
       return {t: at, dur: +dur.toFixed(3), symbol: c.symbol, path: c.path, voicing: c.voicing};
@@ -857,7 +1015,7 @@ window.addEventListener('hashchange', fromHash);
 window.addEventListener('pagehide', function () { if (persistT) persist(); });
 window.NC = {timeline: timeline, toPlan: toPlan, toMd: toMd, parseMd: parseMd, state: state, raw: raw, fill: fill, findChords: findChords, pickVoicing: pickVoicing, shareUrl: shareUrl,
   read: function () { return readLang($('comp').value); }, reuseSeed: reuseSeed, seed: writtenSeed,
-  fromText: fromText, makeSurprise: makeSurprise, progression: progression, start: start, stop: stop, undo: undo, sched: function () { return SCHED.slice(); },
+  fromText: fromText, makeSurprise: makeSurprise, progression: progression, start: start, stop: stop, undo: undo, sched: function () { return SCHED.slice(); }, markChord: markChord,
   catalog: function () { return CAT; }, audition: function (ac, chords) { return window.MM.prepare(ac, chords, CAT, $('inst').value || 'piano'); }, showSources: showSources, creditsFor: creditsFor, chordLabel: chordLabel, instrument: function () { return $('inst').value || 'piano'; }, creditSentence: creditSentence,
   PREVIEW_TEMPO: PREVIEW_TEMPO, perform: PERFORM, showPerformance: showPerformance, performStatus: performStatus, pushUndo: pushUndo, persist: persist, commitNotes: commitNotes, growNotes: growNotes};
 fetch('chords.json').then(function (r) { return r.json(); }).then(function (c) {
