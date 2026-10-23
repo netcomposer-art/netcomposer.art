@@ -26,16 +26,22 @@ check(octave.play.length === 0 && octave.missing.length === 1 && octave.missing[
 const both = S.selectWritten([64, 67, 99], { 64: 1, 67: 1 });
 check(both.play.join() === '64,67' && both.missing.join() === '99', 'present pitches stay in order, got ' + JSON.stringify(both));
 
+// Same pitches pickVoicing writes for Cm, then Fm, then Gm (create/chords.json).
 const cello = {
   instrument: 'cello pizzicato',
-  notes: { 53: { lufs: -18 }, 48: { lufs: -18 }, 51: { lufs: -18 }, 55: { lufs: -18 }, 43: { lufs: -18 }, 46: { lufs: -18 }, 50: { lufs: -18 } }
+  notes: { 65: { lufs: -12 }, 55: { lufs: -18 }, 63: { lufs: -18 }, 58: { lufs: -18 }, 62: { lufs: -18 }, 48: { lufs: -18 }, 51: { lufs: -18 }, 43: { lufs: -18 }, 46: { lufs: -18 }, 50: { lufs: -18 } }
 };
-const fm = S.plan(cello, [{ symbol: 'Fm', written: [53, 56, 60], start: 0, hold: 2.5, origin: 'chord' }], 0.015, 0.12);
-check(fm.messages[0] === 'cello pizzicato has no G#3 and C4; Fm plays F3', 'missing-note sentence, got ' + JSON.stringify(fm.messages));
-check(fm.notes.length === 1 && fm.notes[0].midi === 53, 'Fm keeps only F3, got ' + JSON.stringify(fm.notes));
+const FM_SENTENCE = 'Cello pizzicato has no C4 or G#3, so Fm plays F4 only.';
+const CM_SENTENCE = 'Cello pizzicato has no C4, so Cm plays G3 and D#4.';
+const fm = S.plan(cello, [{ symbol: 'Fm', written: [56, 60, 65], start: 0, hold: 2.5, origin: 'chord' }], 0.015, 0.12);
+check(fm.messages[0] === FM_SENTENCE, 'missing-note sentence, got ' + JSON.stringify(fm.messages));
+check(fm.notes.length === 1 && fm.notes[0].midi === 65, 'Fm keeps only F4, got ' + JSON.stringify(fm.notes));
 check(fm.hints.length === 0, 'a catalog chord has no typeable pitch to suggest');
+const cm = S.plan(cello, [{ symbol: 'Cm', written: [55, 60, 63], start: 0, hold: 2.5, origin: 'chord' }], 0.015, 0.12);
+check(cm.messages[0] === CM_SENTENCE, 'Cm sentence, got ' + JSON.stringify(cm.messages));
+check(cm.notes.map((n) => n.midi).join() === '55,63', 'Cm keeps G3 and D#4, got ' + JSON.stringify(cm.notes));
 const typed = S.plan(cello, [{ symbol: 'n G#3', written: [56], start: 0, hold: 1, origin: 'notes' }], 0, 0.12);
-check(typed.messages[0] === 'cello pizzicato has no G#3; n G#3 plays without them', 'a typed pitch is named, got ' + typed.messages[0]);
+check(typed.messages[0] === 'Cello pizzicato has no G#3, so n G#3 plays nothing.', 'a typed pitch is named, got ' + typed.messages[0]);
 check(typed.hints[0] === 'Write n G3.', 'the hint is the nearest note the instrument has, got ' + typed.hints[0]);
 
 const gains = S.levelGains({ 1: { lufs: -20 }, 2: { lufs: -14 }, 3: { lufs: -30 }, 4: { lufs: null } });
@@ -68,37 +74,8 @@ let energy = 0;
 for (let i = 0; i < mixed.left.length; i += 48) energy += mixed.left[i] * mixed.left[i];
 check(energy > 1, 'the guitar clip is not silent, energy ' + energy);
 
-function wavBytes(left, right, rate) {
-  const n = left.length;
-  const dataLen = n * 4;
-  const buf = Buffer.alloc(44 + dataLen);
-  buf.write('RIFF', 0);
-  buf.writeUInt32LE(36 + dataLen, 4);
-  buf.write('WAVE', 8);
-  buf.write('fmt ', 12);
-  buf.writeUInt32LE(16, 16);
-  buf.writeUInt16LE(1, 20);
-  buf.writeUInt16LE(2, 22);
-  buf.writeUInt32LE(rate, 24);
-  buf.writeUInt32LE(rate * 4, 28);
-  buf.writeUInt16LE(4, 32);
-  buf.writeUInt16LE(16, 34);
-  buf.write('data', 36);
-  buf.writeUInt32LE(dataLen, 40);
-  for (let i = 0; i < n; i++) {
-    for (const ch of [left, right]) {
-      let x = ch[i];
-      if (x > 1) x = 1;
-      else if (x < -1) x = -1;
-      buf.writeInt16LE(x < 0 ? Math.round(x * 0x8000) : Math.round(x * 0x7FFF), 44 + (i * 2 + (ch === right ? 1 : 0)) * 2);
-    }
-  }
-  return buf;
-}
 await mkdir('/opt/cursor/artifacts', { recursive: true });
-const clipPath = '/opt/cursor/artifacts/guitar-em7-a-x4.wav';
-await writeFile(clipPath, wavBytes(mixed.left, mixed.right, mixed.rate));
-console.log('clip ' + seconds.toFixed(3) + ' s ' + clipPath);
+console.log('guitar mix ' + seconds.toFixed(3) + ' s (stand-in clip left as it is)');
 
 function chromeBin() {
   for (const name of [process.env.CHROME, 'google-chrome', 'google-chrome-stable', 'chromium']) {
@@ -221,22 +198,49 @@ if (!chrome || typeof WebSocket === 'undefined') {
         }
         check(false, 'page did not become ready: ' + path);
       };
-      const size = async (w, h) => { await send('Emulation.setDeviceMetricsOverride', { width: w, height: h, deviceScaleFactor: 1, mobile: w < 700 }); };
-      const clipOf = async (sel) => ev(`(() => { const e = document.querySelector(${JSON.stringify(sel)}); if (!e) return null; e.scrollIntoView({block:'start'}); const r = e.getBoundingClientRect(); return {x: r.x, y: r.y, width: r.width, height: r.height}; })()`);
-      const shoot = async (sel, file) => {
-        const box = await clipOf(sel);
-        check(box && box.width > 40 && box.height > 40, 'nothing to shoot for ' + sel + ' ' + JSON.stringify(box));
-        if (!box) return;
-        const height = Math.min(4000, Math.ceil(box.height + 8));
-        if (height > 860) await size(Math.ceil(box.width + box.x + 8), height + Math.ceil(box.y));
-        const again = await clipOf(sel);
-        const png = await send('Page.captureScreenshot', { format: 'png', captureBeyondViewport: true, clip: { x: again.x, y: again.y, width: again.width, height: again.height, scale: 1 } });
+      let view = { w: 1280, h: 900 };
+      const size = async (w, h) => {
+        view = { w, h };
+        await send('Emulation.setDeviceMetricsOverride', { width: w, height: h, deviceScaleFactor: 1, mobile: w < 700 });
+      };
+      const pngSize = (buf) => ({ w: buf.readUInt32BE(16), h: buf.readUInt32BE(20) });
+      // A viewport taller than the page keeps scroll at 0, so the element box
+      // and the screenshot clip are the same rectangle. That captures the whole
+      // panel instead of the slice that was on screen.
+      const boxOf = async (sel) => ev(`(() => {
+        const e = document.querySelector(${JSON.stringify(sel)});
+        if (!e) return null;
+        const r = e.getBoundingClientRect();
+        return { x: r.left, y: r.top, width: r.width, height: r.height, scrollY: window.scrollY };
+      })()`);
+      const shoot = async (sel, file, minH) => {
+        await ev('window.scrollTo(0, 0)');
+        let box = await boxOf(sel);
+        if (box && box.y + box.height + 24 > view.h) {
+          await size(view.w, Math.ceil(box.y + box.height + 24));
+          await ev('window.scrollTo(0, 0)');
+          box = await boxOf(sel);
+        }
+        check(box && box.scrollY === 0 && box.width > 40 && box.height > (minH || 40), 'nothing to shoot for ' + sel + ' ' + JSON.stringify(box));
+        if (!box) return null;
+        const clip = {
+          x: Math.max(0, Math.floor(box.x)),
+          y: Math.max(0, Math.floor(box.y)),
+          width: Math.ceil(box.width),
+          height: Math.ceil(box.height),
+          scale: 1
+        };
+        const png = await send('Page.captureScreenshot', { format: 'png', captureBeyondViewport: true, clip });
+        const buf = Buffer.from(png.data, 'base64');
+        const dim = pngSize(buf);
+        check(Math.abs(dim.w - clip.width) <= 2 && Math.abs(dim.h - clip.height) <= 2, file + ' is ' + dim.w + 'x' + dim.h + ', panel is ' + clip.width + 'x' + clip.height);
         const path = '/opt/cursor/artifacts/' + file;
-        await writeFile(path, Buffer.from(png.data, 'base64'));
+        await writeFile(path, buf);
         shots[file] = path;
+        return box;
       };
 
-      await size(1280, 900);
+      await size(1280, 2400);
       await goto('/create/');
       const off = await ev(`(() => {
         const box = document.getElementById('sampler');
@@ -264,47 +268,153 @@ if (!chrome || typeof WebSocket === 'undefined') {
           const label = getComputedStyle(document.querySelector('#sampler .nc-label'));
           const mod = getComputedStyle(document.querySelector('#sampler .nc-module'));
           const mono = getComputedStyle(document.querySelector('#sampler .nc-label .nc-mono'));
-          const labels = [...document.querySelectorAll('#sampler .nc-label')].map(e => e.textContent.replace(/\\s+/g, ' ').trim());
+          const labels = [...document.querySelectorAll('#sampler .nc-module > .nc-label')].map(e => e.textContent.replace(/\\s+/g, ' ').trim());
           const ring = document.getElementById('sampler-ring-range');
           const fade = document.getElementById('sampler-fade-range');
+          const times = document.querySelector('#prog .times');
           return {
             hidden: box.hidden,
             loaded: box.getAttribute('data-loaded'),
             labels,
+            modules: document.querySelectorAll('#sampler .nc-module').length,
             color: label.color,
             transform: label.textTransform,
             track: label.letterSpacing,
-            bg: mod.backgroundColor,
-            rule: mod.borderBottomColor,
+            bgs: [...document.querySelectorAll('#sampler .nc-module')].map(e => getComputedStyle(e).backgroundColor),
             accent: getComputedStyle(box).getPropertyValue('--nc-acc').trim(),
             font: mono.fontFamily,
+            ringFont: getComputedStyle(document.getElementById('sampler-ring')).fontFamily,
             ring: document.getElementById('sampler-ring').textContent,
             fade: document.getElementById('sampler-fade').textContent,
             strum: document.getElementById('sampler-strum-read').textContent,
             ringOff: ring.disabled, fadeOff: fade.disabled,
-            miss: document.getElementById('sampler-miss').textContent,
             credit: document.getElementById('sampler-credit').textContent,
-            license: document.getElementById('sampler-license').textContent,
+            license: !!document.getElementById('sampler-license'),
             missingKeys: document.querySelectorAll('#sampler .nc-key[data-on="0"]').length,
+            used: document.querySelectorAll('#sampler .nc-key[data-use="1"]').length,
             keys: document.querySelectorAll('#sampler .nc-key').length,
-            pad: mod.padding
+            pad: mod.padding,
+            iread: document.getElementById('iread').textContent,
+            chips: document.querySelectorAll('#prog .ch').length,
+            times: times ? times.textContent : '',
+            groups: document.querySelectorAll('#prog .grp').length,
+            tempo: document.getElementById('tempo').value,
+            meter: document.getElementById('meter').value
           };
         })()`);
         if (guitar && guitar.loaded && !String(guitar.loaded).startsWith('0/')) break;
         await sleep(50);
       }
       check(guitar && guitar.hidden === false, 'the panel is visible with the flag, got ' + JSON.stringify(guitar && guitar.hidden));
-      check(guitar && guitar.labels[0] === '01 Instrument' && guitar.labels.includes('02 Notes') && guitar.labels.includes('03 Ring') && guitar.labels.includes('04 Level') && guitar.labels.includes('05 Strum'), 'module index and names, got ' + JSON.stringify(guitar && guitar.labels));
-      check(guitar && !guitar.labels.some((t) => /pitch|speed|stretch|rate/i.test(t)), 'no pitch or speed control, got ' + JSON.stringify(guitar && guitar.labels));
-      check(guitar && guitar.color === 'rgb(124, 133, 128)' && guitar.bg === 'rgb(255, 255, 255)' && guitar.rule === 'rgb(217, 222, 218)', 'ink, white, divider, got ' + JSON.stringify(guitar && { color: guitar.color, bg: guitar.bg, rule: guitar.rule }));
+      const shades = ['rgb(243, 243, 240)', 'rgb(238, 238, 235)', 'rgb(233, 233, 230)', 'rgb(228, 228, 225)', 'rgb(223, 223, 220)'];
+      check(guitar && guitar.labels.join(' | ') === '01 Instrument | 02 Notes | 03 Ring | 04 Level | 05 Strum', 'module index and names, got ' + JSON.stringify(guitar && guitar.labels));
+      check(guitar && guitar.modules === 5, 'five shaded modules, got ' + (guitar && guitar.modules));
+      check(guitar && !guitar.labels.some((t) => /pitch|speed|stretch|rate|license/i.test(t)), 'no pitch, speed, or license heading, got ' + JSON.stringify(guitar && guitar.labels));
+      check(guitar && guitar.color === 'rgb(124, 133, 128)' && guitar.bgs && guitar.bgs.join() === shades.join(), 'label ink and module shades, got ' + JSON.stringify(guitar && { color: guitar.color, bgs: guitar.bgs }));
       check(guitar && guitar.accent === '#426C61', 'accent, got ' + (guitar && guitar.accent));
-      check(guitar && /ibm plex mono/i.test(guitar.font) && guitar.transform === 'uppercase', 'mono index and tracked label, got ' + JSON.stringify(guitar && { font: guitar.font, transform: guitar.transform, track: guitar.track }));
+      check(guitar && /ibm plex mono/i.test(guitar.font) && /ibm plex mono/i.test(guitar.ringFont) && guitar.transform === 'uppercase', 'mono index and ring readout, got ' + JSON.stringify(guitar && { font: guitar.font, ringFont: guitar.ringFont, transform: guitar.transform }));
       check(guitar && guitar.ring === '8 s' && guitar.fade === '120 ms' && guitar.ringOff && guitar.fadeOff, 'ring cap and fade are fixed, got ' + JSON.stringify(guitar && { ring: guitar.ring, fade: guitar.fade }));
       check(guitar && guitar.strum === '18 ms', 'guitar strum default, got ' + (guitar && guitar.strum));
-      check(guitar && guitar.credit === 'NC fixture, https://netcomposer.art/create/, CC-BY-SA-4.0' && guitar.license === 'CC-BY-SA-4.0', 'credit and license, got ' + JSON.stringify(guitar && { credit: guitar.credit, license: guitar.license }));
-      check(guitar && guitar.miss === '' && guitar.missingKeys === 0 && guitar.keys > 20, 'guitar shows every pitch in its range, got ' + JSON.stringify(guitar && { miss: guitar.miss, missingKeys: guitar.missingKeys, keys: guitar.keys }));
+      check(guitar && guitar.credit === 'NC fixture, https://netcomposer.art/create/, CC-BY-SA-4.0' && guitar.license === false, 'one credit line, got ' + JSON.stringify(guitar && { credit: guitar.credit, license: guitar.license }));
+      check(guitar && guitar.missingKeys === 0 && guitar.used > 0 && guitar.keys > 20, 'guitar highlights the chord and dims nothing, got ' + JSON.stringify(guitar && { used: guitar.used, missingKeys: guitar.missingKeys, keys: guitar.keys }));
       check(guitar && guitar.pad === '28px 32px', 'desktop module padding, got ' + (guitar && guitar.pad));
-      await shoot('#sampler', 'sampler-guitar-desktop.png');
+      check(guitar && guitar.tempo === '96' && guitar.meter === '4/4', 'tempo and time signature header, got ' + JSON.stringify(guitar && { tempo: guitar.tempo, meter: guitar.meter }));
+      check(guitar && guitar.groups === 1 && guitar.chips === 2 && guitar.times === '×4', 'Play shows [Em7 A] once, got ' + JSON.stringify(guitar && { groups: guitar.groups, chips: guitar.chips, times: guitar.times }));
+      check(guitar && guitar.iread.indexOf('96 BPM') >= 0 && guitar.iread.indexOf('×4') >= 0 && guitar.iread.indexOf('q96') < 0, 'I read is the current line, got ' + (guitar && guitar.iread));
+
+      await ev(`(() => {
+        document.getElementById('comp').value = '96 BPM\\n[Cm Fm Gm]x2';
+        document.getElementById('comp').dispatchEvent(new Event('input'));
+        document.getElementById('inst').value = 'cello-pizzicato';
+        document.getElementById('inst').dispatchEvent(new Event('change'));
+      })()`);
+      let celloPage = null;
+      for (let i = 0; i < 40; i++) {
+        celloPage = await ev(`(() => {
+          const tl = NC.timeline();
+          const voicing = {};
+          (tl && tl.chords || []).forEach((c) => { if (!voicing[c.symbol]) voicing[c.symbol] = c.voicing.join(','); });
+          const key = (name) => document.querySelector('#sampler .nc-key[title="' + name + '"]');
+          const times = document.querySelector('#prog .times');
+          return {
+            iread: document.getElementById('iread').textContent,
+            strum: document.getElementById('sampler-strum-read').textContent,
+            gaps: document.querySelectorAll('#sampler .nc-key[data-on="0"]').length,
+            used: document.querySelectorAll('#sampler .nc-key[data-use="1"]').length,
+            f4: key('F4') ? key('F4').getAttribute('data-use') : '',
+            c4: key('C4') ? key('C4').getAttribute('data-on') : '',
+            gs: key('G#3') ? key('G#3').getAttribute('data-on') : '',
+            voicing,
+            chips: document.querySelectorAll('#prog .ch').length,
+            times: times ? times.textContent : '',
+            groups: document.querySelectorAll('#prog .grp').length
+          };
+        })()`);
+        if (celloPage && celloPage.iread && celloPage.iread.indexOf('plays F4 only') >= 0) break;
+        await sleep(40);
+      }
+      check(celloPage && celloPage.voicing && celloPage.voicing.Fm === '56,60,65' && celloPage.voicing.Cm === '55,60,63', 'the page voices from the catalog, got ' + JSON.stringify(celloPage && celloPage.voicing));
+      check(celloPage && celloPage.iread.indexOf(FM_SENTENCE) >= 0 && celloPage.iread.indexOf(CM_SENTENCE) >= 0, 'I read uses the catalog voicing, got ' + (celloPage && celloPage.iread));
+      check(celloPage && celloPage.iread.indexOf('96 BPM') >= 0 && celloPage.iread.indexOf('×2') >= 0 && celloPage.iread.indexOf('q96') < 0, 'I read keeps the current line, got ' + (celloPage && celloPage.iread));
+      check(celloPage && celloPage.groups === 1 && celloPage.chips === 3 && celloPage.times === '×2', 'Play shows [Cm Fm Gm] once, got ' + JSON.stringify(celloPage && { groups: celloPage.groups, chips: celloPage.chips, times: celloPage.times }));
+      check(celloPage && celloPage.strum === '15 ms' && celloPage.gaps >= 2 && celloPage.f4 === '1' && celloPage.c4 === '0' && celloPage.gs === '0', 'cello dims the missing pitches and accents F4, got ' + JSON.stringify(celloPage));
+      const samplerDesktop = await shoot('#sampler', 'sampler-cello-desktop.png', 700);
+      const pageBox = await ev(`(() => {
+        let bottom = 0;
+        document.querySelectorAll('body *').forEach((e) => {
+          const r = e.getBoundingClientRect();
+          if (r.bottom > bottom) bottom = r.bottom;
+        });
+        return { width: document.documentElement.clientWidth, height: Math.ceil(bottom + window.scrollY) };
+      })()`);
+      if (pageBox && pageBox.height + 8 > view.h) await size(view.w, Math.ceil(pageBox.height + 8));
+      await ev('window.scrollTo(0, 0)');
+      const pageClip = { x: 0, y: 0, width: Math.ceil(pageBox.width), height: Math.ceil(pageBox.height), scale: 1 };
+      const pagePng = await send('Page.captureScreenshot', { format: 'png', captureBeyondViewport: true, clip: pageClip });
+      const pageBuf = Buffer.from(pagePng.data, 'base64');
+      const pagePath = '/opt/cursor/artifacts/create-sampler-page.png';
+      await writeFile(pagePath, pageBuf);
+      shots['create-sampler-page.png'] = pagePath;
+      const pageDim = pngSize(pageBuf);
+      check(pageDim.h > (samplerDesktop ? samplerDesktop.height : 700), 'full page is taller than the panel, got ' + pageDim.h);
+
+      await size(390, 2400);
+      await sleep(50);
+      const phone = await ev(`(() => {
+        const mods = [...document.querySelectorAll('#sampler .nc-module')];
+        const a = mods[0].getBoundingClientRect(), b = mods[1].getBoundingClientRect();
+        return { pad: getComputedStyle(mods[0]).padding, stack: b.top >= a.bottom - 1, width: Math.round(a.width), same: Math.round(a.width) === Math.round(b.width), modules: mods.length };
+      })()`);
+      check(phone && phone.pad === '24px' && phone.stack && phone.same && phone.width > 300 && phone.width < 420 && phone.modules === 5, 'phone stacks full width at 24px, got ' + JSON.stringify(phone));
+      const samplerPhone = await shoot('#sampler', 'sampler-cello-phone.png', 700);
+      check(samplerPhone && Math.round(samplerPhone.width) === 390, 'phone panel is 390 px wide, got ' + (samplerPhone && samplerPhone.width));
+
+      const desktopWidth = samplerDesktop ? Math.round(samplerDesktop.width) : 736;
+      await size(1280, 1600);
+      await send('Page.navigate', { url: `http://127.0.0.1:${port}/synth-ref` });
+      await sleep(200);
+      await ev(`document.getElementById('synth').style.width = ${desktopWidth} + 'px'`);
+      const synthDesktop = await shoot('#synth', 'synth-panel-desktop.png', 400);
+      check(synthDesktop && Math.abs(Math.round(synthDesktop.width) - desktopWidth) <= 1, 'synth and sampler desktop panels share a width, got ' + (synthDesktop && synthDesktop.width));
+      await size(390, 1400);
+      await sleep(50);
+      await ev(`document.getElementById('synth').style.width = '390px'`);
+      const synthPhone = await shoot('#synth', 'synth-panel-phone.png', 400);
+      check(synthPhone && Math.round(synthPhone.width) === 390, 'synth phone panel is 390 px wide, got ' + (synthPhone && synthPhone.width));
+
+      await size(1280, 1600);
+      await goto('/create/?sampler=1&notes=/create/sampler-fixtures/');
+      for (let i = 0; i < 80; i++) {
+        if (await ev('document.getElementById("sampler") && document.getElementById("sampler").getAttribute("data-sampler-ready") === "1"')) break;
+        await sleep(50);
+      }
+      await ev(`(() => {
+        document.getElementById('comp').value = '96 BPM\\n[Em7 A]x4';
+        document.getElementById('comp').dispatchEvent(new Event('input'));
+        document.getElementById('inst').value = 'guitar';
+        document.getElementById('inst').dispatchEvent(new Event('change'));
+      })()`);
+      await sleep(100);
       await ev(`document.getElementById('gatherBtn').click()`);
       let gathered = null;
       for (let i = 0; i < 80; i++) {
@@ -321,46 +431,6 @@ if (!chrome || typeof WebSocket === 'undefined') {
         await sleep(50);
       }
       check(gathered && gathered.status === 'Gathered.' && gathered.rows === 1 && /NC fixture/.test(gathered.title), 'gather loads the sampler notes, got ' + JSON.stringify(gathered));
-
-      await ev(`(() => {
-        document.getElementById('comp').value = '96 BPM\\n[Cm Fm Gm]x2';
-        document.getElementById('comp').dispatchEvent(new Event('input'));
-        document.getElementById('inst').value = 'cello-pizzicato';
-        document.getElementById('inst').dispatchEvent(new Event('change'));
-      })()`);
-      let celloPage = null;
-      for (let i = 0; i < 40; i++) {
-        celloPage = await ev(`(() => ({
-          miss: document.getElementById('sampler-miss').textContent,
-          iread: document.getElementById('iread').textContent,
-          strum: document.getElementById('sampler-strum-read').textContent,
-          gaps: document.querySelectorAll('#sampler .nc-key[data-on="0"]').length
-        }))()`);
-        if (celloPage && /cello pizzicato has no/.test(celloPage.miss)) break;
-        await sleep(40);
-      }
-      check(celloPage && celloPage.miss.indexOf('cello pizzicato has no G#3 and C4; Fm plays F4') >= 0, 'the page names the missing cello notes, got ' + JSON.stringify(celloPage));
-      check(celloPage && celloPage.iread.indexOf('cello pizzicato has no G#3 and C4; Fm plays F4') >= 0, 'I read carries the same sentence, got ' + (celloPage && celloPage.iread));
-      check(celloPage && celloPage.strum === '15 ms' && celloPage.gaps >= 2, 'cello strum and dimmed missing keys, got ' + JSON.stringify(celloPage));
-      await shoot('#sampler', 'sampler-cello-desktop.png');
-
-      await size(390, 844);
-      await sleep(50);
-      const phone = await ev(`(() => {
-        const mods = [...document.querySelectorAll('#sampler .nc-module')];
-        const a = mods[0].getBoundingClientRect(), b = mods[1].getBoundingClientRect();
-        return { pad: getComputedStyle(mods[0]).padding, stack: b.top >= a.bottom - 1, width: Math.round(a.width), same: Math.round(a.width) === Math.round(b.width) };
-      })()`);
-      check(phone && phone.pad === '24px' && phone.stack && phone.same && phone.width > 300 && phone.width < 420, 'phone stacks full width at 24px, got ' + JSON.stringify(phone));
-      await shoot('#sampler', 'sampler-cello-phone.png');
-
-      await size(1100, 1200);
-      await send('Page.navigate', { url: `http://127.0.0.1:${port}/synth-ref` });
-      await sleep(200);
-      await shoot('#synth', 'synth-panel-desktop.png');
-      await size(390, 900);
-      await sleep(50);
-      await shoot('#synth', 'synth-panel-phone.png');
 
       const ratePage = await (async () => {
         await size(1280, 900);
@@ -418,25 +488,26 @@ if (!chrome || typeof WebSocket === 'undefined') {
     server.close();
   }
 
-  if (!problems.length && shots['sampler-guitar-desktop.png'] && shots['synth-panel-desktop.png']) {
+  if (!problems.length && shots['sampler-cello-desktop.png'] && shots['synth-panel-desktop.png']) {
     const py = `
-from PIL import Image, ImageDraw
-import os
-def pair(a, b, out, aw, bw):
+from PIL import Image, ImageDraw, ImageFont
+def pair(a, b, out):
     left, right = Image.open(a).convert('RGB'), Image.open(b).convert('RGB')
-    gap, cap = 28, 36
+    if abs(left.width - right.width) > 2:
+        raise SystemExit('panels differ in width: %s %s vs %s %s' % (a, left.size, b, right.size))
+    gap, cap = 28, 32
     w = left.width + right.width + gap
     h = max(left.height, right.height) + cap
     im = Image.new('RGB', (w, h), (255, 255, 255))
     d = ImageDraw.Draw(im)
-    d.text((8, 10), aw, fill=(32, 37, 35))
-    d.text((left.width + gap, 10), bw, fill=(32, 37, 35))
+    d.text((8, 8), 'Synth', fill=(32, 37, 35))
+    d.text((left.width + gap, 8), 'Sampler', fill=(32, 37, 35))
     im.paste(left, (0, cap))
     im.paste(right, (left.width + gap, cap))
     im.save(out)
-pair(${JSON.stringify(shots['synth-panel-desktop.png'])}, ${JSON.stringify(shots['sampler-guitar-desktop.png'])}, '/opt/cursor/artifacts/sampler-vs-synth-desktop.png', 'Synth panel', 'Sampler panel')
-pair(${JSON.stringify(shots['synth-panel-phone.png'])}, ${JSON.stringify(shots['sampler-cello-phone.png'])}, '/opt/cursor/artifacts/sampler-vs-synth-phone.png', 'Synth panel', 'Sampler panel')
-print('paired')
+    print(out, im.size, 'left', left.size, 'right', right.size)
+pair(${JSON.stringify(shots['synth-panel-desktop.png'])}, ${JSON.stringify(shots['sampler-cello-desktop.png'])}, '/opt/cursor/artifacts/sampler-vs-synth-desktop.png')
+pair(${JSON.stringify(shots['synth-panel-phone.png'])}, ${JSON.stringify(shots['sampler-cello-phone.png'])}, '/opt/cursor/artifacts/sampler-vs-synth-phone.png')
 `;
     execFileSync('python3', ['-c', py], { stdio: 'inherit' });
   }

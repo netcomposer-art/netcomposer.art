@@ -6,8 +6,10 @@
  * 8 seconds and fade across 120 ms when the chord changes. Each note is nudged
  * toward the instrument's median loudness, at most 3 dB either way.
  *
- * The panel uses the NC Synth instrument face: module, mono index, tracked
- * label, range, select. It sits on this page's white, not the synth's gray.
+ * The panel uses the NC Synth instrument face: a shaded block per module,
+ * mono index, tracked label, range, select, and mono readout. No pitch or
+ * speed control. A missing pitch stays dimmed on the keyboard; a pitch the
+ * current writing uses is marked in the accent.
  */
 (function (root) {
   'use strict';
@@ -27,6 +29,7 @@
   var manifestsDone = false;
   var booted = false;
   var lastLines = '';
+  var chordUse = {};
   var sources = [];
   var timers = [];
   var sac = null;
@@ -38,12 +41,17 @@
     var pc = ((midi % 12) + 12) % 12;
     return NAMES[pc] + (Math.floor(midi / 12) - 1);
   }
-  function joinNames(midis) {
+  function joinNames(midis, conj) {
     var names = [];
     (midis || []).forEach(function (m) { names.push(noteName(m)); });
+    conj = conj || 'and';
     if (names.length <= 1) return names[0] || '';
-    if (names.length === 2) return names[0] + ' and ' + names[1];
-    return names.slice(0, -1).join(', ') + ', and ' + names[names.length - 1];
+    if (names.length === 2) return names[0] + ' ' + conj + ' ' + names[1];
+    return names.slice(0, -1).join(', ') + ', ' + conj + ' ' + names[names.length - 1];
+  }
+  function titleName(who) {
+    who = who || 'Instrument';
+    return who.charAt(0).toUpperCase() + who.slice(1);
   }
   function selectWritten(written, available) {
     var have = {};
@@ -59,10 +67,12 @@
   }
   function plainMissing(instrument, chord, missing, played) {
     if (!missing || !missing.length) return '';
-    var who = instrument || 'instrument';
-    var miss = joinNames(missing);
-    if (played && played.length) return who + ' has no ' + miss + '; ' + chord + ' plays ' + joinNames(played);
-    return who + ' has no ' + miss + '; ' + chord + ' plays without them';
+    var who = titleName(instrument);
+    var miss = joinNames(missing.slice().sort(function (a, b) { return b - a; }), 'or');
+    var lead = who + ' has no ' + miss + ', so ' + chord + ' plays ';
+    if (played && played.length === 1) return lead + noteName(played[0]) + ' only.';
+    if (played && played.length) return lead + joinNames(played) + '.';
+    return lead + 'nothing.';
   }
   function median(values) {
     var a = values.slice().sort(function (x, y) { return x - y; });
@@ -115,7 +125,8 @@
     var gains = levelGains(notes);
     var have = haveMap(notes);
     var out = [], messages = [], hints = [], seen = {};
-    var who = manifest.instrument || manifest.slug || 'instrument';
+    var row = libraryRow(manifest.slug);
+    var who = (row && row.name) || manifest.instrument || manifest.slug || 'instrument';
     (events || []).forEach(function (ev) {
       var picked = selectWritten(ev.written, have);
       var sentence = plainMissing(who, ev.symbol, picked.missing, picked.play);
@@ -322,11 +333,13 @@
     return events;
   }
   function linesFor(parsed, tl) {
+    chordUse = {};
     if (!active()) { lastLines = ''; return ''; }
     var man = manifests[selectedSlug()];
     var events = [];
     if (tl && tl.chords) {
       tl.chords.forEach(function (c, i) {
+        (c.voicing || []).forEach(function (m) { chordUse[+m] = 1; });
         events.push({symbol: c.symbol, written: (c.voicing || []).slice(), start: 0, hold: 1, origin: 'chord', index: i});
       });
     }
@@ -334,8 +347,8 @@
     lineBundle(compText(), bpm).events.forEach(function (ev) { events.push(ev); });
     var planned = plan(man, events, 0, FADE_S);
     lastLines = planned.messages.concat(planned.hints).join('\n');
-    var miss = $('sampler-miss');
-    if (miss && miss.textContent !== lastLines) miss.textContent = lastLines;
+    var keys = $('sampler-keys');
+    if (keys && man) drawKeys(keys, man);
     return lastLines;
   }
   function canPlay() {
@@ -555,6 +568,7 @@
       key.style.left = (i * w) + '%';
       key.style.width = w + '%';
       key.setAttribute('data-on', have[midi] ? '1' : '0');
+      if (have[midi] && chordUse[midi]) key.setAttribute('data-use', '1');
       key.title = noteName(midi);
       host.appendChild(key);
     });
@@ -569,6 +583,7 @@
       key.style.width = width + '%';
       key.style.left = ((index[prev] + 1) * w - width / 2) + '%';
       key.setAttribute('data-on', have[m] ? '1' : '0');
+      if (have[m] && chordUse[m]) key.setAttribute('data-use', '1');
       key.title = noteName(m);
       host.appendChild(key);
     }
@@ -625,23 +640,15 @@
     if (level) level.disabled = !man;
     var sel = $('sampler-inst'), page = $('inst');
     if (sel && page && sel.value !== page.value) sel.value = page.value;
-    var creditEl = $('sampler-credit'), licEl = $('sampler-license');
+    var creditEl = $('sampler-credit');
     if (man) {
       if (creditEl) creditEl.textContent = credit();
-      if (licEl) licEl.textContent = man.license_out || '';
     } else if (page && page.selectedIndex >= 0) {
       var name = page.options[page.selectedIndex].textContent;
       if (creditEl) creditEl.textContent = name ? name + ' from musicmatter.art (Petrus, CC BY-SA 4.0).' : '';
-      if (licEl) licEl.textContent = 'CC-BY-SA-4.0';
     }
     var keys = $('sampler-keys');
     if (keys) drawKeys(keys, man);
-    var miss = $('sampler-miss');
-    if (miss) {
-      if (man) miss.textContent = lastLines;
-      else if (on && manifestsDone) miss.textContent = 'No note manifest.';
-      else miss.textContent = '';
-    }
     var norm = $('sampler-norm');
     if (norm) norm.textContent = man ? normText(man) : '±3 dB toward the median';
     var arp = $('sampler-arp');
@@ -659,7 +666,12 @@
     if (note && savedCopy.note != null) note.textContent = man ? 'A note this instrument does not have is left out.' : savedCopy.note;
     if (lead && savedCopy.lead != null) lead.textContent = man ? "Load this instrument's notes." : savedCopy.lead;
     if (man) schedulePrefetch();
-    else paintLoaded([]);
+    else {
+      var loaded = $('sampler-loaded');
+      if (loaded) loaded.textContent = (on && manifestsDone) ? 'No note manifest.' : '';
+      var boxEmpty = $('sampler');
+      if (boxEmpty) boxEmpty.removeAttribute('data-loaded');
+    }
   }
   function addOption(slug, name) {
     var page = $('inst');
@@ -736,12 +748,6 @@
     sel.className = 'nc-select';
     sel.setAttribute('aria-label', 'Instrument');
     inst.appendChild(sel);
-    var licLabel = el('p', 'nc-label', 'License');
-    licLabel.style.marginTop = '14px';
-    inst.appendChild(licLabel);
-    var lic = el('p', 'nc-mono nc-credit');
-    lic.id = 'sampler-license';
-    inst.appendChild(lic);
     var creditEl = el('p', 'nc-mono nc-credit');
     creditEl.id = 'sampler-credit';
     inst.appendChild(creditEl);
@@ -752,9 +758,6 @@
     var loaded = el('p', 'nc-mono nc-read');
     loaded.id = 'sampler-loaded';
     notes.appendChild(loaded);
-    var miss = el('p', 'nc-miss');
-    miss.id = 'sampler-miss';
-    notes.appendChild(miss);
     var ring = module('03', 'Ring');
     ring.appendChild(control('Ring cap', rangeInput('sampler-ring-range', 0, 8, 0.1, 8, true), 'sampler-ring'));
     ring.appendChild(control('Chord change', rangeInput('sampler-fade-range', 0, 200, 1, 120, true), 'sampler-fade'));

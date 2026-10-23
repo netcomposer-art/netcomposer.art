@@ -7,8 +7,12 @@
 // plays it, unless the statement names @instrument.
 //
 // A duration belongs to its own chord. A chord with none plays its whole
-// recording. loop(n) and xn repeat a group with the same recordings. A hack
-// sets Live's starting chain for the whole piece. A ramp keeps the start value.
+// recording when gathered; Play sketches it as one bar. loop(n) and xn repeat
+// a group with the same recordings. A hack sets Live's starting chain for the
+// whole piece. A ramp keeps the start value. With no written tempo, Play and
+// a written duration use 96 BPM (the NC Synth page default). A time signature
+// (`3/4`, `6/8`, and the other n/2, n/4, n/8 marks) sets the bar in quarter
+// notes. With none written, the bar is 4/4. `(n|)` is n of those bars.
 (function (root) {
   'use strict';
   var PC = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
@@ -29,6 +33,8 @@
   var HACK_TYPE = { lp: 'lowpass', hp: 'highpass', bp: 'bandpass', eq: 'eq', dl: 'delay', rv: 'plate', dr: 'drive', cp: 'compressor', wd: 'width' };
   var HACK_WORD = /^(?:lowpass|highpass|bandpass|reverb|delay|drive|width|comp|eq|lp|hp|bp|dl|rv|dr|cp|wd)$/i;
   var CHANGE = /\b(?:at|from)\s+bar\s+\d+\b[^.\n]{0,40}?\d+(?:\.\d+)?\s*BPM\b|\bbar\s+\d+\s*:\s*\d+(?:\.\d+)?\s*BPM\b/gi;
+  var SKETCH_BPM = 96;
+  var HINT_Q = ['', 'm', '6', '7', 'maj7', 'm7', '9', 'maj9', 'm9', '11', 'm11', '13', 'maj13', 'm13', 'dim', 'dim7', 'aug', 'sus2', 'sus4', 'add9', 'm6', 'm7b5', '7b9', '7#9', '7b5', '7sus4', '9sus4', 'maj7#11', 'maj7#5', '6-9', 'm6-9', 'm-add9', 'm-maj7', '7alt', '7#11', '7b13', 'min', 'mi', 'maj', 'M7', 'sus', '9sus', '7sus', '2'];
 
   function uncomment(text) {
     return String(text || '').replace(/"(?:[^"\\]|\\.)*"/g, ' ').replace(/(?:^|\n|\s)#[^\n]*/g, ' ');
@@ -93,6 +99,103 @@
     if (quarter) cands.push({ i: quarter.index, bpm: +quarter[1], source: 'quarter' });
     cands.sort(function (a, b) { return a.i - b.i; });
     return cands.length ? cands[0] : null;
+  }
+
+  // The header fields write these statements. The text stays the source of truth.
+  function spaces(n) { var a = ''; while (a.length < n) a += ' '; return a; }
+  function maskComposition(text) {
+    return String(text || '')
+      .replace(/"(?:[^"\\]|\\.)*"/g, function (m) { return spaces(m.length); })
+      .replace(/(^|\n|\s)#[^\n]*/g, function (m, lead) { return lead + spaces(m.length - lead.length); })
+      .replace(/\b(?:at|from)\s+bar\s+\d+\b[^.\n]{0,40}?\d+(?:\.\d+)?\s*BPM\b|\bbar\s+\d+\s*:\s*\d+(?:\.\d+)?\s*BPM\b/gi, function (m) { return spaces(m.length); });
+  }
+  function tempoSpan(text) {
+    var blank = maskComposition(text);
+    var bpm = /(\d+(?:\.\d+)?)\s*BPM\b/i.exec(blank);
+    if (bpm) return { start: bpm.index, end: bpm.index + bpm[0].length };
+    var cands = [];
+    function push(re, word) {
+      var m = re.exec(blank);
+      if (!m) return;
+      var at = m[0].toLowerCase().indexOf(word);
+      cands.push({ start: m.index + (at < 0 ? 0 : at), end: m.index + m[0].length });
+    }
+    push(/(?:^|[\s;,.(])tempo\s*\d+(?:\.\d+)?/i, 'tempo');
+    push(/(?:^|[\s;,.(])q\s*\d+(?:\.\d+)?/i, 'q');
+    push(/quarter(?:\s*note)?\s*[=≈]\s*\d+(?:\.\d+)?/i, 'quarter');
+    cands.sort(function (a, b) { return a.start - b.start; });
+    return cands.length ? cands[0] : null;
+  }
+  function meterSpans(text) {
+    var blank = maskComposition(text), spans = [], i = 0, n = blank.length;
+    function brk(c, start) {
+      if (' \n\t\r,;[]|"·.!:=≈–—→←×{}~*•'.indexOf(c) >= 0) return true;
+      if (c === '#' && start) return true;
+      return false;
+    }
+    while (i < n) {
+      var c = blank[i];
+      if (brk(c, true) || c === ':') { i++; continue; }
+      var start = i, word = '';
+      while (i < n && !brk(blank[i], false)) {
+        if (blank[i] === '(') {
+          word += blank[i++];
+          while (i < n && blank[i] !== ')') word += blank[i++];
+          if (i < n && blank[i] === ')') word += blank[i++];
+          continue;
+        }
+        word += blank[i++];
+      }
+      if (/^\d+\/(?:2|4|8)$/.test(word)) spans.push({ start: start, end: i });
+    }
+    return spans;
+  }
+  function cutSpan(text, start, end) {
+    var before = text.slice(0, start), after = text.slice(end);
+    if (/^\s*$/.test(before)) return after.replace(/^[ \t]*\n?/, '');
+    if (/^\s*$/.test(after)) return before.replace(/[ \t]*\n?$/, '');
+    if (/[ \t]$/.test(before) && /^[ \t]/.test(after)) return before.replace(/[ \t]$/, '') + after;
+    if (/\n$/.test(before) && /^\n/.test(after)) return before.replace(/\n$/, '') + after;
+    return before + after;
+  }
+  function insertFront(text, statement) {
+    if (!text || /^\s*$/.test(text)) return statement;
+    if (/^\s/.test(text)) {
+      var rest = text.replace(/^\s+/, '');
+      return rest ? statement + ' ' + rest : statement;
+    }
+    return statement + ' ' + text;
+  }
+  // Writing the default takes that statement back out.
+  function setTempo(text, bpm) {
+    text = String(text || '');
+    var n = +bpm, span = tempoSpan(text);
+    if (!(n > 0) || Math.abs(n - SKETCH_BPM) < 1e-9) return span ? cutSpan(text, span.start, span.end) : text;
+    var stmt = trimNum(n) + ' BPM';
+    if (!span) return insertFront(text, stmt);
+    return text.slice(0, span.start) + stmt + text.slice(span.end);
+  }
+  function setMeter(text, meter) {
+    text = String(text || '');
+    if (!/^\d+\/(?:2|4|8)$/.test(meter)) return text;
+    var spans = meterSpans(text), i;
+    if (meter === '4/4') {
+      for (i = spans.length - 1; i >= 0; i--) text = cutSpan(text, spans[i].start, spans[i].end);
+      return text;
+    }
+    if (!spans.length) {
+      var tempo = tempoSpan(text);
+      if (tempo && /^\s*$/.test(text.slice(0, tempo.start))) {
+        var after = text.slice(tempo.end);
+        if (/^\s*$/.test(after)) return text.slice(0, tempo.end) + ' ' + meter;
+        if (/^\n/.test(after)) return text.slice(0, tempo.end) + ' ' + meter + after;
+        if (/^\s/.test(after)) return text.slice(0, tempo.end) + ' ' + meter + after;
+        return text.slice(0, tempo.end) + ' ' + meter + ' ' + after;
+      }
+      return insertFront(text, meter);
+    }
+    var last = spans[spans.length - 1];
+    return text.slice(0, last.start) + meter + text.slice(last.end);
   }
 
   function tokenize(text) {
@@ -229,6 +332,41 @@
     return out;
   }
 
+  function edits(a, b) {
+    var i, j, prev = [], row, cost;
+    for (j = 0; j <= b.length; j++) prev[j] = j;
+    for (i = 1; i <= a.length; i++) {
+      row = [i];
+      for (j = 1; j <= b.length; j++) {
+        cost = a.charAt(i - 1) === b.charAt(j - 1) ? 0 : 1;
+        row[j] = Math.min(prev[j] + 1, row[j - 1] + 1, prev[j - 1] + cost);
+      }
+      prev = row;
+    }
+    return prev[b.length];
+  }
+  function knownQual(q, known) {
+    if (known(q)) return q;
+    if (Object.prototype.hasOwnProperty.call(ALIAS, q) && known(ALIAS[q])) return ALIAS[q];
+    return null;
+  }
+  // A near miss such as Cmaj13b points at Cmaj13. A pitch such as C5 points at a notes line.
+  function suggestSymbol(token, known) {
+    var pitch = pitchEcho(token);
+    if (pitch) return { pitch: pitch };
+    var m = /^([A-Ga-g])(#|b)?([\s\S]*)$/.exec(token || '');
+    if (!m) return null;
+    var root = m[1].toUpperCase() + (m[2] || ''), q = m[3] || '';
+    var best = null, bestD = 3, i, can, d;
+    for (i = 0; i < HINT_Q.length; i++) {
+      can = knownQual(HINT_Q[i], known);
+      if (can == null) continue;
+      d = edits(String(q).toLowerCase(), HINT_Q[i].toLowerCase());
+      if (d < bestD) { bestD = d; best = pretty(SPELL[pcOf(root)] + can); }
+    }
+    if (!(bestD > 0 && bestD <= 2)) return null;
+    return { symbol: best };
+  }
   function parse(text, opts) {
     opts = opts || {};
     var known = opts.known || function () { return false; };
@@ -236,9 +374,12 @@
     var tokens = tokenize(src);
     var i = 0, syntax = [], words = [], notes = [], played = [], hacks = [];
     var seen = {}, flags = { paren: false, rest: false, loop: false, lower: false, quoteChord: false };
-    var meter = '4/4', seed = null, tempos = [], seeds = [], nextRec = 0, quoted = false;
+    var meter = '4/4', meterWritten = false, seed = null, tempos = [], seeds = [], nextRec = 0, quoted = false;
     var arps = [], unmapped = [];
-    function note(s) { if (s && !seen[s]) { seen[s] = 1; notes.push(s); } }
+    var errors = [], lengthNotes = [], otherNotes = [], aiNotes = [];
+    function say(list, s) { if (s && !seen[s]) { seen[s] = 1; list.push(s); } }
+    function note(s) { say(otherNotes, s); }
+    function err(s) { say(errors, s); }
     function addWord(w) { if (w) words.push(w); }
     // Semicolons and newlines end a statement. The tokenizer does not keep
     // them, so a notes or arp line uses the source position instead.
@@ -271,11 +412,14 @@
       var c = chordOf(t.text, inGroup, known);
       if (!c) return null;
       if (c.guard) {
-        note('"' + c.guard + '" is a word here, not ' + c.guard.toUpperCase() + ' major.');
+        err('`' + c.guard + '` is a word, not ' + c.guard.toUpperCase() + ' major. Write `' + c.guard.toUpperCase() + '` in its place for the chord.');
         return null;
       }
       if (c.unknown) {
-        note(c.unknown + ' is not a chord.');
+        var hint = suggestSymbol(t.text, known);
+        if (hint && hint.pitch) err('`' + hint.pitch.replace(/\(.*/, '') + '` is a pitch, not a chord. Write `notes ' + hint.pitch + '` on its own line.');
+        else if (hint && hint.symbol) err(c.unknown + ' is not a chord. Did you mean `' + hint.symbol + '`?');
+        else err(c.unknown + ' is not a chord. Write `Cm7` or `Fmaj9` in its place.');
         return null;
       }
       if (c.bareA && /^ [a-z]/.test(src.slice(t.end, t.end + 2))) return null;
@@ -319,7 +463,7 @@
       var abbr = HACK[name.toLowerCase()];
       var prev = null;
       hacks.forEach(function (h) { if (h.abbr === abbr) prev = h; });
-      if (prev && prev.value !== value) note(abbr + ' was written twice. The last value is the start.');
+      if (prev && prev.value !== value) note('`' + abbr + trimNum(value) + '` was written twice. Keep `' + abbr + trimNum(value) + '` and delete the earlier one.');
       var row = { abbr: abbr, type: HACK_TYPE[abbr], value: value, ramp: ramp, params: hackParams(abbr, value) };
       if (prev) {
         prev.value = value; prev.ramp = ramp; prev.params = row.params;
@@ -332,7 +476,6 @@
         hacks.push(row);
         syntax.push({ kind: 'hack', text: abbr + trimNum(value) });
       }
-      if (ramp != null) note('->' + trimNum(ramp) + ' is a ramp. A person plays ramps in Live.');
       return true;
     }
     function rememberTempo(n) {
@@ -377,7 +520,7 @@
       i += eat;
       seeds.push(n);
       if (seed == null) { seed = n; syntax.push({ kind: 'seed', text: 'sd' + n }); }
-      else if (seed !== n) note('Another seed was written. The first is kept.');
+      else if (seed !== n) note('Another seed was written. Keep the first, and delete the later `sd ' + n + '`.');
       return true;
     }
     function tryLength() {
@@ -398,6 +541,7 @@
       var t = tokens[i];
       if (!t || t.type !== 'word' || !/^\d+\/(?:2|4|8)$/.test(t.text)) return false;
       meter = t.text;
+      meterWritten = true;
       i++;
       if (meter !== '4/4') syntax.push({ kind: 'meter', text: meter });
       return true;
@@ -415,7 +559,7 @@
       } else return 0;
       if (!(n > 0) || Math.abs(n - Math.round(n)) > 1e-9) {
         i += eat;
-        note('loop needs a whole number.');
+        err('A repeat needs a whole number after the group. Write `x4` or `loop(4)`.');
         return 0;
       }
       i += eat;
@@ -431,8 +575,8 @@
           if (it.openDur || (it.beats == null && it.bars == null)) open = true;
           else beats += it.bars != null ? it.bars * qpb : it.beats;
         }
-        if (open) note('A bar line needs a duration on each chord.');
-        else if (Math.abs(beats - qpb) > 1e-6) note('The beats before | add up to ' + trimNum(beats) + ', not ' + trimNum(qpb) + '.');
+        if (open) err('Each chord before `|` needs a length. Add `(4)` or `(1|)` before `|`.');
+        else if (Math.abs(beats - qpb) > 1e-6) err('The beats before `|` add up to ' + trimNum(beats) + ', not ' + trimNum(qpb) + '. Change the lengths before `|` so they add up to ' + trimNum(qpb) + ', or delete the `|`.');
         seg = [];
       }
       items.forEach(function (it) {
@@ -466,7 +610,9 @@
     function markUnmapped(sym) {
       if (!sym || unmapped.indexOf(sym) >= 0) return;
       unmapped.push(sym);
-      note(sym + ' does not map to the synth chord library.');
+      var near = suggestSymbol(sym, known);
+      var fix = near && near.symbol ? near.symbol : 'C7';
+      note('`' + sym + '` is not in the synth library, so an arp cannot play it. Write `' + fix + '` in its place on the arp line.');
     }
     function arpKnown(q) {
       if (known(q)) return true;
@@ -756,7 +902,7 @@
       var ch = tryChord(false);
       if (ch) { assign(ch); stamp(ch); syntax.push({ kind: 'chord', text: renderChord(ch) }); return true; }
       var times = tryLoop();
-      if (times) { note('loop needs a group.'); flags.loop = true; return true; }
+      if (times) { err('A repeat needs chords to wrap. Wrap them in `[ ]x4` to repeat.'); flags.loop = true; return true; }
       return false;
     }
     function parseGroup() {
@@ -765,10 +911,15 @@
       var items = [];
       while (i < tokens.length && tokens[i].type !== 'groupEnd') {
         var t = tokens[i];
-        if (t.type === 'groupStart') { note('Nested groups are not read.'); i++; continue; }
+        if (t.type === 'groupStart') { err('Nested groups are not read. Keep one pair of `[ ]` around the chords.'); i++; continue; }
         if (t.type === 'bar') { items.push({ kind: 'bar' }); i++; continue; }
         if (t.type === 'quote') { takeQuote(); continue; }
-        if (tryHack()) { note('Hacks are for the whole piece.'); continue; }
+        if (tryHack()) {
+          var hx = syntax.length ? syntax[syntax.length - 1] : null;
+          var token = hx && hx.kind === 'hack' ? hx.text : 'lp500';
+          note('Hacks are for the whole piece. Move `' + token + '` outside the brackets, at the start.');
+          continue;
+        }
         if (tryTempo() || trySeed() || tryMeter() || tryLength()) continue;
         var rest = tryRest();
         if (rest) { items.push(rest); continue; }
@@ -786,7 +937,10 @@
       if (times > 1) flags.loop = true;
       checkBars(items);
       expand(items, times);
-      syntax.push({ kind: 'group', text: renderItems(items, times) });
+      syntax.push({
+        kind: 'group', text: renderItems(items, times), times: times,
+        slots: items.filter(function (it) { return it.kind !== 'bar'; }).length
+      });
     }
     function isLegacy() {
       var a = tokens[i], b = tokens[i + 1];
@@ -819,18 +973,19 @@
       var t = tokens[i++];
       quoted = true;
       addWord('"' + t.text + '"');
-      if (!t.closed) note('A quote was not closed.');
-      note('Quoted words stay words.');
-      if (quoteHasChord(t.text)) flags.quoteChord = true;
+      if (!t.closed) err('A quote was not closed. Add `"` at the end.');
+      var quotedSym = quotedChord(t.text);
+      if (quotedSym) err('A chord inside quotes stays words. Delete the quotes around `' + quotedSym + '` to play it.');
+      if (quotedSym) flags.quoteChord = true;
     }
-    function quoteHasChord(q) {
+    function quotedChord(q) {
       var inner = tokenize(q), k, c;
       for (k = 0; k < inner.length; k++) {
         if (inner[k].type !== 'word') continue;
         c = chordOf(inner[k].text, false, known);
-        if (c && !c.guard && !c.unknown && !c.lower && !c.bareA) return true;
+        if (c && !c.guard && !c.unknown && !c.lower && !c.bareA) return pretty(c.symbol);
       }
-      return false;
+      return '';
     }
 
     while (i < tokens.length) {
@@ -847,7 +1002,7 @@
     var bpm = ot ? ot.bpm : (tempos.length ? tempos[0] : null);
     if (tempos.length > 1) {
       var differ = tempos.some(function (n) { return n !== bpm; });
-      if (differ) note('Another tempo was written. ' + (ot && ot.source === 'bpm' ? 'The BPM is kept.' : 'The first tempo is kept.'));
+      if (differ) note('Another tempo was written. Keep `' + trimNum(bpm) + ' BPM` at the start and delete the other.');
     }
     var tempoItem = null;
     syntax.forEach(function (s) { if (s.kind === 'tempo' && !tempoItem) tempoItem = s; });
@@ -856,23 +1011,16 @@
       else syntax.unshift({ kind: 'tempo', text: 'q' + trimNum(bpm) });
     }
     var qpb = qpbOf(meter);
-    var needsTempo = false;
+    var bpmUse = bpm > 0 ? bpm : SKETCH_BPM;
     played.forEach(function (ev) {
       var beats = ev.beats;
       if (ev.bars != null) beats = ev.bars * qpb;
-      if (beats != null && !(bpm > 0)) { needsTempo = true; ev.seconds = null; }
-      else ev.seconds = beats != null && bpm > 0 ? round3(beats * 60 / bpm) : null;
+      ev.seconds = beats != null ? round3(beats * 60 / bpmUse) : null;
     });
-    if (needsTempo) note('A duration needs a tempo.');
     var chords = played.filter(function (e) { return e.kind === 'chord'; });
-    var timed = chords.filter(function (e) { return e.beats != null || e.bars != null; });
-    var loose = chords.filter(function (e) { return e.beats == null && e.bars == null; });
-    if (timed.length && loose.length) note('A duration stays on its own chord. The others play their whole recordings.');
-    if (chords.some(function (e) { return e.openDur; })) note('An open duration plays the whole recording.');
-    if (flags.loop) note('The loop uses the same recordings.');
     var clock = (flags.paren || flags.rest || flags.loop || flags.lower || flags.quoteChord) ? 'language' : 'legacy';
     CHANGE.lastIndex = 0;
-    if (clock === 'language' && CHANGE.test(uncomment(src))) note('A later tempo is not read yet. The opening tempo is kept.');
+    if (clock === 'language' && CHANGE.test(uncomment(src))) note('A later tempo is not read yet. Keep `' + trimNum(bpm > 0 ? bpm : SKETCH_BPM) + ' BPM` at the start and delete the later one.');
     arps.forEach(function (a) {
       if (a.chord) return;
       played.forEach(function (ev) {
@@ -885,7 +1033,7 @@
         }
       });
     });
-    if (words.length) note('Words are left for the AI.');
+    if (words.length) say(aiNotes, 'Words are left for the AI. Quote them `"like this"` to keep them words.');
 
     var gather = [], gathered = {};
     chords.forEach(function (c) {
@@ -893,15 +1041,131 @@
       gathered[c.recording] = 1;
       gather.push(c.symbol);
     });
-    var line = joinSyntax(syntax);
+    var echo = musicalEcho();
+    if (echo && echo.loose.length) say(lengthNotes, lengthNote(echo.loose));
+    else if (echo && echo.open.length) say(lengthNotes, openNote(echo.open));
+    notes = errors.concat(otherNotes, lengthNotes).slice(0, 2).concat(aiNotes);
+    var line = echo && echo.line ? echo.line : joinSyntax(syntax);
     var iread = line;
     if (words.length) iread += (iread ? '\n' : '') + words.join(' ');
     notes.forEach(function (s) { iread += (iread ? '\n' : '') + s; });
     return {
-      bpm: bpm, meter: meter, seed: seed, clock: clock, hacks: hacks,
+      bpm: bpm, meter: meter, meterWritten: meterWritten, seed: seed, clock: clock, hacks: hacks,
       played: played, gather: gather, words: words, notes: notes, quoted: quoted,
-      iread: iread, arp: arps, unmapped: unmapped
+      iread: iread, arp: arps, unmapped: unmapped, syntax: syntax
     };
+    function nameList(list) {
+      if (list.length === 1) return list[0];
+      if (list.length === 2) return list[0] + ' and ' + list[1];
+      return list.slice(0, -1).join(', ') + ', and ' + list[list.length - 1];
+    }
+    function codeList(list, suffix) {
+      return list.slice(0, 4).map(function (n) { return '`' + n + suffix + '`'; }).join(' or ');
+    }
+    function lengthNote(list) {
+      var who = list.length > 4 ? 'These chords' : nameList(list);
+      var verb = list.length === 1 ? 'has' : 'have';
+      var each = list.length === 1 ? 'it' : 'each';
+      var sample = list.slice(0, 4);
+      return who + ' ' + verb + ' no length, so Play sketches ' + each + ' as 1 bar and Gather uses the whole recording. Write ' + codeList(sample, '(4)') + ' for 4 beats or ' + codeList(sample, '(2|)') + ' for 2 bars.';
+    }
+    function openNote(list) {
+      var n = list[0];
+      return '`' + n + '(?)` plays the whole recording when gathered. Play sketches 1 bar. Write `' + n + '(4)` for 4 beats or `' + n + '(1|)` for 1 bar in its place.';
+    }
+    function secText(beats) {
+      var s = beats * 60 / bpmUse, shown = Math.round(s * 10) / 10;
+      var approx = Math.abs(s - shown) > 1e-6;
+      var num = Math.abs(shown - Math.round(shown)) < 1e-9 ? String(Math.round(shown)) : String(shown);
+      return (approx ? '~' : '') + num + ' s';
+    }
+    function eventName(ev) {
+      if (!ev || ev.kind === 'rest') return 'rest';
+      var s = pretty(ev.symbol);
+      if (ev.bass != null) s += '/' + SPELL[ev.bass];
+      return s;
+    }
+    function eventLen(ev) {
+      if (!ev || ev.openDur || (ev.beats == null && ev.bars == null)) return '1 bar*';
+      if (ev.bars != null) return trimNum(ev.bars) + (ev.bars === 1 ? ' bar' : ' bars');
+      return trimNum(ev.beats) + (Math.abs(ev.beats - 1) < 1e-9 ? ' beat' : ' beats');
+    }
+    function eventBeats(ev) {
+      if (!ev) return qpb;
+      if (ev.bars != null) return ev.bars * qpb;
+      if (ev.beats != null) return ev.beats;
+      return qpb;
+    }
+    function isLoose(ev) { return !!(ev && ev.kind === 'chord' && !ev.openDur && ev.beats == null && ev.bars == null); }
+    function isOpen(ev) { return !!(ev && ev.kind === 'chord' && ev.openDur); }
+    function remember(list, ev) {
+      if (!ev || ev.kind !== 'chord') return;
+      var n = eventName(ev);
+      if (list.indexOf(n) < 0) list.push(n);
+    }
+    function groupMeta(s) {
+      var times = s.times > 0 ? s.times : 1, slots = s.slots > 0 ? s.slots : 0;
+      if (!(s.slots > 0)) {
+        var m = /^\[([\s\S]*)\](?:x(\d+))?$/.exec(s.text || '');
+        if (m) {
+          slots = m[1].trim() ? m[1].trim().split(/\s+/).filter(function (t) { return t !== '|'; }).length : 0;
+          if (m[2]) times = +m[2];
+        }
+      }
+      return { times: times, slots: slots };
+    }
+    function hackEcho(s) {
+      var h = null, k;
+      for (k = 0; k < hacks.length; k++) if (s.text.indexOf(hacks[k].abbr) === 0) h = hacks[k];
+      if (h && h.ramp != null) return h.abbr + trimNum(h.value) + '→' + trimNum(h.ramp) + ' in Live';
+      return s.text;
+    }
+    // What will play: tempo, each chord's length once, a loop as ×N, then the total.
+    // A star is a length the writer did not write. Play sketches one bar; Gather uses the recording.
+    function musicalEcho() {
+      var pi = 0, parts = [], total = 0, loose = [], open = [], music = false;
+      function take(n) {
+        var out = [];
+        while (out.length < n && pi < played.length) out.push(played[pi++]);
+        return out;
+      }
+      syntax.forEach(function (s) {
+        if (s.kind === 'chord' || s.kind === 'rest') {
+          var ev = take(1)[0];
+          if (!ev) return;
+          music = true;
+          parts.push(eventName(ev) + ' ' + eventLen(ev));
+          total += eventBeats(ev);
+          if (isLoose(ev)) remember(loose, ev);
+          if (isOpen(ev)) remember(open, ev);
+        } else if (s.kind === 'group') {
+          var meta = groupMeta(s);
+          var evs = take(meta.slots * meta.times);
+          var once = evs.slice(0, meta.slots);
+          if (!once.length) return;
+          music = true;
+          once.forEach(function (ev) {
+            total += eventBeats(ev) * meta.times;
+            if (isLoose(ev)) remember(loose, ev);
+            if (isOpen(ev)) remember(open, ev);
+          });
+          var g = '[' + once.map(function (ev) { return eventName(ev) + ' ' + eventLen(ev); }).join(', ') + ']';
+          if (meta.times > 1) g += ' ×' + meta.times;
+          parts.push(g);
+        }
+      });
+      if (!music) return { line: '', music: false, loose: loose, open: open };
+      var extra = [];
+      syntax.forEach(function (s) {
+        if (s.kind === 'hack') extra.push(hackEcho(s));
+        else if (s.kind === 'arp' || s.kind === 'notes' || s.kind === 'seed' || s.kind === 'style' || s.kind === 'key') extra.push(s.text);
+        else if (s.kind === 'meter') extra.push(s.text);
+      });
+      var beats = trimNum(total) + (Math.abs(total - 1) < 1e-9 ? ' beat' : ' beats');
+      var line = trimNum(bpmUse) + ' BPM · ' + parts.join(' · ') + ' · ' + beats + ' · ' + secText(total);
+      if (extra.length) line += ' · ' + extra.join(' · ');
+      return { line: line, music: true, loose: loose, open: open };
+    }
   }
 
   // caps align with chord events (rests skipped). A written duration keeps its
@@ -937,6 +1201,9 @@
     openingTempo: openingTempo,
     hackParams: hackParams,
     lpDial: lpDial,
-    pretty: pretty
+    pretty: pretty,
+    sketchBpm: SKETCH_BPM,
+    setTempo: setTempo,
+    setMeter: setMeter
   };
 })(typeof globalThis !== 'undefined' ? globalThis : this);

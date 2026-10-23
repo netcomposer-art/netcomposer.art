@@ -700,8 +700,11 @@
       if (!c || typeof c.start_s !== 'number' || typeof c.end_s !== 'number') continue;
       if (t >= c.start_s && t < c.end_s) { idx = typeof c.chord_index === 'number' ? c.chord_index : i; break; }
     }
-    document.querySelectorAll('#prog .ch.on').forEach(function (e) { e.classList.remove('on'); });
-    if (idx >= 0) { var tile = $('ch' + idx); if (tile) tile.classList.add('on'); }
+    if (window.NC && NC.markChord) NC.markChord(idx);
+    else {
+      document.querySelectorAll('#prog .ch.on').forEach(function (e) { e.classList.remove('on'); });
+      if (idx >= 0) { var tile = $('ch' + idx); if (tile) tile.classList.add('on'); }
+    }
     var left = Math.max(0, Math.min(100, 100 * t / take.duration));
     take.order.forEach(function (id) { if (take.groups[id].head) take.groups[id].head.style.left = left + '%'; });
   }
