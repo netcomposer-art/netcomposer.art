@@ -75,14 +75,17 @@
     }
     return out;
   }
-  function writtenSum(durs) {
+  function writtenSum(durs, entries) {
     var s = 0, i;
-    for (i = 0; i < durs.length; i++) s += durs[i];
+    for (i = 0; i < durs.length; i++) {
+      if (entries && entries[i] && entries[i].parallel) continue;
+      s += durs[i];
+    }
     s = secs(s);
     return s > 0 ? s : 0.001;
   }
   function locked(entries, durs) {
-    return { entries: entries.slice(), total_s: writtenSum(durs), writtenBlock: true };
+    return { entries: entries.slice(), total_s: writtenSum(durs, entries), writtenBlock: true };
   }
   function neighbors(entries, index) {
     return {
@@ -154,7 +157,7 @@
       end = Math.max(minEnd, Math.min(maxEnd, +end));
       result = replaced(entries, index, at, end - at, base);
     }
-    if (clock) result.total_s = writtenSum(clock);
+    if (clock) result.total_s = writtenSum(clock, entries);
     if (refused) result.writtenBlock = true;
     if (whole) { result.clipBlock = true; result.clip_s = cap; }
     return result;

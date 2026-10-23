@@ -44,7 +44,7 @@ details.fold{margin:1.8rem 0}details.fold>summary{cursor:pointer;color:#555;font
 #gather-box{margin:1.8rem 0 .4rem}#gather-list{list-style:none;margin:0;padding:0}#gather-list li{margin:0 0 1.7rem;line-height:1.45}#gather-list .g-chord,#plan-src .g-chord{display:block;margin:0 0 .2rem;color:#555}#gather-list .g-title{margin-left:.65rem}#gather-list .g-meta{display:block;margin:.15rem 0 0}#gather-list li.pending,#gather-list li.pending .g-chord,#gather-list li.pending .g-wait{color:#ccc}#gather-list button.g-again{display:inline-flex;align-items:center;justify-content:center;position:relative;width:32px;height:32px;margin:-4px .45rem -4px -6px;vertical-align:middle;color:#000;text-decoration:none;line-height:0}#gather-list button.g-again:disabled{color:#bbb}#gather-list button.g-again::after{content:"";position:absolute;left:-4px;right:-4px;top:-6px;bottom:-6px}#gather-list .g-again svg{display:block}#gather-list li.g-busy .g-again{color:#000}#gather-list li.g-busy .g-again svg{animation:g-turn 1.2s linear infinite}#gather-list li.g-busy .g-title,#gather-list li.g-busy .g-meta{color:#999}#gather-list .g-note{display:block;margin:.15rem 0 0}@keyframes g-turn{to{transform:rotate(360deg)}}@media (prefers-reduced-motion:reduce){#gather-list li.g-busy .g-again svg{animation:none}}
 #gather-line-end{display:inline-flex;flex-wrap:wrap;align-items:baseline;gap:.15rem .7rem;margin:0 0 0 .3rem;min-width:0;max-width:100%}#gather-line-end[hidden]{display:none}#gather-stop-end{font:inherit;font-size:.85rem;line-height:inherit;color:#555;background:transparent;border:0;border-radius:0;padding:0;margin:0;min-width:0;text-decoration:underline;text-underline-offset:3px;cursor:pointer}#gather-stop-end:hover{color:#000}#gather-stop-end:disabled{color:#999;background:transparent;border:0;cursor:default}
 #gather-pct,#gather-pct-end{margin-left:-.35rem;font-variant-numeric:tabular-nums}#gather-pct[hidden],#gather-pct-end[hidden]{display:none}.gbar{display:block;flex:0 0 100%;margin:.15rem 0 0}.gtrack{display:block;max-width:16rem;height:2px;background:#eee;overflow:hidden}.gbar[hidden]{display:none}.gfill{display:block;height:100%;width:0;background:#000;transition:width .25s linear}
-#plan-src{list-style:none;margin:.2rem 0 1.4rem;padding:0}#plan-src li{margin:0 0 1.15rem;line-height:1.45}#plan-seed{color:#bbb;margin:-.4rem 0 1.2rem}
+#plan-src{list-style:none;margin:.2rem 0 1.4rem;padding:0}#plan-src li{margin:0 0 1.15rem;line-height:1.45}#plan-seed{color:#bbb;margin:-.4rem 0 1.2rem;border:0;background:transparent;padding:0;font:inherit;font-size:.85rem;line-height:inherit;text-align:left;cursor:pointer;text-decoration:underline;text-underline-offset:3px}#plan-seed[hidden]{display:none}#plan-seed:hover{color:#000}#iread{white-space:pre-wrap;overflow-wrap:anywhere;margin:.4rem 0 0}
 #perform-trim{color:#666;font-size:.8rem;margin:.05rem 0 .35rem}
 #src-time{margin:1.7rem 0 1.6rem}.src-lane{position:relative;margin:.85rem 0;padding:.4rem 0;cursor:pointer}
 .src-track{position:relative;height:2px;background:#eee}.src-span{position:absolute;top:0;height:100%;background:#000}
@@ -137,6 +137,7 @@ footer{max-width:46rem;margin:0 auto;padding:1.2rem 1.5rem 4rem;font-size:.85rem
 <div class="pick"><select id="starter"><option value="">Choose a starter…</option></select><button id="surprise" type="button" title="A new progression: another key, mood and shape">Surprise me</button><button id="undo" type="button" hidden>Undo</button></div>
 <label for="comp">Composition elements</label>
 <textarea id="comp" rows="5" placeholder="Input your chord instructions here."></textarea>
+<p class="m" id="iread" hidden></p>
 </section>
 
 <section id="play-s">
@@ -196,7 +197,7 @@ footer{max-width:46rem;margin:0 auto;padding:1.2rem 1.5rem 4rem;font-size:.85rem
 <p class="m" id="perform-trim" hidden></p>
 <div id="src-time" hidden><h3 id="arrangement-h">Arrangement</h3><div id="src-lanes"></div><p class="m" id="src-lock" hidden aria-live="polite">These lengths are written in the Composition, so they can't be moved or lengthened here. You can shorten a chord.</p><p class="m" id="src-now"></p></div>
 <ul id="plan-src" hidden></ul>
-<p class="m" id="plan-seed" hidden></p>
+<button type="button" class="m" id="plan-seed" hidden></button>
 <section id="live" hidden>
 <div class="live-head"><h3 id="live-h">Live</h3><button type="button" id="live-die" class="hack-die" aria-label="Randomize all hacks" aria-controls="live-confirm" aria-expanded="false"></button></div>
 <div id="live-confirm" class="live-confirm" role="group" aria-labelledby="live-confirm-q" hidden><span id="live-confirm-q">Replace all hacks with a random set?</span><button type="button" id="live-replace">Replace</button><button type="button" id="live-cancel">Cancel</button></div>
@@ -318,6 +319,7 @@ nc perform composition.md -o out/           # any OpenAI-compatible LLM</pre>
 ]
 </script>
 <script src="recordings.js"></script>
+<script src="language.js"></script>
 <script src="app.js"></script>
 <script src="hacks/dsp.js"></script>
 <script src="hacks/engine.js"></script>
