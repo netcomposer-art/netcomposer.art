@@ -184,8 +184,8 @@ if (!chrome || typeof WebSocket === 'undefined') {
       check(grips && grips.startIn && grips.endIn, 'grips sit inside the bar, got ' + JSON.stringify(grips));
       check(grips && grips.hitStart === 'start' && grips.hitEnd === 'end' && grips.hitMid === 'move', 'the middle moves and the edges trim, got ' + JSON.stringify(grips));
 
-      await shot('arrangement_desktop.png', 1280);
-      await shot('arrangement_phone.png', 390);
+      await shot('arrangement_desktop_lanes.png', 1280);
+      await shot('arrangement_phone_lanes.png', 390);
       await metrics(1280, 1400, false);
       await ev(`document.querySelector('#arrange [data-chord="chord-6"]').scrollIntoView({block:'center'})`);
       await sleep(40);
