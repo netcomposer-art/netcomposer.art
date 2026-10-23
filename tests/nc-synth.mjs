@@ -44,6 +44,16 @@ check(S.mergeSettings({ fmDepth: 12 }).fmDepth === 10 && S.mergeSettings({ fmDep
 const noiseA = S.mulberry32(4182), noiseB = S.mulberry32(4182), noiseC = S.mulberry32(7);
 const seqA = [noiseA(), noiseA(), noiseA()], seqB = [noiseB(), noiseB(), noiseB()];
 check(seqA.join() === seqB.join() && seqA.join() !== [noiseC(), noiseC(), noiseC()].join(), 'the seeded RNG repeats for one seed');
+const cont = S.continuousMods(
+  [{ start: 0 }, { start: 0.6 }, { start: 2 }],
+  { buffer: { duration: 1.5 }, at: 0, title: 'dialog', license: 'CC0-1.0' }
+);
+check(cont && cont[0] && cont[0].offset === 0 && cont[1].offset === 0.6 && cont[2] === null, 'a continuous modulator follows the take and stops when the file ends, got ' + JSON.stringify(cont && cont.map((m) => m && m.offset)));
+check(cont[0].continuous === true && cont[1].offset !== 0, 'the file does not restart at the next note');
+const shifted = S.continuousMods([{ start: 0 }, { start: 0.4 }], { buffer: { duration: 1.5 }, at: -0.2 });
+check(shifted[0] && shifted[1] && Math.abs(shifted[0].offset - 0.2) < 1e-9 && Math.abs(shifted[1].offset - 0.6) < 1e-9, 'a clip in-point is the take start, got ' + JSON.stringify(shifted.map((m) => m && m.offset)));
+const late = S.continuousMods([{ start: 0 }, { start: 0.5 }], { buffer: { duration: 1 }, at: 0.5 });
+check(late[0] === null && late[1].offset === 0, 'a note that starts before the file gets no FM from the file start, got ' + JSON.stringify(late));
 
 function chromeBin() {
   for (const name of [process.env.CHROME, 'google-chrome', 'google-chrome-stable', 'chromium', 'chromium-browser']) {
@@ -63,6 +73,12 @@ if (!chrome || typeof WebSocket === 'undefined') {
     if (path === '/t') {
       res.writeHead(200, { 'content-type': 'text/html' });
       res.end('<!doctype html><script src="/create/synth-audio/dist/index.js"></script><script src="/create/nc-synth.js"></script>');
+      return;
+    }
+    if (path === '/fm-speech.wav') {
+      const body = await readFile('/tmp/nc-fm-speech.wav');
+      res.writeHead(200, { 'content-type': 'audio/wav' });
+      res.end(body);
       return;
     }
     if (path.endsWith('/')) path += 'index.html';
@@ -258,6 +274,137 @@ if (!chrome || typeof WebSocket === 'undefined') {
       await mkdir('/opt/cursor/artifacts', { recursive: true });
       await writeFile('/opt/cursor/artifacts/nc_synth_fm_compare.wav', compare);
       console.log('fm spectrum distance (heavy vs none): ' + (fm.rel * 100).toFixed(1) + '%');
+    }
+
+    const sources = await ev(`(async () => {
+      function hashBuf(buf) {
+        var d = buf.getChannelData(0), h = 2166136261, i;
+        for (i = 0; i < d.length; i += 4) h = Math.imul(h ^ (d[i] * 1000000 | 0), 16777619) >>> 0;
+        return h >>> 0;
+      }
+      var resp = await fetch('/fm-speech.wav');
+      var ac = new AudioContext();
+      var speech = await ac.decodeAudioData(await resp.arrayBuffer());
+      var snap = [];
+      var sd = speech.getChannelData(0);
+      for (var si = 0; si < 64; si++) snap.push(sd[si]);
+      try { ac.close(); } catch (e0) {}
+      function tone(parts, seconds) {
+        var rate = 48000, n = Math.ceil(seconds * rate);
+        var buf = new OfflineAudioContext(1, n, rate).createBuffer(1, n, rate);
+        var d = buf.getChannelData(0), i, k;
+        for (i = 0; i < n; i++) {
+          var env = Math.min(1, i / 240, (n - i) / 240), x = 0;
+          for (k = 0; k < parts.length; k++) x += Math.sin(2 * Math.PI * parts[k] * i / rate);
+          d[i] = 0.28 * x * env;
+        }
+        return buf;
+      }
+      function sequence(steps) {
+        var rate = 48000, seconds = 0, i;
+        for (i = 0; i < steps.length; i++) seconds += steps[i][1];
+        var n = Math.ceil(seconds * rate);
+        var buf = new OfflineAudioContext(1, n, rate).createBuffer(1, n, rate);
+        var d = buf.getChannelData(0), at = 0;
+        steps.forEach(function (step) {
+          var freq = step[0], len = Math.ceil(step[1] * rate), i;
+          for (i = 0; i < len && at + i < n; i++) d[at + i] = 0.4 * Math.sin(2 * Math.PI * freq * i / rate);
+          at += len;
+        });
+        return buf;
+      }
+      var line = NCSynth.readLine('n F4 Ab4 C5 Bb4');
+      var base = NCSynth.mergeSettings(null);
+      var notes = NCSynth.scheduleLine(line, base);
+      var chord = tone([261.63, 311.13, 392.00], 0.45);
+      var track = sequence([[220, 1], [329.63, 1]]);
+      var chordMods = notes.map(function () { return { buffer: chord, offset: 0 }; });
+      var trackMods = NCSynth.continuousMods(notes, { buffer: track, at: 0, title: 'track 2' });
+      var speechMods = NCSynth.continuousMods(notes, { buffer: speech, at: 0, title: 'dialog' });
+      var restart = notes.map(function () { return { buffer: speech, offset: 0 }; });
+      function render(depth, mods) {
+        var settings = NCSynth.mergeSettings(Object.assign({}, base, { fmDepth: depth }));
+        var list = notes.map(function (n, i) {
+          var note = { midi: n.midi, velocity: n.velocity, start: n.start, length: n.length };
+          if (depth > 0 && mods && mods[i] && mods[i].buffer) note.modulator = { buffer: mods[i].buffer, offset: mods[i].offset };
+          return note;
+        });
+        return NCSynth.renderNotes(list, settings, 4182);
+      }
+      var dry = await render(0, null);
+      var chord3 = await render(3, chordMods);
+      var track3 = await render(3, trackMods);
+      var speech3 = await render(3, speechMods);
+      var speech10 = await render(10, speechMods);
+      var speech0 = await render(0, speechMods);
+      var restarted = await render(3, restart);
+      var one = notes[0];
+      var past = await NCSynth.renderNotes([{ midi: one.midi, velocity: one.velocity, start: 0, length: one.length, modulator: { buffer: speech, offset: speech.duration + 1 } }], NCSynth.mergeSettings(Object.assign({}, base, { fmDepth: 10 })), 4182);
+      var pastDry = await NCSynth.renderNotes([{ midi: one.midi, velocity: one.velocity, start: 0, length: one.length }], NCSynth.mergeSettings(Object.assign({}, base, { fmDepth: 10 })), 4182);
+      var after = [];
+      sd = speech.getChannelData(0);
+      for (si = 0; si < 64; si++) after.push(sd[si]);
+      var same = snap.length === after.length;
+      for (si = 0; same && si < snap.length; si++) if (snap[si] !== after[si]) same = false;
+      var gap = 0.4;
+      var order = [dry, chord3, track3, speech3, speech10];
+      var frames = 0, gi;
+      for (gi = 0; gi < order.length; gi++) frames += order[gi].length;
+      frames += Math.round(gap * 48000) * (order.length - 1);
+      var mix = new OfflineAudioContext(2, frames, 48000);
+      var when = 0, starts = [];
+      order.forEach(function (buf) {
+        starts.push(when);
+        var src = mix.createBufferSource();
+        src.buffer = buf;
+        src.loop = false;
+        src.connect(mix.destination);
+        src.start(when);
+        when += buf.duration + gap;
+      });
+      var compare = await mix.startRendering();
+      var bytes = new Uint8Array(await NCSynth.wavBlob(compare).arrayBuffer());
+      var parts = [], step = 0x8000, i;
+      for (i = 0; i < bytes.length; i += step) {
+        var slice = bytes.subarray(i, Math.min(bytes.length, i + step)), s = '', j;
+        for (j = 0; j < slice.length; j++) s += String.fromCharCode(slice[j]);
+        parts.push(btoa(s));
+      }
+      return {
+        starts: notes.map(function (n) { return n.start; }),
+        trackOffsets: trackMods.map(function (m) { return m ? m.offset : null; }),
+        speechOffsets: speechMods.map(function (m) { return m ? m.offset : null; }),
+        speechRate: speech.sampleRate,
+        speechDur: speech.duration,
+        dry: hashBuf(dry), chord3: hashBuf(chord3), track3: hashBuf(track3),
+        speech3: hashBuf(speech3), speech10: hashBuf(speech10), speech0: hashBuf(speech0),
+        restarted: hashBuf(restarted), past: hashBuf(past), pastDry: hashBuf(pastDry),
+        same: same, seg: starts, durs: order.map(function (b) { return b.duration; }),
+        parts: parts
+      };
+    })()`);
+    check(sources && sources.speechOffsets && sources.speechOffsets[0] === 0 && sources.speechOffsets[1] === sources.starts[1] && sources.speechOffsets.every((o, i) => o === sources.starts[i]), 'spoken-word FM follows the take, got ' + JSON.stringify(sources && sources.speechOffsets));
+    check(sources && sources.trackOffsets && sources.trackOffsets.every((o, i) => o === sources.starts[i]), 'track FM follows the take and does not restart, got ' + JSON.stringify(sources && sources.trackOffsets));
+    check(sources && sources.dry === sources.speech0 && sources.past === sources.pastDry, 'depth 0 and an offset past the file leave the carrier dry, got ' + JSON.stringify(sources && { dry: sources.dry, speech0: sources.speech0, past: sources.past, pastDry: sources.pastDry }));
+    check(sources && sources.same === true, 'the spoken-word file is unchanged after it is used as a modulator');
+    check(sources && sources.speechRate === 44100 && sources.speechDur > 7 && sources.speechDur < 8.1, 'the spoken-word file kept its rate and length, got ' + JSON.stringify(sources && { rate: sources.speechRate, dur: sources.speechDur }));
+    check(sources && sources.chord3 !== sources.dry && sources.track3 !== sources.dry && sources.track3 !== sources.chord3, 'chord-clip FM and track FM each change the line, got ' + JSON.stringify(sources && { dry: sources.dry, chord3: sources.chord3, track3: sources.track3 }));
+    check(sources && sources.speech3 !== sources.dry && sources.speech10 !== sources.speech3 && sources.restarted !== sources.speech3, 'continuous speech at 3 and at 10 differs from dry and from restarting the file, got ' + JSON.stringify(sources && { dry: sources.dry, speech3: sources.speech3, speech10: sources.speech10, restarted: sources.restarted }));
+    if (sources && Array.isArray(sources.parts)) {
+      const compare = Buffer.concat(sources.parts.map((p) => Buffer.from(p, 'base64')));
+      check(compare.slice(0, 4).toString() === 'RIFF', 'source comparison wav starts with RIFF');
+      await mkdir('/opt/cursor/artifacts', { recursive: true });
+      await writeFile('/opt/cursor/artifacts/nc_synth_fm_sources.wav', compare);
+      const names = [
+        '1. no FM. Carrier: NC Synth, n F4 Ab4 C5 Bb4, seed 4182.',
+        '2. chord-clip FM depth 3. Source: generated Cm triad (C4 261.63 Hz, Eb4 311.13 Hz, G4 392 Hz), 0.45 s, restarted under each note.',
+        '3. track FM depth 3. Source: track 2, generated sequence A3 (220 Hz, 1 s) then E4 (329.63 Hz, 1 s), continuous from the start, not looped.',
+        '4. spoken-word FM depth 3. Source: Cocaine Sample Dialog (Requested), tekgnosis, Freesound 320854, CC0 1.0. Continuous from the start. HQ preview trimmed to 8 s at 44100 Hz.',
+        '5. the same spoken-word recording at FM depth 10.'
+      ];
+      const cue = names.map((line, i) => sources.seg[i].toFixed(3) + 's  ' + line).join('\n') + '\n';
+      await writeFile('/opt/cursor/artifacts/nc_synth_fm_sources.txt', cue);
+      console.log('fm sources ' + compare.length + ' bytes');
     }
 
     await send('Page.navigate', { url: `http://127.0.0.1:${port}/create/` });

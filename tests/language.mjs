@@ -36,7 +36,7 @@ function project(text) {
       beats: e.beats, bars: e.bars, seconds: e.seconds, recording: e.recording == null ? null : e.recording
     })),
     hacks: p.hacks.map((h) => ({ abbr: h.abbr, type: h.type, value: h.value, ramp: h.ramp })),
-    words: p.words, notes: p.notes, iread: p.iread
+    words: p.words, notes: p.notes, iread: p.iread, fm: p.fm
   };
 }
 const rows = JSON.parse(readFileSync(join(root, 'tests/language-vectors.json'), 'utf8'));
@@ -45,6 +45,11 @@ rows.forEach((row) => {
   ['bpm', 'clock', 'seed', 'meter', 'gather', 'played', 'hacks', 'words', 'notes', 'iread'].forEach((k) => {
     if (JSON.stringify(got[k]) !== JSON.stringify(row[k])) problems.push(row.name + ' ' + k + '\n  got ' + JSON.stringify(got[k]));
   });
+  if (row.fm && JSON.stringify(got.fm) !== JSON.stringify(row.fm)) problems.push(row.name + ' fm\n  got ' + JSON.stringify(got.fm));
+  if (row.tracks) {
+    const tracks = L.parse(row.text, { known }).played.filter((e) => e.kind === 'chord').map((e) => e.track || 1);
+    if (JSON.stringify(tracks) !== JSON.stringify(row.tracks)) problems.push(row.name + ' tracks\n  got ' + JSON.stringify(tracks));
+  }
   if (row.place) {
     const placed = L.place(L.parse(row.text, { known }).played, row.place_caps);
     if (JSON.stringify(placed) !== JSON.stringify(row.place)) problems.push(row.name + ' place ' + JSON.stringify(placed));
@@ -207,6 +212,33 @@ if (!chrome || typeof WebSocket === 'undefined') {
     const surprise = await ev(`(() => { var bad = []; for (var s = 1; s <= 40; s++) { var P = NC.makeSurprise(s * 2654435761 >>> 0); if (!P) { bad.push('none'); continue; } var f = NC.findChords(P.composition); if (f.length !== P.chords.length || f.some(function (c, i) { return c.sym !== P.chords[i]; })) bad.push(P.composition); } return bad; })()`);
     check(surprise && surprise.length === 0, 'Surprise chords changed: ' + JSON.stringify(surprise && surprise.slice(0, 3)));
     check(await ev("NCAssembly.statedSeconds('32 bars, tempo 90') === NCAssembly.statedSeconds('32 bars 90 BPM')"), 'page length agrees');
+    const fmPage = await ev(`(() => {
+      var el = document.getElementById('comp');
+      var prev = el.value;
+      function read(text) {
+        el.value = text;
+        var p = NC.read();
+        return {
+          fm: p.fm,
+          gather: p.gather,
+          iread: (p.iread || '').split('\\n')[0],
+          tracks: (p.played || []).filter(function (e) { return e.kind === 'chord'; }).map(function (e) { return e.track || 1; })
+        };
+      }
+      var out = {
+        track: read('q90; T1 [Cm(4) Fm9]; T2 [Bb(4)]; fm t2 3'),
+        words: read('fm "field recording of rain" 3'),
+        chord: read('Fm; fm t2 3'),
+        nine: read('fm9')
+      };
+      el.value = prev;
+      return out;
+    })()`);
+    check(fmPage && fmPage.track && fmPage.track.fm[0] && fmPage.track.fm[0].kind === 'track' && fmPage.track.fm[0].track === 2 && fmPage.track.fm[0].depth === 3, 'page reads fm t2 3, got ' + JSON.stringify(fmPage && fmPage.track));
+    check(fmPage && fmPage.track && fmPage.track.gather.join(',') === 'Cm,Fm9,Bb' && JSON.stringify(fmPage.track.tracks) === '[1,1,2]' && fmPage.track.iread.indexOf('fm t2 3') >= 0, 'page keeps the track chords beside fm, got ' + JSON.stringify(fmPage && fmPage.track));
+    check(fmPage && fmPage.words && fmPage.words.fm[0].kind === 'words' && fmPage.words.fm[0].query === 'field recording of rain' && fmPage.words.fm[0].depth === 3 && fmPage.words.gather.length === 0, 'page reads fm "words", got ' + JSON.stringify(fmPage && fmPage.words));
+    check(fmPage && fmPage.chord && fmPage.chord.gather.join(',') === 'Fm' && fmPage.chord.fm[0].kind === 'track', 'Fm stays a chord beside fm t2, got ' + JSON.stringify(fmPage && fmPage.chord));
+    check(fmPage && fmPage.nine && fmPage.nine.gather.join(',') === 'Fm9' && (!fmPage.nine.fm || !fmPage.nine.fm.length), 'fm9 stays Fm9, got ' + JSON.stringify(fmPage && fmPage.nine));
     ws.close();
   } finally { proc.kill(); server.close(); }
 }

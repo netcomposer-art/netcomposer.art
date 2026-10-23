@@ -189,6 +189,25 @@
     return out;
   }
 
+  // One modulator for the whole take. Offset is the note's time on that
+  // timeline, so the file does not restart at each note and is not looped.
+  function continuousMods(notes, mod) {
+    var buf = mod && mod.buffer, at = mod && mod.at ? +mod.at : 0;
+    return (notes || []).map(function (n) {
+      if (!buf || !n) return null;
+      var pos = (+n.start || 0) - at;
+      if (!(pos < buf.duration - 0.0005)) return null;
+      if (pos < -0.0005) return null;
+      return {
+        buffer: buf,
+        offset: pos > 0 ? pos : 0,
+        title: mod.title || '',
+        license: mod.license || '',
+        continuous: true
+      };
+    });
+  }
+
   function renderNotes(notes, settings, seed) {
     var engine = root.NCSynthEngine;
     if (!engine || typeof engine.renderNotes !== 'function') {
@@ -238,6 +257,7 @@
     readLine: readLine,
     scheduleLine: scheduleLine,
     renderNotes: renderNotes,
+    continuousMods: continuousMods,
     describe: describe,
     wavBlob: wavBlob,
     midiOf: midiOf,
