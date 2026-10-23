@@ -22,6 +22,7 @@ vm.createContext(sb);
 vm.runInContext(readFileSync(join(root, 'create/chord-library.js'), 'utf8'), sb);
 vm.runInContext(readFileSync(join(root, 'create/language.js'), 'utf8'), sb);
 vm.runInContext(readFileSync(join(root, 'create/nc-synth.js'), 'utf8'), sb);
+sb.NCLanguage.registerStyle(JSON.parse(readFileSync(join(root, 'styles/hopkins-like.json'), 'utf8')));
 const S = sb.NCSynth;
 const L = sb.NCLanguage;
 
@@ -92,6 +93,11 @@ check(pendulum && !pendulum.instrument && pendulum.bpm === 90 && pendulum.fmDept
 check(pendulum && pendulum.label.indexOf('pendulum') >= 0 && pendulum.label.indexOf('sixteenth notes') >= 0 && pendulum.label.indexOf('2 octaves') >= 0 && pendulum.label.indexOf('wide') >= 0 && pendulum.label.indexOf('inversion 1') >= 0 && pendulum.label.indexOf('4 bars') >= 0, 'the line says the arp in plain words, got ' + (pendulum && pendulum.label));
 const pendNotes = S.scheduleLine(pendulum, null, 4182);
 check(pendNotes.length === 64 && pendNotes[0].midi === 74 && pendNotes[1].midi === 75 && Math.abs(pendNotes[0].length - 60 / 90 / 4) < 1e-9 && Math.abs(pendNotes[63].start - 10.5) < 1e-9, 'pendulum sixteenths fill four bars at 90, got ' + JSON.stringify(pendNotes.slice(0, 4)) + ' n=' + pendNotes.length);
+const styleArp = S.readLine('sd 1\nstyle hopkins-like\narp up 16ths');
+const styleArpNotes = S.scheduleLine(styleArp, null, 1);
+check(styleArp && !styleArp.arp.chord && styleArp.bpm === 62 && styleArp.harmony.length > 0 && styleArpNotes.length > 16, 'a bare arp follows the style chord line, got ' + (styleArpNotes && styleArpNotes.length));
+const styleFm = S.readLine('sd 1\nstyle hopkins-like\nn C5(2) Eb5 fm 3');
+check(styleFm && styleFm.fmDepth === 3 && styleFm.notes.length === 2 && styleFm.notes[0].pitch === 'C5', 'fm 3 beside a style is a depth, got ' + JSON.stringify(styleFm && { fm: styleFm.fmDepth, n: styleFm.notes }));
 const follow = S.readLine('90 BPM; [Cm Fm9 Gm7 Bb]; arp up-down 16ths 2oct');
 const followNotes = S.scheduleLine(follow, null, 4182);
 check(follow && !follow.arp.chord && followNotes.length === 64 && Math.abs((followNotes[63].start + followNotes[63].length) - (16 * 60 / 90)) < 1e-6, 'a chord-line arp follows each chord for a bar, got ' + followNotes.length);

@@ -1,7 +1,10 @@
 // The Composition language, first slice (Peter, 2026-10-22). Deterministic only:
 // tempo, chords, durations, groups, loops, rests, comments, seeds, the
-// starting hack values for Live, an arp statement, and a notes line for the
-// NC Synth. One reading, shared with nc-performer through tests/language-vectors.json.
+// starting hack values for Live, an arp statement, a notes line for the
+// NC Synth, and a style statement. One reading, shared with nc-performer
+// through tests/language-vectors.json. `style <name>` fills only what the
+// writer left out, from styles/*.json (nc-style/1). The draw order is
+// styles/SCHEMA.md. A written tempo, meter, key, chord or length always wins.
 // Words this file does not recognise, and anything in quotes, stay words for
 // the AI. Nothing here calls a model. An arp chord is not gathered: the synth
 // plays it, unless the statement names @instrument.
@@ -229,6 +232,208 @@
     return out;
   }
 
+  var STYLES = {};
+  function registerStyle(obj) {
+    if (!obj || obj.schema !== 'nc-style/1' || !obj.name) return false;
+    if (!obj.meter || !obj.tempo || !obj.keys || !obj.phrase || !obj.loops) return false;
+    STYLES[String(obj.name).toLowerCase()] = obj;
+    return true;
+  }
+  // mulberry32, the same function Surprise me uses. Seed 0 stays 0.
+  function styleRng(seed) {
+    var a = seed >>> 0;
+    return function () {
+      a = (a + 0x6D2B79F5) >>> 0;
+      var t = a;
+      t = Math.imul(t ^ (t >>> 15), t | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  function wpick(r, rows) {
+    var tot = 0, i, x;
+    for (i = 0; i < rows.length; i++) tot += +rows[i][1];
+    if (!(tot > 0)) return rows.length ? rows[0][0] : null;
+    x = r() * tot;
+    for (i = 0; i < rows.length; i++) {
+      x -= +rows[i][1];
+      if (x < 0) return rows[i][0];
+    }
+    return rows[rows.length - 1][0];
+  }
+  function stylePairs(list, value, weight) {
+    var out = [], i;
+    for (i = 0; i < list.length; i++) out.push([value(list[i]), weight(list[i])]);
+    return out;
+  }
+  var ROMAN = /^(#|b)?(VII|VI|V|IV|III|II|I|vii|vi|v|iv|iii|ii|i)(maj7|ø7|ø|°7|°|7|6)?$/;
+  var DEGREE = { I: 0, II: 2, III: 4, IV: 5, V: 7, VI: 9, VII: 11 };
+  var FLIP_Q = { '': 'm', m: '', maj7: 'm7', m7: 'maj7', '6': 'm6', m6: '6', '7': 'm7', m7b5: 'm7b5', dim: 'dim', dim7: 'dim7' };
+  function parseRoman(token) {
+    var m = ROMAN.exec(token || '');
+    if (!m) return null;
+    return { acc: m[1] || '', num: m[2], suf: m[3] || '' };
+  }
+  function bareRoman(token) {
+    var p = parseRoman(token);
+    return p ? p.acc + p.num : token;
+  }
+  function romanQuality(p) {
+    var up = p.num === p.num.toUpperCase();
+    if (p.suf === 'maj7') return 'maj7';
+    if (p.suf === '7') return up ? '7' : 'm7';
+    if (p.suf === '6') return up ? '6' : 'm6';
+    if (p.suf === 'ø' || p.suf === 'ø7') return 'm7b5';
+    if (p.suf === '°7') return 'dim7';
+    if (p.suf === '°') return 'dim';
+    return up ? '' : 'm';
+  }
+  function realizeRoman(token, tonicPc) {
+    var p = parseRoman(token);
+    if (!p || !Object.prototype.hasOwnProperty.call(DEGREE, p.num.toUpperCase())) return null;
+    var deg = DEGREE[p.num.toUpperCase()];
+    if (p.acc === 'b') deg -= 1;
+    else if (p.acc === '#') deg += 1;
+    return SPELL[(tonicPc + deg + 120) % 12] + romanQuality(p);
+  }
+  function decorateSeventh(token, r, share) {
+    if (!(r() < share)) return token;
+    var p = parseRoman(token);
+    if (!p || p.suf) return token;
+    if (p.num !== p.num.toUpperCase()) return token + '7';
+    var deg = DEGREE[p.num];
+    if (p.acc === 'b') deg -= 1;
+    else if (p.acc === '#') deg += 1;
+    deg = (deg + 12) % 12;
+    if (deg === 0 || deg === 3 || deg === 5 || deg === 8 || deg === 9) return token + 'maj7';
+    return token + '7';
+  }
+  function shiftSymbol(sym, semis, modeChange) {
+    var m = /^([A-G])(#|b)?([\s\S]*)$/.exec(sym || '');
+    if (!m) return sym;
+    var pc = (PC[m[1]] + (m[2] === '#' ? 1 : m[2] === 'b' ? -1 : 0) + semis + 120) % 12;
+    var q = m[3] || '';
+    if (modeChange && Object.prototype.hasOwnProperty.call(FLIP_Q, q)) q = FLIP_Q[q];
+    return SPELL[pc] + q;
+  }
+  function snapBeats(n) {
+    var x = Math.round(n * 1000) / 1000;
+    return x > 0 ? x : 0;
+  }
+  // One seeded draw. See styles/SCHEMA.md for the order. Chords are null
+  // when the writer already wrote some.
+  function drawStyle(style, seed, ctx) {
+    var r = styleRng(seed);
+    var meter = wpick(r, stylePairs(style.meter, function (m) { return m.value; }, function (m) { return m.weight; }));
+    var lo = style.tempo.sample[0], hi = style.tempo.sample[1];
+    var tempo = lo + Math.floor(r() * (hi - lo + 1));
+    var key = wpick(r, stylePairs(style.keys, function (k) { return k; }, function (k) { return k.weight; }));
+    var meterUse = ctx.meterWritten ? ctx.meter : meter;
+    var tempoUse = ctx.tempoWritten ? ctx.bpm : tempo;
+    var tonic = ctx.keyWritten ? ctx.keyWritten.tonic : key.tonic;
+    var mode = ctx.keyWritten ? ctx.keyWritten.mode : key.mode;
+    var out = {
+      meter: meterUse, tempo: tempoUse, tonic: tonic, mode: mode,
+      chords: null, times: 1, modulation: null, clamped: false
+    };
+    if (ctx.chordsWritten) return out;
+    var phraseBars = wpick(r, stylePairs(style.phrase.lengths, function (p) { return p.bars; }, function (p) { return p.weight; }));
+    var qpb = qpbOf(meterUse);
+    var target;
+    if (ctx.length && ctx.length.unit === 'bar') target = ctx.length.amount * qpb;
+    else if (ctx.length && (ctx.length.unit === 'second' || ctx.length.unit === 'minute')) {
+      var sec = ctx.length.unit === 'minute' ? ctx.length.amount * 60 : ctx.length.amount;
+      if (sec > 180) { sec = 180; out.clamped = true; }
+      target = sec * tempoUse / 60;
+    } else target = phraseBars * qpb;
+    if (!(target > 0)) target = qpb;
+    var maxBeats = tempoUse > 0 ? 180 * tempoUse / 60 : target;
+    if (target > maxBeats) { target = maxBeats; out.clamped = true; }
+    var useLoop = r() < 0.5;
+    var loop = null, loopAt = 0, history = [];
+    if (useLoop) loop = wpick(r, stylePairs(style.loops, function (item) { return item.roman; }, function (item) { return item.weight; }));
+    var classes = stylePairs(style.chord_length.classes, function (c) { return c.bars * qpb; }, function (c) { return c.weight; });
+    var vocab = stylePairs(style.chords, function (c) { return c.roman; }, function (c) { return c.weight; });
+    var tonicPc = pcOf(tonic);
+    function nextGram(hist) {
+      var n, i, g, ok, k, cands, prefix;
+      for (n = 4; n >= 2; n--) {
+        if (hist.length < n - 1) continue;
+        prefix = hist.slice(-(n - 1));
+        cands = [];
+        for (i = 0; i < style.transitions.length; i++) {
+          g = style.transitions[i];
+          if (!g.roman || g.roman.length !== n) continue;
+          ok = true;
+          for (k = 0; k < n - 1; k++) if (g.roman[k] !== prefix[k]) ok = false;
+          if (ok) cands.push([g.roman[n - 1], g.weight]);
+        }
+        if (cands.length) return wpick(r, cands);
+      }
+      return wpick(r, vocab);
+    }
+    function nextToken() {
+      var bare, tok;
+      if (loop) {
+        tok = loop[loopAt % loop.length];
+        loopAt++;
+        return tok;
+      }
+      bare = history.length ? nextGram(history) : wpick(r, vocab);
+      history.push(bareRoman(bare));
+      return decorateSeventh(bare, r, +style.seventh_share || 0);
+    }
+    var chords = [], left = target, guard = 0, beats, roman, symbol;
+    while (left > 0.05 && guard++ < 512) {
+      roman = nextToken();
+      beats = wpick(r, classes);
+      if (beats > left) beats = left;
+      else if (left - beats > 0 && left - beats < 0.5) beats = left;
+      beats = snapBeats(beats);
+      if (!(beats > 0)) break;
+      symbol = realizeRoman(roman, tonicPc) || SPELL[tonicPc];
+      chords.push({ kind: 'chord', symbol: symbol, bass: null, beats: beats, bars: null, openDur: false });
+      left -= beats;
+    }
+    if (chords.length >= 4 && style.modulation && r() < +style.modulation.share) {
+      var move = wpick(r, stylePairs(style.modulation.moves, function (m) { return m; }, function (m) { return m.weight; }));
+      var mid = Math.floor(chords.length / 2), ci;
+      var destPc = (tonicPc + move.semitones + 120) % 12;
+      var destMode = move.mode_change ? (mode === 'minor' ? 'major' : 'minor') : mode;
+      for (ci = mid; ci < chords.length; ci++) chords[ci].symbol = shiftSymbol(chords[ci].symbol, move.semitones, !!move.mode_change);
+      var sign = move.semitones > 0 ? '+' + move.semitones : (move.semitones === 0 ? '+0' : String(move.semitones));
+      out.modulation = { text: sign + (move.mode_change ? ' (mode change)' : '') + ' to ' + SPELL[destPc] + ' ' + destMode };
+    }
+    if (!ctx.length) {
+      var beatsSum = 0, last, over;
+      chords.forEach(function (c) { beatsSum += c.beats; });
+      var cap = tempoUse;
+      while (beatsSum > cap + 1e-6 && chords.length > 1) {
+        last = chords[chords.length - 1];
+        over = beatsSum - cap;
+        if (last.beats - over >= 1) {
+          last.beats = snapBeats(last.beats - over);
+          break;
+        }
+        beatsSum -= last.beats;
+        chords.pop();
+      }
+      if (chords.length === 1 && chords[0].beats > cap) chords[0].beats = snapBeats(Math.max(1, cap));
+      beatsSum = 0;
+      chords.forEach(function (c) { beatsSum += c.beats; });
+      var heard = tempoUse > 0 ? beatsSum * 60 / tempoUse : 0;
+      if (heard > 0 && heard < 20) {
+        var times = Math.ceil(20 / heard);
+        if (times > 16) times = 16;
+        if (times * heard > 60 + 1e-6) times = Math.max(1, Math.floor(60 / heard));
+        if (!(times >= 1)) times = 1;
+        out.times = times;
+      }
+    }
+    out.chords = chords;
+    return out;
+  }
+
   function parse(text, opts) {
     opts = opts || {};
     var known = opts.known || function () { return false; };
@@ -238,6 +443,9 @@
     var seen = {}, flags = { paren: false, rest: false, loop: false, lower: false, quoteChord: false };
     var meter = '4/4', seed = null, tempos = [], seeds = [], nextRec = 0, quoted = false;
     var arps = [], unmapped = [];
+    var styleName = null, styleDisplay = '', styleAt = 0, styleItem = null, styleTempoInArrow = false;
+    var meterWritten = false, keyWritten = null, lengthInfo = null;
+    var flagsStyle = false;
     function note(s) { if (s && !seen[s]) { seen[s] = 1; notes.push(s); } }
     function addWord(w) { if (w) words.push(w); }
     // Semicolons and newlines end a statement. The tokenizer does not keep
@@ -391,6 +599,8 @@
       else if (/^(?:seconds?|secs?|s)$/i.test(u.text)) label = trimNum(+t.text) + ' ' + (+t.text === 1 ? 'second' : 'seconds');
       if (!label) return false;
       i += 2;
+      var unit = /^bar/i.test(u.text) ? 'bar' : (/^(?:minutes?|mins?|m)$/i.test(u.text) ? 'minute' : 'second');
+      if (!lengthInfo) lengthInfo = { amount: +t.text, unit: unit };
       syntax.push({ kind: 'length', text: label });
       return true;
     }
@@ -398,9 +608,98 @@
       var t = tokens[i];
       if (!t || t.type !== 'word' || !/^\d+\/(?:2|4|8)$/.test(t.text)) return false;
       meter = t.text;
+      meterWritten = true;
       i++;
       if (meter !== '4/4') syntax.push({ kind: 'meter', text: meter });
       return true;
+    }
+    function tryKey() {
+      var t = tokens[i];
+      if (!t || t.type !== 'word' || !/^key$/i.test(t.text)) return false;
+      var n = tokens[i + 1];
+      if (!n || n.type !== 'word' || !/^([A-Ga-g])(#|b)?$/.test(n.text)) return false;
+      var mode = 'major', eat = 2, modeTok = tokens[i + 2];
+      if (modeTok && modeTok.type === 'word' && /^(?:major|minor|maj|min)$/i.test(modeTok.text)) {
+        mode = /^min/i.test(modeTok.text) ? 'minor' : 'major';
+        eat = 3;
+      }
+      i += eat;
+      var tonic = SPELL[pcOf(n.text[0].toUpperCase() + (n.text[1] || ''))];
+      if (!keyWritten) {
+        keyWritten = { tonic: tonic, mode: mode };
+        syntax.push({ kind: 'key', text: 'key ' + tonic + ' ' + mode });
+      } else if (keyWritten.tonic !== tonic || keyWritten.mode !== mode) note('Another key was written. The first is kept.');
+      return true;
+    }
+    function tryStyle() {
+      var t = tokens[i];
+      if (!t || t.type !== 'word') return false;
+      var name = null, eat = 0;
+      var glued = /^style([A-Za-z][\w-]*)$/i.exec(t.text);
+      if (glued) { name = glued[1]; eat = 1; }
+      else if (/^style$/i.test(t.text) && tokens[i + 1] && tokens[i + 1].type === 'word' && /^[A-Za-z][\w-]*$/.test(tokens[i + 1].text)) {
+        name = tokens[i + 1].text;
+        eat = 2;
+      } else return false;
+      i += eat;
+      if (!styleName) {
+        styleName = name;
+        styleDisplay = name;
+        styleAt = played.length;
+        styleItem = { kind: 'style', text: 'style ' + name };
+        syntax.push(styleItem);
+      } else if (styleName.toLowerCase() !== name.toLowerCase()) note('Another style was written. The first is kept.');
+      return true;
+    }
+    function applyStyle() {
+      if (!styleName) return;
+      var spec = STYLES[styleName.toLowerCase()];
+      if (!spec) { note(styleDisplay + ' is not a style.'); return; }
+      flagsStyle = true;
+      var useSeed = seed == null ? 1 : (seed >>> 0);
+      if (seed == null) note('No seed was written. The style uses seed 1.');
+      var wroteChord = false, pi;
+      for (pi = 0; pi < played.length; pi++) if (played[pi].kind === 'chord') wroteChord = true;
+      var otNow = openingTempo(src);
+      var writerBpm = otNow && otNow.bpm > 0 ? otNow.bpm : (tempos.length && tempos[0] > 0 ? tempos[0] : null);
+      var tempoWritten = writerBpm != null;
+      var drawn = drawStyle(spec, useSeed, {
+        meterWritten: meterWritten, meter: meter,
+        tempoWritten: tempoWritten, bpm: writerBpm,
+        keyWritten: keyWritten, chordsWritten: wroteChord, length: lengthInfo
+      });
+      if (!meterWritten && drawn.meter) meter = drawn.meter;
+      if (!tempoWritten && drawn.tempo > 0) { tempos.push(drawn.tempo); styleTempoInArrow = true; }
+      var head = [];
+      if (styleTempoInArrow) head.push('q' + trimNum(drawn.tempo));
+      if (!meterWritten && drawn.meter && drawn.meter !== '4/4') head.push(drawn.meter);
+      if (!wroteChord) head.push(drawn.tonic + ' ' + drawn.mode);
+      var text = 'style ' + (spec.name || styleDisplay);
+      if (head.length || drawn.modulation) {
+        text += ' → ' + head.join(' ');
+        if (drawn.modulation) text += (head.length ? ', then ' : 'then ') + drawn.modulation.text;
+      }
+      if (styleItem) styleItem.text = text;
+      if (drawn.clamped) note('The style stops at 180 seconds.');
+      if (!drawn.chords || !drawn.chords.length) return;
+      var after = played.splice(styleAt);
+      var items = drawn.chords, si = syntax.indexOf(styleItem);
+      if (si < 0) si = syntax.length - 1;
+      flags.paren = true;
+      if (drawn.times > 1) {
+        flags.loop = true;
+        expand(items, drawn.times);
+        syntax.splice(si + 1, 0, { kind: 'group', text: renderItems(items, drawn.times) });
+      } else {
+        var made = [];
+        items.forEach(function (ev) {
+          assign(ev);
+          stamp(ev);
+          made.push({ kind: 'chord', text: renderChord(ev) });
+        });
+        syntax.splice.apply(syntax, [si + 1, 0].concat(made));
+      }
+      played.push.apply(played, after);
     }
     function tryLoop() {
       var t = tokens[i];
@@ -746,6 +1045,8 @@
       if (tryHack()) return true;
       if (tryTempo()) return true;
       if (trySeed()) return true;
+      if (tryStyle()) return true;
+      if (tryKey()) return true;
       if (tryMeter()) return true;
       if (tryLength()) return true;
       var rest = tryRest();
@@ -843,6 +1144,7 @@
       i++;
     }
 
+    applyStyle();
     var ot = openingTempo(src);
     var bpm = ot ? ot.bpm : (tempos.length ? tempos[0] : null);
     if (tempos.length > 1) {
@@ -853,7 +1155,7 @@
     syntax.forEach(function (s) { if (s.kind === 'tempo' && !tempoItem) tempoItem = s; });
     if (bpm != null) {
       if (tempoItem) tempoItem.text = 'q' + trimNum(bpm);
-      else syntax.unshift({ kind: 'tempo', text: 'q' + trimNum(bpm) });
+      else if (!styleTempoInArrow) syntax.unshift({ kind: 'tempo', text: 'q' + trimNum(bpm) });
     }
     var qpb = qpbOf(meter);
     var needsTempo = false;
@@ -870,7 +1172,7 @@
     if (timed.length && loose.length) note('A duration stays on its own chord. The others play their whole recordings.');
     if (chords.some(function (e) { return e.openDur; })) note('An open duration plays the whole recording.');
     if (flags.loop) note('The loop uses the same recordings.');
-    var clock = (flags.paren || flags.rest || flags.loop || flags.lower || flags.quoteChord) ? 'language' : 'legacy';
+    var clock = (flags.paren || flags.rest || flags.loop || flags.lower || flags.quoteChord || flagsStyle) ? 'language' : 'legacy';
     CHANGE.lastIndex = 0;
     if (clock === 'language' && CHANGE.test(uncomment(src))) note('A later tempo is not read yet. The opening tempo is kept.');
     arps.forEach(function (a) {
@@ -937,6 +1239,7 @@
     openingTempo: openingTempo,
     hackParams: hackParams,
     lpDial: lpDial,
-    pretty: pretty
+    pretty: pretty,
+    registerStyle: registerStyle
   };
 })(typeof globalThis !== 'undefined' ? globalThis : this);
