@@ -3,8 +3,8 @@
 // Faint bar along the top: how hard the limiter is pulling down right now (0 to 12 dB).
 (function () {
   'use strict';
-  // Bright green trace (#00e676); the ceiling guides and gain-reduction bar stay faint grey so the trace stands out.
-  var INK = '#00e676', FAINT = '#c8c8c8', GUIDE = '#eee';
+  // Trace in the instrument accent; ceiling guides and the gain-reduction bar stay in the panel greys.
+  var INK = '#426C61', FAINT = '#7C8580', GUIDE = '#D9DEDA';
   var src = null, buf = null, raf = 0, running = false, gr = 1, grShown = 0;
 
   function canvas() { return document.getElementById('hack-scope'); }
