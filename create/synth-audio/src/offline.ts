@@ -20,6 +20,8 @@ export interface OfflineNote {
   velocity?: number;
   start: number;
   length: number;
+  /** Gathered clip that modulates this note. The buffer is only read. */
+  modulator?: { buffer: AudioBuffer; offset?: number; followCutoff?: number; followLevel?: number } | null;
 }
 
 const RATE = 48000;
@@ -48,6 +50,13 @@ function clamp(v: number, lo: number, hi: number) {
   return Math.min(hi, Math.max(lo, v));
 }
 
+/** Peter's FM index. 0 is no FM. Missing means no FM. */
+function fmDepthOf(settings: Partial<SynthSettings> | SynthSettings | { fmDepth?: number } | null | undefined) {
+  const raw = settings && typeof settings === 'object' ? (settings as { fmDepth?: number }).fmDepth : undefined;
+  if (raw == null || !Number.isFinite(+raw)) return 0;
+  return clamp(+raw, 0, 10);
+}
+
 export async function renderNotes(
   notes: OfflineNote[] | null | undefined,
   settings: Partial<SynthSettings> | SynthSettings | null | undefined,
@@ -55,7 +64,8 @@ export async function renderNotes(
 ): Promise<AudioBuffer> {
   const s = mergeSettings(settings);
   if (s.oscillatorMode === 'wavetable') s.oscillatorMode = 'vco';
-  const list: { midi: number; velocity: number; start: number; length: number }[] = [];
+  const depth = fmDepthOf(settings);
+  const list: { midi: number; velocity: number; start: number; length: number; modulator: OfflineNote['modulator'] }[] = [];
   for (const n of notes || []) {
     if (!n) continue;
     const midi = typeof n.midi === 'number' ? n.midi : midiOf(n.pitch || n.note || '');
@@ -65,6 +75,7 @@ export async function renderNotes(
       velocity: n.velocity == null ? 0.82 : clamp(+n.velocity, 0, 1),
       start: Math.max(0, +n.start),
       length: +n.length,
+      modulator: n.modulator && n.modulator.buffer ? n.modulator : null,
     });
   }
   const tail = (Number.isFinite(s.release) ? Math.max(0, s.release) : 0.5) + 0.05;
@@ -73,6 +84,13 @@ export async function renderNotes(
   const context = new OfflineAudioContext(2, Math.max(1, Math.ceil(end * RATE)), RATE);
   const engine = new SynthEngine(s);
   await engine.open(context, mulberry32(seed));
-  for (const n of list) engine.scheduleNote(n.midi, n.start, n.length, n.velocity);
+  for (const n of list) {
+    const mod = n.modulator;
+    const followCut = mod ? Math.max(0, +mod.followCutoff || 0) : 0;
+    const followLvl = mod ? Math.max(0, +mod.followLevel || 0) : 0;
+    engine.scheduleNote(n.midi, n.start, n.length, n.velocity, mod && (depth > 0 || followCut > 0 || followLvl > 0) ? {
+      buffer: mod.buffer, offset: mod.offset || 0, depth, followCutoff: followCut, followLevel: followLvl,
+    } : null);
+  }
   return context.startRendering();
 }

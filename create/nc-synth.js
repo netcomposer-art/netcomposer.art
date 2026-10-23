@@ -21,6 +21,12 @@
  *   knee 6, ratio 12, attack 0.003, release 0.12, then master/100.
  *   Noise: 2 s loop, mulberry32(seed) * 2 - 1. 48000 Hz stereo.
  *   Wavetable is not selected; that patch plays its plain waveform.
+ *   FM index fmDepth is 0–10 (0 is no FM, page default 3). A gathered clip is
+ *   the modulator only: gain into the carrier frequency is fmDepth * 100 Hz
+ *   per full-scale sample. The clip is not pitch-shifted and is not mixed
+ *   into the synth output. An optional envelope follower (absolute value,
+ *   then a 30 Hz low-pass) can add to cutoff and loudness; the page leaves
+ *   that off.
  *   Seeded RNG (mulberry32): a = (a + 0x6D2B79F5) >>> 0;
  *     t = imul(a ^ (a >>> 15), a | 1);
  *     t ^= t + imul(t ^ (t >>> 7), t | 61);
@@ -66,7 +72,8 @@
     chordDuration: 4, eventOutput: 'note', minEventInterval: 1,
     vcoMods: [{source: 'none', destination: 'pitch', amount: 0}, {source: 'none', destination: 'pitch', amount: 0}],
     vcfMods: [{source: 'none', destination: 'cutoff', amount: 0}, {source: 'none', destination: 'resonance', amount: 0}],
-    vcaMods: [{source: 'none', destination: 'level', amount: 0}, {source: 'none', destination: 'sustain', amount: 0}]
+    vcaMods: [{source: 'none', destination: 'level', amount: 0}, {source: 'none', destination: 'sustain', amount: 0}],
+    fmDepth: 3
   };
 
   function clamp(v, lo, hi) { return Math.min(hi, Math.max(lo, v)); }
@@ -127,6 +134,7 @@
     number('detune', -100, 100);
     number('pulseWidth', 0.05, 0.95);
     ['position', 'warp', 'spread', 'subLevel'].forEach(function (key) { number(key, 0, 1); });
+    number('fmDepth', 0, 10);
     return out;
   }
 
@@ -193,7 +201,10 @@
     var s = mergeSettings(settings);
     var wave = s.waveform;
     var sub = s.subEnabled && s.subLevel > 0 ? s.subWaveform + ' sub ' + s.subOctave : 'no sub';
-    var bits = [wave, sub, (FILTERS[s.filter] || s.filter) + ' ' + Math.round(s.cutoff) + ' Hz', 'seed ' + ((seed >>> 0) || 0), 'code MIT'];
+    var depth = Math.round(s.fmDepth * 100) / 100;
+    var bits = [wave, sub, (FILTERS[s.filter] || s.filter) + ' ' + Math.round(s.cutoff) + ' Hz'];
+    if (depth > 0) bits.push('FM depth ' + depth);
+    bits.push('seed ' + ((seed >>> 0) || 0), 'code MIT');
     if (s.oscillatorMode === 'wavetable') bits.push('wavetable left out');
     return bits.join(', ');
   }

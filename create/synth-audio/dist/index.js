@@ -816,6 +816,7 @@ var NCSynthEngine = (() => {
   };
 
   // create/synth-audio/src/engine.ts
+  var FM_HZ_PER_INDEX = 100;
   var midiName2 = (midi) => `${NOTE_NAMES[midi % 12]}${Math.floor(midi / 12) - 1}`;
   var frequency = (midi) => 440 * Math.pow(2, (midi - 69) / 12);
   var copySettings = (s) => ({
@@ -1261,10 +1262,16 @@ var NCSynthEngine = (() => {
       };
     }
     /** One written note on the existing voice path. Live patterns still use schedule(). */
-    scheduleNote(midi, time, duration, velocity = 1) {
-      this.createVoice(midi, time, duration, velocity);
+    scheduleNote(midi, time, duration, velocity = 1, modulator) {
+      this.createVoice(midi, time, duration, velocity, modulator);
     }
-    createVoice(midi, start, duration, velocity = 1) {
+    /** Buffer sources currently feeding a carrier. Panic and stop clear this. */
+    activeModulators() {
+      let n = 0;
+      for (const voice of this.voices) if (!voice.cleaned) n += voice.modSources.length;
+      return n;
+    }
+    createVoice(midi, start, duration, velocity = 1, modulator) {
       const context = this.context;
       this.voices = this.voices.filter((v) => !v.cleaned);
       const active = this.voices.filter((v) => !v.cleaned && v.end > context.currentTime);
@@ -1287,6 +1294,8 @@ var NCSynthEngine = (() => {
         envelope,
         level,
         sources: [],
+        modSources: [],
+        modNodes: [],
         released: false,
         cleaned: false
       };
@@ -1301,6 +1310,93 @@ var NCSynthEngine = (() => {
       g.linearRampToValueAtTime(0, voice.gate + env.release);
       this.addSource(voice, "main", start, values, false);
       if (this.subAmount() > 0) this.addSource(voice, "sub", start, values, false);
+      this.attachModulator(voice, modulator);
+    }
+    /** Audio-rate FM into the main oscillator only. The clip is not a carrier and is not heard on its own. */
+    attachModulator(voice, mod) {
+      if (!mod || !mod.buffer || !this.context) return;
+      if (this.settings.oscillatorMode === "wavetable") return;
+      const depth = Math.max(0, Math.min(10, +mod.depth || 0));
+      const followCut = Math.max(0, +mod.followCutoff || 0);
+      const followLvl = Math.max(0, +mod.followLevel || 0);
+      if (!(depth > 0) && !(followCut > 0) && !(followLvl > 0)) return;
+      const main = voice.sources.find((s) => s.role === "main");
+      const freq = main?.unit.frequency;
+      if (!freq) return;
+      const offset = Math.max(0, +mod.offset || 0);
+      const remain = mod.buffer.duration - offset;
+      if (!(remain > 1e-3)) return;
+      const src = this.context.createBufferSource();
+      src.buffer = mod.buffer;
+      src.loop = false;
+      if (depth > 0) {
+        const gain = this.context.createGain();
+        gain.gain.value = depth * FM_HZ_PER_INDEX;
+        src.connect(gain);
+        gain.connect(freq);
+        voice.modNodes.push(gain);
+      }
+      if (followCut > 0 || followLvl > 0) {
+        const env = this.envelopeFollower(src);
+        voice.modNodes.push(...env.nodes);
+        if (followCut > 0) {
+          const gain = this.context.createGain();
+          gain.gain.value = followCut;
+          env.out.connect(gain);
+          gain.connect(voice.filter.frequency);
+          voice.modNodes.push(gain);
+        }
+        if (followLvl > 0) {
+          const gain = this.context.createGain();
+          gain.gain.value = followLvl;
+          env.out.connect(gain);
+          gain.connect(voice.level.gain);
+          voice.modNodes.push(gain);
+        }
+      }
+      const play = Math.min(Math.max(1e-3, voice.end - voice.start), remain);
+      try {
+        src.start(voice.start, offset, play);
+      } catch {
+      }
+      voice.modSources.push(src);
+    }
+    /** Full-wave rectify, then a slow low-pass. Same clip as the FM input. */
+    envelopeFollower(source) {
+      const context = this.context;
+      const shaper = context.createWaveShaper();
+      const curve = new Float32Array(256);
+      for (let i = 0; i < curve.length; i++) curve[i] = Math.abs(i / (curve.length - 1) * 2 - 1);
+      shaper.curve = curve;
+      shaper.oversample = "none";
+      const low = context.createBiquadFilter();
+      low.type = "lowpass";
+      low.frequency.value = 30;
+      low.Q.value = 0.707;
+      source.connect(shaper);
+      shaper.connect(low);
+      return { out: low, nodes: [shaper, low] };
+    }
+    stopModulators(voice) {
+      for (const node of voice.modNodes) {
+        try {
+          node.disconnect();
+        } catch {
+        }
+      }
+      const when = this.context?.currentTime ?? 0;
+      for (const src of voice.modSources) {
+        try {
+          src.disconnect();
+        } catch {
+        }
+        try {
+          src.stop(when);
+        } catch {
+        }
+      }
+      voice.modSources = [];
+      voice.modNodes = [];
     }
     envelopeAt(voice, time) {
       const t = Math.max(0, time - voice.start);
@@ -1419,6 +1515,7 @@ var NCSynthEngine = (() => {
       voice.gate = now;
       voice.end = Math.min(voice.end, time + release + 5e-3);
       voice.released = true;
+      this.stopModulators(voice);
       for (const source of voice.sources) {
         source.unit.stop(voice.end);
       }
@@ -1426,6 +1523,7 @@ var NCSynthEngine = (() => {
     cleanup(voice) {
       if (voice.cleaned) return;
       voice.cleaned = true;
+      this.stopModulators(voice);
       for (const source of voice.sources) {
         source.unit.stop(this.context?.currentTime ?? 0);
         source.unit.dispose();
@@ -1495,9 +1593,15 @@ var NCSynthEngine = (() => {
   function clamp4(v, lo, hi) {
     return Math.min(hi, Math.max(lo, v));
   }
+  function fmDepthOf(settings) {
+    const raw = settings && typeof settings === "object" ? settings.fmDepth : void 0;
+    if (raw == null || !Number.isFinite(+raw)) return 0;
+    return clamp4(+raw, 0, 10);
+  }
   async function renderNotes(notes, settings, seed) {
     const s = mergeSettings(settings);
     if (s.oscillatorMode === "wavetable") s.oscillatorMode = "vco";
+    const depth = fmDepthOf(settings);
     const list = [];
     for (const n of notes || []) {
       if (!n) continue;
@@ -1507,7 +1611,8 @@ var NCSynthEngine = (() => {
         midi: clamp4(Math.round(midi), 0, 127),
         velocity: n.velocity == null ? 0.82 : clamp4(+n.velocity, 0, 1),
         start: Math.max(0, +n.start),
-        length: +n.length
+        length: +n.length,
+        modulator: n.modulator && n.modulator.buffer ? n.modulator : null
       });
     }
     const tail = (Number.isFinite(s.release) ? Math.max(0, s.release) : 0.5) + 0.05;
@@ -1516,7 +1621,18 @@ var NCSynthEngine = (() => {
     const context = new OfflineAudioContext(2, Math.max(1, Math.ceil(end * RATE)), RATE);
     const engine = new SynthEngine(s);
     await engine.open(context, mulberry32(seed));
-    for (const n of list) engine.scheduleNote(n.midi, n.start, n.length, n.velocity);
+    for (const n of list) {
+      const mod = n.modulator;
+      const followCut = mod ? Math.max(0, +mod.followCutoff || 0) : 0;
+      const followLvl = mod ? Math.max(0, +mod.followLevel || 0) : 0;
+      engine.scheduleNote(n.midi, n.start, n.length, n.velocity, mod && (depth > 0 || followCut > 0 || followLvl > 0) ? {
+        buffer: mod.buffer,
+        offset: mod.offset || 0,
+        depth,
+        followCutoff: followCut,
+        followLevel: followLvl
+      } : null);
+    }
     return context.startRendering();
   }
   return __toCommonJS(index_exports);

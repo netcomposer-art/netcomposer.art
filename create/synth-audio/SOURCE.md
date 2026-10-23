@@ -32,7 +32,7 @@ Verbatim (sha256):
 
 `engine.ts` snapshot sha256, before the offline edits: `91584160639c1d6fcab440b1c344532c5d623922ad3515880526af0c04539af8`.
 
-`engine.ts` after the offline and Live-output edits: `5fe3f2c73ed5e129dcc57fe2f434a12321c541efdb9c064f4d4ddbce0a24b504`.
+`engine.ts` after the offline, Live-output, and FM-modulator edits: `8b21696eb1ee69bd5ac96f3a96d03f5935288da06853b843381d6081df8614b8`.
 
 Rebuild the browser bundle from the repo root:
 
@@ -56,7 +56,7 @@ Deltas, so a written line can drive `createVoice` on `OfflineAudioContext`, and 
 2. The 2 s noise buffer uses `noiseRandom`, which defaults to `Math.random`. Offline render and the Live engine pass mulberry32.
 3. On `OfflineAudioContext`, or when an output node was injected, `initialize` returns after the graph exists. It does not `resume()` or preload wavetable banks. `OfflineAudioContext` stays suspended until `startRendering()`. A page-owned Live context is resumed by that page; waiting here would stall the note schedule.
 4. `voiceLimit()` is unlimited on `OfflineAudioContext`, and the 36-voice cleanup is skipped. `currentTime` is 0 while notes are scheduled, so the live pool would retire every note.
-5. `scheduleNote(midi, time, duration, velocity)` calls `createVoice`.
+5. `scheduleNote(midi, time, duration, velocity, modulator?)` calls `createVoice`. When `modulator.depth` is above 0 and the voice is a plain oscillator, the gathered clip is a modulator only: a buffer source feeds a gain of `depth × 100` Hz into the main oscillator's `frequency` AudioParam. The carrier's written pitch stays the parameter's offset. The clip is not mixed to the output and is not a carrier. Depth is Peter's index, 0–10, and 0 connects nothing. The same source can drive an envelope follower (absolute value, then a 30 Hz low-pass) into cutoff and loudness when those amounts are set. Wavetable voices skip this path. `panic()`, retire, and cleanup disconnect those sources so a stop leaves no hanging modulator.
 
 Do not call `dispose()` on an engine that shares Live's `AudioContext`. `dispose()` closes the context.
 
