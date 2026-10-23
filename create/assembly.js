@@ -292,9 +292,25 @@
   var BROADEN = /broadening over the last\s+(\w+|\d+)\s+bars/i;
   var BAR_WORDS = { two: 2, three: 3, four: 4, five: 5 };
 
-  function statedPulse(words) { return PULSE.test(words || ''); }
+  // Quotes and # comments are not syntax. Tempo may be written "90 BPM",
+  // "tempo 90" or "q90". assembly-vectors.mjs loads this file alone, so the
+  // old BPM word remains when the language parser is not on the page.
+  function plainWords(text) {
+    text = text || '';
+    if (root.NCLanguage && root.NCLanguage.uncomment) text = root.NCLanguage.uncomment(text);
+    return text;
+  }
+  function bpmOf(text) {
+    if (root.NCLanguage && root.NCLanguage.openingTempo) {
+      var ot = root.NCLanguage.openingTempo(text);
+      if (ot && ot.bpm > 0) return ot.bpm;
+    }
+    var m = String(text || '').match(/(\d+(?:\.\d+)?)\s*BPM/i);
+    return m ? +m[1] : 0;
+  }
+  function statedPulse(words) { return PULSE.test(plainWords(words)); }
   function broadenBars(words) {
-    var text = words || '', match = text.match(BROADEN), raw;
+    var text = plainWords(words), match = text.match(BROADEN), raw;
     if (match) {
       raw = match[1].toLowerCase();
       if (/^\d+$/.test(raw)) return +raw;
@@ -307,12 +323,12 @@
   // With none, the piece is as long as its gathered recordings (Petrus, 2026-10-21).
   function statedSeconds(text) { return takeSeconds(text, true); }
   function takeSeconds(text, open) {
-    text = text || '';
+    text = plainWords(text);
     var bars = text.match(/(\d+)\s*bars?/i);
-    var bpm = text.match(/(\d+(?:\.\d+)?)\s*BPM/i);
+    var bpm = bpmOf(text);
     var meter = text.match(/\b(\d)\/4\b/);
     var mins, secs;
-    if (bars && bpm) return (+bars[1]) * ((meter ? +meter[1] : 4) * 60 / +bpm[1]);
+    if (bars && bpm) return (+bars[1]) * ((meter ? +meter[1] : 4) * 60 / bpm);
     mins = text.match(/(\d+(?:\.\d+)?)\s*-?\s*(?:minutes?|mins?|m)\b(?:\s*(\d+)\s*(?:seconds?|secs?|s)\b)?/i);
     if (mins) return Math.max(20, Math.min(600, +mins[1] * 60 + +(mins[2] || 0)));
     secs = text.match(/(\d+(?:\.\d+)?)\s*(?:seconds?|secs?|s)\b/i);
@@ -323,7 +339,7 @@
   // "a rest between chords", "pause between", "silence between", "gap between",
   // "space between", "air between". Nothing else leaves silence (Petrus, 2026-10-21).
   var GAP_BETWEEN = /\b(?:rests?|pauses?|silences?|silent|gaps?|space|air|breaths?)\s+(?:between|after)\s+(?:each\s+|every\s+|the\s+)?(?:chords?|changes?|bars?)\b/i;
-  function explicitGap(words) { return GAP_BETWEEN.test(words || ''); }
+  function explicitGap(words) { return GAP_BETWEEN.test(plainWords(words)); }
 
   // Where each chord sits. slots are the clock; caps are each clip's usable
   // seconds (0 when unknown). A clip never plays longer than its recording:

@@ -19,7 +19,7 @@ function spell(root, q) {
   if (!(q in QUALS)) return null;
   return SPELL[pcOf(root)] + q;
 }
-function findChords(text) {
+function findChordsLegacy(text) {
   var out = [], m; TOKEN.lastIndex = 0;
   while ((m = TOKEN.exec(text))) {
     var q = m[3].replace(/[()]+$/, ''), after = text.slice(TOKEN.lastIndex, TOKEN.lastIndex + 2);
@@ -27,6 +27,19 @@ function findChords(text) {
     var s = spell(m[2], q);
     if (s) out.push({sym: s, bass: m[4] ? pcOf(m[4].slice(1)) : null});
   }
+  return out;
+}
+function readLang(text) {
+  if (!window.NCLanguage) return null;
+  return NCLanguage.parse(text || '', { known: function (q) { return q in QUALS; } });
+}
+function findChords(text) {
+  var parsed = readLang(text);
+  if (!parsed) return findChordsLegacy(text);
+  var out = [];
+  parsed.played.forEach(function (e) {
+    if (e.kind === 'chord') out.push({sym: e.symbol, bass: e.bass == null ? null : e.bass});
+  });
   return out;
 }
 function pickVoicing(sym, prev, bass) {
@@ -44,12 +57,22 @@ function pickVoicing(sym, prev, bass) {
   vs.forEach(function (v) { var c = cost(v); if (c < bc) { bc = c; best = v; } });
   return best;
 }
+function plain(text) {
+  return window.NCLanguage && NCLanguage.uncomment ? NCLanguage.uncomment(text || '') : (text || '');
+}
 function bars(text) {
-  var b = /(\d+)\s*bars?/i.exec(text), t = /(\d+(?:\.\d+)?)\s*BPM/i.exec(text), ts = /\b(\d)\/4\b/.exec(text);
-  return b && t ? {n: +b[1], s: (ts ? +ts[1] : 4) * 60 / +t[1]} : null;
+  text = plain(text);
+  var b = /(\d+)\s*bars?/i.exec(text), ts = /\b(\d)\/4\b/.exec(text), bpm = null, ot;
+  if (window.NCLanguage && NCLanguage.openingTempo) {
+    ot = NCLanguage.openingTempo(text);
+    if (ot && ot.bpm > 0) bpm = ot.bpm;
+  }
+  if (!(bpm > 0)) { var t = /(\d+(?:\.\d+)?)\s*BPM/i.exec(text); if (t) bpm = +t[1]; }
+  return b && bpm ? {n: +b[1], s: (ts ? +ts[1] : 4) * 60 / bpm} : null;
 }
 function lengthOf(text) {
   var B = bars(text); if (B) return B.n * B.s;
+  text = plain(text);
   var m = /(\d+(?:\.\d+)?)\s*-?\s*(?:minutes?|mins?|m)\b(?:\s*(\d+)\s*(?:seconds?|secs?|s)\b)?/i.exec(text);
   if (m) return Math.max(20, Math.min(600, +m[1] * 60 + (+(m[2] || 0))));
   m = /(\d+(?:\.\d+)?)\s*(?:seconds?|secs?|s)\b/i.exec(text);
@@ -57,11 +80,12 @@ function lengthOf(text) {
 }
 // Written clock, the same brackets the hosted parser reads: [1 bar C], [2 beats A].
 function quartersPerBar(text) {
-  var m = /\b(\d+)\s*\/\s*(2|4|8)\b/.exec(text || '');
+  var m = /\b(\d+)\s*\/\s*(2|4|8)\b/.exec(plain(text || ''));
   return m ? +m[1] * (4 / +m[2]) : 4;
 }
 function tempoChanges(text) {
   var re = /\b(?:at|from)\s+bar\s+(\d+)\b[^.\n]{0,40}?(\d+(?:\.\d+)?)\s*BPM\b|\bbar\s+(\d+)\s*:\s*(\d+(?:\.\d+)?)\s*BPM\b/gi, found = {}, m;
+  text = plain(text);
   while ((m = re.exec(text || ''))) {
     var bar = m[1] ? +m[1] : +m[3], bpm = m[1] ? +m[2] : +m[4];
     if (bar >= 1 && bpm > 0) found[bar] = bpm;
@@ -69,7 +93,11 @@ function tempoChanges(text) {
   return Object.keys(found).map(function (k) { return [+k, found[k]]; }).sort(function (a, b) { return a[0] - b[0]; });
 }
 function openingBpm(text, changes) {
-  var blank = (text || '').replace(/\b(?:at|from)\s+bar\s+\d+\b[^.\n]{0,40}?\d+(?:\.\d+)?\s*BPM\b|\bbar\s+\d+\s*:\s*\d+(?:\.\d+)?\s*BPM\b/gi, ' ');
+  if (window.NCLanguage && NCLanguage.openingTempo) {
+    var ot = NCLanguage.openingTempo(text);
+    if (ot && ot.bpm > 0) return ot.bpm;
+  }
+  var blank = plain(text).replace(/\b(?:at|from)\s+bar\s+\d+\b[^.\n]{0,40}?\d+(?:\.\d+)?\s*BPM\b|\bbar\s+\d+\s*:\s*\d+(?:\.\d+)?\s*BPM\b/gi, ' ');
   var m = /(\d+(?:\.\d+)?)\s*BPM\b/i.exec(blank) || /quarter(?:\s+note)?\s*[=≈]\s*(\d+(?:\.\d+)?)/i.exec(blank);
   if (m) return +m[1];
   for (var i = 0; i < changes.length; i++) if (changes[i][0] <= 1) return changes[i][1];
@@ -124,9 +152,67 @@ function writtenDurations(text, chords) {
   rounded[rounded.length - 1] = +(rounded[rounded.length - 1] + (target - sum)).toFixed(3);
   return rounded;
 }
+function showIRead(parsed) {
+  var el = $('iread');
+  if (!el) return;
+  var line = parsed && parsed.iread ? parsed.iread : '';
+  if (!line) { el.textContent = ''; el.hidden = true; return; }
+  el.hidden = false;
+  el.textContent = 'I read  ' + line;
+}
+var hackSig = '';
+function applyHacks(parsed) {
+  if (!window.NCStack || !NCStack.applyStart) return;
+  var list = (parsed && parsed.hacks) || [];
+  var sig = JSON.stringify(list.map(function (h) { return [h.type, h.value]; }));
+  if (sig === hackSig) return;
+  hackSig = sig;
+  NCStack.applyStart(list);
+}
+// One voicing per recording. A repeat plays that same voicing again.
+// An open chord has no written length: Play and the take use the recording.
+function timelineFrom(parsed) {
+  var chords = [], voiced = {}, prev = null, gap = 0, t = 0, open = false;
+  (parsed.played || []).forEach(function (ev) {
+    if (ev.kind === 'rest') {
+      if (ev.seconds > 0) gap += ev.seconds;
+      else open = true;
+      return;
+    }
+    if (ev.kind !== 'chord') return;
+    var v = voiced[ev.recording];
+    if (!v) { v = pickVoicing(ev.symbol, prev, ev.bass); voiced[ev.recording] = v; }
+    prev = v[1];
+    if (ev.seconds == null) open = true;
+    var slot = ev.seconds == null ? null : ev.seconds;
+    chords.push({
+      t: open ? null : +((t + gap).toFixed(3)),
+      dur: slot, slot: slot, open: ev.seconds == null, gapBefore: +gap.toFixed(3),
+      symbol: ev.symbol, bass: ev.bass, path: v[0], voicing: v[1], recording: ev.recording
+    });
+    if (!open && ev.seconds != null) t = +(t + gap + ev.seconds).toFixed(3);
+    gap = 0;
+  });
+  if (!chords.length) return null;
+  var written = !open && chords.every(function (c) { return c.slot != null; });
+  if (written) {
+    var cursor = 0;
+    chords.forEach(function (c) {
+      c.t = +(cursor + c.gapBefore).toFixed(3);
+      c.dur = c.slot;
+      cursor = +(c.t + c.slot).toFixed(3);
+    });
+    t = cursor;
+  }
+  return {L: written ? t : null, chords: chords, unique: (parsed.gather || []).slice(), written: written, language: true, seed: parsed.seed, bpm: parsed.bpm};
+}
 // the timeline, the same rule as `nc interpret --stub`
 function timeline() {
-  var comp = $('comp').value, words = comp + ' ' + promptWords(), fromComp = true;
+  var comp = $('comp').value, parsed = readLang(comp);
+  showIRead(parsed);
+  applyHacks(parsed);
+  if (parsed && parsed.clock === 'language') return timelineFrom(parsed);
+  var words = comp + ' ' + promptWords(), fromComp = true;
   var found = findChords(comp);
   if (!found.length) { found = findChords(words); fromComp = false; }
   if (!found.length) return null;
@@ -167,7 +253,7 @@ function refresh() {
     var s = document.createElement('span'); s.className = 'ch'; s.id = 'ch' + i;
     s.title = c.voicing.map(nn).join(' ') + ' · ' + c.path; s.textContent = prettySym(c.symbol); el.appendChild(s); el.appendChild(document.createTextNode(' '));
   });
-  $('progmeta').textContent = previewLen(tl.L);
+  $('progmeta').textContent = (tl.language && !(tl.L > 0)) ? '' : previewLen(tl.L);
   if (window.NCPerform && NCPerform.sync) NCPerform.sync();
 }
 
@@ -266,6 +352,59 @@ function sine(v, t0, d, out) {
   });
 }
 function toggle() { if (active) stop(); else start(0); }
+// Language Play is one pass of each recording, at the slider's speed.
+// The old preview stays at double tempo with two strikes. Nothing is stretched:
+// a longer duration than the file plays the file, and the next chord still
+// waits out the written slot.
+function playLanguage(tl, from, speed, master, my) {
+  var chords = tl.chords.slice(0, 64);
+  window.MM.prepare(AC, chords, CAT, $('inst').value || 'piano').then(function (clips) {
+    if (my !== gen) return;
+    showSources(clips);
+    showCredit();
+    var cursor = 0, rows = [];
+    chords.forEach(function (c, i) {
+      var clip = clips[i], cap = clip && clip.buffer && clip.buffer.duration > 0 ? clip.buffer.duration : 2;
+      var play = c.slot == null ? cap : c.slot;
+      if (clip && clip.buffer && play > clip.buffer.duration) play = clip.buffer.duration;
+      if (!(play > 0)) play = 0.1;
+      var advance = c.slot == null ? play : c.slot;
+      var at = cursor + (c.gapBefore || 0);
+      rows.push({c: c, i: i, at: at, play: play, clip: clip});
+      cursor = at + advance;
+    });
+    if (!rows.length) { stop(); return; }
+    from = Math.max(0, Math.min(from || 0, rows.length - 1));
+    var base = rows[from].at, t0 = AC.currentTime + 0.15;
+    rows.slice(from).forEach(function (row) {
+      var t = t0 + (row.at - base) / speed, c = row.c, clip = row.clip;
+      timers.push(setTimeout(function () {
+        if (my !== gen) return;
+        cur = row.i;
+        document.querySelectorAll('.ch.on').forEach(function (e) { e.classList.remove('on'); });
+        var e = $('ch' + row.i); if (e) e.classList.add('on');
+      }, Math.max(0, (t - AC.currentTime) * 1000)));
+      if (!clip || !clip.buffer) {
+        sine(c.voicing, t, row.play / speed, master);
+        SCHED.push({i: row.i, symbol: c.symbol, strike: 1, at: t, d: row.play / speed, src: 'sine'});
+        return;
+      }
+      var hear = Math.min(row.play, clip.buffer.duration);
+      var s = AC.createBufferSource(), g = AC.createGain(); s.buffer = clip.buffer;
+      g.gain.setValueAtTime(0.8, t);
+      g.gain.setTargetAtTime(0, t + Math.max(0.02, hear - 0.04), 0.015);
+      s.connect(g); g.connect(master); s.start(t, 0, hear); playing.push(s);
+      SCHED.push({i: row.i, symbol: c.symbol, path: c.path, strike: 1, at: t, d: hear, src: clip.kind, url: clip.url || null});
+    });
+    var last = rows[rows.length - 1];
+    var endAt = (last.at - base + (last.c.slot == null ? last.play : last.c.slot)) / speed;
+    timers.push(setTimeout(function () { if (my === gen) { stop(); cur = 0; } }, (endAt + 0.35) * 1000));
+  }).catch(function () {
+    if (my !== gen) return;
+    status('Could not start playback. Try again in a moment.', true);
+    stop();
+  });
+}
 function start(from) {
   var heard = $('perform-audio');
   if (heard && !heard.paused) heard.pause();
@@ -273,9 +412,10 @@ function start(from) {
   var tl = timeline(); if (!tl) return;
   AC = AC || new (window.AudioContext || window.webkitAudioContext)(); AC.resume();
   from = (from || 0) % tl.chords.length;
-  var speed = +$('spd').value * PREVIEW_TEMPO, chords = tl.chords.slice(from, from + 64), my = gen; active = true; SCHED = [];
+  var speed = (tl.language ? 1 : PREVIEW_TEMPO) * +$('spd').value, chords = tl.chords.slice(from, from + 64), my = gen; active = true; SCHED = [];
   $('play').textContent = 'Stop'; $('sinenote').hidden = true; status('Loading chord recordings…');
   var master = AC.createGain(); master.gain.value = 0.8; master.connect(AC.destination);
+  if (tl.language) { playLanguage(tl, from, speed, master, my); return; }
   window.MM.prepare(AC, chords, CAT, $('inst').value || 'piano').then(function (clips) {
     if (my !== gen) return;
     showSources(clips);
@@ -332,7 +472,21 @@ function toMd(S) {
 function toPlan(S) {
   var tl = timeline(); if (!tl) return null;
   var words = S.c + ' ' + S.p, soft = /ambient|soft|calm|slow|gentle|dark|no harsh|warm/i.test(words), sources = {}, keys = [], pad = [];
-  tl.chords.forEach(function (c, i) {
+  var drawn = tl.chords, L = tl.L, seed = (SEED && SEED.c === S.c) ? SEED.seed : 1, noteOpen = '';
+  if (tl.language) {
+    if (tl.seed != null) seed = tl.seed;
+    var cursor = 0;
+    drawn = tl.chords.map(function (c) {
+      var loose = c.slot == null, dur = loose ? 4 : c.slot;
+      if (!(dur >= 0.1)) dur = 0.1;
+      if (loose) noteOpen = 'Open chords are drawn as 4 s here. They play their whole recordings. Nothing is stretched.';
+      var at = +(cursor + (c.gapBefore || 0)).toFixed(3);
+      cursor = +(at + dur).toFixed(3);
+      return {t: at, dur: +dur.toFixed(3), symbol: c.symbol, path: c.path, voicing: c.voicing};
+    });
+    L = cursor;
+  }
+  drawn.forEach(function (c, i) {
     var id = 'mm-' + c.path.split('/')[1];
     sources[id] = {kind: 'supplier', manifest: CAT.manifest_base + c.path + '.nc.json', pitched: false};
     keys.push({t: +(c.t + 0.3).toFixed(3), source: id, offset_s: 0, dur_s: 4.3, fade_in_s: 0.02, fade_out_s: 2, gain: 0.8, role: 'chord strike (full chord set)'});
@@ -347,16 +501,16 @@ function toPlan(S) {
   return {nc_plan_version: '0.1', id: slug(S.t), title: S.t + ' (sketch)',
     composition: {title: S.t, composer: S.by, file: 'composition.md', words_verbatim: {composition: S.c, performance: S.p}},
     interpreter: {kind: 'stub', at: new Date().toISOString(), note: 'Sketch from netcomposer.art/create/: chord symbols found in the words, each voiced from the full chord set by voice leading, chord strikes plus a pad of overlapped unaltered copies. No pitch-shift and no time-stretch. Edit it, or let an agent or `nc interpret` write a fuller plan.'},
-    seed: (SEED && SEED.c === S.c) ? SEED.seed : 1, length_s: +tl.L.toFixed(3), tail_s: 4, pulse_bpm: 60, pitch_tolerance_cents: 15,
-    sections: [{id: 'A', start_s: 0, end_s: +tl.L.toFixed(3), harmony: tl.unique.join(' ')}],
-    chords: tl.chords.map(function (c) { return {t: c.t, dur: c.dur, symbol: c.symbol, voicing: c.voicing, section: 'A'}; }),
+    seed: seed, length_s: +(+L).toFixed(3), tail_s: 4, pulse_bpm: 60, pitch_tolerance_cents: 15,
+    sections: [{id: 'A', start_s: 0, end_s: +(+L).toFixed(3), harmony: tl.unique.join(' ')}],
+    chords: drawn.map(function (c) { return {t: c.t, dur: c.dur, symbol: c.symbol, voicing: c.voicing, section: 'A'}; }),
     sources: sources, banks: {},
     layers: [{id: 'pad', type: 'clips', bus: 'pad', role: 'chord pad from overlapped unaltered copies', events: pad}, {id: 'keys', type: 'clips', bus: 'keys', role: 'chord strikes', events: keys}],
     master: {buses: {pad: {filters: [{type: 'lp', hz: soft ? 2500 : 6000, order: 2}], lufs: -21, pan: 0.05}, keys: {filters: [{type: 'lp', hz: soft ? 3000 : 8000, order: 2}], lufs: -23, pan: -0.08}},
       reverb: {engine: 'dragonfly', send_lu: soft ? 5.3 : 1.7, params: {decay_s: soft ? 6.2 : 2.8}}, hp_hz: 30, high_shelf: {hz: 9000, db: soft ? -4.4 : -0.9}, loudness: {lufs: -17, tp: -1.5}},
     notes: ['Sketch from netcomposer.art/create/: no melody line and no triplets were read from the words; add a "notes" layer by hand or use an interpreter.',
-      'Play instrument: ' + creditSentence()].concat(
-      (SEED && SEED.c === S.c) ? ['Progression from Surprise me: ' + SEED.key + ' ' + SEED.mode + ', seed ' + SEED.seed + ' (also the render seed).'] : [])};
+      'Play instrument: ' + creditSentence()].concat(noteOpen ? [noteOpen] : []).concat(
+      (!(tl.language && tl.seed != null) && SEED && SEED.c === S.c) ? ['Progression from Surprise me: ' + SEED.key + ' ' + SEED.mode + ', seed ' + SEED.seed + ' (also the render seed).'] : [])};
 }
 function download(name, text, type) {
   var a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([text], {type: type}));
@@ -400,6 +554,19 @@ var persistT = null;
 function persist() { clearTimeout(persistT); persistT = null; if (window.NC_RESETTING) return; history.replaceState(null, '', location.href.split('#')[0] + '#c=' + b64e(JSON.stringify(raw()))); }
 function persistSoon() { clearTimeout(persistT); persistT = setTimeout(persist, 400); }
 function shareUrl() { persist(); return location.href; }
+function reuseSeed(n) {
+  n = parseInt(n, 10);
+  if (!(n > 0)) return;
+  var el = $('comp'), text = el.value || '';
+  var re = /(^|[\s;,])((?:seed|sd)\s*)(\d+)/i;
+  if (re.test(text)) el.value = text.replace(re, function (_m, lead) { return lead + 'sd ' + n; });
+  else el.value = text.replace(/\s*$/, '') + (text.trim() ? '\n' : '') + 'sd ' + n;
+  refresh(); persist();
+}
+function writtenSeed() {
+  var parsed = readLang($('comp').value);
+  return parsed && parsed.seed != null ? parsed.seed : null;
+}
 function matchStarter(S) {
   for (var i = 0; i < STARTERS.length; i++) {
     var s = STARTERS[i];
@@ -689,6 +856,7 @@ window.addEventListener('resize', growNotes);
 window.addEventListener('hashchange', fromHash);
 window.addEventListener('pagehide', function () { if (persistT) persist(); });
 window.NC = {timeline: timeline, toPlan: toPlan, toMd: toMd, parseMd: parseMd, state: state, raw: raw, fill: fill, findChords: findChords, pickVoicing: pickVoicing, shareUrl: shareUrl,
+  read: function () { return readLang($('comp').value); }, reuseSeed: reuseSeed, seed: writtenSeed,
   fromText: fromText, makeSurprise: makeSurprise, progression: progression, start: start, stop: stop, undo: undo, sched: function () { return SCHED.slice(); },
   catalog: function () { return CAT; }, audition: function (ac, chords) { return window.MM.prepare(ac, chords, CAT, $('inst').value || 'piano'); }, showSources: showSources, creditsFor: creditsFor, chordLabel: chordLabel, instrument: function () { return $('inst').value || 'piano'; }, creditSentence: creditSentence,
   PREVIEW_TEMPO: PREVIEW_TEMPO, perform: PERFORM, showPerformance: showPerformance, performStatus: performStatus, pushUndo: pushUndo, persist: persist, commitNotes: commitNotes, growNotes: growNotes};
