@@ -15,10 +15,11 @@ const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const problems = [];
 const check = (c, m) => { if (!c) problems.push(m); };
 
-const sb = { Math, JSON, Float32Array, WeakMap, Promise, Blob, DataView, ArrayBuffer, Uint8Array, console };
+const sb = { Math, JSON, Map, Set, Float32Array, WeakMap, Promise, Blob, DataView, ArrayBuffer, Uint8Array, console };
 sb.window = sb;
 sb.globalThis = sb;
 vm.createContext(sb);
+vm.runInContext(readFileSync(join(root, 'create/chord-library.js'), 'utf8'), sb);
 vm.runInContext(readFileSync(join(root, 'create/language.js'), 'utf8'), sb);
 vm.runInContext(readFileSync(join(root, 'create/nc-synth.js'), 'utf8'), sb);
 const S = sb.NCSynth;
@@ -86,6 +87,26 @@ vm.createContext(alone);
 vm.runInContext(readFileSync(join(root, 'create/nc-synth.js'), 'utf8'), alone);
 check(alone.NCSynth.readLine('90 BPM; n C5').bpm === 90 && alone.NCSynth.readLine('quarter = 80; n C5').bpm === 80, 'without the parser, 90 BPM and quarter = 80 are still read');
 check(alone.NCSynth.readLine('q90; n C5').bpm === 0, 'without the parser, q90 is not guessed by a second regex');
+const pendulum = S.readLine('90 BPM; arp Cm9 pendulum 16ths 2oct wide inv1 (4|)');
+check(pendulum && !pendulum.instrument && pendulum.bpm === 90 && pendulum.fmDepth == null && pendulum.arp.chord === 'Cm9' && pendulum.arp.chordId === 'minor-9', 'the pendulum line is an arp, got ' + JSON.stringify(pendulum && pendulum.arp));
+check(pendulum && pendulum.label.indexOf('pendulum') >= 0 && pendulum.label.indexOf('sixteenth notes') >= 0 && pendulum.label.indexOf('2 octaves') >= 0 && pendulum.label.indexOf('wide') >= 0 && pendulum.label.indexOf('inversion 1') >= 0 && pendulum.label.indexOf('4 bars') >= 0, 'the line says the arp in plain words, got ' + (pendulum && pendulum.label));
+const pendNotes = S.scheduleLine(pendulum, null, 4182);
+check(pendNotes.length === 64 && pendNotes[0].midi === 74 && pendNotes[1].midi === 75 && Math.abs(pendNotes[0].length - 60 / 90 / 4) < 1e-9 && Math.abs(pendNotes[63].start - 10.5) < 1e-9, 'pendulum sixteenths fill four bars at 90, got ' + JSON.stringify(pendNotes.slice(0, 4)) + ' n=' + pendNotes.length);
+const follow = S.readLine('90 BPM; [Cm Fm9 Gm7 Bb]; arp up-down 16ths 2oct');
+const followNotes = S.scheduleLine(follow, null, 4182);
+check(follow && !follow.arp.chord && followNotes.length === 64 && Math.abs((followNotes[63].start + followNotes[63].length) - (16 * 60 / 90)) < 1e-6, 'a chord-line arp follows each chord for a bar, got ' + followNotes.length);
+const arpFm = S.readLine('90 BPM; arp Cm9 fm 3 (4|)');
+check(arpFm && arpFm.fmDepth === 3 && arpFm.arp.fmDepth === 3 && arpFm.label.indexOf('FM depth 3') >= 0, 'fm 3 on the arp is the depth, got ' + (arpFm && arpFm.label));
+const arpFlute = S.readLine('arp Cm9 pendulum @flute');
+check(arpFlute && arpFlute.arpInstrument === 'flute' && arpFlute.arp.instrument === 'flute', '@flute on the arp is a written instrument, got ' + JSON.stringify(arpFlute && { inst: arpFlute.arpInstrument }));
+const arpRandA = S.scheduleLine(S.readLine('90 BPM; arp Cm9 random 16ths 2oct (1|)'), null, 4182);
+const arpRandB = S.scheduleLine(S.readLine('90 BPM; arp Cm9 random 16ths 2oct (1|)'), null, 4182);
+const arpRandC = S.scheduleLine(S.readLine('90 BPM; arp Cm9 random 16ths 2oct (1|)'), null, 7);
+check(arpRandA.map((n) => n.midi).join() === arpRandB.map((n) => n.midi).join(), 'random is the same sequence for one seed');
+check(arpRandA.map((n) => n.midi).join() !== arpRandC.map((n) => n.midi).join(), 'random changes with the seed');
+const lower = S.readLine('arp cm9 up 8t (1)');
+const eighths = S.scheduleLine(lower, { tempo: 90 }, 1);
+check(lower && lower.arp.chord === 'Cm9' && lower.arp.rate === '8t' && eighths.length === 3 && Math.abs(eighths[0].length - 20 / 90) < 1e-9, 'lowercase cm9 and eighth-note triplets, got ' + JSON.stringify(lower && lower.arp) + ' ' + eighths.length);
 const noiseA = S.mulberry32(4182), noiseB = S.mulberry32(4182), noiseC = S.mulberry32(7);
 const seqA = [noiseA(), noiseA(), noiseA()], seqB = [noiseB(), noiseB(), noiseB()];
 check(seqA.join() === seqB.join() && seqA.join() !== [noiseC(), noiseC(), noiseC()].join(), 'the seeded RNG repeats for one seed');
@@ -476,6 +497,33 @@ if (!chrome || typeof WebSocket === 'undefined') {
     })()`);
     check(fmLine && fmLine.text && fmLine.text.indexOf('FM depth 3') >= 0 && fmLine.text.indexOf('saw, sine sub -1, low-pass 1400 Hz') >= 0, 'fm 3 is named on the gathered row, got ' + JSON.stringify(fmLine));
     check(fmLine && fmLine.rec && /FM depth\s*3/.test(fmLine.rec), 'the record names FM depth when it is on, got ' + JSON.stringify(fmLine && fmLine.rec));
+
+    const arpRow = await ev(`(async () => {
+      var comp = document.getElementById('comp');
+      comp.value = '90 BPM; arp Cm9 pendulum 16ths 2oct wide inv1 (1|)';
+      comp.dispatchEvent(new Event('input', { bubbles: true }));
+      var again = document.getElementById('gather-again');
+      var btn = document.getElementById('gatherBtn');
+      var click = (again && !again.hidden && !again.disabled) ? again : btn;
+      if (!click || click.disabled) return { error: 'no gather' };
+      click.click();
+      var text = '';
+      for (var i = 0; i < 80; i++) {
+        var list = document.getElementById('gather-list');
+        text = list ? list.textContent.replace(/\\s+/g, ' ').trim() : '';
+        if (text.indexOf('NC Synth') >= 0 && text.indexOf('pendulum') >= 0) break;
+        await new Promise(function (r) { setTimeout(r, 50); });
+      }
+      document.getElementById('performBtn').click();
+      for (var j = 0; j < 80 && (document.getElementById('perform-out').hidden || ((document.getElementById('perform-record-view') || {}).textContent || '').indexOf('Arpeggio') < 0); j++) await new Promise(function (r) { setTimeout(r, 50); });
+      var rec = ((document.getElementById('perform-record-view') || {}).textContent || '').replace(/\\s+/g, ' ').trim();
+      var read = NC.read();
+      return { text: text, rec: rec, gather: read && read.gather, iread: read && read.iread };
+    })()`);
+    check(arpRow && arpRow.text && arpRow.text.indexOf('NC Synth (Peter Semmelhack)') >= 0 && arpRow.text.indexOf('pendulum') >= 0 && arpRow.text.indexOf('sixteenth notes') >= 0 && arpRow.text.indexOf('2 octaves') >= 0 && arpRow.text.indexOf('wide') >= 0 && arpRow.text.indexOf('inversion 1') >= 0, 'the gathered row says the arp in plain words, got ' + JSON.stringify(arpRow && arpRow.text));
+    check(arpRow && arpRow.text.indexOf('FM depth') < 0, 'the arp row leaves FM out when it is off, got ' + JSON.stringify(arpRow && arpRow.text));
+    check(arpRow && arpRow.gather && arpRow.gather.length === 0, 'the arp chord is not gathered as a recording, got ' + JSON.stringify(arpRow && arpRow.gather));
+    check(arpRow && arpRow.rec && arpRow.rec.indexOf('NC Synth (Peter Semmelhack)') >= 0 && arpRow.rec.indexOf('Arpeggio') >= 0 && arpRow.rec.indexOf('pendulum') >= 0 && arpRow.rec.indexOf('FM depth') < 0, 'the record credits the synth and names the arp, got ' + JSON.stringify(arpRow && arpRow.rec));
     ws.close();
   } finally {
     proc.kill('SIGKILL');

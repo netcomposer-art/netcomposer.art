@@ -1,8 +1,10 @@
 // The Composition language, first slice (Peter, 2026-10-22). Deterministic only:
-// tempo, chords, durations, groups, loops, rests, comments, seeds, and the
-// starting hack values for Live. One reading, shared with nc-performer through
-// tests/language-vectors.json. Words this file does not recognise, and anything
-// in quotes, stay words for the AI. Nothing here calls a model.
+// tempo, chords, durations, groups, loops, rests, comments, seeds, the
+// starting hack values for Live, and an arp statement for the NC Synth.
+// One reading, shared with nc-performer through tests/language-vectors.json.
+// Words this file does not recognise, and anything in quotes, stay words for
+// the AI. Nothing here calls a model. An arp chord is not gathered: the synth
+// plays it, unless the statement names @instrument.
 //
 // A duration belongs to its own chord. A chord with none plays its whole
 // recording. loop(n) and xn repeat a group with the same recordings. A hack
@@ -224,6 +226,7 @@
     var i = 0, syntax = [], words = [], notes = [], played = [], hacks = [];
     var seen = {}, flags = { paren: false, rest: false, loop: false, lower: false, quoteChord: false };
     var meter = '4/4', seed = null, tempos = [], seeds = [], nextRec = 0, quoted = false;
+    var arps = [], unmapped = [];
     function note(s) { if (s && !seen[s]) { seen[s] = 1; notes.push(s); } }
     function addWord(w) { if (w) words.push(w); }
 
@@ -438,6 +441,215 @@
       if (times > 1) s += 'x' + times;
       return s;
     }
+    function markUnmapped(sym) {
+      if (!sym || unmapped.indexOf(sym) >= 0) return;
+      unmapped.push(sym);
+      note(sym + ' does not map to the synth chord library.');
+    }
+    function arpKnown(q) {
+      if (known(q)) return true;
+      var lib = root.NCChords;
+      if (!lib) return false;
+      if (lib.compositionKnown && lib.compositionKnown(q)) return true;
+      return !!(lib.idForQuality && lib.idForQuality(q));
+    }
+    function qualityOf(symbol) {
+      var m = /^([A-G])(#|b)?([\s\S]*)$/.exec(symbol || '');
+      return m ? m[3] : '';
+    }
+    // `arp Cm9 pendulum 16ths 2oct wide inv1 (2|)`. The chord is optional.
+    // Without one, the arp follows the chord line. A duration here does not
+    // switch the clock. `@name` is an instrument, same as the notes line.
+    function tryArp() {
+      var t = tokens[i];
+      if (!t || t.type !== 'word' || !/^arp$/i.test(t.text)) return false;
+      i++;
+      var spec = {
+        chord: null, chordId: null, rootPc: null, bass: null, unmapped: false,
+        order: 'up', rate: '16ths', step: 0.25, octaves: 1, spread: 'compact',
+        inversion: 0, fmDepth: null, beats: null, bars: null, instrument: '',
+        bareRoot: false
+      };
+      var set = {};
+      var orders = {
+        up: 'up', down: 'down', 'up-down': 'up-down', 'up/down': 'up-down',
+        'up-down-repeat': 'up-down-repeat', 'up/down-repeat': 'up-down-repeat',
+        'outside-in': 'outside-in', 'inside-out': 'inside-out', pendulum: 'pendulum',
+        random: 'random', 'as-played': 'as-played', 'down-up': 'down-up', 'down/up': 'down-up'
+      };
+      var rates = {
+        '4th': 1, '4ths': 1, quarter: 1, quarters: 1,
+        '8th': 0.5, '8ths': 0.5, eighth: 0.5, eighths: 0.5,
+        '16th': 0.25, '16ths': 0.25, sixteenth: 0.25, sixteenths: 0.25,
+        '32nd': 0.125, '32nds': 0.125, 'thirty-second': 0.125, 'thirty-seconds': 0.125,
+        '4t': 2 / 3, '8t': 1 / 3, '16t': 1 / 6, '32t': 1 / 12,
+        '4th-triplet': 2 / 3, '8th-triplet': 1 / 3, '16th-triplet': 1 / 6, '32nd-triplet': 1 / 12,
+        'quarter-triplet': 2 / 3, 'eighth-triplet': 1 / 3, 'sixteenth-triplet': 1 / 6
+      };
+      function nameRate(step) {
+        var keys = [1, 0.5, 0.25, 0.125, 2 / 3, 1 / 3, 1 / 6, 1 / 12];
+        var names = ['4ths', '8ths', '16ths', '32nds', '4t', '8t', '16t', '32t'];
+        var k;
+        for (k = 0; k < keys.length; k++) if (Math.abs(step - keys[k]) < 1e-6) return names[k];
+        return '16ths';
+      }
+      var spreads = { compact: 'compact', wide: 'wide', wider: 'wider', max: 'maximum', maximum: 'maximum' };
+      function claim(kind) {
+        if (set[kind]) return false;
+        set[kind] = 1;
+        return true;
+      }
+      function takeDur(text) {
+        var d = /^\((\d+(?:\.\d+)?)(\|)?\)$/.exec(text);
+        if (!d || !claim('dur')) return false;
+        if (d[2]) spec.bars = +d[1];
+        else spec.beats = +d[1];
+        return true;
+      }
+      function applyChord(c, display) {
+        if (!claim('chord')) return false;
+        var id = root.NCChords && root.NCChords.idForQuality ? root.NCChords.idForQuality(qualityOf(c.symbol)) : null;
+        spec.rootPc = pcOf(c.symbol);
+        spec.bass = c.bass == null ? null : c.bass;
+        spec.bareRoot = qualityOf(c.symbol) === '' && !display;
+        spec.chordId = display || id;
+        if (display) spec.chordId = display;
+        else spec.chordId = id;
+        var label = display ? (c.symbol.replace(/[^A-G#b].*$/, '') + ' ' + display) : pretty(c.symbol);
+        if (c.bass != null) label += '/' + SPELL[c.bass];
+        spec.chord = label;
+        spec.unmapped = !spec.chordId;
+        if (!set.dur) {
+          if (c.bars != null) { spec.bars = c.bars; set.dur = 1; }
+          else if (c.beats != null) { spec.beats = c.beats; set.dur = 1; }
+        }
+        if (spec.unmapped) markUnmapped(spec.chord);
+        return true;
+      }
+      while (i < tokens.length) {
+        var w = tokens[i];
+        if (!w || w.type !== 'word') break;
+        var text = w.text, low = text.toLowerCase();
+        var at = /^(.*)@([A-Za-z][\w-]*)$/.exec(text);
+        if (at) {
+          if (!spec.instrument) spec.instrument = at[2].toLowerCase();
+          text = at[1];
+          low = text.toLowerCase();
+          if (!text) { i++; continue; }
+        }
+        if (orders[low]) {
+          if (!claim('order')) break;
+          spec.order = orders[low];
+          i++;
+          continue;
+        }
+        if (Object.prototype.hasOwnProperty.call(rates, low)) {
+          if (!claim('rate')) break;
+          spec.step = rates[low];
+          spec.rate = nameRate(spec.step);
+          i++;
+          continue;
+        }
+        var oct = /^(\d+)oct(?:aves?)?$/i.exec(text);
+        if (oct) {
+          if (!claim('oct')) break;
+          spec.octaves = Math.max(1, Math.min(4, +oct[1] || 1));
+          i++;
+          continue;
+        }
+        if (/^(?:oct|octave|octaves)$/i.test(text) && tokens[i + 1] && /^\d+$/.test(tokens[i + 1].text)) {
+          if (!claim('oct')) break;
+          spec.octaves = Math.max(1, Math.min(4, +tokens[i + 1].text));
+          i += 2;
+          continue;
+        }
+        if (/^[1-4]$/.test(text) && tokens[i + 1] && /^(?:oct|octave|octaves)$/i.test(tokens[i + 1].text)) {
+          if (!claim('oct')) break;
+          spec.octaves = +text;
+          i += 2;
+          continue;
+        }
+        if (spreads[low]) {
+          if (!claim('spread')) break;
+          spec.spread = spreads[low];
+          i++;
+          continue;
+        }
+        var inv = /^inv(\d+)$/i.exec(text);
+        if (inv) {
+          if (!claim('inv')) break;
+          spec.inversion = +inv[1];
+          i++;
+          continue;
+        }
+        if (/^inversion$/i.test(text) && tokens[i + 1] && /^\d+$/.test(tokens[i + 1].text)) {
+          if (!claim('inv')) break;
+          spec.inversion = +tokens[i + 1].text;
+          i += 2;
+          continue;
+        }
+        var nextNum = tokens[i + 1] && tokens[i + 1].type === 'word' && /^\d+(?:\.\d+)?$/.test(tokens[i + 1].text);
+        // `fm 3` is a depth. `fm9` is the chord. A glued `fm3` is a depth only
+        // when those letters are not themselves a chord.
+        if (/^fm$/i.test(text) && nextNum) {
+          if (!claim('fm')) break;
+          var num = +tokens[i + 1].text;
+          spec.fmDepth = num < 0 ? 0 : num > 10 ? 10 : num;
+          i += 2;
+          continue;
+        }
+        var gluedFm = /^fm(\d+(?:\.\d+)?)$/i.exec(text);
+        if (gluedFm) {
+          var asChord = chordOf(text, true, arpKnown);
+          if (!(asChord && !asChord.guard && !asChord.unknown)) {
+            if (!claim('fm')) break;
+            var gnum = +gluedFm[1];
+            spec.fmDepth = gnum < 0 ? 0 : gnum > 10 ? 10 : gnum;
+            i++;
+            continue;
+          }
+        }
+        if (takeDur(text)) { i++; continue; }
+        if (!set.chord) {
+          var c = chordOf(text, true, arpKnown);
+          if (c && !c.guard && !c.unknown) {
+            applyChord(c, null);
+            i++;
+            continue;
+          }
+        } else if (spec.bareRoot && root.NCChords && root.NCChords.idForName) {
+          var named = root.NCChords.idForName(text);
+          if (named) {
+            spec.chordId = named;
+            spec.unmapped = false;
+            var rootName = spec.chord.replace(/\/.*$/, '').replace(/\s.*$/, '');
+            spec.chord = rootName + (spec.bass != null ? '/' + SPELL[spec.bass] : '') + ' ' + named;
+            spec.bareRoot = false;
+            i++;
+            continue;
+          }
+        }
+        break;
+      }
+      delete spec.bareRoot;
+      arps.push(spec);
+      syntax.push({ kind: 'arp', text: arpSyntax(spec) });
+      return true;
+      function arpSyntax(a) {
+        var parts = ['arp'];
+        if (a.chord) parts.push(a.chord);
+        parts.push(a.order || 'up');
+        parts.push(a.rate || '16ths');
+        if (a.octaves && a.octaves !== 1) parts.push(a.octaves + 'oct');
+        if (a.spread && a.spread !== 'compact') parts.push(a.spread);
+        if (a.inversion) parts.push('inv' + a.inversion);
+        if (a.fmDepth > 0) parts.push('fm ' + trimNum(a.fmDepth));
+        if (a.bars != null) parts.push('(' + trimNum(a.bars) + '|)');
+        else if (a.beats != null) parts.push('(' + trimNum(a.beats) + ')');
+        if (a.instrument) parts.push('@' + a.instrument);
+        return parts.join(' ');
+      }
+    }
     // `fm 3` is a depth on the notes line, not the chord F minor. `fm t2`
     // and `fm "words"` are a different form and stay untouched.
     function tryNotesFm() {
@@ -456,6 +668,7 @@
       if (tryLength()) return true;
       var rest = tryRest();
       if (rest) { assign(rest); stamp(rest); syntax.push({ kind: 'rest', text: renderRest(rest) }); return true; }
+      if (tryArp()) return true;
       if (tryNotesFm()) return true;
       var ch = tryChord(false);
       if (ch) { assign(ch); stamp(ch); syntax.push({ kind: 'chord', text: renderChord(ch) }); return true; }
@@ -476,6 +689,7 @@
         if (tryTempo() || trySeed() || tryMeter() || tryLength()) continue;
         var rest = tryRest();
         if (rest) { items.push(rest); continue; }
+        if (tryArp()) continue;
         if (tryNotesFm()) continue;
         var ch = tryChord(true);
         if (ch) { items.push(ch); continue; }
@@ -575,6 +789,18 @@
     var clock = (flags.paren || flags.rest || flags.loop || flags.lower || flags.quoteChord) ? 'language' : 'legacy';
     CHANGE.lastIndex = 0;
     if (clock === 'language' && CHANGE.test(uncomment(src))) note('A later tempo is not read yet. The opening tempo is kept.');
+    arps.forEach(function (a) {
+      if (a.chord) return;
+      played.forEach(function (ev) {
+        if (ev.kind !== 'chord') return;
+        var id = root.NCChords && root.NCChords.idForSymbol ? root.NCChords.idForSymbol(ev.symbol) : null;
+        if (!id) {
+          var label = pretty(ev.symbol);
+          if (ev.bass != null) label += '/' + SPELL[ev.bass];
+          markUnmapped(label);
+        }
+      });
+    });
     if (words.length) note('Words are left for the AI.');
 
     var gather = [], gathered = {};
@@ -590,7 +816,7 @@
     return {
       bpm: bpm, meter: meter, seed: seed, clock: clock, hacks: hacks,
       played: played, gather: gather, words: words, notes: notes, quoted: quoted,
-      iread: iread
+      iread: iread, arp: arps, unmapped: unmapped
     };
   }
 
