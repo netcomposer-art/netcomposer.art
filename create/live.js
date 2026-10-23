@@ -189,9 +189,10 @@ function wirePlayer(a) {
     if (lastSpec) scheduleClips({ entries: lastSpec.entries, offset: a.currentTime || 0 });
     buttons();
   });
-  a.addEventListener('pause', function () { live = false; buttons(); });
+  a.addEventListener('pause', function () { live = false; releaseLiveFm(); buttons(); });
   a.addEventListener('ended', function () {
     live = false;
+    releaseLiveFm();
     if (REC && !a.loop) finish('The Performance ended; the take is ready.');
     else buttons();
   });
@@ -400,6 +401,7 @@ function startSynth(when, offset) {
     if (gen !== synthGen || !synthWanted() || !a || a.paused) return;
     if (AC && AC.state === 'running') when = AC.currentTime + 0.03;
     engine.panic();
+    applyLiveFm(engine);
     var depth = part.depth > 0 ? part.depth : 0;
     var notes = [];
     (part.notes || []).forEach(function (n, i) {
@@ -410,7 +412,7 @@ function startSynth(when, offset) {
       var at = when + Math.max(0, n.start - offset);
       var spec = part.mods && part.mods[i];
       var skipped = Math.max(0, offset - n.start);
-      var fm = spec && spec.buffer && depth > 0 ? {
+      var fm = !LIVE_FM.stream && spec && spec.buffer && depth > 0 ? {
         buffer: spec.buffer,
         offset: Math.max(0, (spec.offset || 0) + skipped),
         depth: depth
@@ -445,11 +447,145 @@ function setSynthPart(part) {
     if (box) box.checked = false;
     if (row) row.hidden = true;
     stopSynth();
+    releaseLiveFm();
+    var fmRow = $('live-fm');
+    if (fmRow) fmRow.hidden = true;
     return;
   }
   if (name) name.textContent = next.title;
   if (row) row.hidden = false;
   ensureEngine();
+  syncLiveFmRow();
+}
+// A microphone or a shared tab, into the carrier frequency only.
+// Stop and rewind drop the tracks. The link is what Save is allowed to keep.
+var LIVE_FM = { stream: null, kind: '', lastKind: '', used: false, spans: [], openAt: null, credit: null, checking: 0 };
+function liveFmDepth() {
+  var d = SYNTH && SYNTH.depth > 0 ? SYNTH.depth : 0;
+  if (!(d >= 0)) d = 0;
+  if (d > 10) d = 10;
+  return d;
+}
+function mediaNow() {
+  var a = player();
+  var t = a && isFinite(a.currentTime) ? a.currentTime : 0;
+  return Math.round(t * 1000) / 1000;
+}
+function closeLiveSpan() {
+  if (LIVE_FM.openAt == null) return;
+  var from = LIVE_FM.openAt, to = mediaNow();
+  LIVE_FM.openAt = null;
+  if (to < from) { var swap = from; from = to; to = swap; }
+  LIVE_FM.spans.push({ from_s: from, to_s: to });
+}
+function applyLiveFm(engine) {
+  if (!engine || !engine.setLiveModulator) return;
+  if (LIVE_FM.stream) engine.setLiveModulator(LIVE_FM.stream, liveFmDepth());
+  else if (engine.clearLiveModulator) engine.clearLiveModulator();
+}
+function noteLiveFm(text) {
+  var el = $('live-fm-note');
+  if (el) el.textContent = text || '';
+  if (window.NCPerform && NCPerform.syncSave) NCPerform.syncSave();
+}
+function releaseLiveFm() {
+  closeLiveSpan();
+  if (synthEngine && synthEngine.clearLiveModulator) synthEngine.clearLiveModulator();
+  if (LIVE_FM.stream) {
+    try { LIVE_FM.stream.getTracks().forEach(function (t) { t.stop(); }); } catch (e) {}
+  }
+  LIVE_FM.stream = null;
+  if (LIVE_FM.kind) LIVE_FM.lastKind = LIVE_FM.kind;
+  LIVE_FM.kind = '';
+  var sel = $('live-fm-src');
+  if (sel && sel.value) sel.value = '';
+  if (LIVE_FM.credit && LIVE_FM.credit.ok) noteLiveFm('');
+  else syncLiveFmGate();
+}
+function syncLiveFmRow() {
+  var row = $('live-fm');
+  var on = synthWanted();
+  if (row) row.hidden = !on;
+  if (!on) releaseLiveFm();
+}
+function liveFmGate() {
+  if (!LIVE_FM.used) return '';
+  if (LIVE_FM.checking) return 'Checking the license…';
+  if (LIVE_FM.credit && LIVE_FM.credit.ok) return '';
+  var link = ($('live-fm-link') && $('live-fm-link').value || '').trim();
+  var kind = LIVE_FM.kind || LIVE_FM.lastKind || '';
+  if (!link) return kind === 'tab' ? 'Add the source link.' : 'A microphone needs a CC or public-domain link.';
+  return (LIVE_FM.credit && LIVE_FM.credit.reason) || 'Could not read a license from that link.';
+}
+function liveFmCredit() {
+  return LIVE_FM.credit && LIVE_FM.credit.ok ? LIVE_FM.credit : null;
+}
+function liveFmRecord() {
+  if (!LIVE_FM.used) return null;
+  var credit = LIVE_FM.credit && LIVE_FM.credit.ok ? LIVE_FM.credit : null;
+  var spans = LIVE_FM.spans.slice();
+  if (LIVE_FM.openAt != null) {
+    var from = LIVE_FM.openAt, to = mediaNow();
+    if (to < from) to = from;
+    spans.push({ from_s: from, to_s: to });
+  }
+  return {
+    kind: LIVE_FM.kind || LIVE_FM.lastKind || 'mic',
+    url: ($('live-fm-link') && $('live-fm-link').value || '').trim(),
+    title: credit ? credit.title : '',
+    author: credit ? credit.author : '',
+    license: credit ? credit.license : '',
+    licenseName: credit ? (credit.licenseName || credit.license) : '',
+    depth: liveFmDepth(),
+    spans: spans
+  };
+}
+function syncLiveFmGate() {
+  if (!LIVE_FM.used) { noteLiveFm(''); return; }
+  var link = ($('live-fm-link') && $('live-fm-link').value || '').trim();
+  if (!link) { LIVE_FM.credit = null; LIVE_FM.checking = 0; noteLiveFm(liveFmGate()); return; }
+  if (!window.NCFmSource) { noteLiveFm('Could not check that link.'); return; }
+  var gen = ++LIVE_FM.checking;
+  noteLiveFm('Checking the license…');
+  NCFmSource.check(link).then(function (res) {
+    if (gen !== LIVE_FM.checking) return;
+    LIVE_FM.checking = 0;
+    LIVE_FM.credit = res;
+    noteLiveFm(res && res.ok ? '' : (res && res.reason) || 'Could not read a license from that link.');
+  });
+}
+function armLiveStream(kind, stream) {
+  releaseLiveFm();
+  var audio = stream && stream.getAudioTracks ? stream.getAudioTracks() : [];
+  if (!audio.length) {
+    try { if (stream) stream.getTracks().forEach(function (t) { t.stop(); }); } catch (e0) {}
+    noteLiveFm(kind === 'tab' ? 'That share has no audio.' : 'The microphone did not start.');
+    var sel = $('live-fm-src');
+    if (sel) sel.value = '';
+    return;
+  }
+  LIVE_FM.stream = stream;
+  LIVE_FM.kind = kind;
+  LIVE_FM.lastKind = kind;
+  LIVE_FM.used = true;
+  LIVE_FM.openAt = mediaNow();
+  var chosen = $('live-fm-src');
+  if (chosen) chosen.value = kind;
+  ensureEngine().then(function (engine) { applyLiveFm(engine); }).catch(function () {});
+  syncLiveFmGate();
+}
+function pickLiveFm(kind) {
+  if (!kind) { releaseLiveFm(); return; }
+  var devices = navigator.mediaDevices;
+  if (!devices) { noteLiveFm('This browser has no audio input.'); return; }
+  var ask = kind === 'mic'
+    ? devices.getUserMedia({ audio: true, video: false })
+    : devices.getDisplayMedia({ video: true, audio: true });
+  Promise.resolve(ask).then(function (stream) { armLiveStream(kind, stream); }, function () {
+    var sel = $('live-fm-src');
+    if (sel) sel.value = '';
+    noteLiveFm(kind === 'mic' ? 'The microphone did not start.' : 'That share did not start.');
+  });
 }
 function synthStatus() {
   var voices = 0;
@@ -1031,9 +1167,26 @@ $('lloop').addEventListener('change', function () {
   logEvent({event: 'loop', value: $('lloop').checked});
 });
 if ($('live-synth-on')) $('live-synth-on').addEventListener('change', function () {
-  if (!synthWanted()) stopSynth();
+  if (!synthWanted()) { stopSynth(); releaseLiveFm(); }
+  syncLiveFmRow();
   var a = player();
   if (a && !a.paused && lastSpec) scheduleClips({ entries: lastSpec.entries, offset: a.currentTime || 0 });
+});
+if ($('live-fm-src')) $('live-fm-src').addEventListener('change', function () { pickLiveFm(this.value); });
+if ($('live-fm-link')) $('live-fm-link').addEventListener('input', function () {
+  if (!LIVE_FM.used) return;
+  LIVE_FM.credit = null;
+  clearTimeout(LIVE_FM.timer);
+  var link = (this.value || '').trim();
+  if (!link) { LIVE_FM.checking = 0; noteLiveFm(liveFmGate()); return; }
+  LIVE_FM.checking++;
+  noteLiveFm('Checking the license…');
+  LIVE_FM.timer = setTimeout(syncLiveFmGate, 350);
+});
+if (document.addEventListener) document.addEventListener('click', function (ev) {
+  var b = ev.target && ev.target.closest ? ev.target.closest('.rewind[data-for]') : null;
+  if (!b) return;
+  releaseLiveFm();
 });
 $('play').addEventListener('click', function () { if (live || !player().paused) stop('The preview took over.'); });
 // Space plays and stops the Performance from anywhere on the page while Live is up, the same as the
@@ -1090,6 +1243,7 @@ window.NCLive = {settings: settings, cutoffHz: cutoffHz, validate: validate, ope
   adjusted: adjusted, chain: chain, applyChain: applyChain, scheduleClips: scheduleClips, stopClips: stopClips, renderBuffers: renderBuffers,
   cpu: function () { return window.__hackCpu || null; },
   playing: playing, setSynthPart: setSynthPart, synthStatus: synthStatus,
+  liveFmGate: liveFmGate, liveFmCredit: liveFmCredit, liveFmRecord: liveFmRecord, releaseLiveFm: releaseLiveFm,
   ready: function () { graph(); return G.ready; },
   clipPlays: function () { return clipPlays; },
   performanceId: function () { return PERF && PERF.id; },

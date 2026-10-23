@@ -20,6 +20,8 @@ interface Voice {
   filter: BiquadFilterNode; envelope: GainNode; level: GainNode;
   sources: SoundSource[]; released: boolean; cleaned: boolean;
   modSources: AudioBufferSourceNode[]; modNodes: AudioNode[];
+  /** The live stream's depth gain is already connected to this voice. */
+  liveFm?: boolean;
 }
 /** A gathered clip used as a modulator. It is never mixed into the audio output. */
 export interface NoteModulator {
@@ -81,6 +83,8 @@ export class SynthEngine {
   private eventQueue = new MusicalEventQueue();
   private decisionListener: ((decision: MusicalDecision) => void) | null = null;
   readonly semantic = new SemanticController();
+  /** A microphone or shared tab. The gain feeds oscillator frequency only. */
+  private liveFm: { src: MediaStreamAudioSourceNode; gain: GainNode; depth: number } | null = null;
 
   setSemanticConfig(config: SemanticConfig) {
     this.semantic.sample(this.context?.currentTime ?? 0, this.playing, this.settings.tempo);
@@ -307,6 +311,7 @@ export class SynthEngine {
     this.triggers = [];
     this.currentNotes = '—';
     const now = this.context?.currentTime ?? 0;
+    if (this.liveFm) { try { this.liveFm.gain.disconnect(); } catch { /* already clear */ } }
     for (const voice of this.voices) {
       voice.envelope.gain.cancelScheduledValues(now);
       voice.envelope.gain.setValueAtTime(0, now);
@@ -325,6 +330,7 @@ export class SynthEngine {
   }
 
   dispose() {
+    this.clearLiveModulator();
     this.panic();
     this.disposed = true;
     void this.context?.close();
@@ -486,7 +492,50 @@ export class SynthEngine {
     g.linearRampToValueAtTime(0, voice.gate + env.release);
     this.addSource(voice, 'main', start, values, false);
     if (this.subAmount() > 0) this.addSource(voice, 'sub', start, values, false);
-    this.attachModulator(voice, modulator);
+    // A live stream replaces the clip. Both would FM the same frequency.
+    if (this.liveFm && this.liveFm.depth > 0) this.connectLive(voice);
+    else this.attachModulator(voice, modulator);
+  }
+
+  /**
+   * Microphone or a shared tab. MediaStreamSource into a depth gain, then into
+   * each carrier frequency. Nothing here reaches the output. Depth 0 connects nothing.
+   * The page stops the tracks; this only disconnects the nodes.
+   */
+  setLiveModulator(stream: MediaStream | null, depth = 0) {
+    this.clearLiveModulator();
+    if (!stream || !this.context || this.context instanceof OfflineAudioContext) return;
+    const d = Math.max(0, Math.min(10, +depth || 0));
+    const src = this.context.createMediaStreamSource(stream);
+    const gain = this.context.createGain();
+    gain.gain.value = d * FM_HZ_PER_INDEX;
+    src.connect(gain);
+    this.liveFm = { src, gain, depth: d };
+    for (const voice of this.voices) this.connectLive(voice);
+  }
+
+  clearLiveModulator() {
+    if (!this.liveFm) return;
+    try { this.liveFm.src.disconnect(); } catch { /* already */ }
+    try { this.liveFm.gain.disconnect(); } catch { /* already */ }
+    this.liveFm = null;
+    for (const voice of this.voices) voice.liveFm = false;
+  }
+
+  /** Frequency params currently fed by the live stream. */
+  liveModulatorTargets() {
+    if (!this.liveFm || !(this.liveFm.depth > 0)) return 0;
+    let n = 0;
+    for (const voice of this.voices) if (!voice.cleaned && voice.liveFm) n++;
+    return n;
+  }
+
+  private connectLive(voice: Voice) {
+    if (!this.liveFm || !(this.liveFm.depth > 0) || voice.cleaned || voice.liveFm) return;
+    if (this.settings.oscillatorMode === 'wavetable') return;
+    const freq = voice.sources.find(s => s.role === 'main')?.unit.frequency;
+    if (!freq) return;
+    try { this.liveFm.gain.connect(freq); voice.liveFm = true; } catch { /* context closed */ }
   }
 
   /** Audio-rate FM into the main oscillator only. The clip is not a carrier and is not heard on its own. */
