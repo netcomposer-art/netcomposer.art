@@ -259,6 +259,7 @@ if (!chrome || typeof WebSocket === 'undefined') {
     await send('Page.navigate', { url: `http://127.0.0.1:${port}/create/` });
     for (let i = 0; i < 150 && !(await ev("document.body && document.body.getAttribute('data-ready') === '1'")); i++) await sleep(100);
     check(await ev("document.body.getAttribute('data-ready') === '1'"), 'page did not become ready');
+    check(await ev("(() => { var a = document.getElementById('comp-help'); return !!(a && a.getAttribute('aria-label') === 'How to write a composition' && a.getAttribute('href') === '/create/help/'); })()"), 'composition help link');
     const shown = await ev(`(() => {
       var el = document.getElementById('comp');
       el.value = ${JSON.stringify(PETER)};
@@ -328,12 +329,14 @@ if (!chrome || typeof WebSocket === 'undefined') {
           meta: document.getElementById('progmeta').textContent,
           iread: document.getElementById('iread').textContent,
           hidden: document.getElementById('iread').hidden,
-          codes: codes
+          codes: codes,
+          links: Array.prototype.map.call(document.querySelectorAll('#iread a.how'), function (a) { return a.getAttribute('href'); })
         };
       })()`);
     }
     const just = await put('Cm');
     check(just && just.chips === 1 && just.meta.indexOf('1 bar') >= 0 && just.meta.indexOf('4 beats') >= 0 && just.meta.indexOf('2.5 s') >= 0 && just.iread.indexOf('96 BPM') >= 0 && just.codes.indexOf('90 BPM') >= 0 && just.codes.indexOf('Cm(4)') >= 0, 'Cm is one bar: ' + JSON.stringify(just));
+    check(just && just.links.indexOf('/create/help/#tempo') >= 0 && just.links.indexOf('/create/help/#durations') >= 0, 'Cm notes link to the help page: ' + JSON.stringify(just && just.links));
     await shotPlay('play-cm-desktop.png', 1280, 900, false);
     await shotPlay('play-cm-phone.png', 390, 844, true);
     const grp = await put('[Cm(4) Fm9]x4');
@@ -345,11 +348,11 @@ if (!chrome || typeof WebSocket === 'undefined') {
     await shotPlay('play-written-desktop.png', 1280, 900, false);
     await shotPlay('play-written-phone.png', 390, 844, true);
     const bad = await put('Cmaj13b');
-    check(bad && bad.chips === 0 && bad.codes.indexOf('Cmaj13') >= 0 && bad.iread.indexOf('Did you mean') >= 0, 'typo: ' + JSON.stringify(bad));
+    check(bad && bad.chips === 0 && bad.codes.indexOf('Cmaj13') >= 0 && bad.iread.indexOf('Did you mean') >= 0 && bad.links.indexOf('/create/help/#chords') >= 0, 'typo: ' + JSON.stringify(bad));
     await shotPlay('play-typo-desktop.png', 1280, 900, false);
     await shotPlay('play-typo-phone.png', 390, 844, true);
     const words = await put('Cm, let it breathe');
-    check(words && words.chips === 1 && words.iread.indexOf('let it breathe') >= 0 && words.iread.indexOf('Words are left for the AI') >= 0 && words.codes.indexOf('"like this"') >= 0, 'words for the AI: ' + JSON.stringify(words));
+    check(words && words.chips === 1 && words.iread.indexOf('let it breathe') >= 0 && words.iread.indexOf('Words are left for the AI') >= 0 && words.codes.indexOf('"like this"') >= 0 && words.links.indexOf('/create/help/#words') >= 0, 'words for the AI: ' + JSON.stringify(words));
     await shotPlay('play-words-desktop.png', 1280, 900, false);
     await shotPlay('play-words-phone.png', 390, 844, true);
     const blank = await put('');

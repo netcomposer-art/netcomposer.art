@@ -166,6 +166,30 @@ function appendCoded(el, text) {
   }
   if (last < text.length) el.appendChild(document.createTextNode(text.slice(last)));
 }
+function helpFor(part) {
+  if (!part || part.indexOf('`') < 0) return '';
+  if (/left for the AI|quote was not closed|inside quotes|Quote them/.test(part)) return 'words';
+  if (/is a pitch/.test(part)) return 'notes';
+  if (/is not a chord|is a word, not|Did you mean/.test(part)) return 'chords';
+  if (/repeat needs|Nested groups|before `\|`|add up to/.test(part)) return 'groups';
+  if (/Hacks are for|was written twice|outside the brackets/.test(part)) return 'hacks';
+  if (/synth library|arp line/.test(part)) return 'arp';
+  if (/Another seed|later `sd /.test(part)) return 'also';
+  if (/tempo/.test(part)) return 'tempo';
+  if (/no length|whole recording/.test(part)) return 'durations';
+  return '';
+}
+var HELP_NAME = {
+  words: 'How words and quotes work',
+  notes: 'How to write notes',
+  chords: 'How to write a chord',
+  groups: 'How groups and repeats work',
+  hacks: 'How Composition hacks work',
+  arp: 'How to write an arp',
+  also: 'Other marks on a composition',
+  tempo: 'How to set the tempo',
+  durations: 'How lengths work'
+};
 function showIRead(parsed) {
   var el = $('iread');
   if (!el) return;
@@ -177,6 +201,17 @@ function showIRead(parsed) {
   line.split('\n').forEach(function (part, i) {
     if (i) el.appendChild(document.createElement('br'));
     appendCoded(el, part);
+    var anchor = helpFor(part);
+    if (!anchor) return;
+    el.appendChild(document.createTextNode(' '));
+    var a = document.createElement('a');
+    a.className = 'how';
+    a.href = '/create/help/#' + anchor;
+    a.target = '_blank';
+    a.rel = 'noopener';
+    a.textContent = 'How';
+    a.setAttribute('aria-label', HELP_NAME[anchor] || 'How');
+    el.appendChild(a);
   });
 }
 var hackSig = '';
