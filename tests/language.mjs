@@ -23,7 +23,8 @@ const known = (q) => q in QUALS;
 function load(file, box) {
   vm.runInContext(readFileSync(join(root, file), 'utf8'), box);
 }
-const sb = {}; sb.globalThis = sb; vm.createContext(sb);
+const sb = {}; sb.globalThis = sb; sb.Map = Map; sb.Set = Set; vm.createContext(sb);
+load('create/chord-library.js', sb);
 load('create/language.js', sb);
 const L = sb.NCLanguage;
 function project(text) {
@@ -36,7 +37,13 @@ function project(text) {
       beats: e.beats, bars: e.bars, seconds: e.seconds, recording: e.recording == null ? null : e.recording
     })),
     hacks: p.hacks.map((h) => ({ abbr: h.abbr, type: h.type, value: h.value, ramp: h.ramp })),
-    words: p.words, notes: p.notes, iread: p.iread
+    words: p.words, notes: p.notes, iread: p.iread,
+    arp: (p.arp || []).map((a) => ({
+      chord: a.chord, chordId: a.chordId, order: a.order, rate: a.rate,
+      octaves: a.octaves, spread: a.spread, inversion: a.inversion,
+      fmDepth: a.fmDepth, beats: a.beats, bars: a.bars, instrument: a.instrument || ''
+    })),
+    unmapped: p.unmapped || []
   };
 }
 const rows = JSON.parse(readFileSync(join(root, 'tests/language-vectors.json'), 'utf8'));
@@ -44,6 +51,9 @@ rows.forEach((row) => {
   const got = project(row.text);
   ['bpm', 'clock', 'seed', 'meter', 'gather', 'played', 'hacks', 'words', 'notes', 'iread'].forEach((k) => {
     if (JSON.stringify(got[k]) !== JSON.stringify(row[k])) problems.push(row.name + ' ' + k + '\n  got ' + JSON.stringify(got[k]));
+  });
+  ['arp', 'unmapped'].forEach((k) => {
+    if (k in row && JSON.stringify(got[k]) !== JSON.stringify(row[k])) problems.push(row.name + ' ' + k + '\n  got ' + JSON.stringify(got[k]));
   });
   if (row.place) {
     const placed = L.place(L.parse(row.text, { known }).played, row.place_caps);
@@ -56,6 +66,23 @@ check(peter && peter.played[0].seconds === 2.667 && peter.played[1].seconds === 
 check(peter && peter.hacks[0] && peter.hacks[0].value === 500 && peter.hacks[0].ramp === 200, 'peter hack keeps the start');
 check(peter && peter.iread.startsWith('q90; [Cm(4) Fm9 Gm7]x4; lp500\n'), 'peter I read');
 check(L.lpDial(500) === 75, '500 Hz is lowpass dial 75');
+check(L.parse('fm', { known }).gather[0] === 'Fm', 'fm is still F minor');
+check(L.parse('fm9', { known }).gather[0] === 'Fm9', 'fm9 stays Fm9');
+check(L.parse('n C5(2) Eb5 G5 fm 3', { known }).gather.indexOf('Fm') < 0, 'fm 3 on a notes line is not the chord Fm');
+check(L.parse('fm t2 3', { known }).gather[0] === 'Fm', 'fm t2 is left for the later modulator form');
+const arpLine = L.parse('90 BPM; arp Cm9 pendulum 16ths 2oct wide inv1 (2|)', { known });
+check(arpLine.gather.length === 0 && arpLine.clock === 'legacy' && arpLine.arp[0].chordId === 'minor-9' && arpLine.arp[0].bars === 2, 'an arp chord is not gathered and its bar length does not change the clock, got ' + JSON.stringify(arpLine.arp));
+check(arpLine.iread.indexOf('arp Cm9 pendulum 16ths 2oct wide inv1 (2|)') >= 0, 'I read keeps the arp statement, got ' + arpLine.iread);
+check(L.parse('arp cm9', { known }).arp[0].chord === 'Cm9', 'a lowercase arp root is read');
+const arpDefaults = L.parse('[Cm Fm9 Gm7]x4; arp', { known });
+check(arpDefaults.gather.join(',') === 'Cm,Fm9,Gm7' && arpDefaults.played.length === 12 && arpDefaults.arp[0].order === 'up' && arpDefaults.arp[0].rate === '16ths' && arpDefaults.arp[0].octaves === 1 && arpDefaults.arp[0].spread === 'compact' && arpDefaults.arp[0].inversion === 0 && !arpDefaults.arp[0].chord, 'arp with no chord follows the line and keeps the defaults');
+check(L.parse('arp Cm9 fm 3', { known }).gather.indexOf('Fm') < 0 && L.parse('arp Cm9 fm 3', { known }).arp[0].fmDepth === 3, 'fm 3 on an arp is a depth, not F minor');
+check(L.parse('arp fm9', { known }).arp[0].chord === 'Fm9' && L.parse('arp fm9', { known }).arp[0].fmDepth == null, 'arp fm9 is the chord');
+check(L.parse('arp Cm9 @flute', { known }).arp[0].instrument === 'flute' && L.parse('arp Cm9 @flute', { known }).gather.length === 0, '@flute on an arp is an instrument and not a gathered chord');
+check(L.parse('arp C7#11 (1|)', { known }).unmapped.join(',') === 'C7#11' && L.parse('arp C7b13', { known }).unmapped.join(',') === 'C7b13', '7#11 and 7b13 stay unmapped');
+check(L.parse('arp Cmaj7#5', { known }).arp[0].chordId === 'augmented-major-7', 'maj7#5 uses the augmented major 7 intervals');
+check(L.parse('arp C quartal-3', { known }).arp[0].chordId === 'quartal-3' && L.parse('arp up/down', { known }).arp[0].order === 'up-down', 'a library id and the up/down alias are read');
+check(L.parse('arp Cm max', { known }).iread.indexOf('maximum') >= 0, 'max is the maximum spread');
 ['seed 4182', 'seed4182', 'sd4182', 'sd 4182'].forEach((t) => {
   check(L.parse(t + ' C', { known }).seed === 4182, 'seed form ' + t);
 });

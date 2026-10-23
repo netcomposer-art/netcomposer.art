@@ -21,10 +21,15 @@
  *   knee 6, ratio 12, attack 0.003, release 0.12, then master/100.
  *   Noise: 2 s loop, mulberry32(seed) * 2 - 1. 48000 Hz stereo.
  *   Wavetable is not selected; that patch plays its plain waveform.
- *   FM index fmDepth is 0–10 (0 is no FM, page default 3). A gathered clip is
+ *   FM index fmDepth is 0–10. 0 is no FM, and 0 is the page default: the
+ *   line is the oscillator until a notes or arp statement writes `fm <depth>`
+ *   (for example `n C5 fm 3`). `fm t2 3` and `fm "words" 3` name a modulator
+ *   source; they are not a depth on the notes line. A gathered clip is
  *   the modulator only: gain into the carrier frequency is fmDepth * 100 Hz
  *   per full-scale sample. The clip is not pitch-shifted and is not mixed
- *   into the synth output. An optional envelope follower (absolute value,
+ *   into the synth output. An `arp` statement uses chord-library.js, a port
+ *   of chords.ts from psemmelhack/NetComposer-Synth branch replit-changes.
+ *   An optional envelope follower (absolute value,
  *   then a 30 Hz low-pass) can add to cutoff and loudness; the page leaves
  *   that off.
  *   Seeded RNG (mulberry32): a = (a + 0x6D2B79F5) >>> 0;
@@ -73,7 +78,7 @@
     vcoMods: [{source: 'none', destination: 'pitch', amount: 0}, {source: 'none', destination: 'pitch', amount: 0}],
     vcfMods: [{source: 'none', destination: 'cutoff', amount: 0}, {source: 'none', destination: 'resonance', amount: 0}],
     vcaMods: [{source: 'none', destination: 'level', amount: 0}, {source: 'none', destination: 'sustain', amount: 0}],
-    fmDepth: 3
+    fmDepth: 0
   };
 
   function clamp(v, lo, hi) { return Math.min(hi, Math.max(lo, v)); }
@@ -138,24 +143,97 @@
     return out;
   }
 
+  // The chords use NCLanguage.parse().bpm. Reuse that result, including
+  // q90, tempo 90, tempo=90, quarter notes = 90, and a BPM word winning
+  // over an earlier form. This file still reads "90 BPM" and "quarter = 90"
+  // when the parser is not loaded.
   function bpmOf(text) {
+    var lang = root.NCLanguage;
+    if (lang && typeof lang.parse === 'function') {
+      try {
+        var parsed = lang.parse(text || '', {});
+        return parsed && parsed.bpm > 0 ? parsed.bpm : 0;
+      } catch (e) {}
+    }
     var m = /(\d+(?:\.\d+)?)\s*BPM\b/i.exec(text || '') || /quarter(?:\s+note)?\s*[=≈]\s*(\d+(?:\.\d+)?)/i.exec(text || '');
     return m && +m[1] > 0 ? +m[1] : 0;
+  }
+  // `fm 3` and `fm3` on the notes statement set the depth. `fm t2 3` and
+  // `fm "words" 3` name a source, so a non-number after fm is left in place.
+  function fmDepthOf(rest) {
+    var depth = null;
+    var cleaned = String(rest || '').replace(/(^|[\s,);])fm\s*(\d+(?:\.\d+)?)(?=$|[\s,);])/gi, function (_, lead, num) {
+      if (depth == null) depth = clamp(+num, 0, 10);
+      return lead;
+    });
+    return { rest: cleaned, fmDepth: depth };
   }
   function beatsPerBar(text) {
     var m = /\b(\d+)\s*\/\s*(2|4|8)\b/.exec(text || '');
     if (!m) return 4;
     return +m[1] * (4 / +m[2]);
   }
-  // Today's notes / n term only. Not the Composition parser: one statement,
-  // pitches after notes or n, optional (beats) or (bars|). @name on that
-  // statement is a written instrument, so the synth stays out.
+  var ORDER_WORDS = {
+    up: 'up', down: 'down', 'up-down': 'up and down', 'down-up': 'down and up',
+    'up-down-repeat': 'up and down, repeating the ends',
+    'outside-in': 'outside in', 'inside-out': 'inside out',
+    pendulum: 'pendulum', random: 'random', 'as-played': 'as played'
+  };
+  var RATE_WORDS = {
+    '4ths': 'quarter notes', '8ths': 'eighth notes', '16ths': 'sixteenth notes', '32nds': 'thirty-second notes',
+    '4t': 'quarter-note triplets', '8t': 'eighth-note triplets', '16t': 'sixteenth-note triplets', '32t': 'thirty-second-note triplets'
+  };
+  function trimNum(n) {
+    if (Math.abs(n - Math.round(n)) < 1e-9) return String(Math.round(n));
+    return String(+n.toFixed(3)).replace(/0+$/, '').replace(/\.$/, '');
+  }
+  function arpWords(arp) {
+    if (!arp) return '';
+    var oct = arp.octaves || 1;
+    var bits = [
+      arp.chord || 'the chord line',
+      ORDER_WORDS[arp.order] || arp.order || 'up',
+      RATE_WORDS[arp.rate] || arp.rate || 'sixteenth notes',
+      oct === 1 ? '1 octave' : oct + ' octaves',
+      arp.spread || 'compact'
+    ];
+    if (arp.inversion > 0) bits.push('inversion ' + arp.inversion);
+    if (arp.bars != null) bits.push(trimNum(arp.bars) + (arp.bars === 1 ? ' bar' : ' bars'));
+    else if (arp.beats != null) bits.push(trimNum(arp.beats) + (arp.beats === 1 ? ' beat' : ' beats'));
+    if (arp.fmDepth > 0) bits.push('FM depth ' + (Math.round(arp.fmDepth * 100) / 100));
+    return bits.join(', ');
+  }
+  function spellMidi(midi) {
+    var names = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab', 'A', 'Bb', 'B'];
+    var pc = ((midi % 12) + 12) % 12;
+    return names[pc] + (Math.floor(midi / 12) - 1);
+  }
+  function barBeats(meter) {
+    var m = /^(\d+)\/(2|4|8)$/.exec(meter || '');
+    return m ? +m[1] * (4 / +m[2]) : 4;
+  }
+  function parsedOf(text) {
+    var lang = root.NCLanguage;
+    if (!lang || typeof lang.parse !== 'function') return null;
+    var known = root.NCChords && root.NCChords.compositionKnown;
+    try { return lang.parse(text || '', { known: function (q) { return !!(known && known(q)); } }); }
+    catch (e) { return null; }
+  }
+  // Notes / n, and an arp statement. Pitches follow notes or n, with an
+  // optional (beats) or (bars|). @name on that statement is a written
+  // instrument, so the synth stays out. `fm <depth>` is FM, not a pitch.
+  // The arp is the first `arp` statement. With a chord it plays that chord;
+  // with none it follows the composition's chord line.
   function readLine(text) {
-    var bpm = bpmOf(text), bar = beatsPerBar(text), found = null;
+    var parsed = parsedOf(text);
+    var bpm = parsed ? (parsed.bpm > 0 ? parsed.bpm : 0) : bpmOf(text);
+    var bar = parsed && parsed.meter ? barBeats(parsed.meter) : beatsPerBar(text);
+    var found = null;
     String(text || '').split(/[\n;]+/).some(function (stmt) {
       var km = /(?:^|\s)(?:notes|n)\s+(.+)$/i.exec(stmt);
       if (!km) return false;
-      var rest = km[1], re = /([A-Ga-g])(#|b)?(-?\d+)(?:\((\d+(?:\.\d+)?)(\|)?\))?/g, tok, notes = [];
+      var taken = fmDepthOf(km[1]);
+      var rest = taken.rest, re = /([A-Ga-g])(#|b)?(-?\d+)(?:\((\d+(?:\.\d+)?)(\|)?\))?/g, tok, notes = [];
       while ((tok = re.exec(rest))) {
         var beats = tok[4] ? +tok[4] : 1;
         if (!(beats > 0)) beats = 1;
@@ -170,22 +248,102 @@
         notes: notes,
         instrument: inst ? inst[1].toLowerCase() : '',
         bpm: bpm,
+        fmDepth: taken.fmDepth,
+        notesLabel: notes.map(function (n) { return n.pitch; }).join(' '),
         label: notes.map(function (n) { return n.pitch; }).join(' ')
       };
       return true;
     });
+    var arp = parsed && parsed.arp && parsed.arp.length ? parsed.arp[0] : null;
+    if (!found && !arp) return null;
+    if (!found) {
+      found = { notes: [], instrument: '', bpm: bpm, fmDepth: null, notesLabel: '', label: '' };
+    }
+    found.meter = parsed && parsed.meter ? parsed.meter : '4/4';
+    found.harmony = parsed && parsed.played ? parsed.played : [];
+    found.unmapped = parsed && parsed.unmapped ? parsed.unmapped.slice() : [];
+    if (arp) {
+      found.arp = arp;
+      found.arpInstrument = arp.instrument || '';
+      found.arpWords = arpWords(arp);
+      var playArp = !arp.instrument;
+      if (playArp && arp.fmDepth != null) found.fmDepth = arp.fmDepth;
+      if (playArp) found.label = found.notesLabel ? (found.notesLabel + ' · ' + found.arpWords) : found.arpWords;
+    } else {
+      found.arp = null;
+      found.arpInstrument = '';
+      found.arpWords = '';
+    }
     return found;
   }
-  function scheduleLine(line, settings) {
-    if (!line || !line.notes) return [];
+  function scheduleArp(line, bpm, seed, out) {
+    var lib = root.NCChords;
+    var arp = line.arp;
+    if (!lib || !arp || arp.instrument) return;
+    var beat = 60 / bpm;
+    var step = arp.step > 0 ? arp.step : 0.25;
+    var qpb = barBeats(line.meter);
+    var rng = arp.order === 'random' ? mulberry32(seed == null ? 1 : seed) : null;
+    function windowBeats(beats, bars) {
+      if (beats != null) return beats;
+      if (bars != null) return bars * qpb;
+      return qpb;
+    }
+    function play(id, rootMidi, bass, startBeat, total) {
+      if (!id || !(total > 0)) return;
+      var pool;
+      try { pool = lib.arpeggioPool(lib.voicedChord(rootMidi, id, arp.inversion, arp.spread, bass), arp.octaves); }
+      catch (e) { return; }
+      if (!pool.length) return;
+      var seq = arp.order === 'random' ? null : lib.arpeggioSequence(pool, arp.order);
+      if (seq && !seq.length) return;
+      var left = total, at = startBeat, i = 0;
+      while (left > 1e-8 && i < 20000) {
+        var take = Math.min(step, left);
+        var midi = seq ? seq[i % seq.length] : pool[Math.floor(rng() * pool.length)];
+        out.push({
+          pitch: spellMidi(midi), midi: midi, velocity: 0.82,
+          start: at * beat, length: Math.max(0.02, take * beat)
+        });
+        at += take;
+        left -= take;
+        i++;
+      }
+    }
+    if (arp.chord) {
+      var rootMidi = arp.rootPc == null ? 60 : 60 + ((arp.rootPc % 12) + 12) % 12;
+      play(arp.chordId, rootMidi, arp.bass, 0, windowBeats(arp.beats, arp.bars));
+      return;
+    }
+    var cursor = 0;
+    (line.harmony || []).forEach(function (ev) {
+      var beats = ev.beats;
+      if (ev.bars != null) beats = ev.bars * qpb;
+      if (beats == null) beats = ev.kind === 'rest' ? 0 : qpb;
+      if (!(beats > 0)) return;
+      if (ev.kind === 'chord') {
+        var id = lib.idForSymbol(ev.symbol);
+        play(id, (function () {
+          var m = /^([A-G])(#|b)?/.exec(ev.symbol || '');
+          if (!m) return 60;
+          var pc = PC[m[1]] + (m[2] === '#' ? 1 : m[2] === 'b' ? -1 : 0);
+          return 60 + ((pc % 12) + 12) % 12;
+        })(), ev.bass, cursor, beats);
+      }
+      cursor += beats;
+    });
+  }
+  function scheduleLine(line, settings, seed) {
+    if (!line || (!line.notes && !line.arp)) return [];
     var s = mergeSettings(settings);
     var bpm = line.bpm || s.tempo || 96;
     var beat = 60 / bpm, t = 0, out = [];
-    line.notes.forEach(function (n) {
+    (line.notes || []).forEach(function (n) {
       var len = Math.max(0.02, n.beats * beat);
       out.push({pitch: n.pitch, midi: midiOf(n.pitch), velocity: n.velocity == null ? 0.82 : clamp(+n.velocity, 0, 1), start: t, length: len});
       t += len;
     });
+    if (line.arp) scheduleArp(line, bpm, seed, out);
     return out;
   }
 
@@ -237,6 +395,7 @@
     mergeSettings: mergeSettings,
     readLine: readLine,
     scheduleLine: scheduleLine,
+    arpWords: arpWords,
     renderNotes: renderNotes,
     describe: describe,
     wavBlob: wavBlob,
