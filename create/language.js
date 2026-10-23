@@ -1,7 +1,7 @@
 // The Composition language, first slice (Peter, 2026-10-22). Deterministic only:
 // tempo, chords, durations, groups, loops, rests, comments, seeds, the
-// starting hack values for Live, and an arp statement for the NC Synth.
-// One reading, shared with nc-performer through tests/language-vectors.json.
+// starting hack values for Live, an arp statement, and a notes line for the
+// NC Synth. One reading, shared with nc-performer through tests/language-vectors.json.
 // Words this file does not recognise, and anything in quotes, stay words for
 // the AI. Nothing here calls a model. An arp chord is not gathered: the synth
 // plays it, unless the statement names @instrument.
@@ -190,6 +190,17 @@
     };
   }
 
+  // A pitch is a note name plus an octave, optional (beats) or (bars|).
+  // C5 is a note. Cm is not. Out-of-range octaves are not notes.
+  function pitchEcho(text) {
+    var m = /^([A-Ga-g])(#|b)?(-?\d+)(?:\((\d+(?:\.\d+)?)(\|)?\))?$/.exec(text || '');
+    if (!m) return '';
+    var midi = (+m[3] + 1) * 12 + PC[m[1].toUpperCase()] + (m[2] === '#' ? 1 : m[2] === 'b' ? -1 : 0);
+    if (!(midi >= 0 && midi <= 127)) return '';
+    var echo = m[1].toUpperCase() + (m[2] || '') + m[3];
+    if (m[4] != null) echo += '(' + trimNum(+m[4]) + (m[5] ? '|' : '') + ')';
+    return echo;
+  }
   function renderChord(ev) {
     var s = pretty(ev.symbol);
     if (ev.bass != null) s += '/' + SPELL[ev.bass];
@@ -229,6 +240,17 @@
     var arps = [], unmapped = [];
     function note(s) { if (s && !seen[s]) { seen[s] = 1; notes.push(s); } }
     function addWord(w) { if (w) words.push(w); }
+    // Semicolons and newlines end a statement. The tokenizer does not keep
+    // them, so a notes or arp line uses the source position instead.
+    function statementEnd(from) {
+      var m = /[\n;]/.exec(src.slice(from));
+      return m ? from + m.index : src.length;
+    }
+    function tokenPos(tok) {
+      if (!tok) return src.length;
+      if (tok.at != null) return tok.at;
+      return tok.end != null ? tok.end - 1 : src.length;
+    }
 
     function stamp(ev) {
       var copy = {
@@ -464,6 +486,8 @@
       var t = tokens[i];
       if (!t || t.type !== 'word' || !/^arp$/i.test(t.text)) return false;
       i++;
+      var arpEnd = statementEnd(t.end);
+      var trailing = [];
       var spec = {
         chord: null, chordId: null, rootPc: null, bass: null, unmapped: false,
         order: 'up', rate: '16ths', step: 0.25, octaves: 1, spread: 'compact',
@@ -629,11 +653,21 @@
             continue;
           }
         }
+        // A pitch left on the arp statement is part of that line, not a
+        // failed chord. `arp Cm9 C5` stays an arp. A pitch on the next
+        // line is still reported.
+        if (pitchEcho(text) && w.at != null && w.at < arpEnd) {
+          trailing.push(pitchEcho(text));
+          i++;
+          continue;
+        }
         break;
       }
       delete spec.bareRoot;
       arps.push(spec);
-      syntax.push({ kind: 'arp', text: arpSyntax(spec) });
+      var arpText = arpSyntax(spec);
+      if (trailing.length) arpText += ' ' + trailing.join(' ');
+      syntax.push({ kind: 'arp', text: arpText });
       return true;
       function arpSyntax(a) {
         var parts = ['arp'];
@@ -649,6 +683,54 @@
         if (a.instrument) parts.push('@' + a.instrument);
         return parts.join(' ');
       }
+    }
+    // `n C5(2) Eb5 G5 Bb4` and `notes C4 Eb4 G4(2)`. The statement runs to
+    // the next semicolon or newline. One real pitch makes the whole
+    // statement a notes line: those pitches are not chords, and `fm 3` is
+    // a depth. `notes create melody` has no pitch, so it stays words.
+    // A pitch after the statement is still reported.
+    function tryNotes() {
+      var t = tokens[i];
+      if (!t || t.type !== 'word' || !/^(?:n|notes)$/i.test(t.text)) return false;
+      var limit = statementEnd(t.end);
+      function inside(tok) { return !!(tok && tokenPos(tok) < limit); }
+      function blocked(tok) {
+        return tok.type === 'groupStart' || tok.type === 'groupEnd' || tok.type === 'bar';
+      }
+      var j = i + 1, saw = false;
+      while (j < tokens.length && inside(tokens[j]) && !blocked(tokens[j])) {
+        var scan = tokens[j];
+        if (scan.type === 'word' && /^arp$/i.test(scan.text)) break;
+        if (scan.type === 'word') {
+          var glued = /^(.*)@([A-Za-z][\w-]*)$/.exec(scan.text);
+          if (pitchEcho(scan.text) || (glued && glued[1] && pitchEcho(glued[1]))) saw = true;
+        }
+        j++;
+      }
+      if (!saw) return false;
+      var parts = [];
+      j = i + 1;
+      while (j < tokens.length && inside(tokens[j]) && !blocked(tokens[j])) {
+        var tok = tokens[j];
+        if (tok.type === 'word' && /^arp$/i.test(tok.text)) break;
+        if (tok.type === 'quote') parts.push('"' + tok.text + '"');
+        else if (tok.type === 'word') {
+          var at = /^(.*)@([A-Za-z][\w-]*)$/.exec(tok.text);
+          var body = tok.text, inst = '';
+          if (at && (!at[1] || pitchEcho(at[1]))) { body = at[1]; inst = '@' + at[2].toLowerCase(); }
+          if (body && pitchEcho(body)) parts.push(pitchEcho(body));
+          else if (body && /^fm(\d+(?:\.\d+)?)$/i.test(body)) parts.push('fm ' + trimNum(+body.slice(2)));
+          else if (body && /^fm$/i.test(body) && tokens[j + 1] && tokens[j + 1].type === 'word' && inside(tokens[j + 1]) && /^\d+(?:\.\d+)?$/.test(tokens[j + 1].text)) {
+            parts.push('fm ' + trimNum(+tokens[j + 1].text));
+            j++;
+          } else if (body) parts.push(body);
+          if (inst) parts.push(inst);
+        }
+        j++;
+      }
+      i = j;
+      if (parts.length) syntax.push({ kind: 'notes', text: 'notes ' + parts.join(' ') });
+      return true;
     }
     // `fm 3` is a depth on the notes line, not the chord F minor. `fm t2`
     // and `fm "words"` are a different form and stay untouched.
@@ -669,6 +751,7 @@
       var rest = tryRest();
       if (rest) { assign(rest); stamp(rest); syntax.push({ kind: 'rest', text: renderRest(rest) }); return true; }
       if (tryArp()) return true;
+      if (tryNotes()) return true;
       if (tryNotesFm()) return true;
       var ch = tryChord(false);
       if (ch) { assign(ch); stamp(ch); syntax.push({ kind: 'chord', text: renderChord(ch) }); return true; }
@@ -690,6 +773,7 @@
         var rest = tryRest();
         if (rest) { items.push(rest); continue; }
         if (tryArp()) continue;
+        if (tryNotes()) continue;
         if (tryNotesFm()) continue;
         var ch = tryChord(true);
         if (ch) { items.push(ch); continue; }

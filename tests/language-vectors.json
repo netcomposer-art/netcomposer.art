@@ -978,5 +978,39 @@
       }
     ],
     "unmapped": ["C7#11"]
+  },
+  {
+    "name": "notes-line",
+    "text": "72 BPM\n[Cm Fm9 Gm7]\nn C5(2) Eb5 G5 Bb4\narp Cm9 pendulum 16ths 2oct",
+    "bpm": 72,
+    "clock": "legacy",
+    "seed": null,
+    "meter": "4/4",
+    "gather": ["Cm", "Fm9", "Gm7"],
+    "played": [
+      {"kind": "chord", "symbol": "Cm", "bass": null, "beats": null, "bars": null, "seconds": null, "recording": 0},
+      {"kind": "chord", "symbol": "Fm9", "bass": null, "beats": null, "bars": null, "seconds": null, "recording": 1},
+      {"kind": "chord", "symbol": "Gm7", "bass": null, "beats": null, "bars": null, "seconds": null, "recording": 2}
+    ],
+    "hacks": [],
+    "words": [],
+    "notes": [],
+    "iread": "q72; [Cm Fm9 Gm7]; notes C5(2) Eb5 G5 Bb4; arp Cm9 pendulum 16ths 2oct",
+    "arp": [
+      {
+        "chord": "Cm9",
+        "chordId": "minor-9",
+        "order": "pendulum",
+        "rate": "16ths",
+        "octaves": 2,
+        "spread": "compact",
+        "inversion": 0,
+        "fmDepth": null,
+        "beats": null,
+        "bars": null,
+        "instrument": ""
+      }
+    ],
+    "unmapped": []
   }
 ]
