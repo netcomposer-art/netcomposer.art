@@ -184,6 +184,9 @@ function wirePlayer(a) {
     T0 = AC.currentTime - (a.currentTime || 0);
     if (window.NC && NC.stop) NC.stop();
     if (armFollow) { armFollow = false; scheduleMoves(); }
+    // The page player is the clock. Starting it places the rendered clips,
+    // or the live engine, from the playhead. perform.js does this too.
+    if (lastSpec) scheduleClips({ entries: lastSpec.entries, offset: a.currentTime || 0 });
     buttons();
   });
   a.addEventListener('pause', function () { live = false; buttons(); });
@@ -356,6 +359,96 @@ function tailFor(list) {
   return tail;
 }
 var clipNodes = [], clipPlays = 0, clipEnd = 0;
+// The written synth line, played by the engine into the hack chain when the
+// Live toggle is on. Off: the rendered buffer is one more clip, as before.
+var SYNTH = null, synthEngine = null, synthOpening = null, synthGen = 0, lastSpec = null, lastAlign = null, lastNotes = [];
+function synthWanted() {
+  var box = $('live-synth-on');
+  return !!(box && box.checked && SYNTH && SYNTH.notes && SYNTH.notes.length);
+}
+function stopSynth() {
+  synthGen++;
+  lastNotes = [];
+  if (synthEngine) { try { synthEngine.panic(); } catch (e) {} }
+}
+function ensureEngine() {
+  if (synthEngine) return Promise.resolve(synthEngine);
+  if (synthOpening) return synthOpening;
+  graph();
+  var part = SYNTH;
+  synthOpening = G.ready.then(function () {
+    var Eng = window.NCSynthEngine && NCSynthEngine.SynthEngine;
+    if (!Eng || !part) throw new Error('NC Synth engine is not loaded');
+    var settings = window.NCSynth && NCSynth.mergeSettings ? NCSynth.mergeSettings(part.settings) : part.settings;
+    if (settings && settings.oscillatorMode === 'wavetable') settings.oscillatorMode = 'vco';
+    var engine = new Eng(settings);
+    var random = window.NCSynth && NCSynth.mulberry32 ? NCSynth.mulberry32(part.seed) : Math.random;
+    return engine.open(AC, random, G.input).then(function () {
+      synthEngine = engine;
+      synthOpening = null;
+      return engine;
+    });
+  });
+  synthOpening = synthOpening.catch(function (err) { synthOpening = null; throw err; });
+  return synthOpening;
+}
+function startSynth(when, offset) {
+  var gen = ++synthGen;
+  var part = SYNTH;
+  ensureEngine().then(function (engine) {
+    var a = player();
+    if (gen !== synthGen || !synthWanted() || !a || a.paused) return;
+    if (AC && AC.state === 'running') when = AC.currentTime + 0.03;
+    engine.panic();
+    var notes = [];
+    (part.notes || []).forEach(function (n) {
+      if (!n || !(n.length > 0) || !(n.midi >= 0)) return;
+      if (n.start + n.length <= offset + 0.001) return;
+      var dur = n.length - Math.max(0, offset - n.start);
+      if (!(dur > 0.001)) return;
+      var at = when + Math.max(0, n.start - offset);
+      engine.scheduleNote(n.midi, at, dur, n.velocity == null ? 0.82 : n.velocity);
+      notes.push({ midi: n.midi, take: n.start, at: at });
+    });
+    lastNotes = notes;
+    lastAlign = { when: when, offset: offset, ac: AC ? AC.currentTime : null, media: a.currentTime || 0, notes: notes };
+  }).catch(function () {});
+}
+function setSynthPart(part) {
+  var next = part && part.notes && part.notes.length ? {
+    title: part.title || 'NC Synth (Peter Semmelhack)',
+    notes: part.notes,
+    settings: part.settings || null,
+    seed: (part.seed >>> 0) || 1
+  } : null;
+  if (synthEngine && (!next || !SYNTH || next.seed !== SYNTH.seed)) {
+    try { synthEngine.panic(); } catch (e) {}
+    synthEngine = null;
+    synthOpening = null;
+  }
+  SYNTH = next;
+  var row = $('live-synth'), name = $('live-synth-name'), box = $('live-synth-on');
+  if (!next) {
+    if (box) box.checked = false;
+    if (row) row.hidden = true;
+    stopSynth();
+    return;
+  }
+  if (name) name.textContent = next.title;
+  if (row) row.hidden = false;
+  ensureEngine();
+}
+function synthStatus() {
+  var voices = 0;
+  try { voices = synthEngine ? synthEngine.getStatus().voices : 0; } catch (e) {}
+  var buffers = 0, i;
+  for (i = 0; i < clipNodes.length; i++) if (clipNodes[i].synth) buffers++;
+  return {
+    enabled: synthWanted(), armed: !!SYNTH, bufferSources: buffers, clipSources: clipNodes.length,
+    voices: voices, notes: lastNotes.slice(), align: lastAlign,
+    ac: AC ? AC.currentTime : null, acState: AC ? AC.state : null, media: player() ? (player().currentTime || 0) : null
+  };
+}
 // Stop with the same 12 ms fade a clip ends with, so a seek or a pause
 // never clicks. The hack chain stays connected; only the sources go.
 var CLIP_FADE_S = 0.012;
@@ -382,6 +475,7 @@ function stopClips() {
     }
   });
   clipNodes = [];
+  stopSynth();
 }
 function atRate(ctx, buf) {
   var rate = ctx.sampleRate;
@@ -436,16 +530,26 @@ function placeClip(ctx, dest, entry, when, offset) {
 }
 function scheduleClips(spec) {
   graph();
+  lastSpec = spec;
   var run = function () {
     if (AC.state === 'suspended') AC.resume();
     stopClips();
     clipPlays++;
     var when = AC.currentTime + 0.03;
     var offset = spec.offset || 0;
+    var liveOn = synthWanted();
     (spec.entries || []).forEach(function (entry) {
+      // The rendered synth buffer stays out of the chain while the engine plays it.
+      if (liveOn && entry.synth) return;
       var node = placeClip(AC, G.input, entry, when, offset);
-      if (node) { clipNodes.push(node); if (node.end > clipEnd) clipEnd = node.end; }
+      if (node) {
+        node.synth = !!entry.synth;
+        clipNodes.push(node);
+        if (node.end > clipEnd) clipEnd = node.end;
+      }
     });
+    lastAlign = { when: when, offset: offset, ac: AC.currentTime, media: player() ? (player().currentTime || 0) : 0, notes: [] };
+    if (liveOn) startSynth(when, offset);
     syncAudio(true);
     scopeWake();
   };
@@ -614,7 +718,7 @@ function open(desc) {
     return Promise.resolve(false);
   }
   var my = ++openGen;
-  stopAudio(); clearTake(); LOG = null; $('llog').hidden = true; $('lconflict').hidden = true;
+  stopAudio(); clearTake(); setSynthPart(null); LOG = null; $('llog').hidden = true; $('lconflict').hidden = true;
   resetDials();
   PERF = {id: id, buffer: null, sha: desc.sha || null, audioUrl: url, audioFile: fileOf(url),
     record: desc.record || null, bpm: 60, tempoSource: '60 BPM', creditName: 'hosted Perform'};
@@ -631,7 +735,7 @@ function open(desc) {
 function hide() {
   openGen++; inflight = null; takeGen++;
   if (REC) { var R = REC; REC = null; R.stopping = true; if (R.T) R.T.stop(function () {}); }
-  stopAudio(); clearTake(); LOG = null; PENDING = null; PERF = null;
+  stopAudio(); clearTake(); setSynthPart(null); LOG = null; PENDING = null; PERF = null;
   $('llog').hidden = true; $('lconflict').hidden = true; $('live').hidden = true;
   resetDials(); buttons();
 }
@@ -913,6 +1017,11 @@ $('lloop').addEventListener('change', function () {
   player().loop = $('lloop').checked;
   logEvent({event: 'loop', value: $('lloop').checked});
 });
+if ($('live-synth-on')) $('live-synth-on').addEventListener('change', function () {
+  if (!synthWanted()) stopSynth();
+  var a = player();
+  if (a && !a.paused && lastSpec) scheduleClips({ entries: lastSpec.entries, offset: a.currentTime || 0 });
+});
 $('play').addEventListener('click', function () { if (live || !player().paused) stop('The preview took over.'); });
 // Space plays and stops the Performance from anywhere on the page while Live is up, the same as the
 // player's own button (it resumes from the playhead). Typing keeps Space: text fields, textareas,
@@ -967,7 +1076,7 @@ readouts(); buttons();
 window.NCLive = {settings: settings, cutoffHz: cutoffHz, validate: validate, open: open, hide: hide, level: level, bands: bands, prime: prime, render: render,
   adjusted: adjusted, chain: chain, applyChain: applyChain, scheduleClips: scheduleClips, stopClips: stopClips, renderBuffers: renderBuffers,
   cpu: function () { return window.__hackCpu || null; },
-  playing: playing,
+  playing: playing, setSynthPart: setSynthPart, synthStatus: synthStatus,
   ready: function () { graph(); return G.ready; },
   clipPlays: function () { return clipPlays; },
   performanceId: function () { return PERF && PERF.id; },

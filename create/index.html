@@ -200,6 +200,7 @@ footer{max-width:46rem;margin:0 auto;padding:1.2rem 1.5rem 4rem;font-size:.85rem
 <section id="live" hidden>
 <div class="live-head"><h3 id="live-h">Live</h3><button type="button" id="live-die" class="hack-die" aria-label="Randomize all hacks" aria-controls="live-confirm" aria-expanded="false"></button></div>
 <div id="live-confirm" class="live-confirm" role="group" aria-labelledby="live-confirm-q" hidden><span id="live-confirm-q">Replace all hacks with a random set?</span><button type="button" id="live-replace">Replace</button><button type="button" id="live-cancel">Cancel</button></div>
+<div class="row" id="live-synth" hidden><span class="m" id="live-synth-name"></span><label class="toggle" for="live-synth-on"><input id="live-synth-on" type="checkbox"> live</label></div>
 <label class="toggle" for="lloop"><input id="lloop" type="checkbox" checked> Loop</label>
 <!-- Speaker (bypass) icon: credited to "speaker on" by masmooh, Noun Project, CC BY 3.0 (footer #foot-speaker). The die is in hacks/icons.js. -->
 <div id="hack-stack">
@@ -327,6 +328,8 @@ nc perform composition.md -o out/           # any OpenAI-compatible LLM</pre>
 <script src="live.js"></script>
 <script src="assembly.js"></script>
 <script src="timeline-edit.js"></script>
+<script src="synth-audio/dist/index.js"></script>
+<script src="nc-synth.js"></script>
 <script src="perform.js"></script>
 <script src="reset.js"></script>
 </body>

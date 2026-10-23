@@ -181,15 +181,16 @@
     var gBtn = $('gatherBtn'), pBtn = $('performBtn'), again = $('gather-again'), box = $('gather-box');
     var on = !!(cfg && cfg.perform_enabled);
     var chords = !!(window.NC && NC.timeline && NC.timeline());
-    var can = on && chords;
+    var synth = !!synthLine();
+    var can = (on && chords) || synth;
     var has = !!(gatherSounds && gatherSounds.length);
     if (gBtn) {
-      gBtn.hidden = !gatherOn || has || phase === 'perform';
+      gBtn.hidden = !(gatherOn || synth) || has || phase === 'perform';
       gBtn.disabled = !can || busy || phase === 'gather';
       gBtn.textContent = phase === 'gather' ? 'Gathering…' : 'Gather';
     }
     if (again) {
-      again.hidden = !gatherOn || !has;
+      again.hidden = !(gatherOn || synth) || !has;
       again.disabled = !can || busy;
       again.textContent = phase === 'gather' ? 'Gathering…' : 'Gather again';
     }
@@ -199,7 +200,7 @@
     pBtn.hidden = false;
     var wait = $('perform-wait');
     if (wait) wait.hidden = !(gatherOn && !has && phase !== 'perform' && phase !== 'gather');
-    pBtn.disabled = !can || busy || (gatherOn && !has && phase !== 'perform');
+    pBtn.disabled = !can || busy || ((gatherOn || synth) && !has && phase !== 'perform');
     if (phase === 'perform' && busy && !playerJob) pBtn.textContent = (gatherOn && gatherId) ? 'Assembling…' : 'Performing…';
     else if (phase === 'perform' && busy) pBtn.textContent = 'Perform';
     else pBtn.textContent = (jobId || localPlan) ? 'Perform again' : 'Perform';
@@ -1582,6 +1583,11 @@
     return e;
   }
   function loadClip(s) {
+    if (s && s.buffer) {
+      var have = clipKey(s);
+      if (have) clipBuffers[have] = s.buffer;
+      return Promise.resolve(s.buffer);
+    }
     var key = clipKey(s), url = s && (s.cache || s.url), id = cacheId(s);
     if (url && url.indexOf(API + '/') !== 0) {
       // Only the Performer serves clips. soundOf already rewrites its paths.
@@ -1683,33 +1689,94 @@
     else a[0] = (Math.random() * 0x100000000) >>> 0;
     return a[0] || 1;
   }
+  function isSynth(s) { return !!(s && s.kind === 'nc-synth'); }
+  // A written notes / n line with no @instrument. The Composition parser is
+  // separate; this only asks whether that line should become a synth buffer.
+  function synthLine() {
+    if (!window.NCSynth || !NCSynth.readLine) return null;
+    var text = ($('comp') && $('comp').value) || '';
+    var line = NCSynth.readLine(text);
+    if (!line || !line.notes || !line.notes.length || line.instrument) return null;
+    return line;
+  }
+  function synthSound(line, buf, seed, settings, notes) {
+    var url = '';
+    try { url = URL.createObjectURL(NCSynth.wavBlob(buf)); } catch (e) {}
+    return {
+      kind: 'nc-synth',
+      local: true,
+      slot: -1,
+      symbol: line.label || '',
+      title: NCSynth.CREDIT,
+      supplier: 'Peter Semmelhack',
+      license: NCSynth.OUTPUT_LICENSE,
+      url: url,
+      cache: '',
+      buffer: buf,
+      gather_id: gatherId || 'nc-synth',
+      clip_id: 'nc-synth',
+      duration_s: buf.duration,
+      start_s: 0,
+      gain_db: 0,
+      credit: NCSynth.CREDIT + '. Code MIT. Output CC BY-SA 4.0.',
+      detail: NCSynth.describe(settings, seed),
+      notes: notes,
+      synth: { seed: seed >>> 0, settings: settings, code_license: 'MIT', output_license: 'CC-BY-SA-4.0' }
+    };
+  }
+  function ensureSynth(sounds) {
+    var line = synthLine();
+    sounds = sounds || [];
+    if (!line || sounds.some(isSynth)) return Promise.resolve(sounds);
+    var seed = drawSeed();
+    var settings = NCSynth.mergeSettings(null);
+    var notes = NCSynth.scheduleLine(line, settings);
+    return NCSynth.renderNotes(notes, settings, seed).then(function (buf) {
+      var sound = synthSound(line, buf, seed, settings, notes);
+      sounds = sounds.slice();
+      sounds.push(sound);
+      gatherSounds = sounds;
+      return sounds;
+    });
+  }
   function buildPlan(seed, bufs) {
-    var sounds = gatherSounds || [], n = sounds.length, slots = planSlots(n, seed), caps = [], i, cap;
+    var sounds = gatherSounds || [], n = sounds.length, caps = [], i, cap, chordAt = [];
     for (i = 0; i < n; i++) {
       cap = sounds[i].duration_s;
       if (!(cap > 0) && bufs && bufs[i]) cap = Math.max(0, bufs[i].duration - (sounds[i].start_s || 0));
       caps.push(cap > 0 ? cap : 0);
+      if (!isSynth(sounds[i])) chordAt.push(i);
     }
-    var written = !!(gatherClock && gatherClock.written && gatherClock.slots && gatherClock.slots.length === n);
+    var cn = chordAt.length;
+    var slots = cn ? planSlots(cn, seed) : [];
+    var chordCaps = chordAt.map(function (at) { return caps[at]; });
+    var written = !!(cn && gatherClock && gatherClock.written && gatherClock.slots && gatherClock.slots.length === cn);
     var asm = window.NCAssembly;
     var gap = asm.explicitGap(pieceWords());
     // The same test placeChords makes: are the starts the clock's, or back to back?
     planStartsFixed = !!(written || (gap && slots.every(function (s) { return s && isFinite(s.dur); })));
-    // Back to back unless the Composition wrote the clock or asked for a gap.
-    var placed = asm.placeChords(slots, caps, { written: written, gap: gap });
-    var entries = placed.entries.map(function (p, i) {
+    // Chord recordings stay back to back. A synth line is a peer: it starts at 0.
+    var placed = cn ? asm.placeChords(slots, chordCaps, { written: written, gap: gap }) : { entries: [], total_s: 0 };
+    var ci = 0, end = placed.total_s || 0;
+    var entries = sounds.map(function (s, i) {
+      var at, len;
+      if (isSynth(s)) { at = 0; len = caps[i]; }
+      else { var p = placed.entries[ci++]; at = p.at_s; len = p.len_s; }
+      if (at + len > end) end = at + len;
       return {
         pos: i,
-        chord: sounds[i].symbol || gatherNames[i] || '',
-        clip_id: sounds[i].clip_id || ('c' + i),
-        at_s: p.at_s,
-        len_s: p.len_s,
-        gain_db: gainFor(sounds[i]),
+        chord: s.symbol || gatherNames[i] || '',
+        clip_id: s.clip_id || ('c' + i),
+        at_s: +(+at).toFixed(3),
+        len_s: +(+len).toFixed(3),
+        gain_db: gainFor(s),
         fade_in_ms: 12,
         fade_out_ms: 12
       };
     });
-    return { nc_assembly_version: '1', gather_id: gatherId, seed: seed, entries: entries, total_s: placed.total_s };
+    var useSeed = seed;
+    if (!cn && sounds[0] && sounds[0].synth) useSeed = sounds[0].synth.seed;
+    return { nc_assembly_version: '1', gather_id: gatherId, seed: useSeed, entries: entries, total_s: +(+end).toFixed(3) };
   }
   function silenceWav(seconds) {
     var rate = 8000, n = Math.max(1, Math.round((seconds || 0) * rate)), dataLen = n * 2;
@@ -1731,7 +1798,8 @@
         origin: sound && sound.start_s > 0 ? sound.start_s : 0,
         gainDb: e.gain_db || 0,
         fadeIn: (e.fade_in_ms != null ? e.fade_in_ms : 12) / 1000,
-        fadeOut: (e.fade_out_ms != null ? e.fade_out_ms : 12) / 1000
+        fadeOut: (e.fade_out_ms != null ? e.fade_out_ms : 12) / 1000,
+        synth: !!(sound && isSynth(sound))
       };
     });
   }
@@ -1809,7 +1877,10 @@
       },
       sounds_used: plan.entries.map(function (e, i) {
         var s = gatherSounds[i] || {};
-        return { key: e.clip_id, title: (s.title || e.chord || 'Sound'), source: s.supplier || '', spans: [{ at_s: e.at_s, len_s: e.len_s, key: e.clip_id, entry: i }] };
+        var row = { key: e.clip_id, title: (s.title || e.chord || 'Sound'), source: s.supplier || '', author: s.supplier || '', license: s.license || '', spans: [{ at_s: e.at_s, len_s: e.len_s, key: e.clip_id, entry: i }] };
+        if (s.credit) row.credit_line = s.credit;
+        if (s.synth) { row.synth = s.synth; row.code_license = 'MIT'; }
+        return row;
       })
     };
   }
@@ -1825,7 +1896,7 @@
       chord.className = 'g-chord';
       chord.textContent = e.chord || '';
       var line = document.createElement('span');
-      line.textContent = [s.title || 'Sound', s.supplier, licenseLabel(s.license) || s.license].filter(Boolean).join(' · ');
+      line.textContent = [s.title || 'Sound', s.supplier, licenseLabel(s.license) || s.license, s.detail].filter(Boolean).join(' · ');
       var when = document.createElement('span');
       when.className = 'm';
       when.textContent = ' ' + e.at_s.toFixed(1) + 's';
@@ -1865,11 +1936,13 @@
     s.textContent = '';
     armTake(planAsRecord(plan), true);
     paintPlan(plan);
+    noteSynthRecord(plan);
     if (window.NCLive && NCLive.stopClips) NCLive.stopClips();
     if (window.NCLive && NCLive.prime) NCLive.prime();
     if (window.NCLive) {
       try { NCLive.open({ id: playerJob, only: [localUrl], mp3: localUrl, force: true }); } catch (e2) {}
     }
+    syncLiveSynth();
     var audio = $('perform-audio');
     watchPlayer(audio);
     if (audio && localUrl && (audio.getAttribute('src') || '') !== localUrl) {
@@ -1878,6 +1951,28 @@
     var play = audio && audio.play && audio.play();
     if (play && play.catch) play.catch(function () {});
     syncActions();
+  }
+  function syncLiveSynth() {
+    if (!window.NCLive || !NCLive.setSynthPart) return;
+    var sounds = gatherSounds || [], synth = null, i;
+    for (i = 0; i < sounds.length; i++) if (isSynth(sounds[i])) synth = sounds[i];
+    if (!synth || !synth.notes || !synth.notes.length || !synth.synth) { NCLive.setSynthPart(null); return; }
+    NCLive.setSynthPart({ title: synth.title, notes: synth.notes, settings: synth.synth.settings, seed: synth.synth.seed });
+  }
+  function noteSynthRecord(plan) {
+    var sounds = gatherSounds || [], synth = null, i;
+    for (i = 0; i < sounds.length; i++) if (isSynth(sounds[i])) synth = sounds[i];
+    if (!synth) return;
+    var view = $('perform-record-view');
+    if (!view) return;
+    view.hidden = false;
+    view.textContent = '';
+    put(view, recRow('Sound', synth.title));
+    put(view, recRow('Line', synth.symbol));
+    put(view, recRow('Settings', synth.detail));
+    put(view, recRow('Code', 'MIT'));
+    put(view, recRow('Output license', 'CC BY-SA 4.0'));
+    if (plan && plan.seed != null) put(view, recRow('Seed', String(plan.seed)));
   }
   function clipReason(e) {
     if (!e) return 'not loaded';
@@ -1922,7 +2017,13 @@
     if (window.NCLive && NCLive.prime) NCLive.prime();
     var seed = drawSeed();
     var sounds = gatherSounds || [];
-    return Promise.all(sounds.map(loadClip)).then(function (bufs) {
+    return ensureSynth(sounds).then(function (ready) {
+      if (gen !== asmGen) return null;
+      sounds = ready || gatherSounds || [];
+      paintGather(sounds);
+      return Promise.all(sounds.map(loadClip));
+    }).then(function (bufs) {
+      if (!bufs) return;
       if (gen !== asmGen) return;
       var missing = [];
       bufs.forEach(function (b, i) { if (!b) missing.push(i); });
@@ -2133,9 +2234,9 @@
       if (s.supplier && s.credit) li.title = s.credit;
       var meta = document.createElement('span');
       meta.className = 'm g-meta';
-      meta.textContent = [who, licenseLabel(s.license) || s.license].filter(Boolean).join(' · ');
+      meta.textContent = [who, licenseLabel(s.license) || s.license, s.detail].filter(Boolean).join(' · ');
       var slot = s.slot >= 0 ? s.slot : -1;
-      var again = canRegather() && slot >= 0 ? regatherButton(slot) : null;
+      var again = canRegather() && slot >= 0 && !s.local ? regatherButton(slot) : null;
       if (again && regathering === slot) {
         li.className = 'g-busy';
         meta.textContent = 'Finding another recording…';
@@ -2507,6 +2608,12 @@
     preloadClips(gatherSounds);
     idle();
     gstatus('Gathered.');
+    var gid = gatherId;
+    ensureSynth(gatherSounds).then(function () {
+      if (gatherId !== gid || phase !== 'collection') return;
+      paintGather(gatherSounds);
+      preloadClips(gatherSounds);
+    }).catch(function () {});
     return true;
   }
   function onGatherJob(j) {
@@ -2577,9 +2684,52 @@
       gatherFail(gatherNote('[network]', err));
     });
   }
+  function gatherLocalSynth() {
+    var line = synthLine();
+    if (!line) return;
+    var S = wordsOk(gstatus);
+    if (!S) return;
+    stopPreview();
+    alive++;
+    phase = 'gather';
+    busy = true;
+    gatherJobId = '';
+    stopping = false;
+    hideStop();
+    $('perform-bar').hidden = true;
+    var mine = ++gatherGen;
+    syncActions();
+    gstatus('Gathering…');
+    ensureSynth([]).then(function (sounds) {
+      if (mine !== gatherGen || stopping) return;
+      gatherId = 'nc-synth';
+      gatherClaim = '';
+      gatherClock = null;
+      gatherSounds = sounds;
+      gatherLive = [];
+      gatherJobId = '';
+      sounds.forEach(function (s) { s.gather_id = gatherId; });
+      gprogress(true);
+      phase = 'collection';
+      running = false;
+      stopping = false;
+      hideStop();
+      $('perform-turnstile').hidden = true;
+      $('perform-bar').hidden = true;
+      paintGather(gatherSounds);
+      idle();
+      gstatus('Gathered.');
+    }).catch(function () {
+      if (mine !== gatherGen) return;
+      gatherFail('The NC Synth could not render that line.');
+    });
+  }
   function gather(again) {
-    if (busy || !gatherOn || !window.NC) return;
-    if (!(NC.timeline && NC.timeline())) return;
+    if (busy || !window.NC) return;
+    var line = synthLine();
+    var chords = !!(NC.timeline && NC.timeline());
+    if (!chords && !line) return;
+    if (!chords || !gatherOn) { if (line) gatherLocalSynth(); return; }
     var S = wordsOk(gstatus);
     if (!S) return;
     stopPreview();
@@ -2788,12 +2938,13 @@
   }
   function go() {
     if (busy || !window.NC) return;
-    if (!(NC.timeline && NC.timeline())) return;
-    if (gatherOn && !gatherId) return;
+    if (!(NC.timeline && NC.timeline()) && !synthLine()) return;
+    if (gatherOn && !gatherId && !(gatherSounds && gatherSounds.length)) return;
     var S = wordsOk();
     if (!S) return;
     stopPreview();
-    if (browserAssembly() && gatherSounds && gatherSounds.length) { playAssembly(); return; }
+    var localClips = gatherSounds && gatherSounds.length && (browserAssembly() || gatherSounds.every(function (s) { return s && s.buffer; }));
+    if (localClips) { playAssembly(); return; }
     alive++;
     running = false;
     hideStop();
