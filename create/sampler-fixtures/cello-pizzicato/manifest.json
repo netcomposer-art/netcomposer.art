@@ -1,0 +1,459 @@
+{
+ "format": "nc-sampler/1",
+ "kind": "notes",
+ "id": "fixture-cello-pizzicato",
+ "instrument": "cello pizzicato",
+ "slug": "cello-pizzicato",
+ "sustain": "plucked",
+ "velocity": [
+  "mf"
+ ],
+ "range": {
+  "lo": 43,
+  "hi": 67
+ },
+ "credit": "NC fixture",
+ "license_in": "CC0",
+ "license_out": "CC-BY-SA-4.0",
+ "page": "https://netcomposer.art/create/",
+ "author": "NC fixture",
+ "playback": {
+  "pitch_shift": false,
+  "time_stretch": false,
+  "octave_substitution": false,
+  "missing": "omit",
+  "ring_cap_s": 8,
+  "slice_fade_s": 0.08,
+  "chord_change_fade_s": 0.12
+ },
+ "notes": {
+  "43": {
+   "midi": 43,
+   "name": "G2",
+   "file": "notes/cello-pizzicato/43.opus",
+   "master": "notes/cello-pizzicato/43.flac",
+   "cents": 0,
+   "dur_s": 4,
+   "lufs": -28,
+   "peak_db": -6,
+   "sr": 48000,
+   "channels": 2,
+   "source": {
+    "url": "https://netcomposer.art/create/",
+    "t0": 0,
+    "t1": 4,
+    "license": "CC0"
+   }
+  },
+  "44": {
+   "midi": 44,
+   "name": "G#2",
+   "file": "notes/cello-pizzicato/44.opus",
+   "master": "notes/cello-pizzicato/44.flac",
+   "cents": 0,
+   "dur_s": 4,
+   "lufs": -18,
+   "peak_db": -6,
+   "sr": 48000,
+   "channels": 2,
+   "source": {
+    "url": "https://netcomposer.art/create/",
+    "t0": 0,
+    "t1": 4,
+    "license": "CC0"
+   }
+  },
+  "45": {
+   "midi": 45,
+   "name": "A2",
+   "file": "notes/cello-pizzicato/45.opus",
+   "master": "notes/cello-pizzicato/45.flac",
+   "cents": 0,
+   "dur_s": 4,
+   "lufs": -18,
+   "peak_db": -6,
+   "sr": 48000,
+   "channels": 2,
+   "source": {
+    "url": "https://netcomposer.art/create/",
+    "t0": 0,
+    "t1": 4,
+    "license": "CC0"
+   }
+  },
+  "46": {
+   "midi": 46,
+   "name": "A#2",
+   "file": "notes/cello-pizzicato/46.opus",
+   "master": "notes/cello-pizzicato/46.flac",
+   "cents": 0,
+   "dur_s": 4,
+   "lufs": -18,
+   "peak_db": -6,
+   "sr": 48000,
+   "channels": 2,
+   "source": {
+    "url": "https://netcomposer.art/create/",
+    "t0": 0,
+    "t1": 4,
+    "license": "CC0"
+   }
+  },
+  "47": {
+   "midi": 47,
+   "name": "B2",
+   "file": "notes/cello-pizzicato/47.opus",
+   "master": "notes/cello-pizzicato/47.flac",
+   "cents": 0,
+   "dur_s": 4,
+   "lufs": -18,
+   "peak_db": -6,
+   "sr": 48000,
+   "channels": 2,
+   "source": {
+    "url": "https://netcomposer.art/create/",
+    "t0": 0,
+    "t1": 4,
+    "license": "CC0"
+   }
+  },
+  "48": {
+   "midi": 48,
+   "name": "C3",
+   "file": "notes/cello-pizzicato/48.opus",
+   "master": "notes/cello-pizzicato/48.flac",
+   "cents": 0,
+   "dur_s": 4,
+   "lufs": -18,
+   "peak_db": -6,
+   "sr": 48000,
+   "channels": 2,
+   "source": {
+    "url": "https://netcomposer.art/create/",
+    "t0": 0,
+    "t1": 4,
+    "license": "CC0"
+   }
+  },
+  "49": {
+   "midi": 49,
+   "name": "C#3",
+   "file": "notes/cello-pizzicato/49.opus",
+   "master": "notes/cello-pizzicato/49.flac",
+   "cents": 0,
+   "dur_s": 4,
+   "lufs": -18,
+   "peak_db": -6,
+   "sr": 48000,
+   "channels": 2,
+   "source": {
+    "url": "https://netcomposer.art/create/",
+    "t0": 0,
+    "t1": 4,
+    "license": "CC0"
+   }
+  },
+  "50": {
+   "midi": 50,
+   "name": "D3",
+   "file": "notes/cello-pizzicato/50.opus",
+   "master": "notes/cello-pizzicato/50.flac",
+   "cents": 0,
+   "dur_s": 4,
+   "lufs": -18,
+   "peak_db": -6,
+   "sr": 48000,
+   "channels": 2,
+   "source": {
+    "url": "https://netcomposer.art/create/",
+    "t0": 0,
+    "t1": 4,
+    "license": "CC0"
+   }
+  },
+  "51": {
+   "midi": 51,
+   "name": "D#3",
+   "file": "notes/cello-pizzicato/51.opus",
+   "master": "notes/cello-pizzicato/51.flac",
+   "cents": 0,
+   "dur_s": 4,
+   "lufs": -18,
+   "peak_db": -6,
+   "sr": 48000,
+   "channels": 2,
+   "source": {
+    "url": "https://netcomposer.art/create/",
+    "t0": 0,
+    "t1": 4,
+    "license": "CC0"
+   }
+  },
+  "52": {
+   "midi": 52,
+   "name": "E3",
+   "file": "notes/cello-pizzicato/52.opus",
+   "master": "notes/cello-pizzicato/52.flac",
+   "cents": 0,
+   "dur_s": 4,
+   "lufs": -18,
+   "peak_db": -6,
+   "sr": 48000,
+   "channels": 2,
+   "source": {
+    "url": "https://netcomposer.art/create/",
+    "t0": 0,
+    "t1": 4,
+    "license": "CC0"
+   }
+  },
+  "53": {
+   "midi": 53,
+   "name": "F3",
+   "file": "notes/cello-pizzicato/53.opus",
+   "master": "notes/cello-pizzicato/53.flac",
+   "cents": 0,
+   "dur_s": 4,
+   "lufs": -18,
+   "peak_db": -6,
+   "sr": 48000,
+   "channels": 2,
+   "source": {
+    "url": "https://netcomposer.art/create/",
+    "t0": 0,
+    "t1": 4,
+    "license": "CC0"
+   }
+  },
+  "54": {
+   "midi": 54,
+   "name": "F#3",
+   "file": "notes/cello-pizzicato/54.opus",
+   "master": "notes/cello-pizzicato/54.flac",
+   "cents": 0,
+   "dur_s": 4,
+   "lufs": -18,
+   "peak_db": -6,
+   "sr": 48000,
+   "channels": 2,
+   "source": {
+    "url": "https://netcomposer.art/create/",
+    "t0": 0,
+    "t1": 4,
+    "license": "CC0"
+   }
+  },
+  "55": {
+   "midi": 55,
+   "name": "G3",
+   "file": "notes/cello-pizzicato/55.opus",
+   "master": "notes/cello-pizzicato/55.flac",
+   "cents": 0,
+   "dur_s": 4,
+   "lufs": -18,
+   "peak_db": -6,
+   "sr": 48000,
+   "channels": 2,
+   "source": {
+    "url": "https://netcomposer.art/create/",
+    "t0": 0,
+    "t1": 4,
+    "license": "CC0"
+   }
+  },
+  "57": {
+   "midi": 57,
+   "name": "A3",
+   "file": "notes/cello-pizzicato/57.opus",
+   "master": "notes/cello-pizzicato/57.flac",
+   "cents": 0,
+   "dur_s": 4,
+   "lufs": -18,
+   "peak_db": -6,
+   "sr": 48000,
+   "channels": 2,
+   "source": {
+    "url": "https://netcomposer.art/create/",
+    "t0": 0,
+    "t1": 4,
+    "license": "CC0"
+   }
+  },
+  "58": {
+   "midi": 58,
+   "name": "A#3",
+   "file": "notes/cello-pizzicato/58.opus",
+   "master": "notes/cello-pizzicato/58.flac",
+   "cents": 0,
+   "dur_s": 4,
+   "lufs": -18,
+   "peak_db": -6,
+   "sr": 48000,
+   "channels": 2,
+   "source": {
+    "url": "https://netcomposer.art/create/",
+    "t0": 0,
+    "t1": 4,
+    "license": "CC0"
+   }
+  },
+  "59": {
+   "midi": 59,
+   "name": "B3",
+   "file": "notes/cello-pizzicato/59.opus",
+   "master": "notes/cello-pizzicato/59.flac",
+   "cents": 0,
+   "dur_s": 4,
+   "lufs": -18,
+   "peak_db": -6,
+   "sr": 48000,
+   "channels": 2,
+   "source": {
+    "url": "https://netcomposer.art/create/",
+    "t0": 0,
+    "t1": 4,
+    "license": "CC0"
+   }
+  },
+  "61": {
+   "midi": 61,
+   "name": "C#4",
+   "file": "notes/cello-pizzicato/61.opus",
+   "master": "notes/cello-pizzicato/61.flac",
+   "cents": 0,
+   "dur_s": 4,
+   "lufs": -18,
+   "peak_db": -6,
+   "sr": 48000,
+   "channels": 2,
+   "source": {
+    "url": "https://netcomposer.art/create/",
+    "t0": 0,
+    "t1": 4,
+    "license": "CC0"
+   }
+  },
+  "62": {
+   "midi": 62,
+   "name": "D4",
+   "file": "notes/cello-pizzicato/62.opus",
+   "master": "notes/cello-pizzicato/62.flac",
+   "cents": 0,
+   "dur_s": 4,
+   "lufs": -18,
+   "peak_db": -6,
+   "sr": 48000,
+   "channels": 2,
+   "source": {
+    "url": "https://netcomposer.art/create/",
+    "t0": 0,
+    "t1": 4,
+    "license": "CC0"
+   }
+  },
+  "63": {
+   "midi": 63,
+   "name": "D#4",
+   "file": "notes/cello-pizzicato/63.opus",
+   "master": "notes/cello-pizzicato/63.flac",
+   "cents": 0,
+   "dur_s": 4,
+   "lufs": -18,
+   "peak_db": -6,
+   "sr": 48000,
+   "channels": 2,
+   "source": {
+    "url": "https://netcomposer.art/create/",
+    "t0": 0,
+    "t1": 4,
+    "license": "CC0"
+   }
+  },
+  "64": {
+   "midi": 64,
+   "name": "E4",
+   "file": "notes/cello-pizzicato/64.opus",
+   "master": "notes/cello-pizzicato/64.flac",
+   "cents": 0,
+   "dur_s": 4,
+   "lufs": -18,
+   "peak_db": -6,
+   "sr": 48000,
+   "channels": 2,
+   "source": {
+    "url": "https://netcomposer.art/create/",
+    "t0": 0,
+    "t1": 4,
+    "license": "CC0"
+   }
+  },
+  "65": {
+   "midi": 65,
+   "name": "F4",
+   "file": "notes/cello-pizzicato/65.opus",
+   "master": "notes/cello-pizzicato/65.flac",
+   "cents": 0,
+   "dur_s": 4,
+   "lufs": -12,
+   "peak_db": -6,
+   "sr": 48000,
+   "channels": 2,
+   "source": {
+    "url": "https://netcomposer.art/create/",
+    "t0": 0,
+    "t1": 4,
+    "license": "CC0"
+   }
+  },
+  "66": {
+   "midi": 66,
+   "name": "F#4",
+   "file": "notes/cello-pizzicato/66.opus",
+   "master": "notes/cello-pizzicato/66.flac",
+   "cents": 0,
+   "dur_s": 4,
+   "lufs": -18,
+   "peak_db": -6,
+   "sr": 48000,
+   "channels": 2,
+   "source": {
+    "url": "https://netcomposer.art/create/",
+    "t0": 0,
+    "t1": 4,
+    "license": "CC0"
+   }
+  },
+  "67": {
+   "midi": 67,
+   "name": "G4",
+   "file": "notes/cello-pizzicato/67.opus",
+   "master": "notes/cello-pizzicato/67.flac",
+   "cents": 0,
+   "dur_s": 4,
+   "lufs": -18,
+   "peak_db": -6,
+   "sr": 48000,
+   "channels": 2,
+   "source": {
+    "url": "https://netcomposer.art/create/",
+    "t0": 0,
+    "t1": 4,
+    "license": "CC0"
+   }
+  }
+ },
+ "gaps": [
+  {
+   "midi": 56,
+   "name": "G#3",
+   "status": "absent",
+   "reason": "not in this fixture"
+  },
+  {
+   "midi": 60,
+   "name": "C4",
+   "status": "absent",
+   "reason": "not in this fixture"
+  }
+ ]
+}

@@ -181,16 +181,17 @@
     var gBtn = $('gatherBtn'), pBtn = $('performBtn'), again = $('gather-again'), box = $('gather-box');
     var on = !!(cfg && cfg.perform_enabled);
     var chords = !!(window.NC && NC.timeline && NC.timeline());
-    var synth = !!synthLine();
-    var can = (on && chords) || synth;
+    var sampler = !!(window.NCSampler && NCSampler.active && NCSampler.active() && NCSampler.canPlay && NCSampler.canPlay());
+    var synth = !sampler && !!synthLine();
+    var can = (on && chords && !sampler) || synth || sampler;
     var has = !!(gatherSounds && gatherSounds.length);
     if (gBtn) {
-      gBtn.hidden = !(gatherOn || synth) || has || phase === 'perform';
+      gBtn.hidden = !(gatherOn || synth || sampler) || has || phase === 'perform';
       gBtn.disabled = !can || busy || phase === 'gather';
       gBtn.textContent = phase === 'gather' ? 'Gathering…' : 'Gather';
     }
     if (again) {
-      again.hidden = !(gatherOn || synth) || !has;
+      again.hidden = !(gatherOn || synth || sampler) || !has;
       again.disabled = !can || busy;
       again.textContent = phase === 'gather' ? 'Gathering…' : 'Gather again';
     }
@@ -1790,6 +1791,7 @@
   // asks whether that line should become a synth buffer. @instrument keeps
   // the statement off the synth, the same way it does for notes.
   function synthLine() {
+    if (window.NCSampler && NCSampler.active && NCSampler.active()) return null;
     if (!window.NCSynth || !NCSynth.readLine) return null;
     var text = ($('comp') && $('comp').value) || '';
     var line = NCSynth.readLine(text);
@@ -2945,8 +2947,64 @@
       gatherFail('The NC Synth could not render that line.');
     });
   }
+  function gatherSampler() {
+    if (!window.NCSampler || !NCSampler.collect) return;
+    var S = wordsOk(gstatus);
+    if (!S) return;
+    stopPreview();
+    alive++;
+    phase = 'gather';
+    busy = true;
+    gatherJobId = '';
+    stopping = false;
+    hideStop();
+    $('perform-bar').hidden = true;
+    var mine = ++gatherGen;
+    syncActions();
+    showStop();
+    gatherPct = 0;
+    gatherFine = true;
+    gatherTotal = 1;
+    gstatus('Gathering…');
+    gsync();
+    NCSampler.collect({
+      progress: function (loaded, total) {
+        if (mine !== gatherGen || stopping) return;
+        var p = total ? Math.min(99, Math.floor(100 * loaded / total)) : 0;
+        if (p > gatherPct) gatherPct = p;
+        gsync();
+      }
+    }).then(function (pack) {
+      if (mine !== gatherGen || stopping) return;
+      var sound = pack.sound;
+      gatherId = 'nc-sampler';
+      gatherClaim = '';
+      gatherClock = null;
+      gatherSounds = [sound];
+      gatherLive = [sound];
+      gatherNames = [sound.symbol || ''];
+      gatherJobId = '';
+      gprogress(true);
+      phase = 'collection';
+      running = false;
+      stopping = false;
+      hideStop();
+      $('perform-turnstile').hidden = true;
+      $('perform-bar').hidden = true;
+      paintGather(gatherSounds);
+      idle();
+      gstatus(pack.messages && pack.messages.length ? pack.messages.join(' ') : 'Gathered.');
+    }).catch(function (err) {
+      if (mine !== gatherGen) return;
+      gatherFail(err && err.message ? err.message : 'The notes did not load.');
+    });
+  }
   function gather(again) {
     if (busy || !window.NC) return;
+    if (window.NCSampler && NCSampler.active && NCSampler.active() && NCSampler.canPlay && NCSampler.canPlay()) {
+      gatherSampler();
+      return;
+    }
     var line = synthLine();
     var chords = !!(NC.timeline && NC.timeline());
     if (!chords && !line) return;

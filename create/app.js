@@ -152,13 +152,17 @@ function writtenDurations(text, chords) {
   rounded[rounded.length - 1] = +(rounded[rounded.length - 1] + (target - sum)).toFixed(3);
   return rounded;
 }
-function showIRead(parsed) {
+function showIRead(parsed, tl) {
   var el = $('iread');
   if (!el) return;
   var line = parsed && parsed.iread ? parsed.iread : '';
-  if (!line) { el.textContent = ''; el.hidden = true; return; }
+  var extra = '';
+  if (window.NCSampler && NCSampler.linesFor) {
+    try { extra = NCSampler.linesFor(parsed, tl) || ''; } catch (e) { extra = ''; }
+  }
+  if (!line && !extra) { el.textContent = ''; el.hidden = true; return; }
   el.hidden = false;
-  el.textContent = 'I read  ' + line;
+  el.textContent = (line ? 'I read  ' + line : '') + (line && extra ? '\n' : '') + extra;
 }
 var hackSig = '';
 function applyHacks(parsed) {
@@ -209,13 +213,16 @@ function timelineFrom(parsed) {
 // the timeline, the same rule as `nc interpret --stub`
 function timeline() {
   var comp = $('comp').value, parsed = readLang(comp);
-  showIRead(parsed);
   applyHacks(parsed);
-  if (parsed && parsed.clock === 'language') return timelineFrom(parsed);
+  if (parsed && parsed.clock === 'language') {
+    var lang = timelineFrom(parsed);
+    showIRead(parsed, lang);
+    return lang;
+  }
   var words = comp + ' ' + promptWords(), fromComp = true;
   var found = findChords(comp);
   if (!found.length) { found = findChords(words); fromComp = false; }
-  if (!found.length) return null;
+  if (!found.length) { showIRead(parsed, null); return null; }
   var written = writtenDurations(fromComp ? comp : words, found);
   var seq, durs, L;
   if (written) {
@@ -235,7 +242,9 @@ function timeline() {
     out.push({t: +t.toFixed(3), dur: +d.toFixed(3), symbol: c.sym, bass: c.bass, path: v[0], voicing: v[1]});
     t += d;
   });
-  return {L: L, chords: out, unique: found.map(function (c) { return c.sym; }), written: !!written};
+  var built = {L: L, chords: out, unique: found.map(function (c) { return c.sym; }), written: !!written};
+  showIRead(parsed, built);
+  return built;
 }
 var NAMES = ['C', 'C#', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab', 'A', 'Bb', 'B'];
 function nn(m) { return NAMES[m % 12] + (Math.floor(m / 12) - 1); }
@@ -245,7 +254,7 @@ function slug(s) { return (s || 'untitled').toLowerCase().replace(/[^a-z0-9]+/g,
 function refresh() {
   var tl = CAT && timeline(), el = $('prog');
   if (!CAT) { el.textContent = 'Loading the chord set…'; return; }
-  if (!tl) { $('progmeta').textContent = ''; el.textContent = ''; el.classList.add('empty'); $('play').disabled = true; if (window.NCPerform && NCPerform.sync) NCPerform.sync(); return; }
+  if (!tl) { $('progmeta').textContent = ''; el.textContent = ''; el.classList.add('empty'); $('play').disabled = !(window.NCSampler && NCSampler.canPlay && NCSampler.canPlay()); if (window.NCPerform && NCPerform.sync) NCPerform.sync(); return; }
   el.classList.remove('empty');
   $('play').disabled = false;
   el.innerHTML = '';
@@ -262,6 +271,7 @@ function refresh() {
 var AC = null, playing = [], timers = [], gen = 0, active = false, cur = 0, restartT = null, SCHED = [];
 function stop() {
   gen++; active = false; clearTimeout(restartT);
+  if (window.NCSampler && NCSampler.halt) NCSampler.halt();
   playing.forEach(function (n) { try { n.stop(); } catch (e) {} }); playing = [];
   timers.forEach(clearTimeout); timers = [];
   document.querySelectorAll('.ch.on').forEach(function (e) { e.classList.remove('on'); });
@@ -280,6 +290,7 @@ function instrumentName() {
   return e.options[e.selectedIndex].textContent;
 }
 function creditSentence() {
+  if (window.NCSampler && NCSampler.active && NCSampler.active() && NCSampler.credit && NCSampler.credit()) return NCSampler.credit();
   return instrumentName() + ' from musicmatter.art (Petrus, CC BY-SA 4.0).';
 }
 function previewLen(sec) {
@@ -408,6 +419,13 @@ function playLanguage(tl, from, speed, master, my) {
 function start(from) {
   var heard = $('perform-audio');
   if (heard && !heard.paused) heard.pause();
+  if (window.NCSampler && NCSampler.active && NCSampler.active() && NCSampler.canPlay && NCSampler.canPlay()) {
+    stop();
+    var mine = gen; active = true;
+    $('play').textContent = 'Stop'; $('sinenote').hidden = true; status('Loading notes…');
+    NCSampler.play({from: from || 0, live: function () { return mine === gen; }, status: status, done: function () { if (mine === gen) { stop(); cur = 0; } }});
+    return;
+  }
   stop();
   var tl = timeline(); if (!tl) return;
   AC = AC || new (window.AudioContext || window.webkitAudioContext)(); AC.resume();
@@ -838,9 +856,13 @@ $('perf').addEventListener('keydown', function (e) {
 $('spd').oninput = function () { $('spdv').textContent = (+$('spd').value).toFixed(1) + '×'; restartSoon(); };
 if ($('perf-box') && $('perf-box').tagName === 'DETAILS') $('perf-box').addEventListener('toggle', function () { if ($('perf-box').open) growNotes(); });
 $('inst').addEventListener('change', function () { $('sinenote').hidden = true; showCredit(); if (active) restartSoon(); });
-window.MM.loadIndex().then(function (cat) { fillInstruments(window.MM.instruments(cat)); }).catch(function () {
+window.MM.loadIndex().then(function (cat) {
+  fillInstruments(window.MM.instruments(cat));
+  if (window.NCSampler && NCSampler.boot) NCSampler.boot();
+}).catch(function () {
   $('inst').disabled = true;
   $('instnote').textContent = 'The instrument list did not load. Play uses piano when the file is there, then a simple tone.';
+  if (window.NCSampler && NCSampler.boot) NCSampler.boot();
 });
 $('dlmd').onclick = function () { var S = state(); download(slug(S.t) + '.composition.md', toMd(S), 'text/markdown'); };
 $('dlplan').onclick = function () { var S = state(), p = toPlan(S); if (!p) { status('Write some chord symbols first.', true); return; } download(slug(S.t) + '.plan.json', JSON.stringify(p, null, 1) + '\n', 'application/json'); };

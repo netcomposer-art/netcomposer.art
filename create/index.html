@@ -255,6 +255,48 @@ button.rewind:hover,button.rewind:active{background:transparent;transform:none}
 .hack-scope{display:block;width:100%;height:56px;margin:0}
 .hack-note{margin:.2rem 0 0;color:var(--nc-sub);font-size:12px}
 #spdv{font-size:12px;color:var(--nc-sub)}
+/* Sampler panel. The control classes are the NC Synth instrument face
+   (module, mono index, tracked label, range, select), drawn on this page's white. */
+#sampler.nc{--nc-bg:#FFFFFF;--nc-text:#202523;--nc-sub:#7C8580;--nc-div:#D9DEDA;--nc-surf:#E8EBE7;--nc-acc:#426C61;background:#FFFFFF;color:var(--nc-text);margin:1.15rem -1.5rem 0;font-family:Inter,sans-serif}
+#sampler[hidden]{display:none}
+#sampler .nc-module{background:#FFFFFF;padding:24px;border-bottom:1px solid var(--nc-div)}
+#sampler .nc-module:last-child{border-bottom:0}
+@media(min-width:1024px){#sampler .nc-module{padding:28px 32px}}
+#sampler .nc-mono{font-family:var(--nc-mono);font-variant-numeric:tabular-nums}
+#sampler .nc-label{font-size:11px;text-transform:uppercase;letter-spacing:.14em;color:var(--nc-sub);font-weight:500;margin:0}
+#sampler .nc-module>.nc-label{margin:0 0 14px}
+#sampler .nc-label .nc-mono{margin-right:.35em}
+#sampler .nc-ctl{transition:opacity .2s;margin:0 0 14px}
+#sampler .nc-module .nc-ctl:last-child{margin-bottom:0}
+#sampler .nc-ctl:hover .nc-label{color:var(--nc-text)}
+#sampler .nc-row{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin:0 0 4px}
+#sampler .nc-read,#sampler .nc-credit{font-size:12px;line-height:1.45;color:var(--nc-text);margin:0}
+#sampler .nc-credit{margin-top:12px;overflow-wrap:anywhere}
+#sampler .nc-miss{font-size:13px;line-height:1.45;color:var(--nc-text);margin:10px 0 0;white-space:pre-wrap}
+#sampler select.nc-select{appearance:none;-webkit-appearance:none;background-color:transparent;border:0;border-bottom:1px solid var(--nc-div);border-radius:0;padding:4px 18px 4px 0;font-family:Inter,sans-serif;font-size:13px;color:var(--nc-text);width:100%;max-width:100%;cursor:pointer;
+  background-image:linear-gradient(45deg,transparent 50%,var(--nc-sub) 50%),linear-gradient(135deg,var(--nc-sub) 50%,transparent 50%);
+  background-position:calc(100% - 7px) 55%,calc(100% - 3px) 55%;background-size:4px 4px;background-repeat:no-repeat;transition:border-color .15s}
+#sampler select.nc-select:hover:not(:disabled){border-color:var(--nc-sub)}
+#sampler select.nc-select:focus-visible{outline:none;border-color:var(--nc-acc)}
+#sampler select.nc-select:disabled{opacity:.35;cursor:not-allowed}
+#sampler input.nc-range{-webkit-appearance:none;appearance:none;width:100%;max-width:100%;height:20px;background:transparent;cursor:pointer;accent-color:auto;vertical-align:middle}
+#sampler input.nc-range:disabled{cursor:not-allowed;opacity:.35}
+#sampler input.nc-range::-webkit-slider-runnable-track{height:1px;background:var(--nc-div)}
+#sampler input.nc-range::-moz-range-track{height:1px;background:var(--nc-div)}
+#sampler input.nc-range::-moz-range-progress{height:1px;background:var(--nc-acc)}
+#sampler input.nc-range::-webkit-slider-thumb{-webkit-appearance:none;width:11px;height:11px;border-radius:50%;background:var(--nc-text);margin-top:-5px;transition:transform .15s ease,background .15s}
+#sampler input.nc-range::-moz-range-thumb{width:11px;height:11px;border:0;border-radius:50%;background:var(--nc-text);transition:transform .15s ease,background .15s}
+#sampler input.nc-range:hover:not(:disabled)::-webkit-slider-thumb{transform:scale(1.25);background:var(--nc-acc)}
+#sampler input.nc-range:hover:not(:disabled)::-moz-range-thumb{transform:scale(1.25);background:var(--nc-acc)}
+#sampler input.nc-range:active::-webkit-slider-thumb{transform:scale(1.45)}
+#sampler input.nc-range:focus-visible{outline:none}
+#sampler input.nc-range:focus-visible::-webkit-slider-thumb{box-shadow:0 0 0 3px var(--nc-bg),0 0 0 4px var(--nc-acc)}
+#sampler input.nc-range:focus-visible::-moz-range-thumb{box-shadow:0 0 0 3px var(--nc-bg),0 0 0 4px var(--nc-acc)}
+#sampler .nc-keys{position:relative;height:52px;margin:2px 0 8px}
+#sampler .nc-key{position:absolute;top:0;box-sizing:border-box;border:1px solid var(--nc-div)}
+#sampler .nc-key.white{height:52px;background:#FFFFFF}
+#sampler .nc-key.black{height:32px;z-index:1;background:var(--nc-text);border-color:var(--nc-text)}
+#sampler .nc-key[data-on="0"]{opacity:.28}
 </style>
 </head>
 <body>
@@ -281,11 +323,12 @@ button.rewind:hover,button.rewind:active{background:transparent;transform:none}
 <label class="inlbl" for="inst">Instrument</label><select id="inst" aria-label="Instrument"></select></div>
 <p class="m" id="status"></p>
 <p class="m" id="sinenote" hidden></p>
+<div id="sampler" class="nc" hidden></div>
 </section>
 
 <section id="gather">
 <h2 id="gather-h">Gather</h2>
-<p>One openly licensed recording for each chord.</p>
+<p id="gather-lead">One openly licensed recording for each chord.</p>
 <div class="row" id="gather-row"><button id="gatherBtn" type="button" hidden disabled>Gather</button></div>
 <p class="m" id="gather-line"><span id="gather-status" aria-live="polite">Checking whether Perform is awake…</span><span id="gather-pct" hidden></span><button type="button" id="gather-stop" hidden>Stop</button><span class="gbar" id="gather-bar" role="progressbar" aria-label="Gather progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" hidden><span class="gtrack"><span class="gfill" id="gather-fill"></span></span></span></p>
 <div id="gather-box" hidden>
@@ -465,6 +508,7 @@ nc perform composition.md -o out/           # any OpenAI-compatible LLM</pre>
 <script src="timeline-edit.js"></script>
 <script src="synth-audio/dist/index.js"></script>
 <script src="nc-synth.js"></script>
+<script src="sampler.js"></script>
 <script src="perform.js"></script>
 <script src="reset.js"></script>
 </body>
