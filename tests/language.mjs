@@ -109,7 +109,11 @@ const cm = L.parse('Cm', { known });
 check(cm.iread.indexOf('96 BPM · Cm 1 bar* · 4 beats · 2.5 s') === 0, 'Cm echo: ' + cm.iread);
 check(!cm.notes.some((n) => /tempo/i.test(n)) && cm.notes.some((n) => n.indexOf('`Cm(4)`') >= 0 && n.indexOf('`Cm(2|)`') >= 0), 'Cm notes keep the length and drop the tempo: ' + JSON.stringify(cm.notes));
 check(L.parse('3/4 Cm', { known }).iread.indexOf('96 BPM · Cm 1 bar* · 3 beats · ~1.9 s · 3/4') === 0, '3/4 sketch: ' + L.parse('3/4 Cm', { known }).iread);
-check(L.parse('6/8 Cm(1|)', { known }).played[0].bars === 1 && L.parse('6/8 Cm(1|)', { known }).played[0].seconds === 1.875 && L.parse('6/8 Cm(1|)', { known }).iread.indexOf('3 beats') >= 0, '6/8 bar is three quarter-beats');
+check(L.beatsInBar('6/8') === 3 && L.beatsInBar('4/4') === 4 && L.beatsInBar('3/4') === 3 && L.beatsInBar('2/2') === 4 && L.beatsInBar('5/8') === 2.5 && L.beatsInBar('7/8') === 3.5 && L.beatsInBar('12/8') === 6, '6/8 is 3 beats and the other meters stay');
+check(L.parse('6/8 Cm(1|)', { known }).played[0].bars === 1 && L.parse('6/8 Cm(1|)', { known }).played[0].seconds === 1.875 && L.parse('6/8 Cm(1|)', { known }).iread.indexOf('96 BPM · Cm 1 bar · 3 beats · ~1.9 s · 6/8') === 0, '6/8 bar is three beats');
+check(L.parse('6/8 Cm(3)', { known }).played[0].seconds === 1.875 && L.parse('6/8 Cm(6)', { known }).played[0].seconds === 3.75, '(3) is one bar of 6/8 and (6) is two');
+check(L.parse('5/8 Cm(1|)', { known }).played[0].seconds === 1.563 && L.parse('5/8 Cm(1|)', { known }).iread.indexOf('2.5 beats') >= 0, '5/8 stays 2.5 beats');
+check(L.parse('7/8 Cm(1|)', { known }).played[0].seconds === 2.188 && L.parse('2/2 Cm(1|)', { known }).played[0].seconds === 2.5 && L.parse('3/8 Cm(1|)', { known }).played[0].seconds === 0.938 && L.parse('12/8 Cm(1|)', { known }).played[0].seconds === 3.75, '7/8, 2/2, 3/8 and 12/8 stay on the quarter-note bar');
 check(L.parse('3/4 Cm(2|)', { known }).played[0].seconds === 3.75 && L.parse('90 BPM 3/4 [Cm(3) | Fm(3)]', { known }).notes.length === 0, 'a bar in 3/4 is 3 beats');
 check(L.parse('3/4 [Cm(2) | Fm(3)]', { known }).notes.some((n) => n.indexOf('not 3') >= 0), 'a short bar in 3/4 is still an error');
 check(L.parse('4/4 Cm', { known }).meterWritten === true && L.parse('Cm', { known }).meterWritten === false && L.parse('"3/4" Cm', { known }).meterWritten === false, 'a written 4/4 is not the quiet default');
@@ -343,12 +347,18 @@ if (!chrome || typeof WebSocket === 'undefined') {
           links: Array.prototype.map.call(document.querySelectorAll('#iread a.how'), function (a) { return a.getAttribute('href'); }),
           tempo: tempo.value, meter: meter.value,
           tempoDefault: tempo.classList.contains('deflt'),
-          meterDefault: meter.classList.contains('deflt')
+          meterDefault: meter.classList.contains('deflt'),
+          lens: Array.prototype.map.call(document.querySelectorAll('#prog .ch .len'), function (n) { return n.textContent; }),
+          marks: document.querySelectorAll('#prog .beats .tick').length,
+          barMarks: document.querySelectorAll('#prog .beats .tick.bar').length,
+          grid: document.querySelectorAll('#arrange .arr-tick').length,
+          gridBars: document.querySelectorAll('#arrange .arr-tick.bar').length,
+          arrangeLen: (window.NCArrange && NCArrange.clip && NCArrange.clip('chords', 0) || {}).len || null
         };
       })()`);
     }
     const just = await put('Cm');
-    check(just && just.chips === 1 && just.meta.indexOf('1 bar') >= 0 && just.meta.indexOf('4 beats') >= 0 && just.meta.indexOf('2.5 s') >= 0 && just.iread.indexOf('96 BPM') >= 0 && just.iread.indexOf('No tempo') < 0 && just.codes.indexOf('90 BPM') < 0 && just.codes.indexOf('Cm(4)') >= 0, 'Cm is one bar: ' + JSON.stringify(just));
+    check(just && just.chips === 1 && just.meta.indexOf('1 bar') >= 0 && just.meta.indexOf('4 beats') >= 0 && just.meta.indexOf('2.5 s') >= 0 && just.marks === 4 && just.barMarks === 1 && just.iread.indexOf('96 BPM') >= 0 && just.iread.indexOf('No tempo') < 0 && just.codes.indexOf('90 BPM') < 0 && just.codes.indexOf('Cm(4)') >= 0, 'Cm is one bar: ' + JSON.stringify(just));
     check(just && just.links.indexOf('/create/help/#durations') >= 0 && just.links.indexOf('/create/help/#tempo') < 0, 'Cm notes link to lengths, not a tempo reminder: ' + JSON.stringify(just && just.links));
     check(just && just.tempo === '96' && just.meter === '4/4' && just.tempoDefault === true && just.meterDefault === true, 'Cm leaves the header on the defaults: ' + JSON.stringify(just));
     await shotPlay('play-cm-desktop.png', 1280, 900, false);
@@ -371,6 +381,31 @@ if (!chrome || typeof WebSocket === 'undefined') {
     await shotPlay('play-words-phone.png', 390, 844, true);
     const blank = await put('');
     check(blank && blank.chips === 0 && blank.meta === '' && blank.hidden === true && blank.tempo === '96' && blank.meter === '4/4' && blank.tempoDefault && blank.meterDefault, 'empty field still shows 96 and 4/4: ' + JSON.stringify(blank));
+    await send('Emulation.setDeviceMetricsOverride', { width: 390, height: 900, deviceScaleFactor: 1, mobile: true });
+    await ev('scrollTo(0,0)');
+    await sleep(60);
+    const hint = await ev(`(() => {
+      var el = document.getElementById('syntax-hint');
+      var lab = el.querySelector('.hint-label');
+      var cs = getComputedStyle(lab);
+      var page = document.documentElement;
+      return {
+        text: lab.textContent, first: el.firstChild === lab,
+        size: cs.fontSize, track: cs.letterSpacing, transform: cs.textTransform,
+        color: cs.color, weight: cs.fontWeight, display: cs.display,
+        wide: page.scrollWidth > page.clientWidth + 1,
+        field: document.getElementById('comp').value
+      };
+    })()`);
+    check(hint && hint.field === '' && hint.text === 'Examples' && hint.first === true && hint.size === '11px' && hint.transform === 'uppercase' && hint.weight === '500' && hint.color === 'rgb(124, 133, 128)' && hint.display === 'inline' && hint.track !== 'normal' && hint.wide === false, 'empty field labels the hint as examples: ' + JSON.stringify(hint));
+    const hintClip = await ev(`(() => {
+      var a = document.querySelector('.comp-head').getBoundingClientRect();
+      var b = document.getElementById('syntax-hint').getBoundingClientRect();
+      var m = document.querySelector('main').getBoundingClientRect();
+      return { x: Math.max(0, Math.floor(m.left + scrollX)), y: Math.max(0, Math.floor(a.top + scrollY - 10)), width: Math.ceil(m.width), height: Math.ceil(b.bottom - a.top + 18) };
+    })()`);
+    const hintImg = await send('Page.captureScreenshot', { format: 'png', clip: { x: hintClip.x, y: hintClip.y, width: hintClip.width, height: hintClip.height, scale: 1 }, captureBeyondViewport: true });
+    try { mkdirSync('/opt/cursor/artifacts', { recursive: true }); writeFileSync(join('/opt/cursor/artifacts', 'examples-hint-phone.png'), Buffer.from(hintImg.data, 'base64')); } catch (e) {}
     await send('Emulation.setDeviceMetricsOverride', { width: 1280, height: 900, deviceScaleFactor: 1, mobile: false });
     await sleep(80);
     const clockBox = await ev(`(() => {
@@ -383,9 +418,26 @@ if (!chrome || typeof WebSocket === 'undefined') {
     await shotPlay('play-empty-desktop.png', 1280, 900, false);
     await shotPlay('play-empty-phone.png', 390, 844, true);
     const waltz = await put('3/4 Cm');
-    check(waltz && waltz.chips === 1 && waltz.meta.indexOf('3 beats') >= 0 && waltz.meta.indexOf('1 bar') >= 0 && waltz.tempo === '96' && waltz.tempoDefault === true && waltz.meter === '3/4' && waltz.meterDefault === false && waltz.iread.indexOf('3/4') >= 0, '3/4 is written and 96 stays the quiet default: ' + JSON.stringify(waltz));
+    check(waltz && waltz.chips === 1 && waltz.meta.indexOf('3 beats') >= 0 && waltz.meta.indexOf('1 bar') >= 0 && waltz.marks === 3 && waltz.tempo === '96' && waltz.tempoDefault === true && waltz.meter === '3/4' && waltz.meterDefault === false && waltz.iread.indexOf('3/4') >= 0 && waltz.codes.indexOf('Cm(3)') >= 0, '3/4 is written and 96 stays the quiet default: ' + JSON.stringify(waltz));
     await shotPlay('play-34-desktop.png', 1280, 900, false);
     await shotPlay('play-34-phone.png', 390, 844, true);
+    const six = await put('6/8 Cm(1|)');
+    check(six && six.chips === 1 && six.lens[0] === '1 bar' && six.marks === 3 && six.barMarks === 1 && six.meta.indexOf('3 beats') >= 0 && six.meta.indexOf('1 bar') >= 0 && six.meta.indexOf('~1.9 s') >= 0 && six.iread.indexOf('96 BPM · Cm 1 bar · 3 beats · ~1.9 s · 6/8') >= 0, 'a bar of 6/8 is 3 beats on the timeline: ' + JSON.stringify(six));
+    check(six && six.tempo === '96' && six.tempoDefault === true && six.meter === '6/8' && six.meterDefault === false && six.arrangeLen === 1.875 && six.grid === 3 && six.gridBars === 1, 'the header and the arrangement grid count 3 beats: ' + JSON.stringify(six && { tempo: six.tempo, meter: six.meter, len: six.arrangeLen, grid: six.grid, bars: six.gridBars }));
+    const counted = await put('6/8 [Cm(2) G(1) | Am(3)]');
+    check(counted && counted.lens.join(',') === '2 beats,1 beat,3 beats' && counted.marks === 6 && counted.barMarks === 1 && counted.meta.indexOf('6 beats') >= 0 && counted.meta.indexOf('2 bars') >= 0, '6/8 (n) counts and bar lines: ' + JSON.stringify(counted && { lens: counted.lens, marks: counted.marks, barMarks: counted.barMarks, meta: counted.meta }));
+    await send('Emulation.setDeviceMetricsOverride', { width: 1280, height: 1400, deviceScaleFactor: 1, mobile: false });
+    await ev("document.getElementById('comp').value = '6/8 Cm(1|)'; document.getElementById('comp').dispatchEvent(new Event('input', {bubbles: true})); scrollTo(0,0);");
+    await sleep(80);
+    const sixBox = await ev("(() => { var a = document.getElementById('write').getBoundingClientRect(); var b = document.getElementById('play-s').getBoundingClientRect(); return {y: Math.max(0, a.top + scrollY - 8), h: Math.ceil(b.bottom - a.top + 20), view: innerHeight}; })()");
+    if (sixBox && sixBox.y + sixBox.h > sixBox.view) {
+      await send('Emulation.setDeviceMetricsOverride', { width: 1280, height: Math.ceil(sixBox.y + sixBox.h + 40), deviceScaleFactor: 1, mobile: false });
+      await ev('scrollTo(0,0)');
+      await sleep(40);
+    }
+    const sixClip = await ev("(() => { var a = document.getElementById('write').getBoundingClientRect(); var b = document.getElementById('play-s').getBoundingClientRect(); return {x: 0, y: Math.max(0, a.top + scrollY - 8), width: 1280, height: Math.ceil(b.bottom - a.top + 20)}; })()");
+    const sixImg = await send('Page.captureScreenshot', { format: 'png', clip: { x: sixClip.x, y: sixClip.y, width: sixClip.width, height: sixClip.height, scale: 1 }, captureBeyondViewport: true });
+    try { mkdirSync('/opt/cursor/artifacts', { recursive: true }); writeFileSync(join('/opt/cursor/artifacts', 'six-eight-bar-desktop.png'), Buffer.from(sixImg.data, 'base64')); } catch (e) {}
     const edited = await ev(`(() => {
       var comp = document.getElementById('comp');
       comp.value = 'Cm';

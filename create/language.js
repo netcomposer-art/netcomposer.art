@@ -12,7 +12,8 @@
 // whole piece. A ramp keeps the start value. With no written tempo, Play and
 // a written duration use 96 BPM (the NC Synth page default). A time signature
 // (`3/4`, `6/8`, and the other n/2, n/4, n/8 marks) sets the bar in quarter
-// notes. With none written, the bar is 4/4. `(n|)` is n of those bars.
+// notes. 6/8 counts as 3 beats in a bar, not 6. With none written, the bar is
+// 4/4. `(n|)` is n of those bars. `(n)` is n beats, so `(3)` is one bar of 6/8.
 (function (root) {
   'use strict';
   var PC = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
@@ -53,10 +54,12 @@
     var m = /^([A-G](?:#|b)?)(.*)$/.exec(sym || '');
     return m ? m[1] + (PRETTY[m[2]] || m[2]) : (sym || '');
   }
-  function qpbOf(meter) {
+  // Beats in one bar. A beat is a quarter note, so 6/8 is 3 and 2/2 is 4.
+  function beatsInBar(meter) {
     var m = /^(\d+)\/(2|4|8)$/.exec(meter || '');
     return m ? +m[1] * (4 / +m[2]) : 4;
   }
+  function qpbOf(meter) { return beatsInBar(meter); }
   function lpDial(hz) {
     if (!(hz > 0) || hz >= 20000) return 0;
     var v = Math.round(100 * Math.log(hz / 20000) / Math.log(150 / 20000));
@@ -1067,11 +1070,13 @@
       var verb = list.length === 1 ? 'has' : 'have';
       var each = list.length === 1 ? 'it' : 'each';
       var sample = list.slice(0, 4);
-      return who + ' ' + verb + ' no length, so Play sketches ' + each + ' as 1 bar and Gather uses the whole recording. Write ' + codeList(sample, '(4)') + ' for 4 beats or ' + codeList(sample, '(2|)') + ' for 2 bars.';
+      var barBeats = trimNum(qpb);
+      return who + ' ' + verb + ' no length, so Play sketches ' + each + ' as 1 bar and Gather uses the whole recording. Write ' + codeList(sample, '(' + barBeats + ')') + ' for ' + barBeats + ' beats or ' + codeList(sample, '(2|)') + ' for 2 bars.';
     }
     function openNote(list) {
       var n = list[0];
-      return '`' + n + '(?)` plays the whole recording when gathered. Play sketches 1 bar. Write `' + n + '(4)` for 4 beats or `' + n + '(1|)` for 1 bar in its place.';
+      var barBeats = trimNum(qpb);
+      return '`' + n + '(?)` plays the whole recording when gathered. Play sketches 1 bar. Write `' + n + '(' + barBeats + ')` for ' + barBeats + ' beats or `' + n + '(1|)` for 1 bar in its place.';
     }
     function secText(beats) {
       var s = beats * 60 / bpmUse, shown = Math.round(s * 10) / 10;
@@ -1203,6 +1208,7 @@
     lpDial: lpDial,
     pretty: pretty,
     sketchBpm: SKETCH_BPM,
+    beatsInBar: beatsInBar,
     setTempo: setTempo,
     setMeter: setMeter
   };

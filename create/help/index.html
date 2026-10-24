@@ -136,12 +136,14 @@ footer.site{margin-top:5rem;padding-bottom:4rem}
 
 <section id="time">
 <h2>Time signature</h2>
-<p>The time signature is how many beats are in a bar. It sits next to the tempo, and it starts at <code>4/4</code>, even on an empty field. A beat on this page is a quarter note. <code>3/4</code> is three beats. <code>6/8</code> is six eighth notes, which is also three beats. <code>2/2</code> is four beats.</p>
-<p>Type it in that box, or write it at the start, after the tempo if you wrote one. A number you have not written looks quieter. Put <code>4/4</code> back and a written time goes away. One sketched bar, and <code>(1|)</code>, both last that many beats. The beats before a bar line must add up to one bar.</p>
+<p>The time signature is how many beats are in a bar. It sits next to the tempo, and it starts at <code>4/4</code>, even on an empty field. A beat on this page is a quarter note. <code>3/4</code> is three beats. <code>6/8</code> counts as 3 beats in a bar. <code>2/2</code> is four beats.</p>
+<p>Type it in that box, or write it at the start, after the tempo if you wrote one. A number you have not written looks quieter. Put <code>4/4</code> back and a written time goes away. One sketched bar, and <code>(1|)</code>, both last that many beats. In 6/8 that is 3 beats, so <code>(3)</code> is one bar and <code>(6)</code> is two. The beats before a bar line must add up to one bar.</p>
 <pre class="ex">90 BPM 3/4 [Cm(3) | Fm(3)]</pre>
 <p class="hear">Two bars of 3/4 at 90 BPM. C minor for one bar, then F minor for one bar. 6 beats, 4 seconds.</p>
 <pre class="ex">6/8 Cm(1|)</pre>
 <p class="hear">One bar of 6/8. That is 3 beats, about 1.9 seconds at 96 BPM.</p>
+<pre class="ex">6/8 [Cm(2) G(1) | Am(3)]</pre>
+<p class="hear">Cm takes 2 beats and G takes 1, which is one bar of 6/8. Am(3) is the next bar. 6 beats, about 3.8 seconds at 96 BPM.</p>
 <pre class="ex">3/4 Cm</pre>
 <p class="hear">No length is written. Play sketches one bar of 3/4, which is 3 beats, about 1.9 seconds at 96 BPM. Gather uses the whole recording.</p>
 </section>

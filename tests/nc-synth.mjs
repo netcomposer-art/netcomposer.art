@@ -25,6 +25,9 @@ vm.runInContext(readFileSync(join(root, 'create/nc-synth.js'), 'utf8'), sb);
 const S = sb.NCSynth;
 const L = sb.NCLanguage;
 
+const sixNote = S.readLine('6/8\nn C4(1|) D4(3)');
+check(sixNote && sixNote.notes[0].beats === 3 && sixNote.notes[1].beats === 3, 'a 6/8 note bar is 3 beats, got ' + JSON.stringify(sixNote && sixNote.notes));
+check(S.readLine('5/8\nn C4(1|)').notes[0].beats === 2.5 && S.readLine('2/2\nn C4(1|)').notes[0].beats === 4 && S.readLine('3/4\nn C4(1|)').notes[0].beats === 3, 'note bars in 5/8, 2/2 and 3/4 stay put');
 const line = S.readLine('n F4 Ab4 C5 Bb4');
 check(line && !line.instrument && line.notes.length === 4, 'n F4 Ab4 C5 Bb4 is four pitches and no instrument, got ' + JSON.stringify(line));
 check(line && line.label === 'F4 Ab4 C5 Bb4', 'label keeps the written pitches');

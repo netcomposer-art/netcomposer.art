@@ -68,7 +68,7 @@
   }
 
   var laneFns = [];
-  var state = { sig: '', tracks: [], duration: 0.001, head: null, drag: null, pending: 0, clock: null, raf: 0 };
+  var state = { sig: '', tracks: [], duration: 0.001, head: null, drag: null, pending: 0, clock: null, grid: null, raf: 0 };
   var noteTimer = 0;
   var noteText = '';
 
@@ -99,6 +99,29 @@
       }
     }
     return secs(m);
+  }
+  function gridClock(parsed) {
+    var bpm = parsed && parsed.bpm > 0 ? parsed.bpm : 96;
+    var meter = parsed && parsed.meter ? parsed.meter : '4/4';
+    var qpb = 4, m;
+    if (root.NCLanguage && NCLanguage.beatsInBar) qpb = NCLanguage.beatsInBar(meter);
+    else if ((m = /^(\d+)\/(2|4|8)$/.exec(meter))) qpb = +m[1] * (4 / +m[2]);
+    return { bpm: bpm, qpb: qpb };
+  }
+  function paintGrid(ruler, dur, clock) {
+    var old = ruler.querySelectorAll('.arr-tick'), i;
+    for (i = 0; i < old.length; i++) old[i].parentNode.removeChild(old[i]);
+    if (!clock || !(dur > 0) || !(clock.bpm > 0) || !(clock.qpb > 0)) return;
+    var beat = 60 / clock.bpm;
+    var limit = Math.min(96, Math.floor((dur + 1e-4) / beat));
+    for (i = 1; i <= limit; i++) {
+      var t = i * beat;
+      if (t > dur + 1e-3) break;
+      var tick = node('span', 'arr-tick' + (Math.abs(i / clock.qpb - Math.round(i / clock.qpb)) < 1e-6 ? ' bar' : ''));
+      tick.setAttribute('aria-hidden', 'true');
+      tick.style.left = 'calc(var(--pad) + (100% - 2 * var(--pad)) * ' + Math.min(1, t / dur) + ')';
+      ruler.appendChild(tick);
+    }
   }
   function noteLane(parsed) {
     if (!root.NCSynth || !NCSynth.readLine) return null;
@@ -283,7 +306,10 @@
     });
     state.head = null;
     ensureHead();
-    if (state.head) state.head.place(0);
+    if (state.head) {
+      state.head.place(0);
+      if (state.head.ruler) paintGrid(state.head.ruler, state.duration, state.grid);
+    }
   }
   function reposition(tr, index) {
     var entry = tr.entries[index];
@@ -417,6 +443,7 @@
     state.sig = sig;
     state.tracks = applyEdits(build(tl, parsed), prev);
     state.duration = durationOf(state.tracks);
+    state.grid = gridClock(parsed);
     render();
   }
   function rows(chords) {

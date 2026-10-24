@@ -82,9 +82,14 @@ function lengthOf(text) {
   return m ? Math.max(20, Math.min(600, +m[1])) : 120;
 }
 // Written clock, the same brackets the hosted parser reads: [1 bar C], [2 beats A].
+function beatsInBar(meter) {
+  if (window.NCLanguage && NCLanguage.beatsInBar) return NCLanguage.beatsInBar(meter);
+  var m = /^(\d+)\/(2|4|8)$/.exec(meter || '');
+  return m ? +m[1] * (4 / +m[2]) : 4;
+}
 function quartersPerBar(text) {
   var m = /\b(\d+)\s*\/\s*(2|4|8)\b/.exec(plain(text || ''));
-  return m ? +m[1] * (4 / +m[2]) : 4;
+  return m ? beatsInBar(m[1] + '/' + m[2]) : 4;
 }
 function tempoChanges(text) {
   var re = /\b(?:at|from)\s+bar\s+(\d+)\b[^.\n]{0,40}?(\d+(?:\.\d+)?)\s*BPM\b|\bbar\s+(\d+)\s*:\s*(\d+(?:\.\d+)?)\s*BPM\b/gi, found = {}, m;
@@ -272,8 +277,7 @@ function timelineFrom(parsed) {
 // each: one chord became round(120 / 9) = 13 copies, and the length read "2 min".
 function sketchClock(parsed) {
   var bpm = parsed && parsed.bpm > 0 ? parsed.bpm : ((window.NCLanguage && NCLanguage.sketchBpm) || 96);
-  var qpb = 4, m;
-  if (parsed && parsed.meter && (m = /^(\d+)\/(2|4|8)$/.exec(parsed.meter))) qpb = +m[1] * (4 / +m[2]);
+  var qpb = parsed && parsed.meter ? beatsInBar(parsed.meter) : 4;
   return { bpm: bpm, qpb: qpb, bar: qpb * 60 / bpm, tempoSketch: !(parsed && parsed.bpm > 0) };
 }
 function trimNum(n) {
@@ -354,7 +358,23 @@ function chipName(ev) {
   if (!ev || ev.kind === 'rest') return 'rest';
   return prettySym(ev.symbol) + (ev.bass != null ? '/' + SPELL[ev.bass] : '');
 }
-function makeChip(ev, at, title) {
+function beatMarks(ev, qpb) {
+  var n = chipBeats(ev, qpb);
+  if (!(n > 0) || Math.abs(n - Math.round(n)) > 1e-6) return null;
+  n = Math.round(n);
+  if (n > 24) return null;
+  var box = document.createElement('span');
+  box.className = 'beats';
+  box.setAttribute('aria-hidden', 'true');
+  var i, tick;
+  for (i = 1; i <= n; i++) {
+    tick = document.createElement('span');
+    tick.className = 'tick' + (qpb > 0 && Math.abs(i / qpb - Math.round(i / qpb)) < 1e-6 ? ' bar' : '');
+    box.appendChild(tick);
+  }
+  return box;
+}
+function makeChip(ev, at, title, qpb) {
   var len = chipLen(ev);
   var s = document.createElement('span');
   s.className = 'ch';
@@ -368,6 +388,8 @@ function makeChip(ev, at, title) {
   lab.textContent = len.text;
   s.appendChild(sym);
   s.appendChild(lab);
+  var marks = beatMarks(ev, qpb);
+  if (marks) s.appendChild(marks);
   return s;
 }
 function groupMetaOf(s) {
@@ -461,7 +483,7 @@ function refresh() {
   function addChip(parent, ev, at) {
     var title = '';
     if (tl && at && at.length && tl.chords[at[0]]) title = tl.chords[at[0]].voicing.map(nn).join(' ') + ' · ' + tl.chords[at[0]].path;
-    parent.appendChild(makeChip(ev, at, title));
+    parent.appendChild(makeChip(ev, at, title, clk.qpb));
   }
   syntax.forEach(function (s) {
     if (s.kind === 'notes' || s.kind === 'arp') {

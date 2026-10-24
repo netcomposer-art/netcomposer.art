@@ -171,7 +171,7 @@
   function beatsPerBar(text) {
     var m = /\b(\d+)\s*\/\s*(2|4|8)\b/.exec(text || '');
     if (!m) return 4;
-    return +m[1] * (4 / +m[2]);
+    return barBeats(m[1] + '/' + m[2]);
   }
   var ORDER_WORDS = {
     up: 'up', down: 'down', 'up-down': 'up and down', 'down-up': 'down and up',
@@ -209,6 +209,7 @@
     return names[pc] + (Math.floor(midi / 12) - 1);
   }
   function barBeats(meter) {
+    if (root.NCLanguage && NCLanguage.beatsInBar) return NCLanguage.beatsInBar(meter);
     var m = /^(\d+)\/(2|4|8)$/.exec(meter || '');
     return m ? +m[1] * (4 / +m[2]) : 4;
   }
