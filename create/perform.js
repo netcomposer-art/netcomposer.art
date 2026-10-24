@@ -1815,7 +1815,95 @@
     else line.label = line.notesLabel || line.label;
     return line;
   }
-  function synthSound(line, buf, seed, settings, notes) {
+  function synthLines() {
+    var lines = [];
+    var one = synthLine();
+    if (one) lines.push(one);
+    var parsed = window.NC && NC.read && NC.read();
+    if (!parsed || !window.NCSynth || !NCSynth.voiceOf) return lines;
+    (parsed.tracks || []).forEach(function (tr, i) {
+      var voice = NCSynth.voiceOf(tr, parsed, i + 1);
+      if (!voice) return;
+      voice.clipId = 'nc-synth-' + String(tr.label || ('t' + tr.n)).toLowerCase();
+      lines.push(voice);
+    });
+    if (parsed.synth && NCSynth.chordVoice) {
+      var cv = NCSynth.chordVoice(parsed, lines.length + 1);
+      if (cv) { cv.clipId = 'nc-synth-chords'; lines.push(cv); }
+    }
+    return lines;
+  }
+  function ensureTrackBeds(sounds) {
+    sounds = sounds || [];
+    var parsed = window.NC && NC.read && NC.read();
+    if (!parsed || !window.NC || !NC.trackRecordings || !window.MM || !MM.prepare || !NC.catalog || !NC.catalog()) return Promise.resolve(sounds);
+    var layers = NC.trackRecordings(parsed);
+    if (!layers.length) return Promise.resolve(sounds);
+    var have = {};
+    sounds.forEach(function (s) {
+      if (s && s.kind === 'nc-track') have[s.trackId + ':' + s.recording] = 1;
+    });
+    var jobs = [];
+    layers.forEach(function (layer) {
+      var inst = layer.instrument || (NC.instrument ? NC.instrument() : 'piano');
+      jobs.push(MM.prepare(audioCtx(), layer.chords, NC.catalog(), inst).then(function (clips) {
+        var seen = {};
+        clips.forEach(function (clip, i) {
+          var c = layer.chords[i];
+          if (!c || c.recording == null) return;
+          var key = layer.id + ':' + c.recording;
+          if (seen[key] || have[key]) return;
+          seen[key] = 1;
+          sounds.push({
+            kind: 'nc-track', local: true, trackId: layer.id, recording: c.recording,
+            symbol: c.symbol || '', title: c.symbol || layer.label || '',
+            buffer: clip && clip.buffer, duration_s: clip && clip.buffer ? clip.buffer.duration : 0,
+            start_s: 0, gain_db: 0, gather_id: 'nc-track',
+            clip_id: 'track-' + layer.id + '-' + c.recording, url: '', cache: ''
+          });
+        });
+      }));
+    });
+    if (!jobs.length) return Promise.resolve(sounds);
+    return Promise.all(jobs).then(function () { gatherSounds = sounds; return sounds; });
+  }
+  function appendTrackBeds(plan) {
+    var parsed = window.NC && NC.read && NC.read();
+    if (!plan || !parsed || !parsed.tracks || !window.NCLanguage) return plan;
+    var sounds = gatherSounds || [];
+    parsed.tracks.forEach(function (tr) {
+      if (tr.kind !== 'chords' || tr.instrument === 'synth') return;
+      var chords = (tr.played || []).filter(function (e) { return e.kind === 'chord'; });
+      if (!chords.length) return;
+      function soundFor(rec) {
+        var i;
+        for (i = 0; i < sounds.length; i++) {
+          var s = sounds[i];
+          if (s && s.kind === 'nc-track' && s.trackId === 't' + tr.n && s.recording === rec) return { s: s, i: i };
+        }
+        return null;
+      }
+      var caps = chords.map(function (c) {
+        var hit = soundFor(c.recording);
+        return hit && hit.s.duration_s > 0 ? hit.s.duration_s : 0;
+      });
+      var placed = NCLanguage.place(tr.played, caps);
+      var ci = 0, end = plan.total_s || 0;
+      placed.entries.forEach(function (p) {
+        var c = chords[ci++], hit = c ? soundFor(c.recording) : null;
+        if (!c || !hit) return;
+        plan.entries.push({
+          pos: plan.entries.length, chord: c.symbol || '', clip_id: hit.s.clip_id,
+          at_s: p.at_s, len_s: p.len_s, gain_db: gainFor(hit.s), fade_in_ms: 12, fade_out_ms: 12,
+          sound: hit.i, slot_s: c.seconds, parallel: true, track: tr.label
+        });
+        if (p.at_s + p.len_s > end) end = p.at_s + p.len_s;
+      });
+      if (end > (plan.total_s || 0)) plan.total_s = +(+end).toFixed(3);
+    });
+    return plan;
+  }
+  function synthSound(line, buf, seed, settings, notes, clipId) {
     var url = '';
     try { url = URL.createObjectURL(NCSynth.wavBlob(buf)); } catch (e) {}
     return {
@@ -1830,7 +1918,7 @@
       cache: '',
       buffer: buf,
       gather_id: gatherId || 'nc-synth',
-      clip_id: 'nc-synth',
+      clip_id: clipId || 'nc-synth',
       duration_s: buf.duration,
       start_s: 0,
       gain_db: 0,
@@ -1842,20 +1930,28 @@
     };
   }
   function ensureSynth(sounds) {
-    var line = synthLine();
+    var lines = synthLines();
     sounds = sounds || [];
-    if (!line || sounds.some(isSynth)) return Promise.resolve(sounds);
-    var seed = drawSeed();
-    var settings = NCSynth.mergeSettings(line.fmDepth == null ? null : { fmDepth: line.fmDepth });
-    var notes = NCSynth.scheduleLine(line, settings, seed);
-    if (!notes.length) return Promise.resolve(sounds);
-    return NCSynth.renderNotes(notes, settings, seed).then(function (buf) {
-      var sound = synthSound(line, buf, seed, settings, notes);
-      sounds = sounds.slice();
-      sounds.push(sound);
-      gatherSounds = sounds;
-      return sounds;
-    });
+    var have = {};
+    sounds.forEach(function (s) { if (isSynth(s) && s.symbol) have[s.symbol] = 1; });
+    var pending = lines.filter(function (line) { return !have[line.label || '']; });
+    function renderNext(acc, idx) {
+      if (idx >= pending.length) return ensureTrackBeds(acc);
+      var line = pending[idx];
+      var seed = (line.seed != null ? line.seed : drawSeed()) >>> 0;
+      var settings = NCSynth.mergeSettings(line.fmDepth == null ? null : { fmDepth: line.fmDepth });
+      var notes = line.events && line.events.length ? line.events : NCSynth.scheduleLine(line, settings, seed);
+      if (!notes.length) return renderNext(acc, idx + 1);
+      var clipId = line.clipId || (acc.some(isSynth) ? 'nc-synth-' + (idx + 2) : 'nc-synth');
+      return NCSynth.renderNotes(notes, settings, seed).then(function (buf) {
+        acc = acc.slice();
+        acc.push(synthSound(line, buf, seed, settings, notes, clipId));
+        gatherSounds = acc;
+        return renderNext(acc, idx + 1);
+      });
+    }
+    if (!pending.length) return ensureTrackBeds(sounds);
+    return renderNext(sounds.slice(), 0);
   }
   // The page's own clock, when the Gather came back with one sound per played
   // chord, or one sound per recording (a loop repeats that recording). A synth
@@ -1863,11 +1959,28 @@
   // so an older take does not move.
   function languagePlan(seed, bufs) {
     var parsed = window.NC && NC.read && NC.read();
-    if (!parsed || parsed.clock !== 'language' || !window.NCLanguage) return null;
+    if (!parsed || !window.NCLanguage) return null;
+    var hasTracks = !!(parsed.tracks && parsed.tracks.length);
+    if (parsed.clock !== 'language' && !hasTracks && !parsed.synth) return null;
     var chords = (parsed.played || []).filter(function (e) { return e.kind === 'chord'; });
+    if (parsed.synth) chords = [];
     var sounds = gatherSounds || [], rows = [], i;
-    for (i = 0; i < sounds.length; i++) if (!isSynth(sounds[i])) rows.push({ s: sounds[i], i: i });
-    var n = rows.length, uniq = (parsed.gather || []).length;
+    for (i = 0; i < sounds.length; i++) {
+      if (isSynth(sounds[i]) || (sounds[i] && sounds[i].kind === 'nc-track')) continue;
+      rows.push({ s: sounds[i], i: i });
+    }
+    if (!chords.length) {
+      var empty = { nc_assembly_version: '1', gather_id: gatherId, seed: seed, entries: [], total_s: 0, language: true, written: true };
+      appendSynth(empty, bufs);
+      appendTrackBeds(empty);
+      return empty.entries.length ? empty : null;
+    }
+    var n = rows.length, seenRec = {}, uniq = 0;
+    chords.forEach(function (c) {
+      if (c.recording == null || seenRec[c.recording]) return;
+      seenRec[c.recording] = 1;
+      uniq++;
+    });
     var mode = n && n === chords.length ? 'each' : (n && n === uniq ? 'unique' : '');
     if (!mode) return null;
     function capOf(si) {
@@ -1893,7 +2006,7 @@
         sound: real, slot_s: c.seconds
       };
     });
-    return appendSynth({nc_assembly_version: '1', gather_id: gatherId, seed: seed, entries: entries, total_s: placed.total_s, language: true, written: fixed}, bufs);
+    return appendTrackBeds(appendSynth({nc_assembly_version: '1', gather_id: gatherId, seed: seed, entries: entries, total_s: placed.total_s, language: true, written: fixed}, bufs));
   }
   // The synth is a peer of the chord bed: it starts at 0 and does not move
   // the language placement. parallel keeps it out of the written-length sum.
@@ -1932,7 +2045,7 @@
       cap = sounds[i].duration_s;
       if (!(cap > 0) && bufs && bufs[i]) cap = Math.max(0, bufs[i].duration - (sounds[i].start_s || 0));
       caps.push(cap > 0 ? cap : 0);
-      if (!isSynth(sounds[i])) chordAt.push(i);
+      if (!isSynth(sounds[i]) && sounds[i].kind !== 'nc-track') chordAt.push(i);
     }
     var cn = chordAt.length;
     var slots = cn ? planSlots(cn, seed) : [];
@@ -1945,13 +2058,16 @@
     // Chord recordings stay back to back. A synth line is a peer: it starts at 0.
     var placed = cn ? asm.placeChords(slots, chordCaps, { written: written, gap: gap }) : { entries: [], total_s: 0 };
     var ci = 0, end = placed.total_s || 0;
-    var entries = sounds.map(function (s, i) {
+    var entries = [];
+    sounds.forEach(function (s, i) {
+      if (s && s.kind === 'nc-track') return;
       var at, len;
       if (isSynth(s)) { at = 0; len = caps[i]; }
       else { var p = placed.entries[ci++]; at = p.at_s; len = p.len_s; }
       if (at + len > end) end = at + len;
-      return {
+      entries.push({
         pos: i,
+        sound: i,
         chord: s.symbol || gatherNames[i] || '',
         clip_id: s.clip_id || ('c' + i),
         at_s: +(+at).toFixed(3),
@@ -1959,11 +2075,11 @@
         gain_db: gainFor(s),
         fade_in_ms: 12,
         fade_out_ms: 12
-      };
+      });
     });
     var useSeed = seed;
     if (!cn && sounds[0] && sounds[0].synth) useSeed = sounds[0].synth.seed;
-    return { nc_assembly_version: '1', gather_id: gatherId, seed: useSeed, entries: entries, total_s: +(+end).toFixed(3) };
+    return appendTrackBeds({ nc_assembly_version: '1', gather_id: gatherId, seed: useSeed, entries: entries, total_s: +(+end).toFixed(3) });
   }
   function silenceWav(seconds) {
     var rate = 8000, n = Math.max(1, Math.round((seconds || 0) * rate)), dataLen = n * 2;
@@ -2911,8 +3027,10 @@
     });
   }
   function gatherLocalSynth() {
-    var line = synthLine();
-    if (!line) return;
+    var lines = synthLines();
+    var parsed = (window.NC && NC.read && NC.read()) || {};
+    var beds = parsed.tracks && parsed.tracks.some(function (t) { return t.kind === 'chords' && t.instrument !== 'synth'; });
+    if (!lines.length && !beds && !parsed.synth) return;
     var S = wordsOk(gstatus);
     if (!S) return;
     stopPreview();
@@ -3004,14 +3122,17 @@
   }
   function gather(again) {
     if (busy || !window.NC) return;
-    if (window.NCSampler && NCSampler.active && NCSampler.active() && NCSampler.canPlay && NCSampler.canPlay()) {
+    var parsedGather = (NC.read && NC.read()) || {};
+    var trackedGather = !!((parsedGather.tracks && parsedGather.tracks.length) || parsedGather.synth);
+    if (!trackedGather && window.NCSampler && NCSampler.active && NCSampler.active() && NCSampler.canPlay && NCSampler.canPlay()) {
       gatherSampler();
       return;
     }
     var line = synthLine();
-    var chords = !!(NC.timeline && NC.timeline());
-    if (!chords && !line) return;
-    if (!chords || !gatherOn) { if (line) gatherLocalSynth(); return; }
+    var hasUnlabelled = (parsedGather.played || []).some(function (e) { return e.kind === 'chord'; }) && !parsedGather.synth;
+    var chords = !!(hasUnlabelled && NC.timeline && NC.timeline());
+    if (!chords && !line && !trackedGather) return;
+    if (!chords || !gatherOn) { if (line || trackedGather) gatherLocalSynth(); return; }
     var S = wordsOk(gstatus);
     if (!S) return;
     stopPreview();
