@@ -1,0 +1,339 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>How to write a composition</title>
+<link rel="canonical" href="https://netcomposer.art/create/help/">
+<meta name="description" content="A short guide to the Composition field on Create: chords, lengths, tempo, repeats, notes, arpeggios, and what Play, Gather, and Perform each do.">
+<link rel="license" href="https://creativecommons.org/licenses/by-sa/4.0/">
+<link rel="stylesheet" href="/nc.css">
+<style>
+header,main,footer.site{max-width:46rem;margin:0 auto;padding:0 1.5rem}
+header{padding-top:12vh}
+main{padding-bottom:2rem}
+section{scroll-margin-top:1.5rem}
+h2{margin:0 0 1.1rem}
+main section+section{margin-top:4.75rem}
+p,ul,ol{max-width:38rem}
+li{margin:.7rem 0}
+ul.chords{list-style:none;padding:0;margin:1.4rem 0}
+ul.chords li{margin:.7rem 0}
+pre.ex{margin:1.6rem 0 .4rem}
+p.hear{color:var(--nc-sub);margin:0 0 1.7rem}
+nav p{margin:1.2rem 0 0}
+[hidden]{display:none}
+footer.site{margin-top:5rem;padding-bottom:4rem}
+</style>
+</head>
+<body>
+<header>
+<p class="m"><a href="../">← Create</a></p>
+<h1>How to write a composition</h1>
+</header>
+<main>
+<p>The Composition field is the box on <a href="../">Create</a>. What you type there is what the page reads. Copy any example below straight into that box.</p>
+<p>A beat is one count. A bar is a group of beats. Unless you write another time, a bar has four beats. That time is called 4/4.</p>
+<p>Above the Composition field, the tempo and the time signature are already filled in: 96 and 4/4. They are there even when the field is empty. Change either box, or write the same thing in the field. The field is what is kept. A number you have not written looks a little quieter.</p>
+<p>Play is the button that sounds the chords. Gather finds a recording for each chord. Perform puts those recordings into the piece. Live is where filters and the other effects are heard.</p>
+<nav class="m" aria-label="On this page">
+<p><a href="#first">First</a> · <a href="#chords">Chords</a> · <a href="#durations">Lengths</a> · <a href="#tempo">Tempo</a> · <a href="#time">Time</a> · <a href="#groups">Repeats</a> · <a href="#notes">Notes</a> · <a href="#fm">FM</a> · <a href="#arp">Arpeggio</a> · <a href="#words">Words</a> · <a href="#instrument">Instrument</a> · <a href="#hacks">Hacks</a> · <a href="#iread">I read</a> · <a href="#play">Play</a> · <a href="#also">Also</a></p>
+</nav>
+
+<section id="first">
+<h2>What to type first</h2>
+<p>Start with one chord. A capital letter is the root. <code>m</code> after it means minor. <code>Cm</code> is C minor.</p>
+<pre class="ex">Cm</pre>
+<p class="hear">Play sketches one bar of C minor, about 2.5 seconds, at 96 BPM. Gather uses the whole recording. The line under the field asks you to write a length. The tempo above the field stays 96, because you did not write one.</p>
+<p>A sketch is the stand-in Play uses when you did not write a length. One bar. BPM means beats per minute, which is the speed. 96 BPM is the speed used when you have not written one. It is already showing above the field.</p>
+<pre class="ex">90 BPM Cm(2)</pre>
+<p class="hear">Two beats of C minor at 90 BPM, about 1.3 seconds. That is half a bar, shorter than the one-bar sketch above. The length and the speed are both written, so the line under the field adds nothing.</p>
+</section>
+
+<section id="chords">
+<h2>Chords</h2>
+<p>A chord is a named set of notes. The root is the letter it is built on. You can write the root in lowercase when a quality follows it. A quality is the part after the letter, such as <code>m</code> or <code>maj7</code>.</p>
+<pre class="ex">fm9</pre>
+<p class="hear">F minor 9, the same chord as Fm9. Play sketches one bar at 96 BPM. Gather uses the whole recording.</p>
+<pre class="ex">C</pre>
+<p class="hear">C major, one sketched bar at 96 BPM. A letter with nothing after it is major.</p>
+<p>A single lowercase letter on its own is a word, not a chord. <code>c</code> is not C major. Write <code>C</code>.</p>
+<p>Write the root as C, Db, D, Eb, E, F, F#, G, Ab, A, Bb, or B. <code>C#</code> is read as Db. <code>A#</code> is read as Bb. F# stays F#.</p>
+<pre class="ex">C#m</pre>
+<p class="hear">C sharp minor, read as Dbm. Play sketches one bar of that chord at 96 BPM.</p>
+<pre class="ex">Cm/G</pre>
+<p class="hear">C minor with G in the bass. The note after the slash is the bottom note. Play sketches one bar.</p>
+<p>A few short forms mean the same chord. <code>Cmin</code> and <code>C-</code> are Cm. <code>CM7</code> is Cmaj7. <code>Csus</code> is Csus4. <code>C6/9</code> is the 6/9 chord. <code>C2</code> is Csus2. <code>C+</code> is Caug.</p>
+<pre class="ex">CM7</pre>
+<p class="hear">C major 7, read from the short form CM7. Play sketches one bar at 96 BPM.</p>
+<p>These are the qualities you can write after a root. The examples use C. Any root from the list above works the same way.</p>
+<ul class="chords">
+<li><code>C</code> major</li>
+<li><code>Cm</code> minor</li>
+<li><code>C6</code> major 6</li>
+<li><code>C6-9</code> or <code>C6/9</code> six-nine</li>
+<li><code>C7</code> dominant 7</li>
+<li><code>C7#9</code> dominant 7, sharp 9</li>
+<li><code>C7#11</code> dominant 7, sharp 11. An arpeggio cannot play this one. On an arp line, write <code>C7</code> in its place.</li>
+<li><code>C7alt</code> altered dominant</li>
+<li><code>C7b5</code> dominant 7, flat 5</li>
+<li><code>C7b9</code> dominant 7, flat 9</li>
+<li><code>C7b13</code> dominant 7, flat 13. An arpeggio cannot play this one either. Write <code>C7</code> on the arp line.</li>
+<li><code>C7sus4</code> or <code>C7sus</code> suspended 7</li>
+<li><code>C9</code> dominant 9</li>
+<li><code>C9sus4</code> or <code>C9sus</code> suspended 9</li>
+<li><code>Cadd9</code> or <code>Cadd2</code> add 9</li>
+<li><code>Caug</code> or <code>C+</code> augmented</li>
+<li><code>Cdim</code> diminished</li>
+<li><code>Cdim7</code> diminished 7</li>
+<li><code>Cm6</code> minor 6</li>
+<li><code>Cm6-9</code> minor 6/9</li>
+<li><code>Cm7</code> minor 7</li>
+<li><code>Cm7b5</code> half-diminished</li>
+<li><code>Cm9</code> minor 9</li>
+<li><code>Cm11</code> minor 11</li>
+<li><code>Cm13</code> minor 13</li>
+<li><code>Cm-add9</code> minor add 9</li>
+<li><code>Cm-maj7</code> minor-major 7</li>
+<li><code>Cmaj7</code> major 7</li>
+<li><code>Cmaj7#5</code> major 7, sharp 5</li>
+<li><code>Cmaj7#11</code> major 7, sharp 11</li>
+<li><code>Cmaj9</code> major 9</li>
+<li><code>Cmaj13</code> major 13</li>
+<li><code>Csus2</code> or <code>C2</code> suspended 2</li>
+<li><code>Csus4</code> or <code>Csus</code> suspended 4</li>
+</ul>
+<p>A near miss is named in the line under the field. <code>Cmaj13b</code> is not a chord. The line asks if you meant <code>Cmaj13</code>.</p>
+</section>
+
+<section id="durations">
+<h2>Lengths</h2>
+<p>A length belongs to the chord it is glued to. The parentheses sit on that chord. <code>(2)</code> means 2 beats. <code>(4)</code> means 4 beats, which is one bar, the same length as the sketch. <code>(8)</code> means 8 beats, which is two bars. <code>(4|)</code> means 4 bars. The bar mark is the vertical line inside the parentheses.</p>
+<pre class="ex">90 BPM Cm(2)</pre>
+<p class="hear">Two beats of C minor at 90 BPM, about 1.3 seconds. Gather uses two beats of the recording. It is shorter than the one-bar sketch.</p>
+<pre class="ex">90 BPM Cm(4|)</pre>
+<p class="hear">Four bars of C minor at 90 BPM. That is 16 beats, about 10.7 seconds.</p>
+<pre class="ex">Cm</pre>
+<p class="hear">No length is written. Play sketches one bar, about 2.5 seconds, at 96 BPM. Gather uses the whole recording.</p>
+<pre class="ex">Cm(?)</pre>
+<p class="hear">The same split, written on purpose. Play sketches one bar. Gather plays the whole recording. The question mark inside the parentheses is that mark.</p>
+<p>A rest is silence. An underscore stands for the rest. It takes a length, the same way a chord does.</p>
+<pre class="ex">90 BPM [Cm(8) _(2) Fm9(2)]</pre>
+<p class="hear">C minor for 8 beats, then 2 beats of silence, then F minor 9 for 2 beats. 8 seconds at 90 BPM.</p>
+</section>
+
+<section id="tempo">
+<h2>Tempo</h2>
+<p>Tempo is the speed, in beats per minute. Write it at the start. <code>90 BPM</code>, <code>tempo 90</code>, and <code>q90</code> are the same speed. The <code>q</code> stands for the quarter note, which is one beat.</p>
+<pre class="ex">90 BPM Cm(2)</pre>
+<p class="hear">Two beats of C minor at 90 per minute, about 1.3 seconds.</p>
+<pre class="ex">tempo 90 Cm(2)</pre>
+<p class="hear">Two beats of C minor at the same speed, about 1.3 seconds.</p>
+<pre class="ex">q90 Cm(2)</pre>
+<p class="hear">The same two beats as 90 BPM, written with q90.</p>
+<p>If you write no tempo, the box above the field stays at 96, in a quieter grey. Play uses that 96. Type another number there, or write <code>90 BPM</code> at the start. Both write the same statement. Put 96 back and that statement goes away. A second tempo later in the box is not read. Keep the one at the start and delete the other.</p>
+</section>
+
+<section id="time">
+<h2>Time signature</h2>
+<p>The time signature is how many beats are in a bar. It sits next to the tempo, and it starts at <code>4/4</code>, even on an empty field. A beat on this page is a quarter note. <code>3/4</code> is three beats. <code>6/8</code> is six eighth notes, which is also three beats. <code>2/2</code> is four beats.</p>
+<p>Type it in that box, or write it at the start, after the tempo if you wrote one. A number you have not written looks quieter. Put <code>4/4</code> back and a written time goes away. One sketched bar, and <code>(1|)</code>, both last that many beats. The beats before a bar line must add up to one bar.</p>
+<pre class="ex">90 BPM 3/4 [Cm(3) | Fm(3)]</pre>
+<p class="hear">Two bars of 3/4 at 90 BPM. C minor for one bar, then F minor for one bar. 6 beats, 4 seconds.</p>
+<pre class="ex">6/8 Cm(1|)</pre>
+<p class="hear">One bar of 6/8. That is 3 beats, about 1.9 seconds at 96 BPM.</p>
+<pre class="ex">3/4 Cm</pre>
+<p class="hear">No length is written. Play sketches one bar of 3/4, which is 3 beats, about 1.9 seconds at 96 BPM. Gather uses the whole recording.</p>
+</section>
+
+<section id="groups">
+<h2>Groups and repeats</h2>
+<p>Square brackets wrap a group. <code>x4</code> after the group plays it four times. <code>loop(4)</code> on the next line does the same thing. Each repeat uses the same recordings.</p>
+<pre class="ex">[Cm Fm9]x4</pre>
+<p class="hear">The two chords play four times at 96 BPM. Neither has a length, so Play sketches each as one bar and Gather uses each whole recording. 32 beats, 20 seconds.</p>
+<pre class="ex">90 BPM [Cm(2) Fm9(2|)]x4</pre>
+<p class="hear">C minor for 2 beats, then F minor 9 for 2 bars, and that pair four times. 40 beats, about 26.7 seconds. Play shows the pair once, with ×4, not eight separate chords.</p>
+<pre class="ex">90 BPM
+[Cm(2) Fm9(2|)]
+loop(4)</pre>
+<p class="hear">The same 40 beats, about 26.7 seconds, as the line above. loop(4) is the long way to write x4.</p>
+<p>A repeat needs a whole number, and it needs a group to wrap. Write <code>x4</code> or <code>loop(4)</code> just after the closing bracket. One pair of brackets is read. A group inside a group is not.</p>
+<p>A bar line, the <code>|</code> character, splits a group into bars. The beats before each bar line must add up to one bar. In 4/4 that is 4 beats. Every chord before the line needs its own length.</p>
+<pre class="ex">90 BPM [Cm(2) Fm(2) | Gm(4)]</pre>
+<p class="hear">C minor and F minor share the first bar, 2 beats each. G minor takes the next bar. About 5.3 seconds at 90 BPM.</p>
+</section>
+
+<section id="notes">
+<h2>Notes</h2>
+<p>A notes line is a melody, written as pitches. A pitch is a letter plus an octave number, such as <code>C5</code>. <code>C5</code> on its own is not a chord. Start the line with <code>n</code> or <code>notes</code>, and give it at least one pitch. The line runs to the end of that line.</p>
+<p>Glue a length to a pitch the same way as a chord. <code>(2)</code> is 2 beats. <code>(2|)</code> is 2 bars. A pitch with no length just follows.</p>
+<pre class="ex">n C5(2) Eb5 G5 Bb4</pre>
+<p class="hear">Play lists the line and stays quiet. Gather renders C5, E flat 5, G5, and B flat 4 on the built-in synth. C5 lasts 2 beats. Perform plays that melody.</p>
+<pre class="ex">notes C4 Eb4 G4(2)</pre>
+<p class="hear">The same kind of line, with the word notes. G4 lasts 2 beats. Play stays quiet. Gather and Perform use the synth.</p>
+<pre class="ex">n C5(2|) Eb5(1)</pre>
+<p class="hear">C5 lasts 2 bars. E flat 5 lasts 1 beat. Again, Play only lists it.</p>
+<pre class="ex">notes create melody</pre>
+<p class="hear">Nothing plays. There is no pitch, so the line stays words for the AI. A notes line needs a pitch such as C5.</p>
+</section>
+
+<section id="fm">
+<h2>FM</h2>
+<p>FM is frequency modulation. Here it is a colour on the synth, not a chord. <code>fm 3</code> is a depth from 0 to 10. A higher number is read as 10. <code>fm3</code> is the same depth. <code>fm9</code> on its own is the chord F minor 9, because those letters are a chord.</p>
+<p>Write the depth on a notes line, or on an arp line. An arp is an arpeggio: the notes of a chord played one at a time.</p>
+<pre class="ex">n C5(2) Eb5 G5 fm 3</pre>
+<p class="hear">The same pitches as a plain notes line, with FM depth 3. Play lists it. Gather renders it on the synth with that depth. Perform plays it.</p>
+<pre class="ex">fm9</pre>
+<p class="hear">This one is the chord. F minor 9, one sketched bar at 96 BPM, not an FM depth.</p>
+<pre class="ex">arp Cm9 fm 3</pre>
+<p class="hear">C minor 9 as an upward arpeggio, with FM depth 3. Play lists it. Gather renders it on the synth.</p>
+</section>
+
+<section id="arp">
+<h2>Arpeggio</h2>
+<p>Start the line with <code>arp</code>. The chord is optional. With no chord, the arpeggio follows the chords you wrote above it. A length on this line does not change those chords.</p>
+<p>What you do not write is filled in: up, sixteenths, one octave, notes close together, no inversion. An inversion is the chord flipped so another note sits on the bottom. An octave is the same note eight letters higher or lower.</p>
+<pre class="ex">arp Cm9</pre>
+<p class="hear">C minor 9, notes one at a time, lowest to highest, four notes per beat. Play lists it and stays quiet. Gather renders it on the synth.</p>
+<p>Order is the sequence of the notes. You can write the name with a slash. <code>up/down</code> is the same as <code>up-down</code>.</p>
+<pre class="ex">arp Cm9 down</pre>
+<p class="hear">The same chord, highest note to lowest.</p>
+<pre class="ex">arp Cm9 up-down</pre>
+<p class="hear">Up, then back down. The top note is not struck twice.</p>
+<pre class="ex">arp Cm9 up-down-repeat</pre>
+<p class="hear">Up, then down, and the turning notes are struck again.</p>
+<pre class="ex">arp Cm9 outside-in</pre>
+<p class="hear">Lowest, then highest, then the next ones in from the edges.</p>
+<pre class="ex">arp Cm9 inside-out</pre>
+<p class="hear">From the middle of the chord out toward the edges.</p>
+<pre class="ex">arp Cm9 pendulum</pre>
+<p class="hear">The up-and-down path, starting in the middle.</p>
+<pre class="ex">arp Cm9 random</pre>
+<p class="hear">A note of the chord chosen at random for each step.</p>
+<pre class="ex">arp Cm9 as-played</pre>
+<p class="hear">The notes in the order the chord is written, not sorted low to high.</p>
+<pre class="ex">arp Cm9 down-up</pre>
+<p class="hear">The reverse of up-down. down/up is the same name.</p>
+<p>Rate is how fast the notes go. <code>4ths</code> or <code>quarter</code> is one note per beat. <code>8ths</code> or <code>eighth</code> is two. <code>16ths</code> is four, and it is the usual rate. <code>32nds</code> is eight. A triplet squeezes three notes into the time of two of that value. <code>8t</code> is three notes in one beat. <code>4t</code>, <code>16t</code>, and <code>32t</code> are the slower and faster triplets.</p>
+<pre class="ex">arp Cm9 4ths</pre>
+<p class="hear">One note per beat, going up.</p>
+<pre class="ex">arp Cm9 8ths</pre>
+<p class="hear">Two notes per beat, going up.</p>
+<pre class="ex">arp Cm9 32nds</pre>
+<p class="hear">Eight notes per beat, going up.</p>
+<pre class="ex">arp Cm9 8t</pre>
+<p class="hear">Three notes in each beat, going up.</p>
+<pre class="ex">arp Cm9 4t</pre>
+<p class="hear">A quarter-note triplet: three notes in the time of two beats.</p>
+<pre class="ex">arp Cm9 16t</pre>
+<p class="hear">A sixteenth-note triplet, faster than 8t.</p>
+<pre class="ex">arp Cm9 32t</pre>
+<p class="hear">The fastest triplet, three notes in the time of two thirty-second notes.</p>
+<p>Octaves stack the chord higher. Write <code>2oct</code> or <code>2 octaves</code>. The number is from 1 to 4.</p>
+<pre class="ex">arp Cm9 2oct</pre>
+<p class="hear">The arpeggio climbs across two octaves.</p>
+<pre class="ex">arp Cm9 4oct</pre>
+<p class="hear">The same climb across four octaves, which is as far as this line goes.</p>
+<p>Spread is how far apart the notes sit. <code>compact</code> is the close one, and it is the usual spread. Then <code>wide</code>, <code>wider</code>, and <code>max</code>. <code>maximum</code> is the same as <code>max</code>.</p>
+<pre class="ex">arp Cm9 wide</pre>
+<p class="hear">The notes sit further apart than the usual close voicing.</p>
+<pre class="ex">arp Cm9 wider</pre>
+<p class="hear">Further apart again.</p>
+<pre class="ex">arp Cm9 max</pre>
+<p class="hear">The widest spread. maximum is the same word.</p>
+<p>An inversion flips the chord. <code>inv1</code> and <code>inversion 1</code> are the first flip.</p>
+<pre class="ex">arp Cm9 inv1</pre>
+<p class="hear">C minor 9 turned once, so a different note is on the bottom, then arpeggiated upward.</p>
+<pre class="ex">arp Cm9 (2)</pre>
+<p class="hear">The arpeggio runs for 2 beats. The chord line, if you wrote one, keeps its own lengths.</p>
+<pre class="ex">arp Cm9 (2|)</pre>
+<p class="hear">The arpeggio runs for 2 bars.</p>
+<pre class="ex">90 BPM
+[Cm(2) Fm9(8)]x2
+arp</pre>
+<p class="hear">Play sketches the two chords, twice, at 90 BPM: C minor for 2 beats, then F minor 9 for 8 beats, about 13.3 seconds, and lists the arp. The arp has no chord of its own, so it follows Cm and then Fm9. Gather fetches those two recordings and renders the arp on the synth.</p>
+<pre class="ex">arp Cm9 pendulum 16ths 2oct wide inv1 (2|)</pre>
+<p class="hear">One line with the options together: pendulum, sixteenths, two octaves, wide, first inversion, for 2 bars. Gather renders that on the synth.</p>
+</section>
+
+<section id="style" hidden>
+<h2>Style</h2>
+<p>A style line is not on this page yet. When it is, it will read <code>style</code> and then a name, and this section will say what that fills in.</p>
+</section>
+
+<section id="words">
+<h2>Words for the AI</h2>
+<p>Words this page does not recognise are left for the AI. They are not played. Quotes force a phrase to stay words, even when it looks like something else. The line under the field tells you so, and shows the quotes to type.</p>
+<pre class="ex">90 BPM Cm(2) let it breathe</pre>
+<p class="hear">You hear two beats of C minor at 90 BPM, about 1.3 seconds. The words are not notes. They are left for the AI.</p>
+<pre class="ex">90 BPM Cm(2) "hold the high note"</pre>
+<p class="hear">The same two beats. The quoted phrase stays words for the AI. It is not read as chords.</p>
+<p>A chord inside quotes stays words too, and it does not play. The line under the field tells you to delete the quotes around it. An unclosed quote asks you to add a <code>"</code> at the end.</p>
+</section>
+
+<section id="instrument">
+<h2>An instrument</h2>
+<p>Glue <code>@</code> and a name onto a pitch, or onto an arp. <code>@piano</code> and <code>@flute</code> are names you choose. The built-in synth then stays out. The name is kept on the line. This mark does not, by itself, send Gather looking for a flute recording.</p>
+<pre class="ex">n C5@piano Eb5</pre>
+<p class="hear">Play lists the pitches and the piano name, and stays quiet. The built-in synth does not render this line.</p>
+<pre class="ex">arp Cm9 @flute</pre>
+<p class="hear">The arpeggio is kept, named for flute. Play lists it. The built-in synth does not render it.</p>
+</section>
+
+<section id="hacks">
+<h2>Composition hacks</h2>
+<p>A hack is a starting effect for the whole piece. Write it outside the brackets. Live hears it. Play still sketches the chords dry, with no effect.</p>
+<p>The filter names are lowpass (<code>lp</code>), highpass (<code>hp</code>), and bandpass (<code>bp</code>). A low-pass lets the low sounds through. A high-pass lets the high sounds through. A band-pass keeps a band in the middle. The number is a frequency in hertz, written Hz.</p>
+<pre class="ex">90 BPM Cm(2) lp500</pre>
+<p class="hear">Play sketches two beats of C minor, dry. Live starts with a low-pass filter at 500 Hz.</p>
+<pre class="ex">90 BPM Cm(2) lowpass 800</pre>
+<p class="hear">The same idea, written as words. It is read as lp800. Live starts the low-pass at 800 Hz.</p>
+<pre class="ex">90 BPM Cm(2) lp500->200</pre>
+<p class="hear">Live starts the low-pass at 500 Hz and can move it toward 200 Hz. The arrow is written as <code>-&gt;</code>. Play still sketches the chord dry.</p>
+<p>The other hacks take a number too. <code>eq</code> is a mid boost in decibels. <code>dl</code> or <code>delay</code> is an echo, from 0 to 100. <code>rv</code> or <code>reverb</code> is a plate, which is a kind of room, from 0 to 100. <code>dr</code> or <code>drive</code> is extra push, from 0 to 24. <code>wd</code> or <code>width</code> is the stereo width, from 0 to 200. 100 is the normal width. <code>cp</code> or <code>comp</code> is a compressor, which evens loud and quiet. Write <code>cp0</code>. A minus number is not read yet.</p>
+<pre class="ex">90 BPM Cm(2) hp200 bp1000 eq2 dl20 rv15 dr6 wd100</pre>
+<p class="hear">Play sketches the chord dry. Live starts with a high-pass at 200 Hz, a band-pass around 1000 Hz, a small mid boost, a little delay, a little plate, a little drive, and normal width.</p>
+<p>Write each hack once. If you write the same one twice, the later number wins, and the line under the field tells you to delete the earlier one. A hack inside the brackets is not for that chord. Move it outside, at the start.</p>
+</section>
+
+<section id="iread">
+<h2>The I-read line</h2>
+<p>Under the Composition field, a line begins “I read”. It is the page saying what it understood. The first line is the music. Then any words left for the AI. Then a note, only when you may want to change something. A note always includes the exact text to type, in a grey box, and says where it goes. A How link on that note opens the part of this page that matches.</p>
+<p>A star on a length, written <code>1 bar*</code>, means you did not write that length. Play sketches one bar. Gather uses the whole recording.</p>
+<pre class="ex">Cm</pre>
+<p class="hear">I-read says: 96 BPM, Cm as 1 bar*, 4 beats, 2.5 seconds. Then it asks you to write Cm(4) for 4 beats or Cm(2|) for 2 bars. The 96 is already in the tempo box, so it does not ask you to add a tempo. You hear one sketched bar.</p>
+<pre class="ex">90 BPM [Cm(2) Fm9(2|)]x4</pre>
+<p class="hear">I-read says: 90 BPM, the pair times 4, 40 beats, about 26.7 seconds. There is no note, because the speed and both lengths are written. You hear 2 beats, then 2 bars, four times.</p>
+<p>A chord the page does not know is a note too. It suggests the nearest real chord when it can, such as <code>Cmaj13</code> for <code>Cmaj13b</code>.</p>
+</section>
+
+<section id="play">
+<h2>Play, Gather, and Perform</h2>
+<p>Play sounds the chords you wrote, once each, at the speed you wrote. A group repeat is shown once, with a times mark, and Play still goes around it that many times. Play does not fill the piece out to two minutes. Play does not sound a notes line, an arp, or a hack.</p>
+<p>Gather finds one recording per chord. A written length uses that much of the recording. No length uses the whole recording. A repeat reuses the same recording. A notes line or an arp with no <code>@instrument</code> is rendered here on the built-in synth, and listed with the recordings.</p>
+<p>Perform puts what Gather found into the piece. Live then plays the hacks, including a filter that moves.</p>
+<pre class="ex">90 BPM
+[Cm(2) Fm9 Gm7(8)]x4
+n C5(2) Eb5 G5 Bb4 fm 3
+arp Cm9 pendulum 16ths 2oct wide inv1 (2|)
+lp500->200
+"keep it close"</pre>
+<p class="hear">Play sketches the three chords four times at 90 BPM, about 37.3 seconds: C minor for 2 beats, F minor 9 as one bar, G minor 7 for 8 beats. It also lists the notes, the arp, and the filter. Gather fetches the three recordings, renders the melody and the arp on the synth with FM depth 3, and keeps the quoted words as words. Perform plays the recordings and the synth. Live starts the low-pass at 500 Hz and can move it toward 200 Hz.</p>
+</section>
+
+<section id="also">
+<h2>Also on the line</h2>
+<p>A <code>#</code> starts a comment. The rest of that line is ignored. It is not heard, and it is not left for the AI.</p>
+<pre class="ex">90 BPM Cm(2) # two beats</pre>
+<p class="hear">Two beats of C minor at 90 BPM. The words after the # are dropped.</p>
+<p>A seed is a number that later choices can reuse. <code>sd 4182</code> and <code>seed 4182</code> are the same. The first seed is kept. A later different seed is a note, and it tells you to delete the later one.</p>
+<pre class="ex">sd 4182
+90 BPM Cm(2)</pre>
+<p class="hear">Two beats of C minor at 90 BPM. The seed is remembered as sd4182. It does not change this sketch.</p>
+</section>
+</main>
+<footer class="site">
+<p><a href="../">Create</a> · <a href="/how-it-works/">How NetComposer works</a></p>
+</footer>
+</body>
+</html>
