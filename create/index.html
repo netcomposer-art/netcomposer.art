@@ -55,11 +55,15 @@ button:focus-visible,.btn:focus-visible,summary:focus-visible,a:focus-visible{ou
 label.hold,#progcap.hold{color:transparent}
 #prog{margin:.15rem 0 .1rem;line-height:1.35;font-size:13px}#prog.empty{min-height:0}#prog.empty::before{content:none}
 #syntax-hint{font-family:Inter,sans-serif;font-size:12px;color:var(--nc-sub);margin:.45rem 0 0;line-height:1.45}
+#syntax-hint .hint-label{font-family:Inter,sans-serif;font-size:11px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:var(--nc-sub);margin-right:.7rem}
 #syntax-hint code,#iread code{font-family:var(--nc-mono);font-variant-numeric:tabular-nums;font-size:12px;background:var(--nc-surf);padding:0 .22rem}
 #progmeta{font-family:var(--nc-mono);font-variant-numeric:tabular-nums;font-size:12px}
 #prog .grp{display:inline-flex;flex-wrap:wrap;align-items:baseline;gap:.05rem .2rem;margin:0 .55rem .4rem 0;padding:.15rem .45rem .1rem;border:1px solid var(--nc-div)}
 #prog .times{font-family:var(--nc-mono);font-variant-numeric:tabular-nums;font-size:12px;color:var(--nc-sub);margin-left:.25rem}
 #prog .len{display:block;font-family:var(--nc-mono);font-variant-numeric:tabular-nums;font-size:11px;color:var(--nc-sub);line-height:1.25}
+#prog .beats{display:flex;gap:3px;align-items:flex-end;height:5px;margin-top:2px}
+#prog .beats .tick{display:block;width:1px;height:3px;background:var(--nc-div)}
+#prog .beats .tick.bar{height:5px;background:var(--nc-sub)}
 #prog .play-line{font-family:var(--nc-mono);font-variant-numeric:tabular-nums;font-size:12px;color:var(--nc-sub);margin:.35rem 0 0}
 #comp{min-height:calc(7.5em + 1.1rem + 2px);padding-right:2rem}
 .comp-head{display:flex;align-items:baseline;justify-content:space-between;gap:.35rem 1rem;flex-wrap:wrap;margin:1.05rem 0 .4rem}
@@ -178,7 +182,9 @@ details.fold>summary,#perform-sources>summary,#live-take>summary,#perform-json>s
 #arrange.editing .src-span:hover .src-grip::before,#arrange.editing .src-span:focus-visible .src-grip::before,#arrange.editing .src-span.dragging .src-grip::before,#arrange.editing .src-span.trimming .src-grip::before{opacity:.45}
 #arrange.editing .src-span.dragging{cursor:grabbing}
 #arrange.editing .src-span:focus-visible{outline:2px solid var(--nc-acc);outline-offset:6px}
-#arrange-note{margin:.55rem 0 0}#arrange-now{margin:.7rem 0 0}
+#arrange-note{margin:.55rem 0 0}#arrange .src-ruler .arr-tick{position:absolute;top:1px;width:1px;height:4px;margin-left:-0.5px;background:var(--nc-div);pointer-events:none}
+#arrange .src-ruler .arr-tick.bar{height:8px;background:var(--nc-sub)}
+#arrange-now{margin:.7rem 0 0}
 #arrange-now:empty{display:none}
 input[type=range]{-webkit-appearance:none;appearance:none;width:9rem;height:20px;background:transparent;cursor:pointer;accent-color:auto;vertical-align:middle}
 input[type=range]:disabled{cursor:not-allowed;opacity:.35}
@@ -370,7 +376,7 @@ button.rewind:hover,button.rewind:active{background:transparent;transform:none}
 <textarea id="comp" rows="5" placeholder="Input your chord instructions here."></textarea>
 <a id="comp-help" class="comp-help" href="/create/help/" target="_blank" rel="noopener" aria-label="How to write a composition">?</a>
 </div>
-<p id="syntax-hint"><code>Cm(4)</code> 4 beats · <code>Cm(4|)</code> 4 bars · <code>[Cm Fm9]x4</code> repeat · <code>90 BPM</code></p>
+<p id="syntax-hint"><span class="hint-label">Examples</span><code>Cm(4)</code> 4 beats · <code>Cm(4|)</code> 4 bars · <code>[Cm Fm9]x4</code> repeat · <code>90 BPM</code></p>
 <p class="m" id="iread" hidden></p>
 </section>
 
