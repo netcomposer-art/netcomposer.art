@@ -1,0 +1,482 @@
+{
+ "format": "nc-sampler/1",
+ "kind": "notes",
+ "id": "fixture-guitar",
+ "instrument": "guitar",
+ "slug": "guitar",
+ "sustain": "plucked",
+ "velocity": [
+  "mf"
+ ],
+ "range": {
+  "lo": 52,
+  "hi": 76
+ },
+ "credit": "NC fixture",
+ "license_in": "CC0",
+ "license_out": "CC-BY-SA-4.0",
+ "page": "https://netcomposer.art/create/",
+ "author": "NC fixture",
+ "playback": {
+  "pitch_shift": false,
+  "time_stretch": false,
+  "octave_substitution": false,
+  "missing": "omit",
+  "ring_cap_s": 8,
+  "slice_fade_s": 0.08,
+  "chord_change_fade_s": 0.12
+ },
+ "notes": {
+  "52": {
+   "midi": 52,
+   "name": "E3",
+   "file": "notes/guitar/52.opus",
+   "master": "notes/guitar/52.flac",
+   "cents": 0,
+   "dur_s": 4,
+   "lufs": null,
+   "peak_db": -6,
+   "sr": 48000,
+   "channels": 2,
+   "source": {
+    "url": "https://netcomposer.art/create/",
+    "t0": 0,
+    "t1": 4,
+    "license": "CC0"
+   }
+  },
+  "53": {
+   "midi": 53,
+   "name": "F3",
+   "file": "notes/guitar/53.opus",
+   "master": "notes/guitar/53.flac",
+   "cents": 0,
+   "dur_s": 4,
+   "lufs": -18,
+   "peak_db": -6,
+   "sr": 48000,
+   "channels": 2,
+   "source": {
+    "url": "https://netcomposer.art/create/",
+    "t0": 0,
+    "t1": 4,
+    "license": "CC0"
+   }
+  },
+  "54": {
+   "midi": 54,
+   "name": "F#3",
+   "file": "notes/guitar/54.opus",
+   "master": "notes/guitar/54.flac",
+   "cents": 0,
+   "dur_s": 4,
+   "lufs": -18,
+   "peak_db": -6,
+   "sr": 48000,
+   "channels": 2,
+   "source": {
+    "url": "https://netcomposer.art/create/",
+    "t0": 0,
+    "t1": 4,
+    "license": "CC0"
+   }
+  },
+  "55": {
+   "midi": 55,
+   "name": "G3",
+   "file": "notes/guitar/55.opus",
+   "master": "notes/guitar/55.flac",
+   "cents": 0,
+   "dur_s": 4,
+   "lufs": -18,
+   "peak_db": -6,
+   "sr": 48000,
+   "channels": 2,
+   "source": {
+    "url": "https://netcomposer.art/create/",
+    "t0": 0,
+    "t1": 4,
+    "license": "CC0"
+   }
+  },
+  "56": {
+   "midi": 56,
+   "name": "G#3",
+   "file": "notes/guitar/56.opus",
+   "master": "notes/guitar/56.flac",
+   "cents": 0,
+   "dur_s": 4,
+   "lufs": -18,
+   "peak_db": -6,
+   "sr": 48000,
+   "channels": 2,
+   "source": {
+    "url": "https://netcomposer.art/create/",
+    "t0": 0,
+    "t1": 4,
+    "license": "CC0"
+   }
+  },
+  "57": {
+   "midi": 57,
+   "name": "A3",
+   "file": "notes/guitar/57.opus",
+   "master": "notes/guitar/57.flac",
+   "cents": 0,
+   "dur_s": 4,
+   "lufs": -28,
+   "peak_db": -6,
+   "sr": 48000,
+   "channels": 2,
+   "source": {
+    "url": "https://netcomposer.art/create/",
+    "t0": 0,
+    "t1": 4,
+    "license": "CC0"
+   }
+  },
+  "58": {
+   "midi": 58,
+   "name": "A#3",
+   "file": "notes/guitar/58.opus",
+   "master": "notes/guitar/58.flac",
+   "cents": 0,
+   "dur_s": 4,
+   "lufs": -18,
+   "peak_db": -6,
+   "sr": 48000,
+   "channels": 2,
+   "source": {
+    "url": "https://netcomposer.art/create/",
+    "t0": 0,
+    "t1": 4,
+    "license": "CC0"
+   }
+  },
+  "59": {
+   "midi": 59,
+   "name": "B3",
+   "file": "notes/guitar/59.opus",
+   "master": "notes/guitar/59.flac",
+   "cents": 0,
+   "dur_s": 4,
+   "lufs": -18,
+   "peak_db": -6,
+   "sr": 48000,
+   "channels": 2,
+   "source": {
+    "url": "https://netcomposer.art/create/",
+    "t0": 0,
+    "t1": 4,
+    "license": "CC0"
+   }
+  },
+  "60": {
+   "midi": 60,
+   "name": "C4",
+   "file": "notes/guitar/60.opus",
+   "master": "notes/guitar/60.flac",
+   "cents": 0,
+   "dur_s": 4,
+   "lufs": -18,
+   "peak_db": -6,
+   "sr": 48000,
+   "channels": 2,
+   "source": {
+    "url": "https://netcomposer.art/create/",
+    "t0": 0,
+    "t1": 4,
+    "license": "CC0"
+   }
+  },
+  "61": {
+   "midi": 61,
+   "name": "C#4",
+   "file": "notes/guitar/61.opus",
+   "master": "notes/guitar/61.flac",
+   "cents": 0,
+   "dur_s": 4,
+   "lufs": -18,
+   "peak_db": -6,
+   "sr": 48000,
+   "channels": 2,
+   "source": {
+    "url": "https://netcomposer.art/create/",
+    "t0": 0,
+    "t1": 4,
+    "license": "CC0"
+   }
+  },
+  "62": {
+   "midi": 62,
+   "name": "D4",
+   "file": "notes/guitar/62.opus",
+   "master": "notes/guitar/62.flac",
+   "cents": 0,
+   "dur_s": 4,
+   "lufs": -18,
+   "peak_db": -6,
+   "sr": 48000,
+   "channels": 2,
+   "source": {
+    "url": "https://netcomposer.art/create/",
+    "t0": 0,
+    "t1": 4,
+    "license": "CC0"
+   }
+  },
+  "63": {
+   "midi": 63,
+   "name": "D#4",
+   "file": "notes/guitar/63.opus",
+   "master": "notes/guitar/63.flac",
+   "cents": 0,
+   "dur_s": 4,
+   "lufs": -18,
+   "peak_db": -6,
+   "sr": 48000,
+   "channels": 2,
+   "source": {
+    "url": "https://netcomposer.art/create/",
+    "t0": 0,
+    "t1": 4,
+    "license": "CC0"
+   }
+  },
+  "64": {
+   "midi": 64,
+   "name": "E4",
+   "file": "notes/guitar/64.opus",
+   "master": "notes/guitar/64.flac",
+   "cents": 0,
+   "dur_s": 4,
+   "lufs": -12,
+   "peak_db": -6,
+   "sr": 48000,
+   "channels": 2,
+   "source": {
+    "url": "https://netcomposer.art/create/",
+    "t0": 0,
+    "t1": 4,
+    "license": "CC0"
+   }
+  },
+  "65": {
+   "midi": 65,
+   "name": "F4",
+   "file": "notes/guitar/65.opus",
+   "master": "notes/guitar/65.flac",
+   "cents": 0,
+   "dur_s": 4,
+   "lufs": -18,
+   "peak_db": -6,
+   "sr": 48000,
+   "channels": 2,
+   "source": {
+    "url": "https://netcomposer.art/create/",
+    "t0": 0,
+    "t1": 4,
+    "license": "CC0"
+   }
+  },
+  "66": {
+   "midi": 66,
+   "name": "F#4",
+   "file": "notes/guitar/66.opus",
+   "master": "notes/guitar/66.flac",
+   "cents": 0,
+   "dur_s": 4,
+   "lufs": -18,
+   "peak_db": -6,
+   "sr": 48000,
+   "channels": 2,
+   "source": {
+    "url": "https://netcomposer.art/create/",
+    "t0": 0,
+    "t1": 4,
+    "license": "CC0"
+   }
+  },
+  "67": {
+   "midi": 67,
+   "name": "G4",
+   "file": "notes/guitar/67.opus",
+   "master": "notes/guitar/67.flac",
+   "cents": 0,
+   "dur_s": 4,
+   "lufs": -18,
+   "peak_db": -6,
+   "sr": 48000,
+   "channels": 2,
+   "source": {
+    "url": "https://netcomposer.art/create/",
+    "t0": 0,
+    "t1": 4,
+    "license": "CC0"
+   }
+  },
+  "68": {
+   "midi": 68,
+   "name": "G#4",
+   "file": "notes/guitar/68.opus",
+   "master": "notes/guitar/68.flac",
+   "cents": 0,
+   "dur_s": 4,
+   "lufs": -18,
+   "peak_db": -6,
+   "sr": 48000,
+   "channels": 2,
+   "source": {
+    "url": "https://netcomposer.art/create/",
+    "t0": 0,
+    "t1": 4,
+    "license": "CC0"
+   }
+  },
+  "69": {
+   "midi": 69,
+   "name": "A4",
+   "file": "notes/guitar/69.opus",
+   "master": "notes/guitar/69.flac",
+   "cents": 0,
+   "dur_s": 4,
+   "lufs": -18,
+   "peak_db": -6,
+   "sr": 48000,
+   "channels": 2,
+   "source": {
+    "url": "https://netcomposer.art/create/",
+    "t0": 0,
+    "t1": 4,
+    "license": "CC0"
+   }
+  },
+  "70": {
+   "midi": 70,
+   "name": "A#4",
+   "file": "notes/guitar/70.opus",
+   "master": "notes/guitar/70.flac",
+   "cents": 0,
+   "dur_s": 4,
+   "lufs": -18,
+   "peak_db": -6,
+   "sr": 48000,
+   "channels": 2,
+   "source": {
+    "url": "https://netcomposer.art/create/",
+    "t0": 0,
+    "t1": 4,
+    "license": "CC0"
+   }
+  },
+  "71": {
+   "midi": 71,
+   "name": "B4",
+   "file": "notes/guitar/71.opus",
+   "master": "notes/guitar/71.flac",
+   "cents": 0,
+   "dur_s": 4,
+   "lufs": -18,
+   "peak_db": -6,
+   "sr": 48000,
+   "channels": 2,
+   "source": {
+    "url": "https://netcomposer.art/create/",
+    "t0": 0,
+    "t1": 4,
+    "license": "CC0"
+   }
+  },
+  "72": {
+   "midi": 72,
+   "name": "C5",
+   "file": "notes/guitar/72.opus",
+   "master": "notes/guitar/72.flac",
+   "cents": 0,
+   "dur_s": 4,
+   "lufs": -18,
+   "peak_db": -6,
+   "sr": 48000,
+   "channels": 2,
+   "source": {
+    "url": "https://netcomposer.art/create/",
+    "t0": 0,
+    "t1": 4,
+    "license": "CC0"
+   }
+  },
+  "73": {
+   "midi": 73,
+   "name": "C#5",
+   "file": "notes/guitar/73.opus",
+   "master": "notes/guitar/73.flac",
+   "cents": 0,
+   "dur_s": 4,
+   "lufs": -18,
+   "peak_db": -6,
+   "sr": 48000,
+   "channels": 2,
+   "source": {
+    "url": "https://netcomposer.art/create/",
+    "t0": 0,
+    "t1": 4,
+    "license": "CC0"
+   }
+  },
+  "74": {
+   "midi": 74,
+   "name": "D5",
+   "file": "notes/guitar/74.opus",
+   "master": "notes/guitar/74.flac",
+   "cents": 0,
+   "dur_s": 4,
+   "lufs": -18,
+   "peak_db": -6,
+   "sr": 48000,
+   "channels": 2,
+   "source": {
+    "url": "https://netcomposer.art/create/",
+    "t0": 0,
+    "t1": 4,
+    "license": "CC0"
+   }
+  },
+  "75": {
+   "midi": 75,
+   "name": "D#5",
+   "file": "notes/guitar/75.opus",
+   "master": "notes/guitar/75.flac",
+   "cents": 0,
+   "dur_s": 4,
+   "lufs": -18,
+   "peak_db": -6,
+   "sr": 48000,
+   "channels": 2,
+   "source": {
+    "url": "https://netcomposer.art/create/",
+    "t0": 0,
+    "t1": 4,
+    "license": "CC0"
+   }
+  },
+  "76": {
+   "midi": 76,
+   "name": "E5",
+   "file": "notes/guitar/76.opus",
+   "master": "notes/guitar/76.flac",
+   "cents": 0,
+   "dur_s": 4,
+   "lufs": -18,
+   "peak_db": -6,
+   "sr": 48000,
+   "channels": 2,
+   "source": {
+    "url": "https://netcomposer.art/create/",
+    "t0": 0,
+    "t1": 4,
+    "license": "CC0"
+   }
+  }
+ },
+ "gaps": []
+}
