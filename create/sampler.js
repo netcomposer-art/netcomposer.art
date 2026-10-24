@@ -448,7 +448,29 @@
       if (opts.done) opts.done();
       return;
     }
-    var events = pieceEvents(opts.from || 0, speedOf());
+    var speed = speedOf();
+    var from = opts.from || 0;
+    var events = pieceEvents(from, speed);
+    if (root.NCArrange && NCArrange.clip) {
+      var origin = 0;
+      var first = NCArrange.clip('chords', from);
+      if (first) origin = first.at;
+      var noteTrack = NCArrange.clip('sampler', 0) ? 'sampler' : (NCArrange.clip('synth', 0) ? 'synth' : '');
+      var noteI = 0;
+      events = events.map(function (ev) {
+        if (ev.origin === 'chord' && ev.index != null) {
+          var placed = NCArrange.clip('chords', ev.index);
+          if (!placed) return ev;
+          return Object.assign({}, ev, { start: Math.max(0, (placed.at - origin) / speed), hold: placed.len / speed });
+        }
+        if (from === 0 && ev.origin === 'notes' && noteTrack) {
+          var note = NCArrange.clip(noteTrack, noteI++);
+          if (!note) return ev;
+          return Object.assign({}, ev, { start: Math.max(0, note.at / speed), hold: note.len / speed });
+        }
+        return ev;
+      });
+    }
     var planned = plan(man, events, strumSeconds(), FADE_S);
     var midis = [], seen = {};
     planned.notes.forEach(function (n) { if (!seen[n.midi]) { seen[n.midi] = 1; midis.push(n.midi); } });
@@ -468,7 +490,9 @@
       if (ctx.resume) ctx.resume();
       var buffers = {};
       midis.forEach(function (m) { buffers[m] = bag[m].buffer; });
+      var lead = ctx.currentTime + 0.15;
       var end = schedule(ctx, ctx.destination, planned, buffers, outputGain(), 0.15, true);
+      if (root.NCArrange && NCArrange.armPlay) NCArrange.armPlay(ctx, lead, origin, speed, 0);
       var msg = planned.messages.concat(planned.hints).join(' ');
       if (opts.status) opts.status(msg);
       paintLoaded(midis);

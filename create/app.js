@@ -518,6 +518,7 @@ function refresh() {
     $('play').disabled = !(tl && tl.chords && tl.chords.length) && !samplerOn;
   }
   if (window.NCPerform && NCPerform.sync) NCPerform.sync();
+  if (window.NCArrange && NCArrange.paint) NCArrange.paint();
 }
 
 // ---------- play (WebAudio) ----------
@@ -525,6 +526,7 @@ function refresh() {
 var AC = null, playing = [], timers = [], gen = 0, active = false, cur = 0, restartT = null, SCHED = [];
 function stop() {
   gen++; active = false; clearTimeout(restartT);
+  if (window.NCArrange && NCArrange.disarm) NCArrange.disarm();
   if (window.NCSampler && NCSampler.halt) NCSampler.halt();
   playing.forEach(function (n) { try { n.stop(); } catch (e) {} }); playing = [];
   timers.forEach(clearTimeout); timers = [];
@@ -616,7 +618,7 @@ function sine(v, t0, d, out) {
     o.connect(g); g.connect(out); o.start(t0); o.stop(t0 + d + 2); playing.push(o);
   });
 }
-function toggle() { if (active) stop(); else start(0); }
+function toggle() { if (active) stop(); else start(window.NCArrange && NCArrange.resumeFrom ? NCArrange.resumeFrom() : 0); }
 // Language Play is one pass of each recording, at the slider's speed.
 // The old preview stays at double tempo with two strikes. Nothing is stretched:
 // a longer duration than the file plays the file, and the next chord still
@@ -627,17 +629,20 @@ function playLanguage(tl, from, speed, master, my) {
     if (my !== gen) return;
     showSources(clips);
     showCredit();
+    if (window.NCArrange && NCArrange.learn) NCArrange.learn(chords, clips);
+    var arranged = window.NCArrange && NCArrange.rows ? NCArrange.rows(chords) : null;
     var cursor = 0, rows = [];
     chords.forEach(function (c, i) {
       var clip = clips[i], cap = clip && clip.buffer && clip.buffer.duration > 0 ? clip.buffer.duration : 2;
       var sketch = c.sketchDur > 0 ? c.sketchDur : 0;
-      var play = c.slot == null ? (sketch || cap) : c.slot;
+      var placed = arranged && arranged[i];
+      var play = placed ? placed.len : (c.slot == null ? (sketch || cap) : c.slot);
       if (clip && clip.buffer && play > clip.buffer.duration) play = clip.buffer.duration;
       if (!(play > 0)) play = 0.1;
-      var advance = c.slot != null ? c.slot : (sketch || play);
-      var at = cursor + (c.gapBefore || 0);
-      rows.push({c: c, i: i, at: at, play: play, clip: clip});
-      cursor = at + advance;
+      var advance = placed ? placed.len : (c.slot != null ? c.slot : (sketch || play));
+      var at = placed ? placed.at : cursor + (c.gapBefore || 0);
+      rows.push({c: c, i: i, at: at, play: play, clip: clip, advance: advance});
+      if (!placed) cursor = at + advance;
     });
     if (!rows.length) { stop(); return; }
     from = Math.max(0, Math.min(from || 0, rows.length - 1));
@@ -661,8 +666,13 @@ function playLanguage(tl, from, speed, master, my) {
       s.connect(g); g.connect(master); s.start(t, 0, hear); playing.push(s);
       SCHED.push({i: row.i, symbol: c.symbol, path: c.path, strike: 1, at: t, d: hear, src: clip.kind, url: clip.url || null});
     });
-    var last = rows[rows.length - 1];
-    var endAt = (last.at - base + (last.c.slot != null ? last.c.slot : (last.c.sketchDur > 0 ? last.c.sketchDur : last.play))) / speed;
+    var spanEnd = base;
+    rows.forEach(function (row) {
+      var until = row.at + (row.advance != null ? row.advance : row.play);
+      if (until > spanEnd) spanEnd = until;
+    });
+    var endAt = (spanEnd - base) / speed;
+    if (window.NCArrange && NCArrange.armPlay) NCArrange.armPlay(AC, t0, base, speed, spanEnd);
     timers.push(setTimeout(function () { if (my === gen) { stop(); cur = 0; } }, (endAt + 0.35) * 1000));
   }).catch(function () {
     if (my !== gen) return;
