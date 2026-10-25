@@ -23,8 +23,10 @@ const known = (q) => q in QUALS;
 function load(file, box) {
   vm.runInContext(readFileSync(join(root, file), 'utf8'), box);
 }
-const sb = {}; sb.globalThis = sb; sb.Map = Map; sb.Set = Set; vm.createContext(sb);
+const sb = {}; sb.globalThis = sb; sb.Map = Map; sb.Set = Set; sb.Promise = Promise; vm.createContext(sb);
 load('create/chord-library.js', sb);
+load('create/synth-presets.js', sb);
+sb.NCSynthPresets.loadBank(JSON.parse(readFileSync(join(root, 'create/synth-presets.json'), 'utf8')));
 load('create/language.js', sb);
 const L = sb.NCLanguage;
 function project(text) {
@@ -63,8 +65,17 @@ function project(text) {
         return row;
       })
     })),
-    synth: !!p.synth
+    synth: !!p.synth,
+    preset: pubPreset(p.preset),
+    presets: (p.tracks || []).map((t) => {
+      const hit = pubPreset(t.preset);
+      return { n: t.n, ref: hit ? hit.ref : '', found: !!(hit && hit.found), name: hit && hit.found ? hit.name : '', preset: hit && hit.found ? hit.n : null };
+    })
   };
+}
+function pubPreset(p) {
+  if (!p) return null;
+  return { ref: p.ref, found: !!p.found, n: p.found ? p.n : null, name: p.found ? p.name : '' };
 }
 const rows = JSON.parse(readFileSync(join(root, 'tests/language-vectors.json'), 'utf8'));
 rows.forEach((row) => {
@@ -72,7 +83,7 @@ rows.forEach((row) => {
   ['bpm', 'clock', 'seed', 'meter', 'gather', 'played', 'hacks', 'words', 'notes', 'iread'].forEach((k) => {
     if (JSON.stringify(got[k]) !== JSON.stringify(row[k])) problems.push(row.name + ' ' + k + '\n  got ' + JSON.stringify(got[k]));
   });
-  ['arp', 'unmapped', 'tracks', 'synth'].forEach((k) => {
+  ['arp', 'unmapped', 'tracks', 'synth', 'preset', 'presets'].forEach((k) => {
     if (k in row && JSON.stringify(got[k]) !== JSON.stringify(row[k])) problems.push(row.name + ' ' + k + '\n  got ' + JSON.stringify(got[k]));
   });
   if (row.place) {

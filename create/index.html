@@ -66,7 +66,7 @@ label.hold,#progcap.hold{color:transparent}
 #prog .beats .tick{display:block;width:1px;height:3px;background:var(--nc-div)}
 #prog .beats .tick.bar{height:5px;background:var(--nc-sub)}
 #prog .play-line{font-family:var(--nc-mono);font-variant-numeric:tabular-nums;font-size:12px;color:var(--nc-sub);margin:.35rem 0 0}
-#comp{min-height:calc(7.5em + 1.1rem + 2px);padding-right:2rem}
+#comp{min-height:calc(7.5em + 1.1rem + 2px);padding-right:5.6rem}
 .comp-head{display:flex;align-items:baseline;justify-content:space-between;gap:.35rem 1rem;flex-wrap:wrap;margin:1.05rem 0 .4rem}
 .comp-head>label{margin:0}
 .comp-clock{display:flex;align-items:baseline;gap:1rem;margin-left:auto;font-family:var(--nc-mono);font-variant-numeric:tabular-nums;font-size:13px;line-height:1.4}
@@ -81,6 +81,9 @@ label.hold,#progcap.hold{color:transparent}
 .comp-wrap{position:relative}
 .comp-help{position:absolute;top:7px;right:7px;z-index:1;display:flex;align-items:center;justify-content:center;width:1.35rem;height:1.35rem;font-family:var(--nc-mono);font-size:13px;line-height:1;color:var(--nc-sub);text-decoration:none}
 .comp-help:hover{color:var(--nc-acc)}
+.comp-import{position:absolute;top:7px;right:1.7rem;z-index:1;font-family:var(--nc-mono);font-size:11px;line-height:1.35rem;color:var(--nc-sub);cursor:pointer;white-space:nowrap}
+.comp-import:hover{color:var(--nc-acc)}
+.comp-import input{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);border:0}
 #iread a.how{color:var(--nc-sub);font-family:Inter,sans-serif;font-size:12px;text-underline-offset:2px}
 #iread a.how:hover{color:var(--nc-acc)}
 .ch{display:inline-block;vertical-align:top;border-bottom:2px solid transparent;padding:0 .06rem;margin:0 .45rem .25rem 0;font-size:13px}
@@ -382,9 +385,11 @@ button.rewind:hover,button.rewind:active{background:transparent;transform:none}
 </div>
 <div class="comp-wrap">
 <textarea id="comp" rows="5" placeholder="Input your chord instructions here."></textarea>
+<label class="comp-import">Import<input id="preset-file" type="file" accept="application/json,.json" aria-label="Import an NC Synth preset"></label>
 <a id="comp-help" class="comp-help" href="/create/help/" target="_blank" rel="noopener" aria-label="How to write a composition">?</a>
 </div>
 <p id="syntax-hint"><span class="hint-label">Examples</span><code>Cm(4)</code> 4 beats · <code>Cm(4|)</code> 4 bars · <code>[Cm Fm9]x4</code> repeat · <code>90 BPM</code></p>
+<p class="m" id="preset-note" hidden></p>
 <p class="m" id="iread" hidden></p>
 </section>
 
@@ -575,6 +580,7 @@ nc perform composition.md -o out/           # any OpenAI-compatible LLM</pre>
 </script>
 <script src="recordings.js"></script>
 <script src="chord-library.js"></script>
+<script src="synth-presets.js"></script>
 <script src="language.js"></script>
 <script src="app.js"></script>
 <script src="hacks/dsp.js"></script>

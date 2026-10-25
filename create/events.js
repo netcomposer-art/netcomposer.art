@@ -9,7 +9,9 @@
  *   one MIDI track per entry, channel = track.channel (0–15, written order)
  *   note on at `beat` quarters, off `beats` later, velocity = round(velocity * 127)
  *   track.params is the voice (FM depth and the patch). A control-change map
- *   can send fmDepth; this file does not send MIDI.
+ *   can send fmDepth; this file does not send MIDI. Play may set params.patch
+ *   from an `@synth` preset. Gather and Perform build without that flag, so
+ *   they keep the page patch. A depth written on the line still wins.
  * Audio clips stay recordings. They have no pitch, so a MIDI file would skip
  * them or write a marker.
  */
@@ -64,9 +66,12 @@
     ev.fmDepth = ev.fmDepth == null ? 0 : ev.fmDepth;
     return ev;
   }
-  function voiceParams(fm) {
-    var s = root.NCSynth && NCSynth.mergeSettings ? NCSynth.mergeSettings(fm == null ? null : { fmDepth: fm }) : { fmDepth: fm || 0 };
-    return {
+  function voiceParams(fm, patch) {
+    var overlay = {};
+    if (fm != null && fm !== '') overlay.fmDepth = fm;
+    var raw = patch ? Object.assign({}, patch, overlay) : (fm == null ? null : { fmDepth: fm });
+    var s = root.NCSynth && NCSynth.mergeSettings ? NCSynth.mergeSettings(raw) : { fmDepth: fm || 0 };
+    var out = {
       fmDepth: s.fmDepth || 0,
       waveform: s.waveform,
       cutoff: s.cutoff,
@@ -77,6 +82,18 @@
       release: s.release,
       level: s.level
     };
+    if (patch) out.patch = s;
+    return out;
+  }
+  function presetPatch(preset, play) {
+    if (!play || !preset || !preset.found) return null;
+    if (!root.NCSynthPresets || !NCSynthPresets.patch) return null;
+    return NCSynthPresets.patch(preset) || null;
+  }
+  function engineSettings(track) {
+    var p = track && track.params || {};
+    if (p.patch) return NCSynth.mergeSettings(p.patch);
+    return NCSynth.mergeSettings({ fmDepth: p.fmDepth || 0 });
   }
   // Keep and Perform. Notes and arp tracks can play the sampler. @synth stays
   // the synth. A name in NCInstruments is the sampler even when the hidden
@@ -282,9 +299,10 @@
       return;
     }
     if (!root.NCSynth || !NCSynth.scheduleChordEvents) return;
-    var notes = groupSlots(NCSynth.scheduleChordEvents(played, bpm, meter).map(copyNote), beat, 0);
+    var patch = presetPatch(parsed && parsed.preset, true);
+    var notes = groupSlots(NCSynth.scheduleChordEvents(played, bpm, meter).map(copyNote), beat, patch && patch.fmDepth || 0);
     if (!notes.length) return;
-    pushVoice(doc, id, n, label, 'synth', '', seed, voiceParams(0), notes, null);
+    pushVoice(doc, id, n, label, 'synth', '', seed, voiceParams(patch ? null : 0, patch), notes, null);
   }
   function build(parsed, opts) {
     parsed = parsed || {};
@@ -324,7 +342,9 @@
         }
         return;
       }
-      var fm = voice.fmDepth == null ? 0 : voice.fmDepth;
+      var writtenFm = voice.fmDepth;
+      var patch = (play && role === 'synth') ? presetPatch(tr.preset, true) : null;
+      var fm = writtenFm == null ? (patch && patch.fmDepth || 0) : writtenFm;
       var notes = groupSlots(voice.events.map(copyNote), beat, fm);
       var slug = librarySlug(tr.instrument) || (role === 'sampler' ? chosen : '');
       var extra = null;
@@ -336,7 +356,7 @@
           return;
         }
       }
-      pushVoice(doc, 't' + tr.n, tr.n, tr.label || ('T' + tr.n), role, slug, voice.seed, voiceParams(role === 'synth' ? fm : 0), notes, Object.assign({ region: tr.kind === 'arp' }, extra));
+      pushVoice(doc, 't' + tr.n, tr.n, tr.label || ('T' + tr.n), role, slug, voice.seed, voiceParams(patch ? writtenFm : (role === 'synth' ? fm : 0), patch), notes, Object.assign({ region: tr.kind === 'arp' }, extra));
     });
     if (!play && parsed.synth && root.NCSynth && NCSynth.chordVoice) {
       var cv = NCSynth.chordVoice(parsed, (parsed.tracks || []).length);
@@ -444,7 +464,7 @@
   function renderSynth(track) {
     var Eng = root.NCSynthEngine && NCSynthEngine.SynthEngine;
     if (!Eng || !root.NCSynth) return Promise.reject(new Error('NC Synth engine is not loaded'));
-    var settings = NCSynth.mergeSettings({ fmDepth: track.params && track.params.fmDepth || 0 });
+    var settings = engineSettings(track);
     var tail = (settings.release > 0 ? settings.release : 0.4) + 0.05;
     var end = 0.05;
     (track.events || []).forEach(function (ev) {
@@ -590,7 +610,7 @@
     var Eng = root.NCSynthEngine && NCSynthEngine.SynthEngine;
     doc.tracks.forEach(function (tr) {
       if (tr.voice !== 'synth' || !Eng || !tr.events.length) return;
-      var settings = NCSynth.mergeSettings({ fmDepth: tr.params && tr.params.fmDepth || 0 });
+      var settings = engineSettings(tr);
       var engine = new Eng(settings);
       var node = ctx.createGain();
       node.gain.value = 0.8;

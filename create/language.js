@@ -28,6 +28,13 @@
 // An octave after the root, as in `C5m9`, puts that chord's root on the same
 // pitch as `notes C5`. `Cm9` with no octave is unchanged. Gather uses the
 // chord name and leaves the recording where it is.
+//
+// `@synth(1)` loads preset 1. `@synth(Example Bright)` loads that preset by
+// name. Capitals do not matter, and spaces stay inside the brackets. The
+// same mark works on any line that already takes `@synth`, including a track
+// and an arp. The preset is the synth patch for Play. Gather and Perform
+// keep the usual patch. A preset the bank does not have still plays, and
+// I-read says it was not found.
 (function (root) {
   'use strict';
   var PC = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
@@ -222,6 +229,34 @@
     return text.slice(0, last.start) + meter + text.slice(last.end);
   }
 
+  function splitAt(text) {
+    var preset = /^(.*)@synth\(([\s\S]*)\)$/i.exec(text || '');
+    if (preset) return { body: preset[1], name: 'synth', preset: preset[2].replace(/\s+/g, ' ').trim() };
+    var at = /^(.*)@([A-Za-z][\w-]*)$/.exec(text || '');
+    if (!at) return null;
+    return { body: at[1], name: at[2].toLowerCase(), preset: '' };
+  }
+  function presetOf(ref) {
+    var text = String(ref || '').replace(/\s+/g, ' ').trim();
+    if (!text) return null;
+    var api = root.NCSynthPresets;
+    if (api && api.resolve) return api.resolve(text);
+    return { ref: text, label: text, found: false, n: null, name: '', by: '' };
+  }
+  function presetPhrase(preset) {
+    if (!preset || !preset.ref) return '';
+    if (!preset.found) return "preset " + (preset.label || preset.ref) + " wasn't found";
+    if (preset.by === 'number') return 'preset ' + preset.n + ' ' + preset.name;
+    return 'preset ' + preset.name;
+  }
+  function addPreset(line, preset, sep) {
+    var phrase = presetPhrase(preset);
+    if (!phrase) return line;
+    if (!line) return phrase;
+    if (line.indexOf(phrase) >= 0) return line;
+    return line + sep + phrase;
+  }
+
   function tokenize(text) {
     var src = String(text || ''), n = src.length, i = 0, out = [];
     function brk(c, start) {
@@ -246,6 +281,14 @@
       if (c === ']') { out.push({ type: 'groupEnd', end: ++i }); continue; }
       if (c === '|') { out.push({ type: 'bar', end: ++i }); continue; }
       if (c === ':') { out.push({ type: 'word', text: ':', end: ++i }); continue; }
+      // `@synth(Example Bright)` is one mark. The name may contain spaces.
+      if (/^@synth\(/i.test(src.slice(i, i + 7))) {
+        var ps = i, pw = '';
+        while (i < n && src[i] !== ')' && src[i] !== '\n') pw += src[i++];
+        if (i < n && src[i] === ')') pw += src[i++];
+        if (pw) out.push({ type: 'word', text: pw, end: i, at: ps });
+        continue;
+      }
       var start = i, word = '';
       while (i < n && !brk(src[i], false)) {
         // (8|) is one duration. The bar stays inside the parentheses.
@@ -430,7 +473,7 @@
     var seen = {}, flags = { paren: false, rest: false, loop: false, lower: false, quoteChord: false };
     var meter = '4/4', meterWritten = false, seed = null, tempos = [], seeds = [], nextRec = 0, quoted = false;
     var arps = [], unmapped = [];
-    var tracks = [], trackByN = {}, sink = null, trackSpans = [], pieceInstrument = '';
+    var tracks = [], trackByN = {}, sink = null, trackSpans = [], pieceInstrument = '', piecePresetRef = '';
     var errors = [], lengthNotes = [], otherNotes = [], aiNotes = [];
     function say(list, s) { if (s && !seen[s]) { seen[s] = 1; list.push(s); } }
     function note(s) { say(otherNotes, s); }
@@ -480,7 +523,7 @@
       closeSpan();
       var tr = trackByN[n];
       if (!tr) {
-        tr = { n: n, label: 'T' + n, played: [], syntax: [], arps: [], instrument: '', sources: [] };
+        tr = { n: n, label: 'T' + n, played: [], syntax: [], arps: [], instrument: '', presetRef: '', sources: [] };
         trackByN[n] = tr;
         tracks.push(tr);
       }
@@ -492,11 +535,17 @@
     function musPlayed() { return sink ? sink.played : played; }
     function musSyntax() { return sink ? sink.syntax : syntax; }
     function musArps() { return sink ? sink.arps : arps; }
-    function setInstrument(name) {
+    function applyAt(name, presetRef) {
       if (!name) return;
-      if (sink) sink.instrument = name;
-      else pieceInstrument = name;
+      if (sink) {
+        sink.instrument = name;
+        sink.presetRef = name === 'synth' ? (presetRef || '') : '';
+      } else {
+        pieceInstrument = name;
+        piecePresetRef = name === 'synth' ? (presetRef || '') : '';
+      }
     }
+    function setInstrument(name) { applyAt(name, ''); }
 
     function stamp(ev) {
       var copy = {
@@ -515,9 +564,9 @@
     function tryChord(inGroup) {
       var t = tokens[i];
       if (!t || t.type !== 'word') return null;
-      var text = t.text, gluedName = '';
-      var glued = /^(.*)@([A-Za-z][\w-]*)$/.exec(text);
-      if (glued && glued[1]) { text = glued[1]; gluedName = glued[2].toLowerCase(); }
+      var text = t.text, gluedName = '', gluedPreset = '';
+      var glued = splitAt(text);
+      if (glued && glued.body) { text = glued.body; gluedName = glued.name; gluedPreset = glued.preset; }
       var c = chordOf(text, inGroup, known);
       if (!c) return null;
       if (c.guard) {
@@ -544,15 +593,15 @@
       i++;
       if (c.paren) flags.paren = true;
       if (c.lower) flags.lower = true;
-      if (gluedName) setInstrument(gluedName);
+      if (gluedName) applyAt(gluedName, gluedPreset);
       return c;
     }
     function tryAt() {
       var t = tokens[i];
       if (!t || t.type !== 'word') return false;
-      var m = /^@([A-Za-z][\w-]*)$/.exec(t.text);
-      if (!m) return false;
-      setInstrument(m[1].toLowerCase());
+      var split = splitAt(t.text);
+      if (!split || split.body) return false;
+      applyAt(split.name, split.preset);
       i++;
       return true;
     }
@@ -768,7 +817,7 @@
         chord: null, chordId: null, rootPc: null, bass: null, unmapped: false,
         order: 'up', rate: '16ths', step: 0.25, octaves: 1, spread: 'compact',
         inversion: 0, fmDepth: null, beats: null, bars: null, instrument: '',
-        bareRoot: false
+        presetRef: '', bareRoot: false
       };
       var set = {};
       var orders = {
@@ -834,10 +883,13 @@
         var w = tokens[i];
         if (!w || w.type !== 'word') break;
         var text = w.text, low = text.toLowerCase();
-        var at = /^(.*)@([A-Za-z][\w-]*)$/.exec(text);
+        var at = splitAt(text);
         if (at) {
-          if (!spec.instrument) spec.instrument = at[2].toLowerCase();
-          text = at[1];
+          if (!spec.instrument) {
+            spec.instrument = at.name;
+            spec.presetRef = at.preset || '';
+          }
+          text = at.body;
           low = text.toLowerCase();
           if (!text) { i++; continue; }
         }
@@ -949,11 +1001,12 @@
         break;
       }
       delete spec.bareRoot;
-      if (spec.instrument) setInstrument(spec.instrument);
+      if (spec.presetRef) applyAt('synth', spec.presetRef);
+      else if (spec.instrument) applyAt(spec.instrument, '');
       musArps().push(spec);
       var arpText = arpSyntax(spec);
       if (trailing.length) arpText += ' ' + trailing.join(' ');
-      syntax.push({ kind: 'arp', text: arpText });
+      musSyntax().push({ kind: 'arp', text: arpText });
       return true;
       function arpSyntax(a) {
         var parts = ['arp'];
@@ -966,7 +1019,8 @@
         if (a.fmDepth > 0) parts.push('fm ' + trimNum(a.fmDepth));
         if (a.bars != null) parts.push('(' + trimNum(a.bars) + '|)');
         else if (a.beats != null) parts.push('(' + trimNum(a.beats) + ')');
-        if (a.instrument) parts.push('@' + a.instrument);
+        if (a.presetRef) parts.push('@synth(' + a.presetRef + ')');
+        else if (a.instrument) parts.push('@' + a.instrument);
         return parts.join(' ');
       }
     }
@@ -988,8 +1042,8 @@
         var scan = tokens[j];
         if (scan.type === 'word' && /^arp$/i.test(scan.text)) break;
         if (scan.type === 'word') {
-          var glued = /^(.*)@([A-Za-z][\w-]*)$/.exec(scan.text);
-          var scanBody = glued ? glued[1] : scan.text;
+          var glued = splitAt(scan.text);
+          var scanBody = glued ? glued.body : scan.text;
           var scanPitch = pitchParts(scanBody);
           if ((scanBody && pitchEcho(scanBody)) || (scanPitch && !scanPitch.ok)) saw = true;
         }
@@ -1003,10 +1057,13 @@
         if (tok.type === 'word' && /^arp$/i.test(tok.text)) break;
         if (tok.type === 'quote') parts.push('"' + tok.text + '"');
         else if (tok.type === 'word') {
-          var at = /^(.*)@([A-Za-z][\w-]*)$/.exec(tok.text);
+          var at = splitAt(tok.text);
           var body = tok.text, inst = '';
-          var atPitch = at && at[1] ? pitchParts(at[1]) : null;
-          if (at && (!at[1] || atPitch)) { body = at[1]; inst = '@' + at[2].toLowerCase(); }
+          var atPitch = at && at.body ? pitchParts(at.body) : null;
+          if (at && (!at.body || atPitch)) {
+            body = at.body;
+            inst = at.preset ? '@synth(' + at.preset + ')' : '@' + at.name;
+          }
           var heard = pitchParts(body);
           if (heard && heard.ok) parts.push(heard.echo);
           else if (heard && !heard.ok) { err(rangeNote(heard.name)); if (body) parts.push(body); }
@@ -1023,8 +1080,12 @@
       if (parts.length) {
         var notesText = 'notes ' + parts.join(' ');
         musSyntax().push({ kind: 'notes', text: notesText });
-        var named = /@([A-Za-z][\w-]*)/.exec(notesText);
-        if (named) setInstrument(named[1].toLowerCase());
+        var presetTok = /@synth\(([\s\S]*)\)/i.exec(notesText);
+        if (presetTok) applyAt('synth', presetTok[1].replace(/\s+/g, ' ').trim());
+        else {
+          var named = /@([A-Za-z][\w-]*)/.exec(notesText);
+          if (named) applyAt(named[1].toLowerCase(), '');
+        }
       }
       return true;
     }
@@ -1257,6 +1318,7 @@
       if (kind === 'arp') scanUnmapped([arp], harmonyFor(tr));
       resolved.push({
         n: tr.n, label: tr.label, kind: kind, instrument: tr.instrument || '',
+        preset: presetOf(tr.presetRef),
         played: kind === 'chords' ? tr.played : [],
         harmony: harmonyFor(tr),
         syntax: kept, arp: arp, source: tr.sources.join('\n'),
@@ -1287,8 +1349,10 @@
     if (echo && echo.loose.length) say(lengthNotes, lengthNote(echo.loose));
     else if (echo && echo.open.length) say(lengthNotes, openNote(echo.open));
     notes = errors.concat(otherNotes, lengthNotes).slice(0, 2).concat(aiNotes);
+    var piecePreset = presetOf(piecePresetRef);
     var line = echo && echo.line ? echo.line : joinSyntax(syntax);
-    if (!resolved.length && echo && echo.music && line) line = markLine(line, pieceInstrument);
+    if (!resolved.length && echo && echo.music && line) line = markLine(line, pieceInstrument, piecePreset);
+    else if (!resolved.length && piecePreset && line) line = addPreset(line, piecePreset, ' · ');
     var iread = line;
     if (words.length) iread += (iread ? '\n' : '') + words.join(' ');
     notes.forEach(function (s) { iread += (iread ? '\n' : '') + s; });
@@ -1297,7 +1361,7 @@
       played: played, gather: gather, words: words, notes: notes, quoted: quoted,
       iread: iread, arp: arps, unmapped: unmapped, syntax: syntax,
       tracks: resolved, trackSpans: trackSpans, synth: pieceInstrument === 'synth',
-      instrument: pieceInstrument
+      instrument: pieceInstrument, preset: piecePreset
     };
     function nameList(list) {
       if (list.length === 1) return list[0];
@@ -1426,15 +1490,15 @@
           var te = musicalEcho(tr.played, tr.syntax);
           te.loose.forEach(function (n) { if (loose.indexOf(n) < 0) loose.push(n); });
           te.open.forEach(function (n) { if (open.indexOf(n) < 0) open.push(n); });
-          if (te.parts.length) phrases.push(markPhrase(tr.label + ' ' + te.parts.join(', '), tr.instrument));
+          if (te.parts.length) phrases.push(markPhrase(tr.label + ' ' + te.parts.join(', '), tr.instrument, tr.preset));
           if (te.total > maxBeats) maxBeats = te.total;
           tr.beats = te.total;
         } else if (tr.syntax.length) {
-          phrases.push(markPhrase(tr.label + ' ' + tr.syntax.map(function (s) { return s.text; }).join(', '), tr.instrument));
+          phrases.push(markPhrase(tr.label + ' ' + tr.syntax.map(function (s) { return s.text; }).join(', '), tr.instrument, tr.preset));
           if (tr.beats > maxBeats) maxBeats = tr.beats;
         }
       });
-      if (base.music && phrases.length) phrases[0] = markPhrase(phrases[0], pieceInstrument);
+      if (base.music && phrases.length) phrases[0] = markPhrase(phrases[0], pieceInstrument, presetOf(piecePresetRef));
       if (!phrases.length) return base;
       var extras = [];
       syntax.forEach(function (s) {
@@ -1456,23 +1520,31 @@
       if (key === 'bass') return '@bass';
       return '';
     }
-    function markPhrase(phrase, name) {
+    function markPhrase(phrase, name, preset) {
       var key = String(name || '').toLowerCase();
-      if (key === 'synth') return /@synth\b/.test(phrase) ? phrase : phrase + ' @synth';
-      var token = samplerToken(key);
-      if (token) return phrase.indexOf(token) >= 0 ? phrase : phrase + ' ' + token;
-      if (key && phrase.indexOf('@' + key) < 0) phrase += ' @' + key;
-      if (/@synth\b/.test(phrase) || /(?:^|\s)synth$/.test(phrase)) return phrase;
-      return phrase + ' synth';
+      if (key === 'synth') phrase = /@synth\b/.test(phrase) ? phrase : phrase + ' @synth';
+      else {
+        var token = samplerToken(key);
+        if (token) phrase = phrase.indexOf(token) >= 0 ? phrase : phrase + ' ' + token;
+        else {
+          if (key && phrase.indexOf('@' + key) < 0) phrase += ' @' + key;
+          if (!(/@synth\b/.test(phrase) || /(?:^|\s)synth$/.test(phrase))) phrase += ' synth';
+        }
+      }
+      return addPreset(phrase, preset, ' ');
     }
-    function markLine(line, name) {
+    function markLine(line, name, preset) {
       var key = String(name || '').toLowerCase();
-      if (key === 'synth') return line.indexOf('@synth') >= 0 ? line : line + ' · @synth';
-      var token = samplerToken(key);
-      if (token) return line.indexOf(token) >= 0 ? line : line + ' · ' + token;
-      if (key && line.indexOf('@' + key) < 0) line += ' · @' + key;
-      if (/@synth\b/.test(line) || /(?:^| · )synth$/.test(line)) return line;
-      return line + ' · synth';
+      if (key === 'synth') line = line.indexOf('@synth') >= 0 ? line : line + ' · @synth';
+      else {
+        var token = samplerToken(key);
+        if (token) line = line.indexOf(token) >= 0 ? line : line + ' · ' + token;
+        else {
+          if (key && line.indexOf('@' + key) < 0) line += ' · @' + key;
+          if (!(/@synth\b/.test(line) || /(?:^| · )synth$/.test(line))) line += ' · synth';
+        }
+      }
+      return addPreset(line, preset, ' · ');
     }
   }
 
