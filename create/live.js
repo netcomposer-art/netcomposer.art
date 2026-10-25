@@ -420,6 +420,7 @@ var clipNodes = [], clipPlays = 0, clipEnd = 0;
 // The written synth line, played by the engine into the hack chain when the
 // Live toggle is on. Off: the rendered buffer is one more clip, as before.
 var SYNTH = null, synthEngine = null, synthOpening = null, synthGen = 0, lastSpec = null, lastAlign = null, lastNotes = [];
+var feeds = {};
 function synthWanted() {
   var box = $('live-synth-on');
   return !!(box && box.checked && SYNTH && SYNTH.notes && SYNTH.notes.length);
@@ -441,7 +442,8 @@ function ensureEngine() {
     if (settings && settings.oscillatorMode === 'wavetable') settings.oscillatorMode = 'vco';
     var engine = new Eng(settings);
     var random = window.NCSynth && NCSynth.mulberry32 ? NCSynth.mulberry32(part.seed) : Math.random;
-    return engine.open(AC, random, busFor(part && part.track)).then(function () {
+    var lane = (SYNTH && SYNTH.lane) || (part && part.track >= 1 ? 't' + part.track : 'synth');
+    return engine.open(AC, random, laneFeed(lane, busFor(part && part.track))).then(function () {
       synthEngine = engine;
       synthOpening = null;
       return engine;
@@ -480,6 +482,26 @@ function startSynth(when, offset) {
     lastAlign = { when: when, offset: offset, ac: AC ? AC.currentTime : null, media: a.currentTime || 0, notes: notes };
   }).catch(function () {});
 }
+// Solo and Mute sit on the way into that track's bus. The bus itself stays
+// at unity: t1–t8 are inputs 0–7, and every other lane shares input 8.
+function laneFeed(lane, bus) {
+  lane = lane || 'chords';
+  var row = feeds[lane];
+  if (row && row.bus === bus) return row.gain;
+  if (row && row.release) { try { row.release(); } catch (e) {} }
+  var g = AC.createGain();
+  g.connect(bus);
+  var release = window.NCArrange && NCArrange.hold ? NCArrange.hold(lane, g, 1, AC) : null;
+  if (!release) g.gain.value = 1;
+  feeds[lane] = { gain: g, bus: bus, release: release };
+  return g;
+}
+function clipLane(entry) {
+  if (!entry) return 'chords';
+  if (entry.lane) return entry.lane;
+  if (entry.track >= 1) return 't' + entry.track;
+  return 'chords';
+}
 function setSynthPart(part) {
   var depth = part && part.settings && part.settings.fmDepth != null ? +part.settings.fmDepth : (part && +part.depth) || 0;
   if (!(depth >= 0)) depth = 0;
@@ -491,9 +513,10 @@ function setSynthPart(part) {
     seed: (part.seed >>> 0) || 1,
     depth: depth,
     mods: part.mods || [],
+    lane: part.lane || (part.track >= 1 ? 't' + part.track : 'synth'),
     track: part.track >= 1 ? part.track : null
   } : null;
-  if (synthEngine && (!next || !SYNTH || next.seed !== SYNTH.seed || next.track !== SYNTH.track)) {
+  if (synthEngine && (!next || !SYNTH || next.seed !== SYNTH.seed || next.track !== SYNTH.track || next.lane !== SYNTH.lane)) {
     try { synthEngine.panic(); } catch (e) {}
     synthEngine = null;
     synthOpening = null;
@@ -611,9 +634,11 @@ function scheduleClips(spec) {
     var offset = spec.offset || 0;
     var liveOn = synthWanted();
     (spec.entries || []).forEach(function (entry) {
-      // The rendered synth buffer stays out of the chain while the engine plays it.
-      if (liveOn && entry.synth) return;
-      var node = placeClip(AC, busFor(entry.track), entry, when, offset);
+      // The rendered synth buffer stays out while the engine plays that same track.
+      var lane = clipLane(entry);
+      var liveLane = SYNTH && (SYNTH.lane || (SYNTH.track >= 1 ? 't' + SYNTH.track : 'synth'));
+      if (liveOn && entry.synth && lane === liveLane) return;
+      var node = placeClip(AC, laneFeed(lane, busFor(entry.track)), entry, when, offset);
       if (node) {
         node.synth = !!entry.synth;
         clipNodes.push(node);
@@ -644,7 +669,11 @@ function renderBuffers(spec) {
       one.gain.value = 1;
       buses.push(one);
     }
-    (spec.entries || []).forEach(function (entry) { placeClip(off, buses[trackInput(entry.track)], entry, 0, 0); });
+    (spec.entries || []).forEach(function (entry) {
+      var lane = clipLane(entry);
+      if (lane && window.NCArrange && NCArrange.audible && !NCArrange.audible(lane)) return;
+      placeClip(off, buses[trackInput(entry.track)], entry, 0, 0);
+    });
     return NCHacks.attach(off, {widgets: list, immediate: true, piece: musical}).then(function (api) {
       buses.forEach(function (g, i) { g.connect(api.node, 0, i); });
       api.node.connect(off.destination);

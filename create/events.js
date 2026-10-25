@@ -500,12 +500,42 @@
     var scheduled = {};
     var stopped = false;
     var output = opts.output;
+    var releases = [];
+    var lanes = {};
+    var slots = [];
+    function slotOf(id) {
+      if (root.NCArrange && NCArrange.trackSlot) return NCArrange.trackSlot(id);
+      var m = /^t(\d+)$/i.exec(String(id || ''));
+      if (!m) return 8;
+      var n = +m[1];
+      return n >= 1 && n <= 8 ? n - 1 : 8;
+    }
+    // One dry bus per worklet input. t1–t8 keep their own; the rest share input 8.
+    function slotBus(id) {
+      var slot = slotOf(id);
+      if (slots[slot]) return slots[slot];
+      var g = ctx.createGain();
+      g.gain.value = 1;
+      g.connect(dest);
+      slots[slot] = g;
+      return g;
+    }
+    function busFor(id) {
+      if (lanes[id]) return lanes[id];
+      var g = ctx.createGain();
+      g.connect(slotBus(id));
+      lanes[id] = g;
+      if (root.NCArrange && NCArrange.hold) releases.push(NCArrange.hold(id, g, 1, ctx));
+      else g.gain.value = 1;
+      return g;
+    }
     function stop() {
       if (stopped) return;
       stopped = true;
       timers.splice(0).forEach(function (t) { clearTimeout(t); });
       sources.splice(0).forEach(function (s) { try { s.stop(); } catch (e) {} });
       engines.forEach(function (row) { try { row.engine.panic(); } catch (e) {} });
+      releases.splice(0).forEach(function (fn) { try { fn(); } catch (e) {} });
       if (current === doc) current = null;
     }
     function due(tr, ev, i) {
@@ -537,7 +567,7 @@
           tr.events.forEach(function (ev, i) {
             if (!due(tr, ev, i)) return;
             var buffer = opts.buffers && opts.buffers[tr.instrument + ':' + ev.midi];
-            var node = scheduleSamplerNote(ctx, dest, ev, origin, buffer, output);
+            var node = scheduleSamplerNote(ctx, busFor(tr.id), ev, origin, buffer, output);
             if (node) sources.push(node.src);
           });
           return;
@@ -546,9 +576,9 @@
           tr.events.forEach(function (ev, i) {
             if (!due(tr, ev, i)) return;
             var buffer = opts.clips && opts.clips[tr.id + ':' + ev.slot];
-            if (!buffer && opts.missingClip) opts.missingClip(tr, ev, origin + ev.start);
+            if (!buffer && opts.missingClip) opts.missingClip(tr, ev, origin + ev.start, busFor(tr.id));
             else {
-              var node = scheduleClip(ctx, dest, ev, origin, buffer);
+              var node = scheduleClip(ctx, busFor(tr.id), ev, origin, buffer);
               if (node) sources.push(node.src);
             }
           });
@@ -564,7 +594,7 @@
       var engine = new Eng(settings);
       var node = ctx.createGain();
       node.gain.value = 0.8;
-      node.connect(dest);
+      node.connect(busFor(tr.id));
       opening.push(engine.open(ctx, NCSynth.mulberry32(tr.seed >>> 0), node).then(function () {
         engines.push({ id: tr.id, engine: engine });
       }));

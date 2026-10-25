@@ -29,6 +29,8 @@
   var chordUse = {};
   var sources = [];
   var timers = [];
+  var mixReleases = [];
+  var playSlots = [];
   var sac = null;
   var savedCopy = {};
   var prefetchToken = 0;
@@ -419,6 +421,24 @@
   function halt() {
     timers.splice(0).forEach(function (t) { clearTimeout(t); });
     sources.splice(0).forEach(function (s) { try { s.stop(); } catch (e) {} });
+    mixReleases.splice(0).forEach(function (fn) { try { fn(); } catch (e) {} });
+    playSlots = [];
+  }
+  function slotBus(ctx, id) {
+    var slot = root.NCArrange && NCArrange.trackSlot ? NCArrange.trackSlot(id) : 8;
+    if (playSlots[slot]) return playSlots[slot];
+    var bus = ctx.createGain();
+    bus.gain.value = 1;
+    bus.connect(ctx.destination);
+    playSlots[slot] = bus;
+    return bus;
+  }
+  function openBus(ctx, id) {
+    var g = ctx.createGain();
+    g.connect(slotBus(ctx, id));
+    if (root.NCArrange && NCArrange.hold) mixReleases.push(NCArrange.hold(id, g, 1, ctx));
+    else g.gain.value = 1;
+    return g;
   }
   function schedule(ctx, dest, planned, buffers, output, lead, record, origin) {
     var master = ctx.createGain();
@@ -517,12 +537,16 @@
       var notes = planned.notes.slice().sort(function (a, b) { return a.start - b.start || a.midi - b.midi; });
       var t0 = ctx.currentTime + 0.05;
       var next = 0;
+      var chordBus = openBus(ctx, 'chords');
+      var noteBus = openBus(ctx, noteTrack || 'sampler');
       function pump() {
         if (!live()) return;
         var until = ctx.currentTime + 0.12 - t0;
-        var due = [];
+        var due = [], chordDue = [], noteDue = [];
         while (next < notes.length && notes[next].start <= until + 1e-6) due.push(notes[next++]);
-        if (due.length) schedule(ctx, ctx.destination, { notes: due }, buffers, outputGain(), 0, true, t0);
+        due.forEach(function (n) { (n.origin === 'chord' ? chordDue : noteDue).push(n); });
+        if (chordDue.length) schedule(ctx, chordBus, { notes: chordDue }, buffers, outputGain(), 0, true, t0);
+        if (noteDue.length) schedule(ctx, noteBus, { notes: noteDue }, buffers, outputGain(), 0, true, t0);
         if (next < notes.length && live()) timers.push(setTimeout(pump, 25));
       }
       pump();

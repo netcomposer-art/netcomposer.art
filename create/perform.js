@@ -1703,6 +1703,20 @@
     return a[0] || 1;
   }
   function isSynth(s) { return !!(s && s.kind === 'nc-synth'); }
+  function laneFromClip(id) {
+    id = String(id || '');
+    var m = /^nc-(?:synth|sampler)-(.+)$/.exec(id);
+    if (m) return m[1];
+    if (id === 'nc-synth') return 'synth';
+    if (id.indexOf('nc-sampler') === 0) return 'sampler';
+    return '';
+  }
+  function soundLane(s) {
+    if (!s) return 'chords';
+    if (s.lane) return s.lane;
+    if (s.trackId) return s.trackId;
+    return laneFromClip(s.clip_id) || 'chords';
+  }
   // A synth voice or a sampler track rendered from the same event list.
   function isBaked(s) { return isSynth(s) || !!(s && s.kind === 'nc-event'); }
   // Chord clips already in the take. A language plan carries one entry per
@@ -1804,6 +1818,7 @@
     var notesOk = !!(line.notes && line.notes.length && !line.instrument);
     var arpOk = !!(line.arp && !line.arpInstrument);
     if (!notesOk && !arpOk) return null;
+    line.lane = 'synth';
     if (!notesOk) line.notes = [];
     if (!arpOk) line.arp = null;
     var parsed = window.NC && NC.read && NC.read();
@@ -1834,7 +1849,7 @@
           events: tr.events, notes: tr.events,
           fmDepth: tr.params ? tr.params.fmDepth : 0,
           bpm: doc.bpm, meter: doc.meter, label: tr.label || '',
-          instrument: '', seed: tr.seed, clipId: tr.clipId, eventTrack: tr,
+          instrument: '', seed: tr.seed, clipId: tr.clipId, eventTrack: tr, lane: tr.id,
           trackN: tr.n
         });
       });
@@ -1846,12 +1861,13 @@
       var voice = NCSynth.voiceOf(tr, parsed, i + 1);
       if (!voice) return;
       voice.clipId = 'nc-synth-' + String(tr.label || ('t' + tr.n)).toLowerCase();
+      voice.lane = 't' + tr.n;
       voice.trackN = tr.n;
       lines.push(voice);
     });
     if (parsed.synth && NCSynth.chordVoice) {
       var cv = NCSynth.chordVoice(parsed, lines.length + 1);
-      if (cv) { cv.clipId = 'nc-synth-chords'; lines.push(cv); }
+      if (cv) { cv.clipId = 'nc-synth-chords'; cv.lane = 'chords'; lines.push(cv); }
     }
     return lines;
   }
@@ -1881,7 +1897,7 @@
               title: (tr.label || 'Sampler') + (tr.instrument ? ' · ' + tr.instrument : ''),
               buffer: buf, duration_s: buf.duration, start_s: 0, gain_db: 0,
               gather_id: gatherId || 'nc-event', clip_id: tr.clipId, url: '', cache: '',
-              notes: tr.events, detail: (tr.messages || []).join(' '),
+              notes: tr.events, detail: (tr.messages || []).join(' '), lane: tr.id,
               trackN: tr.n
             });
             gatherSounds = acc;
@@ -1917,7 +1933,7 @@
             kind: 'nc-track', local: true, trackId: layer.id, recording: c.recording,
             symbol: c.symbol || '', title: c.symbol || layer.label || '',
             buffer: clip && clip.buffer, duration_s: clip && clip.buffer ? clip.buffer.duration : 0,
-            start_s: 0, gain_db: 0, gather_id: 'nc-track',
+            start_s: 0, gain_db: 0, gather_id: 'nc-track', lane: layer.id,
             clip_id: 'track-' + layer.id + '-' + c.recording, url: '', cache: ''
           });
         });
@@ -1985,6 +2001,7 @@
       credit: NCSynth.CREDIT + '. Code MIT. Output CC BY-SA 4.0.',
       detail: NCSynth.describe(settings, seed),
       notes: notes,
+      lane: line.lane || laneFromClip(clipId) || 'synth',
       arpWords: line.arpWords || '',
       synth: { seed: seed >>> 0, settings: settings, code_license: 'MIT', output_license: 'CC-BY-SA-4.0' }
     };
@@ -2175,6 +2192,7 @@
         fadeIn: (e.fade_in_ms != null ? e.fade_in_ms : 12) / 1000,
         fadeOut: (e.fade_out_ms != null ? e.fade_out_ms : 12) / 1000,
         synth: !!(sound && isSynth(sound)),
+        lane: soundLane(sound),
         track: trackNumber(sound)
       };
     });
@@ -2346,6 +2364,7 @@
       settings: synth.synth.settings,
       seed: synth.synth.seed,
       depth: depth,
+      lane: soundLane(synth),
       mods: modsFor(synth.notes, chordBeds(localPlan)),
       track: synth.trackN >= 1 ? synth.trackN : null
     });
@@ -2553,7 +2572,14 @@
       s.className = 'm';
       s.textContent = 'Saving…';
       var chain = NCLive.chain ? NCLive.chain() : [];
-      return NCLive.renderBuffers({ entries: clipEntries(localPlan), total: localPlan.total_s, chain: chain }).then(function (out) {
+      var clips = clipEntries(localPlan);
+      var heard = [], keptEntries = [];
+      clips.forEach(function (e, i) {
+        if (e && e.lane && window.NCArrange && NCArrange.audible && !NCArrange.audible(e.lane)) return;
+        heard.push(e);
+        keptEntries.push(localPlan.entries[i]);
+      });
+      return NCLive.renderBuffers({ entries: heard, total: localPlan.total_s, chain: chain }).then(function (out) {
         var blob = out && out.blob ? out.blob : out;
         var rendered = out && out.total_s ? +(+out.total_s).toFixed(3) : localPlan.total_s;
         var musical = +(+localPlan.total_s).toFixed(3);
@@ -2566,7 +2592,7 @@
           nc_assembly_version: '1',
           gather_id: localPlan.gather_id,
           seed: localPlan.seed,
-          entries: planEntries(localPlan.entries),
+          entries: planEntries(keptEntries),
           total_s: +(+total).toFixed(3)
         };
         var state = takeBody(plan, chain);

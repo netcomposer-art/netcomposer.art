@@ -64,6 +64,7 @@
     draftKeys().forEach(function (k) { try { sessionStorage.removeItem(k); } catch (e) {} });
     Array.prototype.forEach.call(document.querySelectorAll('audio'), function (a) { try { a.pause(); } catch (e) {} });
     try { if (window.NC && NC.stop) NC.stop(); } catch (e2) {}
+    try { if (window.NCArrange && NCArrange.clearMix) NCArrange.clearMix(); } catch (e4) {}
     try { if ('scrollRestoration' in history) history.scrollRestoration = 'manual'; } catch (e3) {}
     window.scrollTo(0, 0);
     // A new navigation, not a reload: the browser does not refill the fields.

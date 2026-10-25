@@ -623,7 +623,7 @@ function refresh() {
 
 // ---------- play (WebAudio) ----------
 // Edits, Undo, Apply and the speed slider restart the preview at the chord it was on, with the new chords.
-var AC = null, playing = [], timers = [], gen = 0, active = false, cur = 0, restartT = null, SCHED = [], liveHandle = null;
+var AC = null, playing = [], timers = [], gen = 0, active = false, cur = 0, restartT = null, SCHED = [], liveHandle = null, arrangeHold = null;
 // iPhone Safari stays silent until a tap resumes the context. The first
 // pointer or touch does that, and Play does it again in the same gesture.
 function unlockAudio() {
@@ -641,6 +641,7 @@ function unlockAudio() {
 }
 function stop() {
   gen++; active = false; clearTimeout(restartT);
+  if (arrangeHold) { try { arrangeHold(); } catch (e0) {} arrangeHold = null; }
   if (liveHandle) { try { liveHandle.stop(); } catch (e) {} liveHandle = null; }
   if (window.NCArrange && NCArrange.disarm) NCArrange.disarm();
   if (window.NCSampler && NCSampler.halt) NCSampler.halt();
