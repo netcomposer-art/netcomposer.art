@@ -149,6 +149,7 @@ function graph() {
     }
     return replaceAudio();
   }).then(function () {
+    // Input 0 is the mix, as before. Track inputs stay empty until a track has its own hacks.
     G.input.connect(G.hack);
     return G;
   }).catch(function () {

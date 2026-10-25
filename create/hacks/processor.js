@@ -10,6 +10,9 @@ class NCHackProcessor extends AudioWorkletProcessor {
   constructor(options) {
     super();
     this.chain = ncChainCreate(sampleRate);
+    this.tracks = [];
+    var t;
+    for (t = 0; t < 8; t++) this.tracks.push(ncChainCreate(sampleRate));
     var opt = options && options.processorOptions;
     if (opt && opt.widgets) ncChainSet(this.chain, opt.widgets, opt.immediate !== false);
     this.warm = 8;
@@ -26,7 +29,12 @@ class NCHackProcessor extends AudioWorkletProcessor {
     this.port.postMessage({ ready: 1, sr: sampleRate, clock: this.clock });
   }
   onMsg(msg) {
-    var chain = this.chain;
+    var slot = ncTrackSlot(msg.track);
+    if (slot === -2) {
+      if (msg.ack) this.port.postMessage({ ack: msg.ack });
+      return;
+    }
+    var chain = slot >= 0 ? this.tracks[slot] : this.chain;
     if (msg.op === 'chain') ncChainSet(chain, msg.widgets, !!msg.hold);
     else if (msg.op === 'add') ncChainAdd(chain, msg.widget);
     else if (msg.op === 'order') ncChainOrder(chain, msg.ids || [], !!msg.immediate);
@@ -37,14 +45,11 @@ class NCHackProcessor extends AudioWorkletProcessor {
   }
   process(inputs, outputs) {
     var t0 = ncNow();
-    var input = inputs[0] || [];
     var output = outputs[0] || [];
-    var inL = input[0] || null;
-    var inR = input[1] || inL;
     var outL = output[0];
     var outR = output[1] || outL;
     if (!outL) return true;
-    ncRender(this.chain, inL, inR, outL, outR);
+    ncMixRender(this.tracks, this.chain, inputs, outL, outR);
     if (this.grOn) {
       var lim = this.chain.lim;
       if (lim.lo < this.grMin) this.grMin = lim.lo;
