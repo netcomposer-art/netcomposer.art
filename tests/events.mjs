@@ -30,6 +30,7 @@ sb.String = String;
 sb.Promise = Promise;
 sb.Error = Error;
 vm.createContext(sb);
+load('create/instruments.js', sb);
 load('create/chord-library.js', sb);
 load('create/language.js', sb);
 load('create/nc-synth.js', sb);
@@ -63,6 +64,8 @@ const arp2 = docOf('t1: Cm(4|) Fm(4|)\nt2: arp random 8ths');
 check(arp.tracks[1].voice === 'synth' && arp.tracks[1].region && arp.tracks[1].events.length > 4, 'an arp track expands to notes, got ' + (arp.tracks[1] && arp.tracks[1].events.length));
 check(arp.tracks[1].events.map((e) => e.midi).join() === arp2.tracks[1].events.map((e) => e.midi).join(), 'the same seed expands the arp the same way');
 
+const octChord = docOf('t1: C5m9(2|) @synth');
+check(octChord.tracks[0].voice === 'synth' && octChord.tracks[0].events.some((e) => e.midi === 72) && octChord.tracks[0].events.every((e) => e.midi >= 72), 'C5m9 on a synth track roots at MIDI 72, got ' + octChord.tracks[0].events.map((e) => e.midi).join());
 const plain = docOf('Cm(4|) Fm(4|)');
 check(plain.tracks.length === 1 && plain.tracks[0].id === 'chords' && plain.tracks[0].voice === 'audio', 'an unlabelled chord line stays one audio track, got ' + JSON.stringify(plain.tracks));
 
@@ -102,6 +105,28 @@ check(withSampler.tracks.map((t) => t.id + ':' + t.voice).join(' ') === 't1:audi
 check(withSampler.tracks[2].events.length === 0 || withSampler.tracks[2].skipped.length || withSampler.tracks[2].events[0].midi, 'the sampler track is event data');
 const named = docOf('t1: notes C5(4|) @guitar');
 check(named.tracks[0] && named.tracks[0].voice === 'sampler' && named.tracks[0].instrument === 'guitar', '@guitar is a sampler track, got ' + JSON.stringify(named.tracks[0] && { voice: named.tracks[0].voice, instrument: named.tracks[0].instrument }));
+const cello = docOf('t1: notes C3(2|) @cello');
+check(cello.tracks[0] && cello.tracks[0].instrument === 'cello-pizzicato', '@cello stays the pizzicato slug, got ' + (cello.tracks[0] && cello.tracks[0].instrument));
+
+sb.NCSampler.manifest = function (slug) {
+  var notes = {};
+  for (var m = 0; m < 128; m++) notes[m] = {};
+  return { notes: notes, slug: slug, instrument: slug };
+};
+const bass = docOf('t1: notes B1(1) E2(1) @bass');
+check(bass.tracks[0] && bass.tracks[0].voice === 'sampler' && bass.tracks[0].instrument === 'bass' && bass.tracks[0].events.length === 2, '@bass is a sampler notes track, got ' + JSON.stringify(bass.tracks[0] && { voice: bass.tracks[0].voice, instrument: bass.tracks[0].instrument, n: bass.tracks[0].events.length }));
+const bassChord = docOf('t1: Cm(2|) @bass');
+check(bassChord.tracks[0] && bassChord.tracks[0].voice === 'sampler' && bassChord.tracks[0].instrument === 'bass' && bassChord.tracks[0].events.length > 1 && bassChord.tracks[0].events.every((e) => e.type === 'note'), '@bass expands a chord track, got ' + JSON.stringify(bassChord.tracks[0] && { voice: bassChord.tracks[0].voice, instrument: bassChord.tracks[0].instrument, n: bassChord.tracks[0].events.length }));
+const pianoChord = docOf('t1: Cm(2|) @piano');
+check(pianoChord.tracks[0] && pianoChord.tracks[0].voice === 'audio', '@piano on a chord track stays a recording, got ' + (pianoChord.tracks[0] && pianoChord.tracks[0].voice));
+const gathered = L.parse('t1: Cm(2|) @bass', { known });
+check(!gathered.gather.length, 'a bass chord track is not gathered, got ' + JSON.stringify(gathered.gather));
+const dropped = docOf('t1: notes C4(1) @strings');
+check(!dropped.tracks.some((t) => t.voice === 'sampler' || t.instrument === 'strings'), '@strings is not a sampler, got ' + JSON.stringify(dropped.tracks));
+const droppedChord = docOf('t1: Cm(2|) @vibes');
+check(droppedChord.tracks[0] && droppedChord.tracks[0].voice === 'audio', '@vibes on a chord track stays a recording, got ' + (droppedChord.tracks[0] && droppedChord.tracks[0].voice));
+const droppedKalimba = docOf('t1: notes G1(1) @kalimba');
+check(!droppedKalimba.tracks.some((t) => t.instrument === 'kalimba'), '@kalimba is not a sampler, got ' + JSON.stringify(droppedKalimba.tracks));
 
 function playOf(text) {
   return E.build(L.parse(text, { known }), { play: true });
@@ -110,6 +135,8 @@ const plainPlay = playOf('Cm11');
 check(plainPlay.tracks.length === 1 && plainPlay.tracks[0].id === 'chords' && plainPlay.tracks[0].voice === 'synth' && plainPlay.tracks[0].events.length >= 3 && plainPlay.tracks[0].events.every((e) => e.type === 'note' && e.midi >= 0), 'Play sounds a plain chord on the synth, got ' + JSON.stringify(plainPlay.tracks.map((t) => t.voice)));
 const pianoPlay = playOf('Cm11 @piano');
 check(pianoPlay.tracks.length === 1 && pianoPlay.tracks[0].voice === 'sampler' && pianoPlay.tracks[0].instrument === 'piano', 'Play sounds Cm11 @piano on the piano sampler, got ' + JSON.stringify(pianoPlay.tracks[0] && { voice: pianoPlay.tracks[0].voice, instrument: pianoPlay.tracks[0].instrument, n: pianoPlay.tracks[0].events.length }));
+const bassPlay = playOf('t1: Cm(2|) @bass');
+check(bassPlay.tracks.length === 1 && bassPlay.tracks[0].voice === 'sampler' && bassPlay.tracks[0].instrument === 'bass' && bassPlay.tracks[0].events.length > 1, 'Play sounds a bass chord voicing on the sampler, got ' + JSON.stringify(bassPlay.tracks[0] && { voice: bassPlay.tracks[0].voice, instrument: bassPlay.tracks[0].instrument, n: bassPlay.tracks[0].events.length }));
 const flutePlay = playOf('t1: notes C4(4|) @flute');
 check(flutePlay.tracks.length === 1 && flutePlay.tracks[0].voice === 'synth' && flutePlay.tracks[0].events[0] && flutePlay.tracks[0].events[0].pitch === 'C4', '@flute labels the line and Play uses the synth, got ' + JSON.stringify(flutePlay.tracks[0] && { voice: flutePlay.tracks[0].voice, pitch: flutePlay.tracks[0].events[0] && flutePlay.tracks[0].events[0].pitch }));
 const duo = playOf('t1: Cm11(4)\nt2: notes G3(4) @cello');

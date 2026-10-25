@@ -18,8 +18,6 @@
   var LEAD = 0.05;
   var HORIZON = 0.12;
   var TICK = 25;
-  var LIBRARY = { guitar: 'guitar', piano: 'piano', cello: 'cello-pizzicato', 'cello-pizzicato': 'cello-pizzicato' };
-  var SPREAD = { guitar: 0.018, piano: 0.008, 'cello-pizzicato': 0.015 };
   var current = null;
 
   function beatOf(bpm) { return 60 / (bpm > 0 ? bpm : 96); }
@@ -31,8 +29,19 @@
     return '';
   }
   function librarySlug(name) {
-    var key = String(name || '').toLowerCase();
-    return LIBRARY[key] || '';
+    if (root.NCInstruments && NCInstruments.slug) return NCInstruments.slug(name) || '';
+    return '';
+  }
+  function playsChords(name) {
+    return !!(root.NCInstruments && NCInstruments.playsChords && NCInstruments.playsChords(name));
+  }
+  function strumOf(slug) {
+    var rows = root.NCInstruments && NCInstruments.rows;
+    if (!rows) return 0;
+    for (var i = 0; i < rows.length; i++) {
+      if (rows[i].slug === slug) return rows[i].spread || 0;
+    }
+    return 0;
   }
   function copyNote(ev) {
     return {
@@ -70,11 +79,17 @@
     };
   }
   // Keep and Perform. Notes and arp tracks can play the sampler. @synth stays
-  // the synth. A named sampler is the sampler even when the sampler switch is
-  // off. Any other @name keeps the synth out. Chord lines stay recordings.
+  // the synth. A name in NCInstruments is the sampler even when the hidden
+  // sampler switch is off. @bass does that on a chord track too. Bass is
+  // B1–A#4. @piano, @guitar, and @cello on a chord track stay recordings.
+  // Any other @name keeps the synth out.
   function roleOf(tr) {
     if (!tr) return '';
-    if (tr.kind === 'chords') return tr.instrument === 'synth' ? 'synth' : 'audio';
+    if (tr.kind === 'chords') {
+      if (tr.instrument === 'synth') return 'synth';
+      if (playsChords(tr.instrument)) return 'sampler';
+      return 'audio';
+    }
     if (tr.kind !== 'notes' && tr.kind !== 'arp') return '';
     if (tr.instrument === 'synth') return 'synth';
     var named = librarySlug(tr.instrument);
@@ -85,7 +100,8 @@
   }
   // Play. The line decides. No @name, and any name that is not a sampler,
   // sounds the synth, including a chord's catalog voicing. @piano, @guitar,
-  // and @cello play the sampler. This does not read the instrument select.
+  // @cello, and @bass play the sampler, including a chord's voicing. This
+  // does not read the instrument select.
   function playRole(tr) {
     if (!tr) return '';
     if (tr.kind === 'chords') return librarySlug(tr.instrument) ? 'sampler' : 'synth';
@@ -124,7 +140,7 @@
     var incoming = groups.map(function (g) {
       return { symbol: g.symbol, written: g.midis, start: g.start, hold: g.hold, origin: 'chord', index: g.index };
     });
-    var planned = NCSampler.plan(man, incoming, SPREAD[slug] || 0, 0.12);
+    var planned = NCSampler.plan(man, incoming, strumOf(slug), 0.12);
     var out = [];
     planned.notes.forEach(function (n) {
       var hold = Math.max(0.02, n.keep - (n.fade || 0));
@@ -298,6 +314,9 @@
       }
       var src = (play && role === 'synth') ? asSynth(tr) : bare(tr);
       if (role === 'sampler') src.source = String(src.source || '').replace(/@[A-Za-z][\w-]*/g, '');
+      // voiceOf expands a chord track only when the instrument is synth.
+      // The slug below stays the sampler name from the written line.
+      if (role === 'sampler' && tr.kind === 'chords') src.instrument = 'synth';
       var voice = root.NCSynth && NCSynth.voiceOf ? NCSynth.voiceOf(src, parsed, i) : null;
       if (!voice || !voice.events || !voice.events.length) {
         if (play && role === 'sampler') {

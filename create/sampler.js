@@ -18,11 +18,8 @@
   var RING_S = 8;
   var FADE_S = 0.12;
   var API_NOTES = 'https://nc-perform-api.psemme.workers.dev/api/notes/';
-  var LIBRARY = [
-    {slug: 'guitar', name: 'Guitar', spread: 0.018},
-    {slug: 'cello-pizzicato', name: 'Cello pizzicato', spread: 0.015},
-    {slug: 'piano', name: 'Piano', spread: 0.008}
-  ];
+  // The names live in instruments.js so events.js and this panel share one list.
+  var LIBRARY = (root.NCInstruments && NCInstruments.rows) ? NCInstruments.rows : [];
   var configured = '';
   var manifests = {};
   var cache = {};
@@ -298,6 +295,13 @@
     var bundle = lineBundle(compText(), 0);
     return bundle.events.length > 0;
   }
+  function catalogWritten(c) {
+    if (!c || c.octave == null || !root.NCSynth || !NCSynth.chordRoot || !root.NCChords || !NCChords.voicedChord) return null;
+    var id = NCChords.idForSymbol ? NCChords.idForSymbol(c.symbol) : null;
+    if (!id) return null;
+    try { return NCChords.voicedChord(NCSynth.chordRoot(c.symbol, c.octave), id, 0, 'compact', c.bass); }
+    catch (e) { return null; }
+  }
   function pieceEvents(from, speed) {
     var text = compText();
     var parsed = root.NC && root.NC.read ? root.NC.read() : null;
@@ -315,8 +319,10 @@
         if (i < from) return;
         var hold = c.slot != null ? c.slot : c.dur;
         if (!(hold > 0)) hold = 1;
+        var catalog = catalogWritten(c);
         events.push({
-          symbol: c.symbol, written: (c.voicing || []).slice(),
+          symbol: c.octave != null && c.name ? c.name : c.symbol,
+          written: catalog || (c.voicing || []).slice(),
           start: ((c.t || 0) - baseT) / speed, hold: hold / speed,
           origin: 'chord', index: i
         });
@@ -339,8 +345,13 @@
     var events = [];
     if (tl && tl.chords) {
       tl.chords.forEach(function (c, i) {
-        (c.voicing || []).forEach(function (m) { chordUse[+m] = 1; });
-        events.push({symbol: c.symbol, written: (c.voicing || []).slice(), start: 0, hold: 1, origin: 'chord', index: i});
+        var catalog = catalogWritten(c);
+        var written = catalog || (c.voicing || []).slice();
+        written.forEach(function (m) { chordUse[+m] = 1; });
+        events.push({
+          symbol: c.octave != null && c.name ? c.name : c.symbol,
+          written: written, start: 0, hold: 1, origin: 'chord', index: i
+        });
       });
     }
     var bpm = parsed && parsed.bpm > 0 ? parsed.bpm : 96;
