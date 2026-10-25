@@ -72,7 +72,8 @@
   }
   // Notes and arp tracks can play the sampler. @synth stays the synth.
   // A name in NCInstruments is the sampler even when the hidden sampler
-  // switch is off. @bass does that on a chord track too. Bass is B1–A#4.
+  // switch is off. @bass and @vibes do that on a chord track too.
+  // Bass is B1–A#4. Vibes are C2–G#6.
   // Any other @name keeps the synth out.
   function roleOf(tr) {
     if (!tr) return '';

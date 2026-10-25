@@ -119,10 +119,10 @@ const pianoChord = docOf('t1: Cm(2|) @piano');
 check(pianoChord.tracks[0] && pianoChord.tracks[0].voice === 'audio', '@piano on a chord track stays a recording, got ' + (pianoChord.tracks[0] && pianoChord.tracks[0].voice));
 const gathered = L.parse('t1: Cm(2|) @bass', { known });
 check(!gathered.gather.length, 'a bass chord track is not gathered, got ' + JSON.stringify(gathered.gather));
+const vibes = docOf('t1: Cm(2|) @vibes');
+check(vibes.tracks[0] && vibes.tracks[0].voice === 'sampler' && vibes.tracks[0].instrument === 'vibes' && vibes.tracks[0].events.length > 1 && vibes.tracks[0].events.every((e) => e.type === 'note'), '@vibes expands a chord track, got ' + JSON.stringify(vibes.tracks[0] && { voice: vibes.tracks[0].voice, instrument: vibes.tracks[0].instrument, n: vibes.tracks[0].events.length }));
 const dropped = docOf('t1: notes C4(1) @strings');
 check(!dropped.tracks.some((t) => t.voice === 'sampler' || t.instrument === 'strings'), '@strings is not a sampler, got ' + JSON.stringify(dropped.tracks));
-const droppedChord = docOf('t1: Cm(2|) @vibes');
-check(droppedChord.tracks[0] && droppedChord.tracks[0].voice === 'audio', '@vibes on a chord track stays a recording, got ' + (droppedChord.tracks[0] && droppedChord.tracks[0].voice));
 const droppedKalimba = docOf('t1: notes G1(1) @kalimba');
 check(!droppedKalimba.tracks.some((t) => t.instrument === 'kalimba'), '@kalimba is not a sampler, got ' + JSON.stringify(droppedKalimba.tracks));
 
