@@ -1,7 +1,7 @@
 # Performance record: The C major Prelude, harmony only (after Bach, BWV 846): take 6 arps, 1/4 delay, hall 25%, LP 1 kHz
 
 **Performance** `perf_bwv846-take6_arps_dly_lp1k` · performed 2026-10-17 15:47:29-07:00 (PDT, UTC−7) · 129.2 s · Algorithmic Performer · seed 846  
-**Status:** not yet published · record **UNSIGNED** (signing is open decision #33) · record hash `c1f64dbf2d9e62ce…`
+**Status:** not yet published · record **UNSIGNED** (signing is open decision #33) · record hash `0801ff7e2681300f…`
 
 ## Credits
 
@@ -65,6 +65,8 @@ Ready to paste:
 
 Files: `bach_bwv846_take6_arps_dly_lp1k.wav` sha256 `96af63629d77fac7…` · `.mp3` sha256 `04491515a4aa07fa…`
 
-## Amendment
+## Amendments
 
 2026-10-17T19:29:52-07:00: contributor display name changed from Petrus to Peter (Peter Semmelhack) for netcomposer.art, at his request. Nothing else changed. Previous record hash `06c7022509c4c760…`, new `c1f64dbf2d9e62ce…`.
+
+2026-10-25T13:27:17-07:00: chord spellings rewritten at Peter's request. A letter plus one octave digit is always a note, so the dominant 7 chords are written dom7 (G7 to Gdom7, C7 to Cdom7, D7 to Ddom7). The Composition pin moved with the rewritten text, `f63acadc04937a28…` to `d81274dc70ac2643…`. Nothing else changed. Previous record hash `c1f64dbf2d9e62ce…`, new `0801ff7e2681300f…`.

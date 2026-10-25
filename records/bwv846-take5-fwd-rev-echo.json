@@ -31,7 +31,7 @@
       "composition_id": "compositions/bach_bwv846_prelude_progression.md",
       "version": null,
       "version_note": "Compositions are not versioned yet; the file hash pins the exact text.",
-      "sha256": "f63acadc04937a289a2f51c96386a0ae92de8f7fba00c69a16a038632b9b43d5",
+      "sha256": "d81274dc70ac2643ba1280efb3719fe83b13ae8979794fb22c04f9b7e2d7cd8a",
       "composer": {
         "id": null,
         "display_name": "Peter"
@@ -4162,7 +4162,7 @@
   "record_hash": {
     "algorithm": "sha256",
     "over": "canonical JSON (sorted keys, no whitespace) of the record without record_hash and signature",
-    "value": "bdac1317881a82dd1467240291eb0e5a7ab0a11c4f418b6ef2c53384082c36ca"
+    "value": "80f53d405dbac968aa01b16afa9f4ea62aad25214e65c47ff7651596e4f67549"
   },
   "amendments": [
     {
@@ -4170,6 +4170,12 @@
       "what": "Contributor display name changed from 'Petrus' to 'Peter' (Peter Semmelhack) for netcomposer.art, at his request. No audio, input, setting or other field changed.",
       "previous_record_hash": "d17c38ba79ba9451cb58ef993201693289aaf2122ec80933764d345826e11340",
       "original_record": "unchanged in the NetComposer working files"
+    },
+    {
+      "at": "2026-10-25T13:27:17-07:00",
+      "what": "Chord spellings rewritten to the current Create language, at Peter's request: a letter plus one octave digit is always a note, so dominant 7 chords are written dom7 (G7 to Gdom7, C7 to Cdom7, D7 to Ddom7). The Composition pin now points at the same text with those spellings (composition/prior/bwv846-harmony-only.md, sha256 f63acadc04937a28… to d81274dc70ac2643…). No audio, input, setting or other field changed.",
+      "previous_record_hash": "bdac1317881a82dd1467240291eb0e5a7ab0a11c4f418b6ef2c53384082c36ca",
+      "original_record": "previous version in the netcomposer.art git history (main at c5d62f1)"
     }
   ]
 }

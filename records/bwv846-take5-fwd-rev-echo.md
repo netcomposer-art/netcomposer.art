@@ -1,7 +1,7 @@
 # Performance record: The C major Prelude, harmony only (after Bach, BWV 846): take 5, forward/reverse echo
 
 **Performance** `perf_bwv846-take5_fwd_rev_echo` · performed 2026-10-17 14:18:18-07:00 (PDT, UTC−7) · 126.4 s · Algorithmic Performer · seed 846  
-**Status:** preview only · record **UNSIGNED** (signing is open decision #33) · record hash `bdac1317881a82dd…`
+**Status:** preview only · record **UNSIGNED** (signing is open decision #33) · record hash `80f53d405dbac968…`
 
 ## Credits
 
@@ -73,6 +73,8 @@ Ready to paste:
 
 Files: `take5_fwd_rev_echo.wav` sha256 `056951cdceb3b703…` · `.mp3` sha256 `9ecc6f9e1a6e2a24…`
 
-## Amendment
+## Amendments
 
 2026-10-17T19:29:52-07:00: contributor display name changed from Petrus to Peter (Peter Semmelhack) for netcomposer.art, at his request. Nothing else changed. Previous record hash `d17c38ba79ba9451…`, new `bdac1317881a82dd…`.
+
+2026-10-25T13:27:17-07:00: chord spellings rewritten at Peter's request. A letter plus one octave digit is always a note, so the dominant 7 chords are written dom7 (G7 to Gdom7, C7 to Cdom7, D7 to Ddom7). The Composition pin moved with the rewritten text, `f63acadc04937a28…` to `d81274dc70ac2643…`. Nothing else changed. Previous record hash `bdac1317881a82dd…`, new `80f53d405dbac968…`.

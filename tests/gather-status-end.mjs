@@ -25,6 +25,8 @@ const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const API = 'https://nc-perform-api.psemme.workers.dev';
 const G = 'g-statusstatus';
 const SYMS = ['Dm9', 'G13', 'Cadd9', 'Fmaj7', 'Am9', 'E7', 'Bm7b5', 'C6'];
+// The catalog names E7 and C6; the field spells them Edom7 and Cmaj6, since E7 and C6 are notes.
+const written = (s) => s.replace(/^([A-G][#b]?)(7|9)$/, '$1dom$2').replace(/^([A-G][#b]?)6$/, '$1maj6');
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 function chromeBin() {
@@ -128,7 +130,7 @@ async function open(view = { width: 1100 }, prep = '') {
     return false;
   };
   await until("!!(document.body && window.NC && document.getElementById('comp'))");
-  await ev(`(() => { var c = document.getElementById('comp'); c.value = ${JSON.stringify(SYMS.join(' '))}; c.dispatchEvent(new Event('input', {bubbles: true})); })()`);
+  await ev(`(() => { var c = document.getElementById('comp'); c.value = ${JSON.stringify(SYMS.map(written).join(' '))}; c.dispatchEvent(new Event('input', {bubbles: true})); })()`);
   await until("(() => { var b = document.getElementById('gatherBtn'); return b && !b.hidden && !b.disabled; })()");
   if (prep) await ev(prep);
   return { ev, until };

@@ -1,7 +1,7 @@
 # Performance record: The C major Prelude, harmony only (after Bach, BWV 846): crawl walk
 
 **Performance** `perf_bwv846-walk` · performed 2026-10-17 19:29:27-07:00 (PDT, UTC−7) · 125.9 s · Algorithmic Performer · seed 846  
-**Status:** preview only · record **UNSIGNED** (open decision #33) · record hash `ede74c6751c4da03…`
+**Status:** preview only · record **UNSIGNED** (open decision #33) · record hash `a386199949fa83ff…`
 
 ## The walk
 
@@ -380,6 +380,8 @@ Ready to paste:
 
 Files: `bach_bwv846_walk.wav` sha256 `be6c82e43ed21e59…` · `.mp3` sha256 `805d6dced5a922b1…`
 
-## Amendment
+## Amendments
 
 2026-10-17T19:29:52-07:00: contributor display name changed from Petrus to Peter (Peter Semmelhack) for netcomposer.art, at his request. Nothing else changed. Previous record hash `4ae478e5aadd3785…`, new `ede74c6751c4da03…`.
+
+2026-10-25T13:27:17-07:00: chord spellings rewritten at Peter's request. A letter plus one octave digit is always a note, so the dominant 7 chords are written dom7 (G7 to Gdom7, C7 to Cdom7, D7 to Ddom7). The Composition pin moved with the rewritten text, `f63acadc04937a28…` to `d81274dc70ac2643…`. Nothing else changed. Previous record hash `ede74c6751c4da03…`, new `a386199949fa83ff…`.

@@ -767,7 +767,7 @@
             "json": "https://netcomposer.art/records/bwv846-take5-fwd-rev-echo.json",
             "html": "https://netcomposer.art/records/bwv846-take5-fwd-rev-echo.html",
             "md": "https://netcomposer.art/records/bwv846-take5-fwd-rev-echo.md",
-            "record_hash_sha256": "bdac1317881a82dd1467240291eb0e5a7ab0a11c4f418b6ef2c53384082c36ca",
+            "record_hash_sha256": "80f53d405dbac968aa01b16afa9f4ea62aad25214e65c47ff7651596e4f67549",
             "signature": "UNSIGNED (open decision #33)"
           },
           "contributors": [
@@ -791,7 +791,7 @@
             "json": "https://netcomposer.art/records/bwv846-take6-arps-delay-lp1k.json",
             "html": "https://netcomposer.art/records/bwv846-take6-arps-delay-lp1k.html",
             "md": "https://netcomposer.art/records/bwv846-take6-arps-delay-lp1k.md",
-            "record_hash_sha256": "c1f64dbf2d9e62ceb0caac9e79028b7ffee4d2672fc112ceec31714f8b42e8fb",
+            "record_hash_sha256": "0801ff7e2681300f2c438b8dcfd007ab72f4222e29d933c23817125d8d28c692",
             "signature": "UNSIGNED (open decision #33)"
           },
           "contributors": [
@@ -816,7 +816,7 @@
             "html": "https://netcomposer.art/records/bwv846-search.html",
             "md": "https://netcomposer.art/records/bwv846-search.md",
             "png": "https://netcomposer.art/records/bwv846-search.png",
-            "record_hash_sha256": "bf1e0e63fc8717064c2f9a5a5dfb27a0a9674e62d1f1c83d74d8dcca231ac148",
+            "record_hash_sha256": "96cf0a594377fab67c8d8e230639316d87713e50c526ea1914e7cc72eb530ff5",
             "signature": "UNSIGNED (open decision #33)"
           },
           "contributors": [
@@ -974,7 +974,7 @@
             "html": "https://netcomposer.art/records/bwv846-walk.html",
             "md": "https://netcomposer.art/records/bwv846-walk.md",
             "png": "https://netcomposer.art/records/bwv846-walk.png",
-            "record_hash_sha256": "ede74c6751c4da03c64f62df2067d7b564971a3cb68eca48188bd670a4d57bfb",
+            "record_hash_sha256": "a386199949fa83ff447eeb194bdf2c4e9dbe1c90536addd34a7cf5493694a6e8",
             "signature": "UNSIGNED (open decision #33)"
           },
           "contributors": [
