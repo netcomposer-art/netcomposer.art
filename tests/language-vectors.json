@@ -1257,5 +1257,23 @@
       "The beats before `|` add up to 6, not 3. Change the lengths before `|` so they add up to 3, or delete the `|`."
     ],
     "iread": "96 BPM · [Cm 6 beats] · 6 beats · ~3.8 s · 6/8\nThe beats before `|` add up to 6, not 3. Change the lengths before `|` so they add up to 3, or delete the `|`."
+  },
+  {
+    "name": "cp-threshold",
+    "text": "90 BPM Cm(4) cp-18",
+    "bpm": 90,
+    "clock": "language",
+    "seed": null,
+    "meter": "4/4",
+    "gather": ["Cm"],
+    "played": [
+      {"kind": "chord", "symbol": "Cm", "bass": null, "beats": 4, "bars": null, "seconds": 2.667, "recording": 0}
+    ],
+    "hacks": [
+      {"abbr": "cp", "type": "compressor", "value": -18, "ramp": null}
+    ],
+    "words": [],
+    "notes": [],
+    "iread": "90 BPM · Cm 4 beats · 4 beats · ~2.7 s · cp-18"
   }
 ]

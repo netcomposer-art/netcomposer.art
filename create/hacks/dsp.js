@@ -100,7 +100,41 @@
     }
     if (snap) { st.openS = st.openT; st.logS = st.logT; }
   }
+  // A filter arrow. u is 0 at the start of the piece and 1 at the end, and the
+  // Hertz move is even in pitch. A hand on the dial clears st.auto, and the dial wins.
+  function ncApplyGlide(st) {
+    var a = st.auto;
+    if (!a || !(a.from > 0) || !(a.to > 0)) return;
+    var param = st.type === 'bandpass' ? 'centre_hz' : 'cutoff_hz';
+    if (a.param !== param) return;
+    var u = st.pos || 0;
+    if (u < 0) u = 0;
+    if (u > 1) u = 1;
+    var hz = Math.exp(Math.log(a.from) + (Math.log(a.to) - Math.log(a.from)) * u);
+    var ny = st.sr * 0.49;
+    if (hz > ny) hz = ny;
+    if (hz < 20) hz = 20;
+    st.logT = Math.log(hz);
+    st.openT = 0;
+  }
+  // Copy the piece position onto each hack, then advance one sample. Step 0 holds.
+  function ncStamp(chain, order) {
+    var pos = chain.pos || 0;
+    if (pos < 0) pos = 0;
+    if (pos > 1) pos = 1;
+    var m, st;
+    for (m = 0; m < order.length; m++) {
+      st = chain.box[order[m]];
+      if (st) st.pos = pos;
+    }
+    if (chain.step) {
+      pos += chain.step;
+      if (pos > 1) pos = 1;
+      chain.pos = pos;
+    }
+  }
   function ncLowpassStep(st, xL, xR, out) {
+    if (st.auto) ncApplyGlide(st);
     var k = st.immediate ? 1 : st.kFast;
     st.openS += (st.openT - st.openS) * k;
     st.logS += (st.logT - st.logS) * k;
@@ -463,6 +497,7 @@
     if (snap) { st.openS = st.openT; st.logS = st.logT; st.qS = st.qT; st.mixS = st.mixT; }
   }
   function ncPassStep(st, xL, xR, out) {
+    if (st.auto) ncApplyGlide(st);
     var k = st.immediate ? 1 : st.kFast;
     var moving = st.openS !== st.openT || st.logS !== st.logT || st.qS !== st.qT || st.mixS !== st.mixT;
     if (moving) {
@@ -686,7 +721,7 @@
     if (type === 'width') return ncWidthCreate(sr);
     return null;
   }
-  function ncWidgetApply(st, p, snap, bypass) {
+  function ncWidgetApply(st, p, snap, bypass, auto) {
     p = p || {};
     if (st.type === 'lowpass') ncLowpassApply(st, p, snap);
     else if (st.type === 'delay') ncDelayApply(st, p, snap);
@@ -700,6 +735,7 @@
       st.bypassT = bypass ? 0 : 1;
       if (snap) st.bypass = st.bypassT;
     }
+    if (auto !== undefined) st.auto = auto || null;
   }
   function ncClearState(st) {
     if (!st) return;
@@ -794,7 +830,7 @@
       if (!w || w.type === 'limiter' || w.fixed || chain.box[w.id]) continue;
       var st = ncWidgetCreate(w.type, chain.sr);
       if (!st) continue;
-      ncWidgetApply(st, w.params || {}, true, !!w.bypass);
+      ncWidgetApply(st, w.params || {}, true, !!w.bypass, w.auto);
       chain.box[w.id] = st;
       chain.order.push(w.id);
     }
@@ -808,7 +844,7 @@
     if (n >= 10) return;
     var st = ncWidgetCreate(w.type, chain.sr);
     if (!st) return;
-    ncWidgetApply(st, w.params || {}, true, !!w.bypass);
+    ncWidgetApply(st, w.params || {}, true, !!w.bypass, w.auto);
     chain.box[w.id] = st;
   }
   function ncSame(a, b) {
@@ -833,10 +869,10 @@
     chain.nextOrder = next;
     if (chain.fadePhase !== 'out') { chain.fadePhase = 'out'; chain.fadePos = 0; }
   }
-  function ncChainPatch(chain, id, params, bypass, immediate) {
+  function ncChainPatch(chain, id, params, bypass, immediate, auto) {
     var st = chain.box[id];
     if (!st) return;
-    ncWidgetApply(st, params || {}, !!immediate, bypass);
+    ncWidgetApply(st, params || {}, !!immediate, bypass, auto);
   }
   function ncChainClear(chain) {
     for (var id in chain.box) ncClearState(chain.box[id]);
@@ -878,6 +914,7 @@
       yR = inR ? inR[i] : yL;
       if (yL !== yL || yL === Infinity || yL === -Infinity) yL = 0;
       if (yR !== yR || yR === Infinity || yR === -Infinity) yR = 0;
+      if (chain.pos || chain.step) ncStamp(chain, order);
       for (m = 0; m < order.length; m++) {
         st = chain.box[order[m]];
         if (!st) continue;
@@ -941,8 +978,9 @@
       var xR = inR ? inR[i] : xL;
       if (xL !== xL || xL === Infinity || xL === -Infinity) xL = 0;
       if (xR !== xR || xR === Infinity || xR === -Infinity) xR = 0;
-      var yL = xL, yR = xR;
+      var       yL = xL, yR = xR;
       order = chain.order;
+      if (chain.pos || chain.step) ncStamp(chain, order);
       for (m = 0; m < order.length; m++) {
         st = chain.box[order[m]];
         if (!st) continue;
@@ -960,7 +998,7 @@
   var lib = {
     fns: [
       ncFlush, ncCutoffHz, ncCoef, ncLine, ncIdx, ncReadFrac, ncWrite, ncLattice, ncZeroLine,
-      ncLowpassCreate, ncLowpassCoeffs, ncLowpassApply, ncLowpassStep,
+      ncLowpassCreate, ncLowpassCoeffs, ncLowpassApply, ncApplyGlide, ncStamp, ncLowpassStep,
       ncDelayCreate, ncDelayApply, ncDelayStep,
       ncDiff2, ncPlateCreate, ncPlateApply, ncTank, ncPlateStep,
       ncBiquad, ncBiquadSet, ncBiquadStep, ncEqCreate, ncEqApply, ncEqStep, ncEqClear,
