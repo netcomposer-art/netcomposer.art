@@ -1703,6 +1703,8 @@
     return a[0] || 1;
   }
   function isSynth(s) { return !!(s && s.kind === 'nc-synth'); }
+  // A synth voice or a sampler track rendered from the same event list.
+  function isBaked(s) { return isSynth(s) || !!(s && s.kind === 'nc-event'); }
   // Chord clips already in the take. A language plan carries one entry per
   // played chord (a loop repeats a recording), so beds follow those entries.
   // With no plan yet, the recordings sit back to back. The synth is never a bed.
@@ -1815,10 +1817,28 @@
     else line.label = line.notesLabel || line.label;
     return line;
   }
+  function eventDoc() {
+    if (!window.NCEvents || !window.NC || !NC.read) return null;
+    try { return NCEvents.follow(NCEvents.build(NC.read())); }
+    catch (e) { return null; }
+  }
   function synthLines() {
     var lines = [];
     var one = synthLine();
     if (one) lines.push(one);
+    var doc = eventDoc();
+    if (doc) {
+      doc.tracks.forEach(function (tr) {
+        if (tr.voice !== 'synth' || !tr.events || !tr.events.length) return;
+        lines.push({
+          events: tr.events, notes: tr.events,
+          fmDepth: tr.params ? tr.params.fmDepth : 0,
+          bpm: doc.bpm, meter: doc.meter, label: tr.label || '',
+          instrument: '', seed: tr.seed, clipId: tr.clipId, eventTrack: tr
+        });
+      });
+      return lines;
+    }
     var parsed = window.NC && NC.read && NC.read();
     if (!parsed || !window.NCSynth || !NCSynth.voiceOf) return lines;
     (parsed.tracks || []).forEach(function (tr, i) {
@@ -1832,6 +1852,42 @@
       if (cv) { cv.clipId = 'nc-synth-chords'; lines.push(cv); }
     }
     return lines;
+  }
+  function ensureEventSamplers(sounds) {
+    var doc = eventDoc();
+    sounds = sounds || [];
+    if (!doc || !window.NCSampler || !NCSampler.prepare || !window.NCEvents || !NCEvents.renderSampler) return Promise.resolve(sounds);
+    var tracks = doc.tracks.filter(function (tr) { return tr.voice === 'sampler' && tr.events && tr.events.length; });
+    if (!tracks.length) return Promise.resolve(sounds);
+    var step = Promise.resolve(sounds.slice());
+    tracks.forEach(function (tr) {
+      step = step.then(function (acc) {
+        var have = false;
+        acc.forEach(function (s) { if (s && s.clip_id === tr.clipId) have = true; });
+        if (have) return acc;
+        var midis = [], seen = {};
+        tr.events.forEach(function (ev) { if (ev.midi != null && !seen[ev.midi]) { seen[ev.midi] = 1; midis.push(ev.midi); } });
+        return NCSampler.prepare(audioCtx(), tr.instrument, midis).then(function (bag) {
+          var buffers = {};
+          midis.forEach(function (m) { if (bag[m]) buffers[m] = bag[m].buffer; });
+          return NCEvents.renderSampler(tr, buffers, NCSampler.output ? NCSampler.output() : 0.8).then(function (buf) {
+            if (!buf) return acc;
+            acc = acc.slice();
+            acc.push({
+              kind: 'nc-event', local: true, slot: -1,
+              symbol: tr.label || '',
+              title: (tr.label || 'Sampler') + (tr.instrument ? ' · ' + tr.instrument : ''),
+              buffer: buf, duration_s: buf.duration, start_s: 0, gain_db: 0,
+              gather_id: gatherId || 'nc-event', clip_id: tr.clipId, url: '', cache: '',
+              notes: tr.events, detail: (tr.messages || []).join(' ')
+            });
+            gatherSounds = acc;
+            return acc;
+          });
+        });
+      });
+    });
+    return step;
   }
   function ensureTrackBeds(sounds) {
     sounds = sounds || [];
@@ -1936,21 +1992,24 @@
     sounds.forEach(function (s) { if (isSynth(s) && s.symbol) have[s.symbol] = 1; });
     var pending = lines.filter(function (line) { return !have[line.label || '']; });
     function renderNext(acc, idx) {
-      if (idx >= pending.length) return ensureTrackBeds(acc);
+      if (idx >= pending.length) return ensureTrackBeds(acc).then(ensureEventSamplers);
       var line = pending[idx];
       var seed = (line.seed != null ? line.seed : drawSeed()) >>> 0;
       var settings = NCSynth.mergeSettings(line.fmDepth == null ? null : { fmDepth: line.fmDepth });
       var notes = line.events && line.events.length ? line.events : NCSynth.scheduleLine(line, settings, seed);
       if (!notes.length) return renderNext(acc, idx + 1);
       var clipId = line.clipId || (acc.some(isSynth) ? 'nc-synth-' + (idx + 2) : 'nc-synth');
-      return NCSynth.renderNotes(notes, settings, seed).then(function (buf) {
+      var rendered = line.eventTrack && window.NCEvents && NCEvents.renderVoice
+        ? NCEvents.renderVoice(line.eventTrack)
+        : NCSynth.renderNotes(notes, settings, seed);
+      return rendered.then(function (buf) {
         acc = acc.slice();
         acc.push(synthSound(line, buf, seed, settings, notes, clipId));
         gatherSounds = acc;
         return renderNext(acc, idx + 1);
       });
     }
-    if (!pending.length) return ensureTrackBeds(sounds);
+    if (!pending.length) return ensureTrackBeds(sounds).then(ensureEventSamplers);
     return renderNext(sounds.slice(), 0);
   }
   // The page's own clock, when the Gather came back with one sound per played
@@ -1966,7 +2025,7 @@
     if (parsed.synth) chords = [];
     var sounds = gatherSounds || [], rows = [], i;
     for (i = 0; i < sounds.length; i++) {
-      if (isSynth(sounds[i]) || (sounds[i] && sounds[i].kind === 'nc-track')) continue;
+      if (isBaked(sounds[i]) || (sounds[i] && sounds[i].kind === 'nc-track')) continue;
       rows.push({ s: sounds[i], i: i });
     }
     if (!chords.length) {
@@ -2014,7 +2073,7 @@
     var sounds = gatherSounds || [], i, s, cap, end = plan.total_s || 0, added = false;
     for (i = 0; i < sounds.length; i++) {
       s = sounds[i];
-      if (!isSynth(s)) continue;
+      if (!isBaked(s)) continue;
       cap = s.duration_s;
       if (!(cap > 0) && bufs && bufs[i]) cap = Math.max(0, bufs[i].duration - (s.start_s || 0));
       cap = cap > 0 ? +(+cap).toFixed(3) : 0;
@@ -2045,7 +2104,7 @@
       cap = sounds[i].duration_s;
       if (!(cap > 0) && bufs && bufs[i]) cap = Math.max(0, bufs[i].duration - (sounds[i].start_s || 0));
       caps.push(cap > 0 ? cap : 0);
-      if (!isSynth(sounds[i]) && sounds[i].kind !== 'nc-track') chordAt.push(i);
+      if (!isBaked(sounds[i]) && sounds[i].kind !== 'nc-track') chordAt.push(i);
     }
     var cn = chordAt.length;
     var slots = cn ? planSlots(cn, seed) : [];
@@ -2062,7 +2121,7 @@
     sounds.forEach(function (s, i) {
       if (s && s.kind === 'nc-track') return;
       var at, len;
-      if (isSynth(s)) { at = 0; len = caps[i]; }
+      if (isBaked(s)) { at = 0; len = caps[i]; }
       else { var p = placed.entries[ci++]; at = p.at_s; len = p.len_s; }
       if (at + len > end) end = at + len;
       entries.push({
