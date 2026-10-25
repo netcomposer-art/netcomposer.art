@@ -168,7 +168,15 @@ const fmLine = playOf('t1: notes C5(2) @synth(FM Test) fm 1');
 const fmPreset = playOf('t1: notes C5(2) @synth(fm test)');
 check(fmLine.tracks[0] && fmLine.tracks[0].params.fmDepth === 1 && fmLine.tracks[0].params.patch.waveform === 'square' && fmLine.tracks[0].events[0].pitch === 'C5', 'a written fm depth wins over the preset, got ' + JSON.stringify(fmLine.tracks[0] && fmLine.tracks[0].params));
 check(fmPreset.tracks[0] && fmPreset.tracks[0].params.fmDepth === 4 && fmPreset.tracks[0].params.patch.tempo === 96 && fmPreset.tracks[0].params.patch.cutoff === 900, 'preset FM applies when the line does not write fm, and preset tempo and chord do not, got ' + JSON.stringify(fmPreset.tracks[0] && fmPreset.tracks[0].params.patch));
-check(playOf('@synth(4) Cm9').tracks[0].params.patch.waveform === 'square', 'imports continue the numbers after the bank');
+check(playOf('@synth(4) Cm9').tracks[0].params.patch.waveform === 'square', 'an import with no number takes the next free number');
+const savedFile = sb.NCSynthPresets.importText(JSON.stringify({
+  format: 'netcomposer.synth', version: 1, number: 44, name: 'velvet-comet', settings: { waveform: 'triangle', cutoff: 333 }
+}), '44-velvet-comet.json');
+check(savedFile.added[0].n === 44 && playOf('@synth(44) Cm9').tracks[0].params.patch.waveform === 'triangle' && playOf('@synth(velvet-comet) Cm9').tracks[0].params.patch.cutoff === 333, '@synth(44) uses the preset number from the netcomposer.synth file');
+const movedPreset = sb.NCSynthPresets.importText(JSON.stringify({ id: 'not-bright', number: 1, name: 'not-bright', version: 1, settings: { waveform: 'noise', cutoff: 40 } }));
+check(playOf('@synth(1) Cm9').tracks[0].params.patch.cutoff === 5200 && movedPreset.added[0].n !== 1, 'preset 1 stays Example Bright when an import asks for it');
+const movedRead = L.parse('@synth(not-bright) Cm9', { known });
+check(movedRead.iread.indexOf(movedPreset.added[0].n + ' · not-bright') >= 0 && movedRead.iread.indexOf('1 is Example Bright, so this one is ' + movedPreset.added[0].n) >= 0, 'I-read says the number moved, got ' + movedRead.iread);
 check(L.parse('@synth(1) Cm9', { known }).gather.length === 0 && L.parse('t1: @synth(Example Dark) Cm9(4)', { known }).gather.length === 0, 'a preset still skips Gather the way @synth does');
 
 const keys = ['v', 'bpm', 'meter', 'beat', 'tracks'];

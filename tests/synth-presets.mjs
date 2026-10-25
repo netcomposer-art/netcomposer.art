@@ -32,7 +32,8 @@ const bank = JSON.parse(readFileSync(join(root, 'create/synth-presets.json'), 'u
 P.loadBank(bank);
 
 check(bank.length === 3 && bank[0].version === 1 && bank[0].name === 'Example Bright' && bank[0].settings.waveform === 'saw', 'the shipped bank is three labelled examples');
-check(P.rows().map((r) => r.n + ':' + r.name).join(' ') === '1:Example Bright 2:Example Dark 3:Example Sine', 'built-in numbers follow the file, got ' + P.rows().map((r) => r.n + ':' + r.name).join(' '));
+check(bank[0].number === 1 && bank[1].number === 2 && bank[2].number === 3, 'the shipped bank carries numbers 1, 2, and 3');
+check(P.rows().map((r) => r.n + ':' + r.name).join(' ') === '1:Example Bright 2:Example Dark 3:Example Sine', 'built-in numbers are the preset numbers, got ' + P.rows().map((r) => r.n + ':' + r.name).join(' '));
 
 const byNum = P.resolve('1');
 const byName = P.resolve('  example   BRIGHT ');
@@ -47,7 +48,7 @@ check(wrapped.ok && wrapped.preset.version === 1 && wrapped.preset.name === 'Ast
 const badVersion = P.parsePerformancePreset({ name: 'Later', version: 2, settings: { waveform: 'saw' } });
 check(!badVersion.ok && /version must be 1/.test(badVersion.error), 'version 2 is refused, got ' + badVersion.error);
 const bare = P.parsePerformancePreset({ waveform: 'sine', cutoff: 400, attack: 0.2 });
-check(bare.ok && bare.preset.name === 'Imported' && bare.named === false, 'a configuration with no name is one preset');
+check(bare.ok && bare.preset.name === '' && bare.named === false && bare.preset.number == null, 'a configuration with no name is one preset');
 const nope = P.parsePerformancePreset({ hello: 'world' });
 check(!nope.ok, 'a random object is not a preset');
 
@@ -94,6 +95,37 @@ check(slugs.ok && slugs.added.map((r) => r.name).join(' ') === 'velvet-comet nig
 const loose = P.importText(JSON.stringify({ id: 'velvet-comet', name: 'Velvet Comet', version: 1, settings: { waveform: 'saw', cutoff: 300 } }));
 check(loose.ok && loose.updated[0] && loose.updated[0].name === 'Velvet Comet' && P.resolve('velvet-comet').n === loose.updated[0].n && P.patch(P.resolve('velvet comet')).cutoff === 300, 'Velvet Comet replaces velvet-comet, got ' + JSON.stringify(loose));
 check(P.resolve('---').found === false, 'a hyphen on its own is not a preset');
+
+const saved = P.importText(JSON.stringify({
+  format: 'netcomposer.synth', version: 1, number: 44, name: 'velvet-comet', settings: { waveform: 'square', cutoff: 1800 }
+}), '44-velvet-comet.json');
+check(saved.ok && saved.updated[0] && saved.updated[0].n === 44 && P.resolve('44').name === 'velvet-comet' && P.resolve('velvet-comet').n === 44, 'a netcomposer.synth file keeps number 44, got ' + JSON.stringify(saved));
+check(P.message(saved) === 'Imported 44 · velvet-comet, still preset 44.', 'import lists the number and the name, got ' + P.message(saved));
+const performance = P.parsePerformancePreset({ id: 'amber-glass', number: 48, name: 'amber-glass', version: 1, settings: { waveform: 'triangle', cutoff: 300 } });
+check(performance.ok && performance.preset.id === 'amber-glass' && performance.preset.number === 48 && performance.preset.name === 'amber-glass', 'a performance preset keeps id and number');
+const aged = P.importText(JSON.stringify({ format: 'netcomposer.synth', version: 1, settings: { waveform: 'sine', cutoff: 640 } }), '52-old-spark.json');
+check(aged.ok && aged.added[0].n === 52 && aged.added[0].name === 'old-spark' && P.resolve('52').name === 'old-spark' && P.resolve('old spark').n === 52, 'an older file takes number and name from the filename, got ' + JSON.stringify(aged));
+const namedOnly = P.importText(JSON.stringify({ format: 'netcomposer.synth', version: 1, name: 'kept-name', settings: { waveform: 'saw' } }), '61-ignored.json');
+check(namedOnly.added[0].name === 'kept-name' && namedOnly.added[0].n === 61, 'a file name fills only a missing number, got ' + JSON.stringify(namedOnly));
+const noPrefix = P.importText(JSON.stringify({ waveform: 'saw', cutoff: 100 }), 'plain-name.json');
+check(noPrefix.added[0].name === 'plain-name' && noPrefix.added[0].n !== 44 && P.resolve(String(noPrefix.added[0].n)).name === 'plain-name', 'a filename with no number takes the next free one, got ' + JSON.stringify(noPrefix));
+['0', '-2', '1.5', '"44"'].forEach((bad) => {
+  const parsed = P.parsePerformancePreset(JSON.parse('{"format":"netcomposer.synth","version":1,"number":' + bad + ',"name":"bad","settings":{"waveform":"saw"}}'));
+  check(!parsed.ok && /positive integer/.test(parsed.error), bad + ' is refused, got ' + JSON.stringify(parsed));
+});
+const idNumber = P.importText(JSON.stringify({ id: 99, name: 'id-is-not-a-number', version: 1, settings: { waveform: 'saw' } }));
+check(idNumber.added[0].n !== 99 && P.resolve('99').found === false, 'a numeric id is not the preset number, got ' + JSON.stringify(idNumber));
+const clashShip = P.importText(JSON.stringify({ id: 'not-bright', number: 1, name: 'not-bright', version: 1, settings: { waveform: 'noise', cutoff: 50 } }));
+check(clashShip.added[0].n !== 1 && P.resolve('1').name === 'Example Bright' && P.resolve('not-bright').n === clashShip.added[0].n, 'a shipped number wins, got ' + JSON.stringify(clashShip));
+check(P.message(clashShip).indexOf(clashShip.added[0].n + ' · not-bright') >= 0 && P.message(clashShip).indexOf('1 is Example Bright, so this one is ' + clashShip.added[0].n) >= 0, 'the import says the number moved, got ' + P.message(clashShip));
+const clashImport = P.importText(JSON.stringify({ id: 'other-44', number: 44, name: 'other-44', version: 1, settings: { waveform: 'triangle' } }));
+check(clashImport.added[0].n !== 44 && P.resolve('44').name === 'velvet-comet', 'an earlier import keeps 44, got ' + JSON.stringify(clashImport));
+check(P.message(clashImport).indexOf('44 is velvet-comet, so this one is ' + clashImport.added[0].n) >= 0, 'the import names the preset that kept 44, got ' + P.message(clashImport));
+const listed = P.importText(JSON.stringify([
+  { id: 'list-a', name: 'list-a', version: 1, settings: { waveform: 'saw' } },
+  { id: 'list-b', name: 'list-b', version: 1, settings: { waveform: 'sine' } }
+]), '99-list.json');
+check(listed.added.length === 2 && listed.added[0].n !== 99 && listed.added[1].n !== 99, 'a list does not take the filename number, got ' + JSON.stringify(listed));
 
 if (problems.length) {
   console.error(problems.join('\n'));

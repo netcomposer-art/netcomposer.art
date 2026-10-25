@@ -29,13 +29,15 @@
 // pitch as `notes C5`. `Cm9` with no octave is unchanged. Gather uses the
 // chord name and leaves the recording where it is.
 //
-// `@synth(1)` loads preset 1. `@synth(Example Bright)` and `@synth(velvet-comet)`
-// load a preset by name. Capitals do not matter. A hyphen and a space are the
-// same, so `velvet-comet` and `Velvet Comet` are one name. The hyphen stays
-// inside the name. The same mark works on any line that already takes
-// `@synth`, including a track and an arp. The preset is the synth patch for
-// Play. Gather and Perform keep the usual patch. A preset the bank does not
-// have still plays, and I-read says it was not found.
+// `@synth(1)` loads the preset whose number is 1. `@synth(44)` loads preset
+// 44. The number belongs to the preset. `@synth(Example Bright)` and
+// `@synth(velvet-comet)` load a preset by name. Capitals do not matter. A
+// hyphen and a space are the same, so `velvet-comet` and `Velvet Comet` are
+// one name. The hyphen stays inside the name. I-read shows the number and
+// the name, as in `1 · Example Bright`. The same mark works on any line that
+// already takes `@synth`, including a track and an arp. The preset is the
+// synth patch for Play. Gather and Perform keep the usual patch. A preset
+// the bank does not have still plays, and I-read says it was not found.
 (function (root) {
   'use strict';
   var PC = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
@@ -247,8 +249,11 @@
   function presetPhrase(preset) {
     if (!preset || !preset.ref) return '';
     if (!preset.found) return "preset " + (preset.label || preset.ref) + " wasn't found";
-    if (preset.by === 'number') return 'preset ' + preset.n + ' ' + preset.name;
-    return 'preset ' + preset.name;
+    var line = 'preset ' + preset.n + ' · ' + preset.name;
+    if (preset.movedFrom && preset.movedName) {
+      line += '. ' + preset.movedFrom + ' is ' + preset.movedName + ', so this one is ' + preset.n;
+    }
+    return line;
   }
   function addPreset(line, preset, sep) {
     var phrase = presetPhrase(preset);

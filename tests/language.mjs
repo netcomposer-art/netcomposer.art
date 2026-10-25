@@ -27,13 +27,24 @@ const sb = {}; sb.globalThis = sb; sb.Map = Map; sb.Set = Set; sb.Promise = Prom
 load('create/chord-library.js', sb);
 load('create/synth-presets.js', sb);
 sb.NCSynthPresets.loadBank(JSON.parse(readFileSync(join(root, 'create/synth-presets.json'), 'utf8')));
-// Hyphenated names the shipped bank does not carry. They sit after presets 1–3,
-// so a name lookup of Example Bright still hits the bank.
+// Hyphenated names the shipped bank does not carry. Night and clear keep
+// their own numbers. velvet-comet is the saved netcomposer.synth file,
+// number 44, not the next free slot. not-bright asks for 1, which Example
+// Bright keeps, so the import takes the next free number.
 sb.NCSynthPresets.importText(JSON.stringify([
-  { id: 'velvet-comet', name: 'velvet-comet', version: 1, settings: { waveform: 'square' } },
-  { id: 'night-spark', name: 'night-spark', version: 1, settings: { waveform: 'sine' } },
-  { id: 'clear-night-spark', name: 'clear-night-spark', version: 1, settings: { waveform: 'triangle' } }
+  { id: 'night-spark', number: 5, name: 'night-spark', version: 1, settings: { waveform: 'sine' } },
+  { id: 'clear-night-spark', number: 6, name: 'clear-night-spark', version: 1, settings: { waveform: 'triangle' } }
 ]));
+sb.NCSynthPresets.importText(JSON.stringify({
+  format: 'netcomposer.synth',
+  version: 1,
+  number: 44,
+  name: 'velvet-comet',
+  settings: { waveform: 'square' }
+}), '44-velvet-comet.json');
+sb.NCSynthPresets.importText(JSON.stringify({
+  id: 'not-bright', number: 1, name: 'not-bright', version: 1, settings: { waveform: 'noise' }
+}));
 load('create/language.js', sb);
 const L = sb.NCLanguage;
 function project(text) {

@@ -1,6 +1,7 @@
 [
   {
     "id": "example-bright",
+    "number": 1,
     "name": "Example Bright",
     "version": 1,
     "settings": {
@@ -92,6 +93,7 @@
   },
   {
     "id": "example-dark",
+    "number": 2,
     "name": "Example Dark",
     "version": 1,
     "settings": {
@@ -183,6 +185,7 @@
   },
   {
     "id": "example-sine",
+    "number": 3,
     "name": "Example Sine",
     "version": 1,
     "settings": {
