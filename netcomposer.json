@@ -723,15 +723,15 @@
       "title": "The C major Prelude, harmony only (after Bach, BWV 846)",
       "composer": "Peter",
       "text": "https://netcomposer.art/composition/bwv846-harmony-only.md",
-      "sha256": "315551592c9723c061a3c212d05cf83092b5909f5c751ee3fba1e0fc98ce29fa",
+      "sha256": "779e6d93874c5e655aa6eb573b74d02e82f09acafb8b591ba61ef3476ac7564c",
       "prior": [
         {
-          "sha256": "f63acadc04937a289a2f51c96386a0ae92de8f7fba00c69a16a038632b9b43d5",
+          "sha256": "d81274dc70ac2643ba1280efb3719fe83b13ae8979794fb22c04f9b7e2d7cd8a",
           "text": "https://netcomposer.art/composition/prior/bwv846-harmony-only.md",
           "note": "The text pinned by the four published BWV 846 performance records."
         },
         {
-          "sha256": "8a96bb68f0bbf2b37890fd99f24325ecf0195783265431a8249f070621e6b37f",
+          "sha256": "5ab07bc72cb4c372ef593c7c55f6243a83872aa22b4f5d0eb9383594ea6b434c",
           "text": "https://netcomposer.art/composition/prior/bwv846-harmony-only-20261017.md",
           "note": "The text published before the breathing revision. Composer display Peter; time-stretch already removed."
         }
@@ -767,7 +767,7 @@
             "json": "https://netcomposer.art/records/bwv846-take5-fwd-rev-echo.json",
             "html": "https://netcomposer.art/records/bwv846-take5-fwd-rev-echo.html",
             "md": "https://netcomposer.art/records/bwv846-take5-fwd-rev-echo.md",
-            "record_hash_sha256": "bdac1317881a82dd1467240291eb0e5a7ab0a11c4f418b6ef2c53384082c36ca",
+            "record_hash_sha256": "80f53d405dbac968aa01b16afa9f4ea62aad25214e65c47ff7651596e4f67549",
             "signature": "UNSIGNED (open decision #33)"
           },
           "contributors": [
@@ -791,7 +791,7 @@
             "json": "https://netcomposer.art/records/bwv846-take6-arps-delay-lp1k.json",
             "html": "https://netcomposer.art/records/bwv846-take6-arps-delay-lp1k.html",
             "md": "https://netcomposer.art/records/bwv846-take6-arps-delay-lp1k.md",
-            "record_hash_sha256": "c1f64dbf2d9e62ceb0caac9e79028b7ffee4d2672fc112ceec31714f8b42e8fb",
+            "record_hash_sha256": "0801ff7e2681300f2c438b8dcfd007ab72f4222e29d933c23817125d8d28c692",
             "signature": "UNSIGNED (open decision #33)"
           },
           "contributors": [
@@ -816,7 +816,7 @@
             "html": "https://netcomposer.art/records/bwv846-search.html",
             "md": "https://netcomposer.art/records/bwv846-search.md",
             "png": "https://netcomposer.art/records/bwv846-search.png",
-            "record_hash_sha256": "bf1e0e63fc8717064c2f9a5a5dfb27a0a9674e62d1f1c83d74d8dcca231ac148",
+            "record_hash_sha256": "96cf0a594377fab67c8d8e230639316d87713e50c526ea1914e7cc72eb530ff5",
             "signature": "UNSIGNED (open decision #33)"
           },
           "contributors": [
@@ -974,7 +974,7 @@
             "html": "https://netcomposer.art/records/bwv846-walk.html",
             "md": "https://netcomposer.art/records/bwv846-walk.md",
             "png": "https://netcomposer.art/records/bwv846-walk.png",
-            "record_hash_sha256": "ede74c6751c4da03c64f62df2067d7b564971a3cb68eca48188bd670a4d57bfb",
+            "record_hash_sha256": "a386199949fa83ff447eeb194bdf2c4e9dbe1c90536addd34a7cf5493694a6e8",
             "signature": "UNSIGNED (open decision #33)"
           },
           "contributors": [
@@ -2627,7 +2627,7 @@
       "title": "The C minor Prelude, harmony only (after Bach, BWV 847)",
       "composer": "Peter",
       "text": "https://netcomposer.art/composition/bwv847-harmony-only.md",
-      "sha256": "61cedbd2626987d4fe13827635b1750e9184d87909b356fb3fec6d5bdc4a332e",
+      "sha256": "381f1093f6f928e1d8aabc0ae9ea3621b61b7f949cc5b882a26116fb67b06006",
       "meter": "4/4",
       "bars": 38,
       "tempo_bpm": 80,
@@ -2650,7 +2650,7 @@
       "title": "The E♭ minor Prelude, harmony only (after Bach, BWV 853)",
       "composer": "Peter",
       "text": "https://netcomposer.art/composition/bwv853-harmony-only.md",
-      "sha256": "4f36125c541c8b5ebe2b73d8aee8e3c7f935b47a3145fc194d012c5e33992e75",
+      "sha256": "908f266053139e9d4aba3ec9e67fc77f2cf1002505b891894acaeaff554061fe",
       "meter": "3/2",
       "bars": 40,
       "tempo_bpm": 84,
@@ -2673,7 +2673,7 @@
       "title": "The A♭ major Prelude, harmony only (after Bach, BWV 862)",
       "composer": "Peter",
       "text": "https://netcomposer.art/composition/bwv862-harmony-only.md",
-      "sha256": "5cce8db19b88ceceacc3ec703d313592034145a0eba1c9ec6cfec823b3a7d694",
+      "sha256": "e08428254ab5156c58d188366b7facb787ec3e63d1ae02bba7f39d137f6eb239",
       "meter": "3/4",
       "bars": 44,
       "tempo_bpm": 80,
@@ -2714,7 +2714,7 @@
       "title": "A 12-bar blues in A",
       "composer": "Peter",
       "text": "https://netcomposer.art/composition/blues-a.md",
-      "sha256": "ed9c8b2c9cd7a515505b40c3019ae2dbc44d626ddd9dc5a8e60f9abebe756209",
+      "sha256": "57bea82a2ce17e67b1cc229becb8ef08755694fa8635fd9a57ad3f1338437eb4",
       "meter": "4/4",
       "bars": 12,
       "tempo_bpm": 80,

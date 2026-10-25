@@ -29,6 +29,9 @@
 // An octave after the root, as in `C5m9`, puts that chord's root on the same
 // pitch as `notes C5`. `Cm9` with no octave is unchanged. Gather uses the
 // chord name and leaves the recording where it is.
+// A letter plus one octave digit is always a pitch: `C2`, `C5`, `C6`, `C7`,
+// `C9`, `F#3`, `Bb1`. Dominant 7 is `Cdom7`, dominant 9 is `Cdom9`, major 6
+// is `Cmaj6`, and a power chord is `Cpow`. `C11`, `C13`, and `C69` stay.
 (function (root) {
   'use strict';
   var PC = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
@@ -38,10 +41,11 @@
     'ø7': 'm7b5', 'ø': 'm7b5', '°7': 'dim7', 'o7': 'dim7', '°': 'dim', 'o': 'dim', '+': 'aug', '#5': 'aug',
     'mMaj7': 'm-maj7', 'mmaj7': 'm-maj7', 'm(maj7)': 'm-maj7', 'madd9': 'm-add9', 'm(add9)': 'm-add9',
     '6/9': '6-9', '69': '6-9', 'm6/9': 'm6-9', 'm69': 'm6-9', 'sus': 'sus4', '7sus': '7sus4', '9sus': '9sus4',
-    'add2': 'add9', '2': 'sus2', '7+5': 'maj7#5'
+    'add2': 'add9', '7+5': 'maj7#5',
+    'dom7': '7', 'dom9': '9', 'maj6': '6'
   };
-  var PRETTY = { '6-9': '6/9', 'm6-9': 'm6/9', 'm-add9': 'madd9' };
-  var QCHAR = /^(?:maj|min|mi|m|M|dim|aug|sus|add|alt|ø|°|Δ|o|\+|-|[0-9]|#|b|\(|\)|\/(?=9))/;
+  var PRETTY = { '6-9': '6/9', 'm6-9': 'm6/9', 'm-add9': 'madd9', '7': 'dom7', '9': 'dom9', '6': 'maj6' };
+  var QCHAR = /^(?:dom|pow|maj|min|mi|m|M|dim|aug|sus|add|alt|ø|°|Δ|o|\+|-|[0-9]|#|b|\(|\)|\/(?=9))/;
   var HACK = {
     lowpass: 'lp', lp: 'lp', highpass: 'hp', hp: 'hp', bandpass: 'bp', bp: 'bp', eq: 'eq',
     delay: 'dl', dl: 'dl', reverb: 'rv', rv: 'rv', drive: 'dr', dr: 'dr', comp: 'cp', cp: 'cp', width: 'wd', wd: 'wd'
@@ -50,7 +54,7 @@
   var HACK_WORD = /^(?:lowpass|highpass|bandpass|reverb|delay|drive|width|comp|eq|lp|hp|bp|dl|rv|dr|cp|wd)$/i;
   var CHANGE = /\b(?:at|from)\s+bar\s+\d+\b[^.\n]{0,40}?\d+(?:\.\d+)?\s*BPM\b|\bbar\s+\d+\s*:\s*\d+(?:\.\d+)?\s*BPM\b/gi;
   var SKETCH_BPM = 96;
-  var HINT_Q = ['', 'm', '6', '7', 'maj7', 'm7', '9', 'maj9', 'm9', '11', 'm11', '13', 'maj13', 'm13', 'dim', 'dim7', 'aug', 'sus2', 'sus4', 'add9', 'm6', 'm7b5', '7b9', '7#9', '7b5', '7sus4', '9sus4', 'maj7#11', 'maj7#5', '6-9', 'm6-9', 'm-add9', 'm-maj7', '7alt', '7#11', '7b13', 'min', 'mi', 'maj', 'M7', 'sus', '9sus', '7sus', '2'];
+  var HINT_Q = ['', 'm', 'dom7', '7', 'maj7', 'm7', 'dom9', '9', 'maj9', 'm9', 'maj6', '6', 'pow', '11', 'm11', '13', 'maj13', 'm13', 'dim', 'dim7', 'aug', 'sus2', 'sus4', 'add9', 'm6', 'm7b5', '7b9', '7#9', '7b5', '7sus4', '9sus4', 'maj7#11', 'maj7#5', '6-9', 'm6-9', 'm-add9', 'm-maj7', '7alt', '7#11', '7b13', 'min', 'mi', 'maj', 'M7', 'sus', '9sus', '7sus'];
 
   function uncomment(text) {
     return String(text || '').replace(/"(?:[^"\\]|\\.)*"/g, ' ').replace(/(?:^|\n|\s)#[^\n]*/g, ' ');
@@ -266,9 +270,9 @@
   function chordOf(token, inGroup, known) {
     var direct = readChord(token, inGroup, known);
     if (direct && !direct.unknown && !direct.guard) return direct;
-    // Octave right after the root, then a quality: C5m9, Eb4maj7, F#3m7.
-    // A bare C5, and C9 where 9 is the quality, stay as they are.
-    var split = /^([A-Ga-g])([#b]?)(-?\d+)([^\d(\s][\s\S]*)$/.exec(token);
+    // Octave right after the root, then a quality: C5m9, C4dom7, C3pow.
+    // A slash is a bass note, not the start of that quality, so C7/E is not C/E.
+    var split = /^([A-Ga-g])([#b]?)(-?\d+)([^\d(\s/][\s\S]*)$/.exec(token);
     if (!split) return direct;
     var oct = +split[3];
     var again = readChord(split[1] + (split[2] || '') + split[4], inGroup, known);
@@ -279,6 +283,7 @@
     return again;
   }
   function readChord(token, inGroup, known) {
+    if (isOctaveNote(token)) return null;
     var m = /^([A-Ga-g])([#b]?)([\s\S]*)$/.exec(token);
     if (!m) return null;
     var rest = m[3], q = '', k = 0;
@@ -316,9 +321,12 @@
     var letter = m[1];
     var bareLower = letter === letter.toLowerCase() && letter !== letter.toUpperCase() && !q && !dur && !open && !bass;
     if (bareLower && !inGroup) return { guard: letter };
+    // One digit on its own is an octave, including with a slash bass.
+    // C7, C7/E, C6, C5, and C2 are not chords. C7b9, C6/9, and C13 still are.
+    if (/^(?:2|5|6|7|9)$/.test(q)) return { unknown: (letter.toUpperCase() + (m[2] || '')) + q + (bass ? '/' + bass : '') };
     var qual = q;
     if (!known(qual) && (qual in ALIAS)) qual = ALIAS[qual];
-    if (!known(qual)) return { unknown: (letter.toUpperCase() + (m[2] || '')) + q + (bass ? '/' + bass : '') };
+    if (!known(qual) && qual !== 'pow') return { unknown: (letter.toUpperCase() + (m[2] || '')) + q + (bass ? '/' + bass : '') };
     var root = letter.toUpperCase() + (m[2] || '');
     return {
       kind: 'chord',
@@ -334,7 +342,14 @@
   }
 
   // A pitch is a note name plus an octave, optional (beats) or (bars|).
-  // C5 is a note. Cm is not. The pitches run from C-1 to G9.
+  // One octave digit is always that pitch: C2, C5, C6, C7, C9. Cm is not.
+  // The pitches run from C-1 to G9.
+  function isOctaveNote(text) {
+    var m = /^([A-Ga-g])([#b])?(-1|[0-9])(?:\((\d+(?:\.\d+)?)(\|)?\))?$/.exec(text || '');
+    if (!m) return false;
+    var shaped = pitchParts(text);
+    return !!(shaped && shaped.ok);
+  }
   function pitchParts(text) {
     var m = /^([A-Ga-g])(#|b)?(-?\d+)(?:\((\d+(?:\.\d+)?)(\|)?\))?$/.exec(text || '');
     if (!m) return null;
@@ -401,6 +416,7 @@
     return prev[b.length];
   }
   function knownQual(q, known) {
+    if (q === 'pow') return 'pow';
     if (known(q)) return q;
     if (Object.prototype.hasOwnProperty.call(ALIAS, q) && known(ALIAS[q])) return ALIAS[q];
     return null;
@@ -519,6 +535,11 @@
       var text = t.text, gluedName = '';
       var glued = /^(.*)@([A-Za-z][\w-]*)$/.exec(text);
       if (glued && glued[1]) { text = glued[1]; gluedName = glued[2].toLowerCase(); }
+      if (isOctaveNote(text)) {
+        var shown = pitchEcho(text);
+        if (shown) err('`' + shown.replace(/\(.*/, '') + '` is a pitch, not a chord. Write `notes ' + shown + '` on its own line.');
+        return null;
+      }
       var c = chordOf(text, inGroup, known);
       if (!c) return null;
       if (c.guard) {
@@ -742,7 +763,7 @@
       if (!sym || unmapped.indexOf(sym) >= 0) return;
       unmapped.push(sym);
       var near = suggestSymbol(sym, known);
-      var fix = near && near.symbol ? near.symbol : 'C7';
+      var fix = near && near.symbol ? near.symbol : 'Cdom7';
       note('`' + sym + '` is not in the synth library, so an arp cannot play it. Write `' + fix + '` in its place on the arp line.');
     }
     function arpKnown(q) {
@@ -1039,7 +1060,53 @@
       i += 2;
       return true;
     }
+    // `C2 E2 G2`, `C7 C6 C5`, and `@bass C2 E2 G2` are those pitches.
+    // A line that starts with `notes` is left to tryNotes.
+    function tryPitchLine() {
+      if (!tokens[i]) return false;
+      var limit = statementEnd(tokenPos(tokens[i]));
+      var j = i, pitches = 0, parts = [], inst = '';
+      while (j < tokens.length && tokenPos(tokens[j]) < limit && !blockedTrack(j)) {
+        var tok = tokens[j];
+        if (!tok || tok.type !== 'word') return false;
+        var glued = /^(.*)@([A-Za-z][\w-]*)$/.exec(tok.text);
+        if (glued && glued[1] && isOctaveNote(glued[1])) {
+          var gluedEcho = pitchEcho(glued[1]);
+          if (!gluedEcho) return false;
+          parts.push(gluedEcho);
+          parts.push('@' + glued[2].toLowerCase());
+          inst = glued[2].toLowerCase();
+          pitches++;
+          j++;
+          continue;
+        }
+        var at = /^@([A-Za-z][\w-]*)$/.exec(tok.text);
+        if (at) { parts.push('@' + at[1].toLowerCase()); inst = at[1].toLowerCase(); j++; continue; }
+        if (isOctaveNote(tok.text)) {
+          var echo = pitchEcho(tok.text);
+          if (!echo) return false;
+          parts.push(echo);
+          pitches++;
+          j++;
+          continue;
+        }
+        var fmGlued = /^fm(\d+(?:\.\d+)?)$/i.exec(tok.text);
+        if (fmGlued) { parts.push('fm ' + trimNum(+fmGlued[1])); j++; continue; }
+        if (/^fm$/i.test(tok.text) && tokens[j + 1] && tokens[j + 1].type === 'word' && tokenPos(tokens[j + 1]) < limit && /^\d+(?:\.\d+)?$/.test(tokens[j + 1].text)) {
+          parts.push('fm ' + trimNum(+tokens[j + 1].text));
+          j += 2;
+          continue;
+        }
+        return false;
+      }
+      if (!pitches) return false;
+      i = j;
+      if (inst) setInstrument(inst);
+      musSyntax().push({ kind: 'notes', implicit: true, text: 'notes ' + parts.join(' ') });
+      return true;
+    }
     function atStatement() {
+      if (tryPitchLine()) return true;
       if (tryAt()) return true;
       if (tryHack()) return true;
       if (tryTempo()) return true;
@@ -1266,10 +1333,13 @@
     });
     if (words.length) say(aiNotes, 'Words are left for the AI. Quote them `"like this"` to keep them words.');
 
+    function hasRecording(c) {
+      return c && c.kind === 'chord' && !/^[A-G](?:#|b)?pow$/.test(c.symbol || '');
+    }
     var gather = [], gathered = {};
     if (pieceInstrument !== 'synth') {
       chords.forEach(function (c) {
-        if (gathered[c.recording]) return;
+        if (!hasRecording(c) || gathered[c.recording]) return;
         gathered[c.recording] = 1;
         gather.push(c.symbol);
       });
@@ -1279,7 +1349,7 @@
       if (root.NCInstruments && NCInstruments.playsChords && NCInstruments.playsChords(tr.instrument)) return;
       var seen = {};
       tr.played.forEach(function (c) {
-        if (c.kind !== 'chord' || c.recording == null || seen[c.recording]) return;
+        if (!hasRecording(c) || c.recording == null || seen[c.recording]) return;
         seen[c.recording] = 1;
         gather.push(c.symbol);
       });

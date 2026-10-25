@@ -14,11 +14,14 @@ var PC = {C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11};
 var SPELL = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab', 'A', 'Bb', 'B'];
 var ALIAS = {'maj': '', 'M': '', 'min': 'm', '-': 'm', 'mi': 'm', 'Δ7': 'maj7', 'Δ': 'maj7', 'M7': 'maj7', 'ma7': 'maj7', 'M9': 'maj9', 'ø7': 'm7b5', 'ø': 'm7b5',
   '°7': 'dim7', 'o7': 'dim7', '°': 'dim', 'o': 'dim', '+': 'aug', '#5': 'aug', 'mMaj7': 'm-maj7', 'mmaj7': 'm-maj7', 'm(maj7)': 'm-maj7', 'madd9': 'm-add9', 'm(add9)': 'm-add9',
-  '6/9': '6-9', '69': '6-9', 'm6/9': 'm6-9', 'm69': 'm6-9', 'sus': 'sus4', '7sus': '7sus4', '9sus': '9sus4', 'add2': 'add9', '2': 'sus2', '7+5': 'maj7#5'};
+  '6/9': '6-9', '69': '6-9', 'm6/9': 'm6-9', 'm69': 'm6-9', 'sus': 'sus4', '7sus': '7sus4', '9sus': '9sus4', 'add2': 'add9', '7+5': 'maj7#5', 'dom7': '7', 'dom9': '9', 'maj6': '6'};
 var QUALS = {};
-var TOKEN = /(^|[^A-Za-z#])([A-G](?:#|b)?)((?:maj|min|mi|m|M|dim|aug|sus|add|alt|ø|°|Δ|o|\+|-|[0-9]|#|b|\(|\)|\/(?=9))*)(\/[A-G](?:#|b)?)?(?![A-Za-z])/g;
+var TOKEN = /(^|[^A-Za-z#])([A-G](?:#|b)?)((?:dom|pow|maj|min|mi|m|M|dim|aug|sus|add|alt|ø|°|Δ|o|\+|-|[0-9]|#|b|\(|\)|\/(?=9))*)(\/[A-G](?:#|b)?)?(?![A-Za-z])/g;
+var BARE_OCTAVE = { '2': 1, '5': 1, '6': 1, '7': 1, '9': 1 };
 function pcOf(n) { return (PC[n[0]] + (n[1] === '#' ? 1 : n[1] === 'b' ? -1 : 0) + 12) % 12; }
 function spell(root, q) {
+  if (BARE_OCTAVE[q]) return null;
+  if (q === 'pow') return SPELL[pcOf(root)] + 'pow';
   if (!(q in QUALS) && (q in ALIAS)) q = ALIAS[q];
   if (!(q in QUALS)) return null;
   return SPELL[pcOf(root)] + q;
@@ -67,7 +70,21 @@ function trackRecordings(parsed) {
   return out;
 }
 function pickVoicing(sym, prev, bass) {
-  var all = CAT.chords[sym] || []; if (!all.length) return null;
+  var all = CAT.chords[sym] || [];
+  if (!all.length) {
+    var lib = window.NCChords, id = lib && lib.idForSymbol ? lib.idForSymbol(sym) : null;
+    var rm = id && /^([A-G])(#|b)?/.exec(sym);
+    if (rm && lib.voicedChord) {
+      var rpc = (PC[rm[1]] + (rm[2] === '#' ? 1 : rm[2] === 'b' ? -1 : 0) + 12) % 12;
+      var rootMidi = 60 + rpc;
+      if (rootMidi > 72) rootMidi -= 12;
+      try {
+        var midis = lib.voicedChord(rootMidi, id, 0, 'compact', bass == null ? null : bass);
+        if (midis && midis.length) return ['library/' + id, midis];
+      } catch (e) {}
+    }
+    return null;
+  }
   var vs = all.filter(function (v) { return Math.min.apply(null, v[1]) >= 40 && Math.max.apply(null, v[1]) <= 84; });
   if (!vs.length) vs = all;
   if (bass !== null && bass !== undefined) { var b = vs.filter(function (v) { return Math.min.apply(null, v[1]) % 12 === bass; }); if (b.length) vs = b; }
@@ -1128,7 +1145,7 @@ function commitNotes() {
 // borrowed chords (iv, bVI, bVII, bIII), secondary dominants and chromatic mediants. The last chord leads back to chord 1.
 var GRAMMAR = {
   major: {w: 3, keys: [0, 2, 3, 5, 7, 8, 10], tonic: 'I', tok: {
-      I: [0, ['maj7', 'add9', '6-9', 'maj9', '6', '']], ii: [2, ['m7', 'm9', 'm11']], iii: [4, ['m7', 'm9']], IV: [5, ['maj7', 'add9', 'maj9', '6-9', 'maj7#11', '']],
+      I: [0, ['maj7', 'add9', '6-9', 'maj9', '6', '', 'pow']], ii: [2, ['m7', 'm9', 'm11']], iii: [4, ['m7', 'm9']], IV: [5, ['maj7', 'add9', 'maj9', '6-9', 'maj7#11', '']],
       V: [7, ['9', '7', '13', '9sus4', '7sus4', '']], vi: [9, ['m7', 'm9', 'm11', '']], iv: [5, ['m6', 'm7', 'm-add9', 'm']], bVI: [8, ['maj7', 'add9', 'maj9']],
       bVII: [10, ['9', '13', 'add9', '']], bIII: [3, ['maj7', 'add9', '6-9']], I7: [0, ['7', '9']], VI7: [9, ['7', '7b9', '13']], III7: [4, ['7', '7b9', '7#9']], II7: [2, ['9', '7', '13']]},
     next: {I: {IV: 3, vi: 3, ii: 2, iii: 1, V: 1.5, bVII: 0.8, bVI: 0.7, bIII: 0.5, I7: 0.6, VI7: 0.6, III7: 0.5},
@@ -1155,13 +1172,13 @@ var GRAMMAR = {
       vi: {II: 2, V: 1.5, vii: 1, I: 0.8}, iii: {II: 1.5, vi: 1.5, V: 1}, vii: {I: 1.5, vi: 1, II: 1}, bVI: {I: 1.5, V: 0.8}},
     mood: ['Bright and weightless; let the #11 shimmer.', 'Wide open sky. Slow, clear, a little wonder.', 'Floating, unhurried; let the high notes ring.', 'Glassy and strange. Let the #11 stay.', 'High and clear, almost weightless.', 'A slow lift, brighter than it starts.']},
   mixolydian: {w: 1.5, keys: [7, 9, 10, 0, 2, 3, 5], tonic: 'I', tok: {
-      I: [0, ['add9', '6-9', '', '13', '9']], ii: [2, ['m7', 'm9']], IV: [5, ['', 'maj7', 'add9', '6-9', '6']], v: [7, ['m7', 'm9', 'm11']], vi: [9, ['m7', 'm9']], bVII: [10, ['', 'add9', '6-9', 'maj7', '6']]},
+      I: [0, ['add9', '6-9', '', '13', '9', 'pow']], ii: [2, ['m7', 'm9']], IV: [5, ['', 'maj7', 'add9', '6-9', '6']], v: [7, ['m7', 'm9', 'm11']], vi: [9, ['m7', 'm9']], bVII: [10, ['', 'add9', '6-9', 'maj7', '6']]},
     next: {I: {bVII: 4, IV: 2.5, v: 1.5, vi: 0.8, ii: 0.8}, bVII: {IV: 3, I: 2.5, v: 0.8, vi: 0.5}, IV: {I: 3, bVII: 1.5, v: 1.2, ii: 0.5},
       v: {IV: 2, bVII: 1.5, vi: 1, I: 1}, vi: {IV: 2, v: 1, bVII: 1, ii: 1}, ii: {v: 1.5, IV: 1, bVII: 1}},
     mood: ['Easy and sunlit, a slow sway.', 'Open road at dusk. Warm, unhurried.', 'Relaxed and bright; let the flat seven hang.', 'A stomp, then it loosens.', 'Folk and wide. The flat seven stays.', 'Sunny, a little dusty.']}
 };
 var QW = [5, 4, 3, 2, 1.5, 1];
-var PRETTY = {'6-9': '6/9', 'm6-9': 'm6/9', 'm-add9': 'madd9'};
+var PRETTY = {'6-9': '6/9', 'm6-9': 'm6/9', 'm-add9': 'madd9', '7': 'dom7', '9': 'dom9', '6': 'maj6'};
 function prettySym(x) { var m = /^([A-G][#b]?)(.*)$/.exec(x); return m ? m[1] + (PRETTY[m[2]] || m[2]) : x; }
 function rng(seed) {   // mulberry32
   var a = seed >>> 0;

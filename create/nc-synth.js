@@ -398,8 +398,18 @@
       var got = { notes: [], fmDepth: null, instrument: '' };
       String(track.source || '').split(/[\n;]+/).forEach(function (stmt) {
         var km = /(?:^|\s)(?:notes|n)\s+(.+)$/i.exec(stmt);
-        if (!km) return;
-        var taken = fmDepthOf(km[1]);
+        var body = km ? km[1] : '';
+        if (!km) {
+          var bits = String(stmt || '').trim().split(/\s+/).filter(Boolean);
+          var pitchLine = bits.length && bits.some(function (p) {
+            return /^[A-Ga-g][#b]?(-1|[0-9])(?:\(\d+(?:\.\d+)?\|?\))?$/.test(p);
+          }) && bits.every(function (p) {
+            return /^@[A-Za-z][\w-]*$/.test(p) || /^[A-Ga-g][#b]?(-1|[0-9])(?:\(\d+(?:\.\d+)?\|?\))?$/.test(p) || /^fm$/i.test(p) || /^fm\d+(?:\.\d+)?$/i.test(p) || /^\d+(?:\.\d+)?$/.test(p);
+          });
+          if (!pitchLine) return;
+          body = bits.join(' ');
+        }
+        var taken = fmDepthOf(body);
         if (taken.fmDepth != null) got.fmDepth = taken.fmDepth;
         var inst = /@([A-Za-z][\w-]*)/.exec(stmt);
         if (inst) got.instrument = inst[1].toLowerCase();

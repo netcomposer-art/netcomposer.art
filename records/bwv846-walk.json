@@ -28,7 +28,7 @@
     },
     "composition_ref": {
       "composition_id": "compositions/bach_bwv846_prelude_progression.md",
-      "sha256": "f63acadc04937a289a2f51c96386a0ae92de8f7fba00c69a16a038632b9b43d5",
+      "sha256": "d81274dc70ac2643ba1280efb3719fe83b13ae8979794fb22c04f9b7e2d7cd8a",
       "composer": {
         "display_name": "Peter"
       },
@@ -507,7 +507,7 @@
       },
       {
         "bar": 3,
-        "chord": "G7/B",
+        "chord": "Gdom7/B",
         "chord_pcs": [
           "D",
           "F",
@@ -1074,7 +1074,7 @@
       },
       {
         "bar": 6,
-        "chord": "D7/C",
+        "chord": "Ddom7/C",
         "chord_pcs": [
           "C",
           "D",
@@ -1926,7 +1926,7 @@
       },
       {
         "bar": 10,
-        "chord": "D7",
+        "chord": "Ddom7",
         "chord_pcs": [
           "C",
           "D",
@@ -3561,7 +3561,7 @@
       },
       {
         "bar": 18,
-        "chord": "G7",
+        "chord": "Gdom7",
         "chord_pcs": [
           "D",
           "F",
@@ -3986,7 +3986,7 @@
       },
       {
         "bar": 20,
-        "chord": "C7",
+        "chord": "Cdom7",
         "chord_pcs": [
           "C",
           "E",
@@ -4832,7 +4832,7 @@
       },
       {
         "bar": 24,
-        "chord": "G7",
+        "chord": "Gdom7",
         "chord_pcs": [
           "D",
           "F",
@@ -5467,7 +5467,7 @@
       },
       {
         "bar": 27,
-        "chord": "G7",
+        "chord": "Gdom7",
         "chord_pcs": [
           "D",
           "F",
@@ -6348,7 +6348,7 @@
       },
       {
         "bar": 31,
-        "chord": "G7",
+        "chord": "Gdom7",
         "chord_pcs": [
           "D",
           "F",
@@ -6563,7 +6563,7 @@
       },
       {
         "bar": 32,
-        "chord": "C7",
+        "chord": "Cdom7",
         "chord_pcs": [
           "C",
           "E",
@@ -6994,7 +6994,7 @@
       },
       {
         "bar": 34,
-        "chord": "G7/C",
+        "chord": "Gdom7/C",
         "chord_pcs": [
           "D",
           "F",
@@ -27339,7 +27339,7 @@
   "record_hash": {
     "algorithm": "sha256",
     "over": "canonical JSON (sorted keys, no whitespace) of the record without record_hash and signature",
-    "value": "ede74c6751c4da03c64f62df2067d7b564971a3cb68eca48188bd670a4d57bfb"
+    "value": "a386199949fa83ff447eeb194bdf2c4e9dbe1c90536addd34a7cf5493694a6e8"
   },
   "amendments": [
     {
@@ -27347,6 +27347,12 @@
       "what": "Contributor display name changed from 'Petrus' to 'Peter' (Peter Semmelhack) for netcomposer.art, at his request. No audio, input, setting or other field changed.",
       "previous_record_hash": "4ae478e5aadd378528565518aa3ed5c25c53685f474481e2edac08a65dd14a99",
       "original_record": "unchanged in the NetComposer working files"
+    },
+    {
+      "at": "2026-10-25T13:27:17-07:00",
+      "what": "Chord spellings rewritten to the current Create language, at Peter's request: a letter plus one octave digit is always a note, so dominant 7 chords are written dom7 (G7 to Gdom7, C7 to Cdom7, D7 to Ddom7). The Composition pin now points at the same text with those spellings (composition/prior/bwv846-harmony-only.md, sha256 f63acadc04937a28… to d81274dc70ac2643…). No audio, input, setting or other field changed.",
+      "previous_record_hash": "ede74c6751c4da03c64f62df2067d7b564971a3cb68eca48188bd670a4d57bfb",
+      "original_record": "previous version in the netcomposer.art git history (main at c5d62f1)"
     }
   ]
 }

@@ -13,27 +13,27 @@ A 12-bar blues in A. One chord per bar, about 80 BPM, in 4/4. Relaxed and loose.
 
 | Step | Chord | Step | Chord | Step | Chord | Step | Chord |
 |---|---|---|---|---|---|---|---|
-| 1 | A7 | 2 | A7 | 3 | A7 | 4 | A7 |
-| 5 | D7 | 6 | D7 | 7 | A7 | 8 | A7 |
-| 9 | E7 | 10 | D7 | 11 | A7 | 12 | E7 |
+| 1 | Adom7 | 2 | Adom7 | 3 | Adom7 | 4 | Adom7 |
+| 5 | Ddom7 | 6 | Ddom7 | 7 | Adom7 | 8 | Adom7 |
+| 9 | Edom7 | 10 | Ddom7 | 11 | Adom7 | 12 | Edom7 |
 
 One chord per bar. The last bar turns around, back to the top.
 
 ## Composition
 
 4/4 · 80 BPM
-[1 bar A7]
-[1 bar A7]
-[1 bar A7]
-[1 bar A7]
-[1 bar D7]
-[1 bar D7]
-[1 bar A7]
-[1 bar A7]
-[1 bar E7]
-[1 bar D7]
-[1 bar A7]
-[1 bar E7]
+[1 bar Adom7]
+[1 bar Adom7]
+[1 bar Adom7]
+[1 bar Adom7]
+[1 bar Ddom7]
+[1 bar Ddom7]
+[1 bar Adom7]
+[1 bar Adom7]
+[1 bar Edom7]
+[1 bar Ddom7]
+[1 bar Adom7]
+[1 bar Edom7]
 
 ## Credits
 
