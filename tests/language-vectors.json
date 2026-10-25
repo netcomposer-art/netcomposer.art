@@ -1429,5 +1429,538 @@
     "words": [],
     "notes": [],
     "iread": "90 BPM · Cm 4 beats · 4 beats · ~2.7 s · cp-18"
+  },
+  {
+    "name": "chord-octave",
+    "text": "C5m9(4|)",
+    "bpm": null,
+    "clock": "language",
+    "seed": null,
+    "meter": "4/4",
+    "gather": [
+      "Cm9"
+    ],
+    "played": [
+      {
+        "kind": "chord",
+        "symbol": "Cm9",
+        "bass": null,
+        "beats": null,
+        "bars": 4,
+        "seconds": 10,
+        "recording": 0,
+        "octave": 5
+      }
+    ],
+    "hacks": [],
+    "words": [],
+    "notes": [],
+    "iread": "96 BPM · C5m9 4 bars · 16 beats · 10 s",
+    "arp": [],
+    "unmapped": [],
+    "tracks": [],
+    "synth": false
+  },
+  {
+    "name": "chord-octave-plain",
+    "text": "Cm9(4|)",
+    "bpm": null,
+    "clock": "language",
+    "seed": null,
+    "meter": "4/4",
+    "gather": [
+      "Cm9"
+    ],
+    "played": [
+      {
+        "kind": "chord",
+        "symbol": "Cm9",
+        "bass": null,
+        "beats": null,
+        "bars": 4,
+        "seconds": 10,
+        "recording": 0
+      }
+    ],
+    "hacks": [],
+    "words": [],
+    "notes": [],
+    "iread": "96 BPM · Cm9 4 bars · 16 beats · 10 s",
+    "arp": [],
+    "unmapped": [],
+    "tracks": [],
+    "synth": false
+  },
+  {
+    "name": "chord-octave-flat",
+    "text": "Eb4maj7(2|)",
+    "bpm": null,
+    "clock": "language",
+    "seed": null,
+    "meter": "4/4",
+    "gather": [
+      "Ebmaj7"
+    ],
+    "played": [
+      {
+        "kind": "chord",
+        "symbol": "Ebmaj7",
+        "bass": null,
+        "beats": null,
+        "bars": 2,
+        "seconds": 5,
+        "recording": 0,
+        "octave": 4
+      }
+    ],
+    "hacks": [],
+    "words": [],
+    "notes": [],
+    "iread": "96 BPM · Eb4maj7 2 bars · 8 beats · 5 s",
+    "arp": [],
+    "unmapped": [],
+    "tracks": [],
+    "synth": false
+  },
+  {
+    "name": "chord-octave-sharp",
+    "text": "F#3m7(2|)",
+    "bpm": null,
+    "clock": "language",
+    "seed": null,
+    "meter": "4/4",
+    "gather": [
+      "F#m7"
+    ],
+    "played": [
+      {
+        "kind": "chord",
+        "symbol": "F#m7",
+        "bass": null,
+        "beats": null,
+        "bars": 2,
+        "seconds": 5,
+        "recording": 0,
+        "octave": 3
+      }
+    ],
+    "hacks": [],
+    "words": [],
+    "notes": [],
+    "iread": "96 BPM · F#3m7 2 bars · 8 beats · 5 s",
+    "arp": [],
+    "unmapped": [],
+    "tracks": [],
+    "synth": false
+  },
+  {
+    "name": "chord-octave-slash",
+    "text": "C5m9/Bb(2|)",
+    "bpm": null,
+    "clock": "language",
+    "seed": null,
+    "meter": "4/4",
+    "gather": [
+      "Cm9"
+    ],
+    "played": [
+      {
+        "kind": "chord",
+        "symbol": "Cm9",
+        "bass": 10,
+        "beats": null,
+        "bars": 2,
+        "seconds": 5,
+        "recording": 0,
+        "octave": 5
+      }
+    ],
+    "hacks": [],
+    "words": [],
+    "notes": [],
+    "iread": "96 BPM · C5m9/Bb 2 bars · 8 beats · 5 s",
+    "arp": [],
+    "unmapped": [],
+    "tracks": [],
+    "synth": false
+  },
+  {
+    "name": "chord-octave-loop",
+    "text": "[C5m9(1) Fm9(1)]x2",
+    "bpm": null,
+    "clock": "language",
+    "seed": null,
+    "meter": "4/4",
+    "gather": [
+      "Cm9",
+      "Fm9"
+    ],
+    "played": [
+      {
+        "kind": "chord",
+        "symbol": "Cm9",
+        "bass": null,
+        "beats": 1,
+        "bars": null,
+        "seconds": 0.625,
+        "recording": 0,
+        "octave": 5
+      },
+      {
+        "kind": "chord",
+        "symbol": "Fm9",
+        "bass": null,
+        "beats": 1,
+        "bars": null,
+        "seconds": 0.625,
+        "recording": 1
+      },
+      {
+        "kind": "chord",
+        "symbol": "Cm9",
+        "bass": null,
+        "beats": 1,
+        "bars": null,
+        "seconds": 0.625,
+        "recording": 0,
+        "octave": 5
+      },
+      {
+        "kind": "chord",
+        "symbol": "Fm9",
+        "bass": null,
+        "beats": 1,
+        "bars": null,
+        "seconds": 0.625,
+        "recording": 1
+      }
+    ],
+    "hacks": [],
+    "words": [],
+    "notes": [],
+    "iread": "96 BPM · [C5m9 1 beat, Fm9 1 beat] ×2 · 4 beats · 2.5 s",
+    "arp": [],
+    "unmapped": [],
+    "tracks": [],
+    "synth": false
+  },
+  {
+    "name": "chord-octave-pair",
+    "text": "Cm9(2|) C5m9(2|)",
+    "bpm": null,
+    "clock": "language",
+    "seed": null,
+    "meter": "4/4",
+    "gather": [
+      "Cm9",
+      "Cm9"
+    ],
+    "played": [
+      {
+        "kind": "chord",
+        "symbol": "Cm9",
+        "bass": null,
+        "beats": null,
+        "bars": 2,
+        "seconds": 5,
+        "recording": 0
+      },
+      {
+        "kind": "chord",
+        "symbol": "Cm9",
+        "bass": null,
+        "beats": null,
+        "bars": 2,
+        "seconds": 5,
+        "recording": 1,
+        "octave": 5
+      }
+    ],
+    "hacks": [],
+    "words": [],
+    "notes": [],
+    "iread": "96 BPM · Cm9 2 bars · C5m9 2 bars · 16 beats · 10 s",
+    "arp": [],
+    "unmapped": [],
+    "tracks": [],
+    "synth": false
+  },
+  {
+    "name": "chord-octave-synth",
+    "text": "@synth Cm9(2|) C5m9(2|) C3m9(2|)",
+    "bpm": null,
+    "clock": "language",
+    "seed": null,
+    "meter": "4/4",
+    "gather": [],
+    "played": [
+      {
+        "kind": "chord",
+        "symbol": "Cm9",
+        "bass": null,
+        "beats": null,
+        "bars": 2,
+        "seconds": 5,
+        "recording": 0
+      },
+      {
+        "kind": "chord",
+        "symbol": "Cm9",
+        "bass": null,
+        "beats": null,
+        "bars": 2,
+        "seconds": 5,
+        "recording": 1,
+        "octave": 5
+      },
+      {
+        "kind": "chord",
+        "symbol": "Cm9",
+        "bass": null,
+        "beats": null,
+        "bars": 2,
+        "seconds": 5,
+        "recording": 2,
+        "octave": 3
+      }
+    ],
+    "hacks": [],
+    "words": [],
+    "notes": [],
+    "iread": "96 BPM · Cm9 2 bars · C5m9 2 bars · C3m9 2 bars · 24 beats · 15 s · @synth",
+    "arp": [],
+    "unmapped": [],
+    "tracks": [],
+    "synth": true
+  },
+  {
+    "name": "chord-octave-piano",
+    "text": "C5m9(2|) @piano",
+    "bpm": null,
+    "clock": "language",
+    "seed": null,
+    "meter": "4/4",
+    "gather": [
+      "Cm9"
+    ],
+    "played": [
+      {
+        "kind": "chord",
+        "symbol": "Cm9",
+        "bass": null,
+        "beats": null,
+        "bars": 2,
+        "seconds": 5,
+        "recording": 0,
+        "octave": 5
+      }
+    ],
+    "hacks": [],
+    "words": [],
+    "notes": [],
+    "iread": "96 BPM · C5m9 2 bars · 8 beats · 5 s",
+    "arp": [],
+    "unmapped": [],
+    "tracks": [],
+    "synth": false
+  },
+  {
+    "name": "chord-octave-track",
+    "text": "t1: C5m9(2|) @synth",
+    "bpm": null,
+    "clock": "language",
+    "seed": null,
+    "meter": "4/4",
+    "gather": [],
+    "played": [],
+    "hacks": [],
+    "words": [],
+    "notes": [],
+    "iread": "96 BPM · T1 C5m9 2 bars @synth · 8 beats · 5 s",
+    "arp": [],
+    "unmapped": [],
+    "tracks": [
+      {
+        "n": 1,
+        "label": "T1",
+        "kind": "chords",
+        "instrument": "synth",
+        "beats": 8,
+        "fmDepth": null,
+        "played": [
+          {
+            "kind": "chord",
+            "symbol": "Cm9",
+            "beats": null,
+            "bars": 2,
+            "seconds": 5,
+            "octave": 5
+          }
+        ]
+      }
+    ],
+    "synth": false
+  },
+  {
+    "name": "chord-octave-arp",
+    "text": "arp C5m9 up (2|)",
+    "bpm": null,
+    "clock": "legacy",
+    "seed": null,
+    "meter": "4/4",
+    "gather": [],
+    "played": [],
+    "hacks": [],
+    "words": [],
+    "notes": [],
+    "iread": "arp C5m9 up 16ths (2|)",
+    "arp": [
+      {
+        "chord": "C5m9",
+        "chordId": "minor-9",
+        "order": "up",
+        "rate": "16ths",
+        "octaves": 1,
+        "spread": "compact",
+        "inversion": 0,
+        "fmDepth": null,
+        "beats": null,
+        "bars": 2,
+        "instrument": "",
+        "rootOctave": 5
+      }
+    ],
+    "unmapped": [],
+    "tracks": [],
+    "synth": false
+  },
+  {
+    "name": "chord-octave-arp-sampler",
+    "text": "arp F#3m7 (1|) @piano",
+    "bpm": null,
+    "clock": "legacy",
+    "seed": null,
+    "meter": "4/4",
+    "gather": [],
+    "played": [],
+    "hacks": [],
+    "words": [],
+    "notes": [],
+    "iread": "arp F#3m7 up 16ths (1|) @piano",
+    "arp": [
+      {
+        "chord": "F#3m7",
+        "chordId": "minor-7",
+        "order": "up",
+        "rate": "16ths",
+        "octaves": 1,
+        "spread": "compact",
+        "inversion": 0,
+        "fmDepth": null,
+        "beats": null,
+        "bars": 1,
+        "instrument": "piano",
+        "rootOctave": 3
+      }
+    ],
+    "unmapped": [],
+    "tracks": [],
+    "synth": false
+  },
+  {
+    "name": "chord-octave-range",
+    "text": "C10m9",
+    "bpm": null,
+    "clock": "legacy",
+    "seed": null,
+    "meter": "4/4",
+    "gather": [],
+    "played": [],
+    "hacks": [],
+    "words": [
+      "C10m9"
+    ],
+    "notes": [
+      "`C10` is not a note. Write a pitch from `C-1` to `G9`.",
+      "Words are left for the AI. Quote them `\"like this\"` to keep them words."
+    ],
+    "iread": "C10m9\n`C10` is not a note. Write a pitch from `C-1` to `G9`.\nWords are left for the AI. Quote them `\"like this\"` to keep them words.",
+    "arp": [],
+    "unmapped": [],
+    "tracks": [],
+    "synth": false
+  },
+  {
+    "name": "chord-octave-notes-range",
+    "text": "notes C10",
+    "bpm": null,
+    "clock": "legacy",
+    "seed": null,
+    "meter": "4/4",
+    "gather": [],
+    "played": [],
+    "hacks": [],
+    "words": [],
+    "notes": [
+      "`C10` is not a note. Write a pitch from `C-1` to `G9`."
+    ],
+    "iread": "notes C10\n`C10` is not a note. Write a pitch from `C-1` to `G9`.",
+    "arp": [],
+    "unmapped": [],
+    "tracks": [],
+    "synth": false
+  },
+  {
+    "name": "chord-octave-bare-pitch",
+    "text": "C5",
+    "bpm": null,
+    "clock": "legacy",
+    "seed": null,
+    "meter": "4/4",
+    "gather": [],
+    "played": [],
+    "hacks": [],
+    "words": [
+      "C5"
+    ],
+    "notes": [
+      "`C5` is a pitch, not a chord. Write `notes C5` on its own line.",
+      "Words are left for the AI. Quote them `\"like this\"` to keep them words."
+    ],
+    "iread": "C5\n`C5` is a pitch, not a chord. Write `notes C5` on its own line.\nWords are left for the AI. Quote them `\"like this\"` to keep them words.",
+    "arp": [],
+    "unmapped": [],
+    "tracks": [],
+    "synth": false
+  },
+  {
+    "name": "chord-octave-quality",
+    "text": "C9(2|)",
+    "bpm": null,
+    "clock": "language",
+    "seed": null,
+    "meter": "4/4",
+    "gather": [
+      "C9"
+    ],
+    "played": [
+      {
+        "kind": "chord",
+        "symbol": "C9",
+        "bass": null,
+        "beats": null,
+        "bars": 2,
+        "seconds": 5,
+        "recording": 0
+      }
+    ],
+    "hacks": [],
+    "words": [],
+    "notes": [],
+    "iread": "96 BPM · C9 2 bars · 8 beats · 5 s",
+    "arp": [],
+    "unmapped": [],
+    "tracks": [],
+    "synth": false
   }
 ]

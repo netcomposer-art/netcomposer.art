@@ -64,6 +64,8 @@ const arp2 = docOf('t1: Cm(4|) Fm(4|)\nt2: arp random 8ths');
 check(arp.tracks[1].voice === 'synth' && arp.tracks[1].region && arp.tracks[1].events.length > 4, 'an arp track expands to notes, got ' + (arp.tracks[1] && arp.tracks[1].events.length));
 check(arp.tracks[1].events.map((e) => e.midi).join() === arp2.tracks[1].events.map((e) => e.midi).join(), 'the same seed expands the arp the same way');
 
+const octChord = docOf('t1: C5m9(2|) @synth');
+check(octChord.tracks[0].voice === 'synth' && octChord.tracks[0].events.some((e) => e.midi === 72) && octChord.tracks[0].events.every((e) => e.midi >= 72), 'C5m9 on a synth track roots at MIDI 72, got ' + octChord.tracks[0].events.map((e) => e.midi).join());
 const plain = docOf('Cm(4|) Fm(4|)');
 check(plain.tracks.length === 1 && plain.tracks[0].id === 'chords' && plain.tracks[0].voice === 'audio', 'an unlabelled chord line stays one audio track, got ' + JSON.stringify(plain.tracks));
 

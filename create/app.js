@@ -194,7 +194,7 @@ function appendCoded(el, text) {
 function helpFor(part) {
   if (!part || part.indexOf('`') < 0) return '';
   if (/left for the AI|quote was not closed|inside quotes|Quote them/.test(part)) return 'words';
-  if (/is a pitch/.test(part)) return 'notes';
+  if (/is not a note|is a pitch/.test(part)) return 'notes';
   if (/is not a chord|is a word, not|Did you mean/.test(part)) return 'chords';
   if (/repeat needs|Nested groups|before `\|`|add up to/.test(part)) return 'groups';
   if (/Hacks are for|was written twice|outside the brackets/.test(part)) return 'hacks';
@@ -274,7 +274,9 @@ function timelineFrom(parsed) {
     chords.push({
       t: open ? null : +((t + gap).toFixed(3)),
       dur: slot, slot: slot, open: ev.seconds == null, gapBefore: +gap.toFixed(3),
-      symbol: ev.symbol, bass: ev.bass, path: v[0], voicing: v[1], recording: ev.recording
+      symbol: ev.symbol, bass: ev.bass, octave: ev.octave == null ? null : ev.octave,
+      name: (window.NCLanguage && NCLanguage.chordName) ? NCLanguage.chordName(ev) : ev.symbol,
+      path: v[0], voicing: v[1], recording: ev.recording
     });
     if (!open && ev.seconds != null) t = +(t + gap + ev.seconds).toFixed(3);
     gap = 0;
@@ -381,6 +383,7 @@ function chipBeats(ev, qpb) {
 }
 function chipName(ev) {
   if (!ev || ev.kind === 'rest') return 'rest';
+  if (window.NCLanguage && NCLanguage.chordName) return NCLanguage.chordName(ev);
   return prettySym(ev.symbol) + (ev.bass != null ? '/' + SPELL[ev.bass] : '');
 }
 function beatMarks(ev, qpb) {
