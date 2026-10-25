@@ -15,7 +15,7 @@ const lib = sandbox.NCHacksLib;
 const engineSrc = readFileSync(join(root, 'create/hacks/engine.js'), 'utf8');
 const pins = /var pins = '([^']*)\\n';/.exec(engineSrc)[1];
 const W = new Function(pins + '\n' + lib.fns.map((fn) => fn.toString()).join('\n') +
-  '\nreturn {ncChainCreate: ncChainCreate, ncChainSet: ncChainSet, ncRender: ncRender, ncChainPatch: ncChainPatch};')();
+  '\nreturn {ncChainCreate: ncChainCreate, ncChainSet: ncChainSet, ncRender: ncRender, ncChainPatch: ncChainPatch, ncMixRender: ncMixRender};')();
 
 const SR = 48000, Q = 128, PIECE = 6;
 let fails = 0;
@@ -105,6 +105,37 @@ const afterHand = render(cleared, inL, inR);
 const held = chainOf(lp, null, 0);
 const heldOut = render(held, inL, inR);
 ok(same(afterHand, heldOut), 'clearing the glide leaves the dial where it was written');
+
+// t1 and t2 stay on their own inputs. With those chains empty, the glide on
+// the master matches rendering the same sum as one mix.
+function mixGlide(inputs, chain) {
+  const n = inputs[0][0].length;
+  const oL = new Float32Array(n), oR = new Float32Array(n);
+  const tracks = [];
+  for (let t = 0; t < 8; t++) tracks.push(W.ncChainCreate(SR));
+  for (let i = 0; i < n; i += Q) {
+    const m = Math.min(Q, n - i);
+    const block = [];
+    inputs.forEach((pair, idx) => {
+      if (!pair) return;
+      block[idx] = [pair[0].subarray(i, i + m), pair[1].subarray(i, i + m)];
+    });
+    W.ncMixRender(tracks, chain, block, oL.subarray(i, i + m), oR.subarray(i, i + m));
+  }
+  return [oL, oR];
+}
+const t2L = new Float32Array(inL.length), t2R = new Float32Array(inR.length);
+const bothL = new Float32Array(inL.length), bothR = new Float32Array(inR.length);
+for (let i = 0; i < inL.length; i++) {
+  const s = 0.15 * Math.sin(2 * Math.PI * 659.25 * i / SR);
+  t2L[i] = s;
+  t2R[i] = s * 0.9;
+  bothL[i] = inL[i] + t2L[i];
+  bothR[i] = inR[i] + t2R[i];
+}
+const splitGlide = mixGlide([[inL, inR], [t2L, t2R]], chainOf(lp, glideAuto, 1 / (PIECE * SR)));
+const summedGlide = render(chainOf(lp, glideAuto, 1 / (PIECE * SR)), bothL, bothR);
+ok(same(splitGlide, summedGlide), 't1 and t2 through empty chains glide the same as one mix');
 
 const app = readFileSync(join(root, 'create/app.js'), 'utf8');
 const live = readFileSync(join(root, 'create/live.js'), 'utf8');
