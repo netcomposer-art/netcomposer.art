@@ -32,24 +32,36 @@ function project(text) {
   return {
     bpm: p.bpm, clock: p.clock, seed: p.seed, meter: p.meter,
     gather: p.gather,
-    played: p.played.map((e) => ({
-      kind: e.kind, symbol: e.symbol || null, bass: e.bass == null ? null : e.bass,
-      beats: e.beats, bars: e.bars, seconds: e.seconds, recording: e.recording == null ? null : e.recording
-    })),
+    played: p.played.map((e) => {
+      const row = {
+        kind: e.kind, symbol: e.symbol || null, bass: e.bass == null ? null : e.bass,
+        beats: e.beats, bars: e.bars, seconds: e.seconds, recording: e.recording == null ? null : e.recording
+      };
+      if (e.octave != null) row.octave = e.octave;
+      return row;
+    }),
     hacks: p.hacks.map((h) => ({ abbr: h.abbr, type: h.type, value: h.value, ramp: h.ramp })),
     words: p.words, notes: p.notes, iread: p.iread,
-    arp: (p.arp || []).map((a) => ({
-      chord: a.chord, chordId: a.chordId, order: a.order, rate: a.rate,
-      octaves: a.octaves, spread: a.spread, inversion: a.inversion,
-      fmDepth: a.fmDepth, beats: a.beats, bars: a.bars, instrument: a.instrument || ''
-    })),
+    arp: (p.arp || []).map((a) => {
+      const row = {
+        chord: a.chord, chordId: a.chordId, order: a.order, rate: a.rate,
+        octaves: a.octaves, spread: a.spread, inversion: a.inversion,
+        fmDepth: a.fmDepth, beats: a.beats, bars: a.bars, instrument: a.instrument || ''
+      };
+      if (a.rootOctave != null) row.rootOctave = a.rootOctave;
+      return row;
+    }),
     unmapped: p.unmapped || [],
     tracks: (p.tracks || []).map((t) => ({
       n: t.n, label: t.label, kind: t.kind, instrument: t.instrument || '',
       beats: t.beats, fmDepth: t.fmDepth == null ? null : t.fmDepth,
-      played: (t.played || []).map((e) => ({
-        kind: e.kind, symbol: e.symbol || null, beats: e.beats, bars: e.bars, seconds: e.seconds
-      }))
+      played: (t.played || []).map((e) => {
+        const row = {
+          kind: e.kind, symbol: e.symbol || null, beats: e.beats, bars: e.bars, seconds: e.seconds
+        };
+        if (e.octave != null) row.octave = e.octave;
+        return row;
+      })
     })),
     synth: !!p.synth
   };
@@ -165,6 +177,26 @@ check(arpTrack.tracks.length === 2 && arpTrack.tracks[1].kind === 'arp' && arpTr
 const arpPitches = L.parse('arp Cm9 pendulum 16ths C5 Eb5 G5', { known });
 check(arpPitches.arp[0].chord === 'Cm9' && arpPitches.arp[0].order === 'pendulum' && arpPitches.iread === 'arp Cm9 pendulum 16ths C5 Eb5 G5' && arpPitches.notes.length === 0, 'pitches on an arp line are not failed chords, got ' + arpPitches.iread);
 check(L.parse('C5', { known }).iread.indexOf('`C5` is a pitch, not a chord.') >= 0 && L.parse('steady', { known }).iread.indexOf('Words are left for the AI.') >= 0, 'a real non-chord is still reported');
+['C9', 'C7', 'C13', 'C7b9', 'C9sus4', 'C2', 'fm9'].forEach((tok) => {
+  const kept = L.parse(tok, { known });
+  check(kept.played.length === 1 && kept.played[0].octave == null && kept.gather.length === 1, tok + ' stays a chord with no octave, got ' + JSON.stringify(kept.played[0]));
+});
+check(L.parse('C6/9', { known }).played[0].symbol === 'C6-9' && L.parse('C6/9', { known }).played[0].octave == null, 'C6/9 stays the six-nine chord');
+const c5m9 = L.parse('C5m9(4|)', { known });
+check(c5m9.played[0].symbol === 'Cm9' && c5m9.played[0].octave === 5 && c5m9.gather.join() === 'Cm9' && c5m9.iread.indexOf('C5m9 4 bars') >= 0, 'C5m9 is Cm9 on C5, got ' + c5m9.iread);
+const slashOct = L.parse('C5m9/Bb(2|)', { known });
+check(slashOct.played[0].octave === 5 && slashOct.played[0].bass === 10 && slashOct.gather.join() === 'Cm9' && slashOct.iread.indexOf('C5m9/Bb') >= 0, 'slash bass keeps the octave, got ' + slashOct.iread);
+check(L.parse('Eb4maj7(1)', { known }).played[0].octave === 4 && L.parse('F#3m7(1)', { known }).played[0].octave === 3, 'sharps and flats take an octave');
+check(L.chordName(L.parse('Cb1m(1)', { known }).played[0]) === 'B0m' && L.parse('Cb1m(1)', { known }).played[0].octave === 0, 'Cb1m is read as B0m');
+const loopOct = L.parse('[C5m9(1)]x2', { known });
+check(loopOct.played.length === 2 && loopOct.played[0].recording === loopOct.played[1].recording && loopOct.gather.length === 1 && loopOct.played.every((e) => e.octave === 5), 'a repeat shares one recording and keeps the octave');
+const pairOct = L.parse('Cm9(1) C5m9(1)', { known });
+check(pairOct.gather.join() === 'Cm9,Cm9' && pairOct.played[0].octave == null && pairOct.played[1].octave === 5 && pairOct.played[0].recording !== pairOct.played[1].recording, 'Cm9 and C5m9 are two recordings of Cm9');
+const synthOct = L.parse('@synth Cm9(2|) C5m9(2|) C3m9(2|)', { known });
+check(synthOct.synth && synthOct.gather.length === 0 && synthOct.iread === '96 BPM · Cm9 2 bars · C5m9 2 bars · C3m9 2 bars · 24 beats · 15 s · @synth', 'the three registers read with @synth, got ' + synthOct.iread);
+check(L.parse('C5m9(2|) @piano', { known }).gather.join() === 'Cm9' && L.parse('t1: C5m9(2|) @synth', { known }).gather.length === 0, '@piano still gathers and @synth does not');
+check(L.parse('notes C10', { known }).notes[0] === '`C10` is not a note. Write a pitch from `C-1` to `G9`.' && L.parse('C10m9', { known }).notes[0] === '`C10` is not a note. Write a pitch from `C-1` to `G9`.', 'an octave past G9 uses the note range');
+check(L.parse('arp C5m9 (1|) @synth', { known }).arp[0].rootOctave === 5 && L.parse('arp C5m9 (1|) @piano', { known }).arp[0].rootOctave === 5, 'an arp keeps the chord octave');
 const arpLine = L.parse('90 BPM; arp Cm9 pendulum 16ths 2oct wide inv1 (2|)', { known });
 check(arpLine.gather.length === 0 && arpLine.clock === 'legacy' && arpLine.arp[0].chordId === 'minor-9' && arpLine.arp[0].bars === 2, 'an arp chord is not gathered and its bar length does not change the clock, got ' + JSON.stringify(arpLine.arp));
 check(arpLine.iread.indexOf('arp Cm9 pendulum 16ths 2oct wide inv1 (2|)') >= 0, 'I read keeps the arp statement, got ' + arpLine.iread);
@@ -181,6 +213,12 @@ check(L.parse('arp Cm max', { known }).iread.indexOf('maximum') >= 0, 'max is th
 ['seed 4182', 'seed4182', 'sd4182', 'sd 4182'].forEach((t) => {
   check(L.parse(t + ' C', { known }).seed === 4182, 'seed form ' + t);
 });
+check(L.hackParams('cp', 18).threshold_db === -18 && L.hackParams('cp', -18).threshold_db === -18 && L.hackParams('cp', 0).threshold_db === 0, 'cp18 and cp-18 are −18 dB, and cp0 is 0');
+const cp18 = L.parse('cp18', { known });
+const cpm = L.parse('cp -18', { known });
+check(cp18.hacks[0].value === 18 && cp18.hacks[0].params.threshold_db === -18 && cp18.iread.indexOf('cp18') >= 0, 'cp18 reads as a −18 dB threshold, got ' + JSON.stringify(cp18.hacks[0]));
+check(cpm.hacks[0].value === -18 && cpm.hacks[0].params.threshold_db === -18 && cpm.iread.indexOf('cp-18') >= 0, 'cp -18 reads as the same threshold, got ' + cpm.iread);
+check(L.parse('lp500->200', { known }).hacks[0].ramp === 200 && L.parse('dl20->80', { known }).hacks[0].ramp === 80, 'filter and delay arrows are both stored');
 
 // The finder the page used before this slice. Starters and published
 // Compositions must list the same chords, including bass.

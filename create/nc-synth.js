@@ -101,6 +101,19 @@
     var n = (+m[3] + 1) * 12 + pc;
     return n >= 0 && n <= 127 ? n : null;
   }
+  // The same pitch `notes C5` uses. No octave keeps the catalog root, C at 60.
+  function midiAt(pc, octave) {
+    pc = ((+pc % 12) + 12) % 12;
+    if (octave == null || octave === '') return 60 + pc;
+    var n = (+octave + 1) * 12 + pc;
+    return n >= 0 && n <= 127 ? n : 60 + pc;
+  }
+  function chordRoot(symbol, octave) {
+    var m = /^([A-G])(#|b)?/.exec(symbol || '');
+    var pc = 0;
+    if (m) pc = PC[m[1]] + (m[2] === '#' ? 1 : m[2] === 'b' ? -1 : 0);
+    return midiAt(pc, octave);
+  }
   function spell(name) {
     var m = /^([A-Ga-g])(#|b)?(-?\d+)$/.exec(name || '');
     return m ? m[1].toUpperCase() + (m[2] || '') + m[3] : '';
@@ -328,7 +341,7 @@
       }
     }
     if (arp.chord) {
-      var rootMidi = arp.rootPc == null ? 60 : 60 + ((arp.rootPc % 12) + 12) % 12;
+      var rootMidi = arp.rootPc == null ? 60 : midiAt(arp.rootPc, arp.rootOctave);
       play(arp.chordId, rootMidi, arp.bass, 0, windowBeats(arp.beats, arp.bars));
       return;
     }
@@ -340,12 +353,7 @@
       if (!(beats > 0)) return;
       if (ev.kind === 'chord') {
         var id = lib.idForSymbol(ev.symbol);
-        play(id, (function () {
-          var m = /^([A-G])(#|b)?/.exec(ev.symbol || '');
-          if (!m) return 60;
-          var pc = PC[m[1]] + (m[2] === '#' ? 1 : m[2] === 'b' ? -1 : 0);
-          return 60 + ((pc % 12) + 12) % 12;
-        })(), ev.bass, cursor, beats);
+        play(id, chordRoot(ev.symbol, ev.octave), ev.bass, cursor, beats);
       }
       cursor += beats;
     });
@@ -361,10 +369,7 @@
       if (!(beats > 0)) return;
       if (ev.kind === 'chord') {
         var id = lib.idForSymbol ? lib.idForSymbol(ev.symbol) : null;
-        var m = /^([A-G])(#|b)?/.exec(ev.symbol || '');
-        var pc = 0;
-        if (m) pc = PC[m[1]] + (m[2] === '#' ? 1 : m[2] === 'b' ? -1 : 0);
-        var rootMidi = 60 + ((pc % 12) + 12) % 12;
+        var rootMidi = chordRoot(ev.symbol, ev.octave);
         var midis = [];
         try { midis = id ? lib.voicedChord(rootMidi, id, 0, 'compact', ev.bass) : []; }
         catch (e) { midis = []; }
@@ -504,6 +509,7 @@
     describe: describe,
     wavBlob: wavBlob,
     midiOf: midiOf,
+    chordRoot: chordRoot,
     mulberry32: mulberry32
   };
 })(typeof window !== 'undefined' ? window : globalThis);

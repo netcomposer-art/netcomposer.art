@@ -100,7 +100,41 @@
     }
     if (snap) { st.openS = st.openT; st.logS = st.logT; }
   }
+  // A filter arrow. u is 0 at the start of the piece and 1 at the end, and the
+  // Hertz move is even in pitch. A hand on the dial clears st.auto, and the dial wins.
+  function ncApplyGlide(st) {
+    var a = st.auto;
+    if (!a || !(a.from > 0) || !(a.to > 0)) return;
+    var param = st.type === 'bandpass' ? 'centre_hz' : 'cutoff_hz';
+    if (a.param !== param) return;
+    var u = st.pos || 0;
+    if (u < 0) u = 0;
+    if (u > 1) u = 1;
+    var hz = Math.exp(Math.log(a.from) + (Math.log(a.to) - Math.log(a.from)) * u);
+    var ny = st.sr * 0.49;
+    if (hz > ny) hz = ny;
+    if (hz < 20) hz = 20;
+    st.logT = Math.log(hz);
+    st.openT = 0;
+  }
+  // Copy the piece position onto each hack, then advance one sample. Step 0 holds.
+  function ncStamp(chain, order) {
+    var pos = chain.pos || 0;
+    if (pos < 0) pos = 0;
+    if (pos > 1) pos = 1;
+    var m, st;
+    for (m = 0; m < order.length; m++) {
+      st = chain.box[order[m]];
+      if (st) st.pos = pos;
+    }
+    if (chain.step) {
+      pos += chain.step;
+      if (pos > 1) pos = 1;
+      chain.pos = pos;
+    }
+  }
   function ncLowpassStep(st, xL, xR, out) {
+    if (st.auto) ncApplyGlide(st);
     var k = st.immediate ? 1 : st.kFast;
     st.openS += (st.openT - st.openS) * k;
     st.logS += (st.logT - st.logS) * k;
@@ -463,6 +497,7 @@
     if (snap) { st.openS = st.openT; st.logS = st.logT; st.qS = st.qT; st.mixS = st.mixT; }
   }
   function ncPassStep(st, xL, xR, out) {
+    if (st.auto) ncApplyGlide(st);
     var k = st.immediate ? 1 : st.kFast;
     var moving = st.openS !== st.openT || st.logS !== st.logT || st.qS !== st.qT || st.mixS !== st.mixT;
     if (moving) {
@@ -686,7 +721,7 @@
     if (type === 'width') return ncWidthCreate(sr);
     return null;
   }
-  function ncWidgetApply(st, p, snap, bypass) {
+  function ncWidgetApply(st, p, snap, bypass, auto) {
     p = p || {};
     if (st.type === 'lowpass') ncLowpassApply(st, p, snap);
     else if (st.type === 'delay') ncDelayApply(st, p, snap);
@@ -700,6 +735,7 @@
       st.bypassT = bypass ? 0 : 1;
       if (snap) st.bypass = st.bypassT;
     }
+    if (auto !== undefined) st.auto = auto || null;
   }
   function ncClearState(st) {
     if (!st) return;
@@ -794,7 +830,7 @@
       if (!w || w.type === 'limiter' || w.fixed || chain.box[w.id]) continue;
       var st = ncWidgetCreate(w.type, chain.sr);
       if (!st) continue;
-      ncWidgetApply(st, w.params || {}, true, !!w.bypass);
+      ncWidgetApply(st, w.params || {}, true, !!w.bypass, w.auto);
       chain.box[w.id] = st;
       chain.order.push(w.id);
     }
@@ -808,7 +844,7 @@
     if (n >= 10) return;
     var st = ncWidgetCreate(w.type, chain.sr);
     if (!st) return;
-    ncWidgetApply(st, w.params || {}, true, !!w.bypass);
+    ncWidgetApply(st, w.params || {}, true, !!w.bypass, w.auto);
     chain.box[w.id] = st;
   }
   function ncSame(a, b) {
@@ -833,10 +869,10 @@
     chain.nextOrder = next;
     if (chain.fadePhase !== 'out') { chain.fadePhase = 'out'; chain.fadePos = 0; }
   }
-  function ncChainPatch(chain, id, params, bypass, immediate) {
+  function ncChainPatch(chain, id, params, bypass, immediate, auto) {
     var st = chain.box[id];
     if (!st) return;
-    ncWidgetApply(st, params || {}, !!immediate, bypass);
+    ncWidgetApply(st, params || {}, !!immediate, bypass, auto);
   }
   function ncChainClear(chain) {
     for (var id in chain.box) ncClearState(chain.box[id]);
@@ -844,6 +880,89 @@
     chain.fadePhase = 'idle';
     chain.fadePos = 0;
     chain.nextOrder = null;
+  }
+  // -1: the message is for the master chain. -2: past the eight track hacks, ignore it.
+  function ncTrackSlot(track) {
+    if (track == null) return -1;
+    if (typeof track !== 'number' || track !== track || track < 0 || track >= 8) return -2;
+    return track | 0;
+  }
+  // A track chain is the widgets only. Empty is a copy. No 0.8 and no limiter:
+  // those stay on the master chain, once.
+  function ncTrackRender(chain, inL, inR, outL, outR) {
+    var n = outL.length;
+    var order = chain.order;
+    var i, m, st, yL, yR, tmp, xL, xR;
+    if (!order.length) {
+      for (i = 0; i < n; i++) {
+        xL = inL ? inL[i] : 0;
+        xR = inR ? inR[i] : xL;
+        if (xL !== xL || xL === Infinity || xL === -Infinity) xL = 0;
+        if (xR !== xR || xR === Infinity || xR === -Infinity) xR = 0;
+        outL[i] = xL;
+        if (outR && outR !== outL) outR[i] = xR;
+      }
+      return;
+    }
+    tmp = chain.tmp;
+    for (m = 0; m < order.length; m++) {
+      st = chain.box[order[m]];
+      if (st) st.immediate = chain.immediate;
+    }
+    for (i = 0; i < n; i++) {
+      yL = inL ? inL[i] : 0;
+      yR = inR ? inR[i] : yL;
+      if (yL !== yL || yL === Infinity || yL === -Infinity) yL = 0;
+      if (yR !== yR || yR === Infinity || yR === -Infinity) yR = 0;
+      if (chain.pos || chain.step) ncStamp(chain, order);
+      for (m = 0; m < order.length; m++) {
+        st = chain.box[order[m]];
+        if (!st) continue;
+        ncWidgetStep(st, yL, yR, tmp);
+        yL = tmp[0];
+        yR = tmp[1];
+      }
+      outL[i] = yL;
+      if (outR && outR !== outL) outR[i] = yR;
+    }
+  }
+  // Inputs 0–7 are track chains. Input 8 is dry, straight into the master.
+  // Unconnected inputs are silence. The master chain is the one ncRender runs.
+  function ncMixRender(tracks, master, inputs, outL, outR) {
+    var n = outL.length;
+    var busL = master._busL;
+    var busR = master._busR;
+    if (!busL || busL.length < n) {
+      busL = master._busL = new Float32Array(n < 128 ? 128 : n);
+      busR = master._busR = new Float32Array(busL.length);
+    }
+    var i, t, input, inL, inR, tr, tmpL, tmpR, dL, dR, dry;
+    for (i = 0; i < n; i++) { busL[i] = 0; busR[i] = 0; }
+    for (t = 0; t < 8; t++) {
+      input = inputs[t] || [];
+      inL = input[0] || null;
+      inR = input[1] || inL;
+      tr = tracks[t];
+      if (!tr || (!inL && !tr.order.length)) continue;
+      tmpL = tr._outL;
+      tmpR = tr._outR;
+      if (!tmpL || tmpL.length < n) {
+        tmpL = tr._outL = new Float32Array(n < 128 ? 128 : n);
+        tmpR = tr._outR = new Float32Array(tmpL.length);
+      }
+      ncTrackRender(tr, inL, inR, tmpL.subarray(0, n), tmpR.subarray(0, n));
+      for (i = 0; i < n; i++) { busL[i] += tmpL[i]; busR[i] += tmpR[i]; }
+    }
+    dry = inputs[8] || [];
+    dL = dry[0] || null;
+    dR = dry[1] || dL;
+    if (dL) {
+      for (i = 0; i < n; i++) {
+        busL[i] += dL[i];
+        busR[i] += dR ? dR[i] : dL[i];
+      }
+    }
+    ncRender(master, busL.subarray(0, n), busR.subarray(0, n), outL, outR);
   }
   function ncRender(chain, inL, inR, outL, outR) {
     var n = outL.length;
@@ -859,8 +978,9 @@
       var xR = inR ? inR[i] : xL;
       if (xL !== xL || xL === Infinity || xL === -Infinity) xL = 0;
       if (xR !== xR || xR === Infinity || xR === -Infinity) xR = 0;
-      var yL = xL, yR = xR;
+      var       yL = xL, yR = xR;
       order = chain.order;
+      if (chain.pos || chain.step) ncStamp(chain, order);
       for (m = 0; m < order.length; m++) {
         st = chain.box[order[m]];
         if (!st) continue;
@@ -878,7 +998,7 @@
   var lib = {
     fns: [
       ncFlush, ncCutoffHz, ncCoef, ncLine, ncIdx, ncReadFrac, ncWrite, ncLattice, ncZeroLine,
-      ncLowpassCreate, ncLowpassCoeffs, ncLowpassApply, ncLowpassStep,
+      ncLowpassCreate, ncLowpassCoeffs, ncLowpassApply, ncApplyGlide, ncStamp, ncLowpassStep,
       ncDelayCreate, ncDelayApply, ncDelayStep,
       ncDiff2, ncPlateCreate, ncPlateApply, ncTank, ncPlateStep,
       ncBiquad, ncBiquadSet, ncBiquadStep, ncEqCreate, ncEqApply, ncEqStep, ncEqClear,
@@ -888,7 +1008,8 @@
       ncWidthCreate, ncWidthApply, ncWidthStep,
       ncLimiterCreate, ncLimiterStep,
       ncWidgetCreate, ncWidgetApply, ncClearState, ncWidgetStep,
-      ncChainCreate, ncKeep, ncFade, ncChainSet, ncChainAdd, ncSame, ncChainOrder, ncChainPatch, ncChainClear, ncRender
+      ncChainCreate, ncKeep, ncFade, ncChainSet, ncChainAdd, ncSame, ncChainOrder, ncChainPatch, ncChainClear,
+      ncTrackSlot, ncTrackRender, ncMixRender, ncRender
     ],
     Q: Q, CEILING: CEILING, MASTER: MASTER, FS: FS,
     cutoffHz: ncCutoffHz,

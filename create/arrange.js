@@ -14,10 +14,35 @@
  *
  * Edits stay in the page. Play hears them. Gather and Save do not, unless a
  * gathered take is edited on the take strip, which already posts them.
+ *
+ * Solo and Mute sit on the row. They are page state, not Composition text.
+ * Reset clears them. Any soloed row is all that plays, and a soloed row
+ * still plays if it is also muted. Otherwise a muted row is silent.
  */
 (function (root) {
   'use strict';
 
+  function mixAudible(rows, id) {
+    var any = false, row = null, i, item;
+    rows = rows || [];
+    for (i = 0; i < rows.length; i++) {
+      item = rows[i];
+      if (!item) continue;
+      if (item.solo) any = true;
+      if (item.id === id) row = item;
+    }
+    if (!row) return !any;
+    if (any) return !!row.solo;
+    return !row.mute;
+  }
+  // t1 is input 0 … t8 is input 7. Every other lane shares input 8.
+  function trackSlot(id) {
+    var m = /^t(\d+)$/i.exec(String(id || ''));
+    if (!m) return 8;
+    var n = +m[1];
+    if (n >= 1 && n <= 8) return n - 1;
+    return 8;
+  }
   function secs(n) { return +(+n).toFixed(3); }
   function layoutChords(chords) {
     var entries = [], cursor = 0, i, c, written, nominal, at;
@@ -63,12 +88,14 @@
   }
 
   if (typeof document === 'undefined') {
-    root.NCArrange = { layoutChords: layoutChords, commit: commit, addLane: function () {} };
+    root.NCArrange = { layoutChords: layoutChords, commit: commit, addLane: function () {}, mixAudible: mixAudible, trackSlot: trackSlot };
     return;
   }
 
   var laneFns = [];
   var state = { sig: '', tracks: [], duration: 0.001, head: null, drag: null, pending: 0, clock: null, grid: null, raf: 0 };
+  var mixState = {};
+  var buses = [];
   var noteTimer = 0;
   var noteText = '';
 
@@ -309,6 +336,90 @@
     if (ruler && ruler.parentNode) ruler.parentNode.removeChild(ruler);
     state.head = null;
   }
+  function mixRows() {
+    return state.tracks.map(function (tr) {
+      var m = mixState[tr.id] || {};
+      return { id: tr.id, solo: !!m.solo, mute: !!m.mute };
+    });
+  }
+  function audible(id) { return mixAudible(mixRows(), id); }
+  function busNow(row) {
+    var now = 0;
+    try { now = row.ctx && row.ctx.currentTime != null ? row.ctx.currentTime : (row.node.context && row.node.context.currentTime) || 0; } catch (e) { now = 0; }
+    return now;
+  }
+  function writeBus(row, ramp) {
+    var p = row.node && row.node.gain;
+    if (!p) return;
+    var v = audible(row.id) ? row.level : 0;
+    var now = busNow(row);
+    try {
+      if (p.cancelScheduledValues) p.cancelScheduledValues(now);
+      if (ramp && p.setValueAtTime && p.linearRampToValueAtTime) {
+        p.setValueAtTime(p.value, now);
+        p.linearRampToValueAtTime(v, now + 0.012);
+      } else if (p.setValueAtTime) p.setValueAtTime(v, now);
+      else p.value = v;
+    } catch (e) {
+      try { p.value = v; } catch (e2) {}
+    }
+  }
+  function applyBuses() {
+    buses.forEach(function (row) { writeBus(row, true); });
+  }
+  function hold(id, node, level, ctx) {
+    if (!node) return function () {};
+    var row = { id: id, node: node, level: level == null ? 1 : level, ctx: ctx || null };
+    buses.push(row);
+    writeBus(row, false);
+    return function () {
+      var i = buses.indexOf(row);
+      if (i >= 0) buses.splice(i, 1);
+    };
+  }
+  function mixName(tr) {
+    var label = String(tr.label || tr.id || '').replace(/\s+/g, ' ').trim();
+    return label.toLowerCase();
+  }
+  function syncMix(lane, tr) {
+    var m = mixState[tr.id] || {};
+    ['solo', 'mute'].forEach(function (key) {
+      var b = lane.querySelector('.arr-' + key);
+      if (!b) return;
+      var on = !!m[key];
+      b.setAttribute('aria-pressed', on ? 'true' : 'false');
+      b.classList.toggle('arr-on', on);
+    });
+  }
+  function clearMix() {
+    mixState = {};
+    applyBuses();
+    var lanes = $('arrange-lanes');
+    if (!lanes) return;
+    state.tracks.forEach(function (tr) {
+      var lane = lanes.querySelector('.arr-lane[data-track="' + tr.id + '"]');
+      if (lane) syncMix(lane, tr);
+    });
+  }
+  function mixButton(tr, key, letter) {
+    var b = node('button', 'arr-' + key);
+    b.type = 'button';
+    b.textContent = letter;
+    b.setAttribute('aria-label', (key === 'solo' ? 'Solo ' : 'Mute ') + mixName(tr));
+    var on = !!(mixState[tr.id] && mixState[tr.id][key]);
+    b.setAttribute('aria-pressed', on ? 'true' : 'false');
+    if (on) b.classList.add('arr-on');
+    b.addEventListener('click', function (ev) {
+      ev.preventDefault();
+      ev.stopPropagation();
+      var row = mixState[tr.id] || (mixState[tr.id] = { solo: false, mute: false });
+      row[key] = !row[key];
+      b.setAttribute('aria-pressed', row[key] ? 'true' : 'false');
+      b.classList.toggle('arr-on', !!row[key]);
+      applyBuses();
+    });
+    return b;
+  }
   function render() {
     var box = $('arrange'), lanes = $('arrange-lanes');
     if (!box || !lanes) return;
@@ -326,7 +437,14 @@
       var idx = node('span', 'nc-mono');
       idx.textContent = (ti + 1 < 10 ? '0' : '') + (ti + 1);
       name.appendChild(idx);
-      name.appendChild(document.createTextNode(' ' + tr.label));
+      name.appendChild(document.createTextNode(' '));
+      var label = node('span', 'arr-label');
+      label.textContent = tr.label;
+      name.appendChild(label);
+      var mix = node('span', 'arr-mix');
+      mix.appendChild(mixButton(tr, 'solo', 'S'));
+      mix.appendChild(mixButton(tr, 'mute', 'M'));
+      name.appendChild(mix);
       var track = node('div', 'src-track');
       tr.entries.forEach(function (entry, i) {
         var mark = node('div', 'src-span');
@@ -553,7 +671,12 @@
     clip: clip,
     armPlay: armPlay,
     disarm: disarm,
-    resumeFrom: resumeFrom
+    resumeFrom: resumeFrom,
+    mixAudible: mixAudible,
+    trackSlot: trackSlot,
+    audible: audible,
+    hold: hold,
+    clearMix: clearMix
   };
   var takeBox = $('src-time');
   if (takeBox && window.MutationObserver) {
