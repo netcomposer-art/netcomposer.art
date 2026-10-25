@@ -29,12 +29,13 @@
 // pitch as `notes C5`. `Cm9` with no octave is unchanged. Gather uses the
 // chord name and leaves the recording where it is.
 //
-// `@synth(1)` loads preset 1. `@synth(Example Bright)` loads that preset by
-// name. Capitals do not matter, and spaces stay inside the brackets. The
-// same mark works on any line that already takes `@synth`, including a track
-// and an arp. The preset is the synth patch for Play. Gather and Perform
-// keep the usual patch. A preset the bank does not have still plays, and
-// I-read says it was not found.
+// `@synth(1)` loads preset 1. `@synth(Example Bright)` and `@synth(velvet-comet)`
+// load a preset by name. Capitals do not matter. A hyphen and a space are the
+// same, so `velvet-comet` and `Velvet Comet` are one name. The hyphen stays
+// inside the name. The same mark works on any line that already takes
+// `@synth`, including a track and an arp. The preset is the synth patch for
+// Play. Gather and Perform keep the usual patch. A preset the bank does not
+// have still plays, and I-read says it was not found.
 (function (root) {
   'use strict';
   var PC = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
@@ -281,7 +282,8 @@
       if (c === ']') { out.push({ type: 'groupEnd', end: ++i }); continue; }
       if (c === '|') { out.push({ type: 'bar', end: ++i }); continue; }
       if (c === ':') { out.push({ type: 'word', text: ':', end: ++i }); continue; }
-      // `@synth(Example Bright)` is one mark. The name may contain spaces.
+      // `@synth(velvet-comet)` and `@synth(Velvet Comet)` are one mark. Spaces
+      // and hyphens stay inside the name. A hyphen is not a break or a minus.
       if (/^@synth\(/i.test(src.slice(i, i + 7))) {
         var ps = i, pw = '';
         while (i < n && src[i] !== ')' && src[i] !== '\n') pw += src[i++];

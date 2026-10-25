@@ -153,6 +153,8 @@ const missingPlay = playOf('@synth(99) Cm9');
 check(pagePlay.tracks[0] && !pagePlay.tracks[0].params.patch && pagePlay.tracks[0].params.cutoff === 1400 && pagePlay.tracks[0].params.waveform === 'saw', 'Play with no preset keeps the page patch, got ' + JSON.stringify(pagePlay.tracks[0] && pagePlay.tracks[0].params));
 check(brightPlay.tracks[0] && brightPlay.tracks[0].params.patch && brightPlay.tracks[0].params.patch.cutoff === 5200 && brightPlay.tracks[0].voice === 'synth', 'preset 1 is Example Bright on Play, got ' + JSON.stringify(brightPlay.tracks[0] && brightPlay.tracks[0].params));
 check(darkPlay.tracks[0] && darkPlay.tracks[0].params.patch && darkPlay.tracks[0].params.patch.waveform === 'triangle' && darkPlay.tracks[0].params.cutoff === 280, 'a preset name loads Example Dark, got ' + JSON.stringify(darkPlay.tracks[0] && { wave: darkPlay.tracks[0].params.waveform, cut: darkPlay.tracks[0].params.cutoff }));
+const hyphenPlay = playOf('@synth(example-dark) Cm9');
+check(hyphenPlay.tracks[0] && hyphenPlay.tracks[0].params.patch && hyphenPlay.tracks[0].params.patch.waveform === 'triangle', '@synth(example-dark) is Example Dark');
 check(missingPlay.tracks[0] && !missingPlay.tracks[0].params.patch && missingPlay.tracks[0].params.waveform === 'saw' && missingPlay.tracks[0].events.length > 0, 'an unknown preset still plays the page patch');
 const keptBright = docOf('@synth(1) Cm9');
 check(keptBright.tracks[0] && !keptBright.tracks[0].params.patch && keptBright.tracks[0].params.cutoff === 1400, 'Perform ignores the preset, got ' + JSON.stringify(keptBright.tracks[0] && keptBright.tracks[0].params));

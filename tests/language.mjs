@@ -27,6 +27,13 @@ const sb = {}; sb.globalThis = sb; sb.Map = Map; sb.Set = Set; sb.Promise = Prom
 load('create/chord-library.js', sb);
 load('create/synth-presets.js', sb);
 sb.NCSynthPresets.loadBank(JSON.parse(readFileSync(join(root, 'create/synth-presets.json'), 'utf8')));
+// Hyphenated names the shipped bank does not carry. They sit after presets 1–3,
+// so a name lookup of Example Bright still hits the bank.
+sb.NCSynthPresets.importText(JSON.stringify([
+  { id: 'velvet-comet', name: 'velvet-comet', version: 1, settings: { waveform: 'square' } },
+  { id: 'night-spark', name: 'night-spark', version: 1, settings: { waveform: 'sine' } },
+  { id: 'clear-night-spark', name: 'clear-night-spark', version: 1, settings: { waveform: 'triangle' } }
+]));
 load('create/language.js', sb);
 const L = sb.NCLanguage;
 function project(text) {

@@ -38,6 +38,7 @@ const byNum = P.resolve('1');
 const byName = P.resolve('  example   BRIGHT ');
 check(byNum && byNum.found && byNum.n === 1 && byNum.name === 'Example Bright' && byNum.by === 'number', 'preset 1 resolves by number');
 check(byName && byName.found && byName.n === 1 && byName.name === 'Example Bright' && byName.by === 'name', 'a name ignores capitals and extra spaces');
+check(P.resolve('example-bright').n === 1 && P.resolve('Example-Bright').name === 'Example Bright', 'a hyphen and a space are the same name');
 check(P.resolve('99') && P.resolve('99').found === false, 'an unknown number is not found');
 check(P.resolve('No Such') && P.resolve('No Such').found === false && P.resolve('No Such').label === 'No Such', 'an unknown name is not found');
 
@@ -71,6 +72,28 @@ check(again.ok && again.updated[0] && again.updated[0].n === 4 && P.resolve('4')
 check(mem['nc.synthPresets'] && mem['nc.synthPresets'].toLowerCase().indexOf('astral neon') >= 0, 'imports are stored under nc.synthPresets');
 const skipped = P.importText(JSON.stringify([{ name: 'Good', version: 1, settings: { waveform: 'sine' } }, { name: 'Bad', version: 3, settings: { waveform: 'saw' } }]));
 check(skipped.ok && skipped.added[0].name === 'Good' && skipped.errors.length === 1, 'a valid entry is kept when another version is skipped, got ' + JSON.stringify(skipped));
+
+const slugs = P.importText(JSON.stringify([
+  { id: 'velvet-comet', name: 'velvet-comet', version: 1, settings: { waveform: 'square', cutoff: 1800 } },
+  { id: 'night-spark', name: 'night-spark', version: 1, settings: { waveform: 'sine', cutoff: 900 } },
+  { id: 'clear-night-spark', name: 'clear-night-spark', version: 1, settings: { waveform: 'triangle', cutoff: 400 } }
+]));
+check(slugs.ok && slugs.added.map((r) => r.name).join(' ') === 'velvet-comet night-spark clear-night-spark', 'hyphenated names import, got ' + JSON.stringify(slugs));
+['velvet-comet', 'Velvet Comet', 'VELVET-COMET', 'velvet comet', 'velvet–comet', 'velvet\u2212comet'].forEach((ref) => {
+  const hit = P.resolve(ref);
+  check(hit && hit.found && hit.name === 'velvet-comet' && hit.by === 'name', ref + ' resolves to velvet-comet, got ' + JSON.stringify(hit));
+});
+['night-spark', 'Night Spark', 'NIGHT-SPARK'].forEach((ref) => {
+  const hit = P.resolve(ref);
+  check(hit && hit.found && hit.name === 'night-spark', ref + ' resolves to night-spark, got ' + JSON.stringify(hit));
+});
+['clear-night-spark', 'Clear Night Spark', 'clear night spark', 'CLEAR-NIGHT-SPARK'].forEach((ref) => {
+  const hit = P.resolve(ref);
+  check(hit && hit.found && hit.name === 'clear-night-spark', ref + ' resolves to clear-night-spark, got ' + JSON.stringify(hit));
+});
+const loose = P.importText(JSON.stringify({ id: 'velvet-comet', name: 'Velvet Comet', version: 1, settings: { waveform: 'saw', cutoff: 300 } }));
+check(loose.ok && loose.updated[0] && loose.updated[0].name === 'Velvet Comet' && P.resolve('velvet-comet').n === loose.updated[0].n && P.patch(P.resolve('velvet comet')).cutoff === 300, 'Velvet Comet replaces velvet-comet, got ' + JSON.stringify(loose));
+check(P.resolve('---').found === false, 'a hyphen on its own is not a preset');
 
 if (problems.length) {
   console.error(problems.join('\n'));

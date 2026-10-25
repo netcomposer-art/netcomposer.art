@@ -31,8 +31,14 @@
   var readyResolve;
   var ready = new Promise(function (resolve) { readyResolve = resolve; });
 
+  // Hyphens, spaces and case are the same name. A hyphen is not a minus
+  // and not a break: velvet-comet, Velvet Comet and velvet comet match.
   function norm(s) {
-    return String(s || '').replace(/\s+/g, ' ').trim().toLowerCase();
+    return String(s || '')
+      .replace(/[\u2010\u2011\u2012\u2013\u2014\u2212]/g, '-')
+      .toLowerCase()
+      .replace(/[-\s]+/g, ' ')
+      .trim();
   }
   function looksLikeSettings(o) {
     if (!o || typeof o !== 'object' || Array.isArray(o)) return false;
@@ -128,6 +134,7 @@
       return { ref: text, label: text, found: true, n: byNum.n, name: byNum.name, id: byNum.id, by: 'number' };
     }
     var key = norm(text);
+    if (!key) return { ref: text, label: text, found: false, n: null, name: '', by: 'name' };
     var hit = null;
     list.forEach(function (row) {
       if (hit || row.source !== 'import') return;
