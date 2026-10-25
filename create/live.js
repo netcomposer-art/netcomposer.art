@@ -128,11 +128,37 @@ function syncAudio(snap) {
   }
   return seq;
 }
+// t1 is worklet input 0 … t8 is input 7. Chords, the player, and any later
+// track share input 8, the dry bus into the master chain. Empty track chains
+// copy their samples, so the sum still matches one mix into the master.
+function trackInput(n) {
+  var i = 0;
+  if (typeof n === 'number' && n === n) i = n;
+  else if (typeof n === 'string') {
+    var m = /^t(\d+)$/i.exec(n);
+    if (m) i = +m[1];
+  }
+  if (i >= 1 && i <= 8) return i - 1;
+  return 8;
+}
+function busFor(n) {
+  graph();
+  var slot = trackInput(n);
+  return (G.buses && G.buses[slot]) || G.input;
+}
 function graph() {
   if (G) return G;
   var Ctx = window.AudioContext || window.webkitAudioContext;
   try { AC = new Ctx({sampleRate: 48000}); } catch (e) { AC = new Ctx(); }
-  G = {input: AC.createGain(), sink: AC.createGain(), hack: null, api: null, ready: null, known: {}, orderKey: ''};
+  G = {input: null, buses: [], sink: AC.createGain(), hack: null, api: null, ready: null, known: {}, orderKey: ''};
+  var b, bus;
+  for (b = 0; b < 9; b++) {
+    bus = AC.createGain();
+    bus.gain.value = 1;
+    G.buses.push(bus);
+  }
+  // Unnumbered audio uses the dry master bus. The gain is 1: 0.8 stays on the master.
+  G.input = G.buses[8];
   G.meter = AC.createAnalyser(); G.meter.fftSize = 2048; G.meter.smoothingTimeConstant = 0.3;
   G.sink.gain.value = 0; G.sink.connect(AC.destination);
   G.ready = NCHacks.attach(AC).then(function (api) {
@@ -149,11 +175,13 @@ function graph() {
     }
     return replaceAudio();
   }).then(function () {
-    G.input.connect(G.hack);
+    // One bus per worklet input. Empty chains pass the samples through.
+    G.buses.forEach(function (one, i) { one.connect(G.hack, 0, i); });
     return G;
   }).catch(function () {
     var dry = AC.createGain(); dry.gain.value = 0.8; G.master = dry;
-    G.input.connect(dry); dry.connect(AC.destination); dry.connect(G.meter);
+    G.buses.forEach(function (one) { one.connect(dry); });
+    dry.connect(AC.destination); dry.connect(G.meter);
     status('These hacks need a browser that can run an audio worklet.');
     return G;
   });
@@ -383,7 +411,7 @@ function ensureEngine() {
     if (settings && settings.oscillatorMode === 'wavetable') settings.oscillatorMode = 'vco';
     var engine = new Eng(settings);
     var random = window.NCSynth && NCSynth.mulberry32 ? NCSynth.mulberry32(part.seed) : Math.random;
-    return engine.open(AC, random, G.input).then(function () {
+    return engine.open(AC, random, busFor(part && part.track)).then(function () {
       synthEngine = engine;
       synthOpening = null;
       return engine;
@@ -432,9 +460,10 @@ function setSynthPart(part) {
     settings: part.settings || null,
     seed: (part.seed >>> 0) || 1,
     depth: depth,
-    mods: part.mods || []
+    mods: part.mods || [],
+    track: part.track >= 1 ? part.track : null
   } : null;
-  if (synthEngine && (!next || !SYNTH || next.seed !== SYNTH.seed)) {
+  if (synthEngine && (!next || !SYNTH || next.seed !== SYNTH.seed || next.track !== SYNTH.track)) {
     try { synthEngine.panic(); } catch (e) {}
     synthEngine = null;
     synthOpening = null;
@@ -554,7 +583,7 @@ function scheduleClips(spec) {
     (spec.entries || []).forEach(function (entry) {
       // The rendered synth buffer stays out of the chain while the engine plays it.
       if (liveOn && entry.synth) return;
-      var node = placeClip(AC, G.input, entry, when, offset);
+      var node = placeClip(AC, busFor(entry.track), entry, when, offset);
       if (node) {
         node.synth = !!entry.synth;
         clipNodes.push(node);
@@ -579,10 +608,15 @@ function renderBuffers(spec) {
     if (musical + tail > 180) tail = Math.max(0, 180 - musical);
     var total = musical + tail;
     var off = new (window.OfflineAudioContext || window.webkitOfflineAudioContext)(2, Math.max(1, Math.ceil(total * rate)), rate);
-    var bus = off.createGain();
-    (spec.entries || []).forEach(function (entry) { placeClip(off, bus, entry, 0, 0); });
+    var buses = [], bi, one;
+    for (bi = 0; bi < 9; bi++) {
+      one = off.createGain();
+      one.gain.value = 1;
+      buses.push(one);
+    }
+    (spec.entries || []).forEach(function (entry) { placeClip(off, buses[trackInput(entry.track)], entry, 0, 0); });
     return NCHacks.attach(off, {widgets: list, immediate: true}).then(function (api) {
-      bus.connect(api.node);
+      buses.forEach(function (g, i) { g.connect(api.node, 0, i); });
       api.node.connect(off.destination);
       return off.startRendering();
     });
@@ -988,7 +1022,8 @@ function render() {
     var src = off.createBufferSource();
     src.buffer = buffer;
     return NCHacks.attach(off, {widgets: list, immediate: true}).then(function (api) {
-      src.connect(api.node);
+      // A saved Performance is one mix. It enters the dry master bus, not a track.
+      src.connect(api.node, 0, 8);
       api.node.connect(off.destination);
       src.start(0);
       return off.startRendering();
@@ -1088,6 +1123,7 @@ document.addEventListener('keyup', function (e) {
 readouts(); buttons();
 window.NCLive = {settings: settings, cutoffHz: cutoffHz, validate: validate, open: open, hide: hide, level: level, bands: bands, prime: prime, render: render,
   adjusted: adjusted, chain: chain, applyChain: applyChain, scheduleClips: scheduleClips, stopClips: stopClips, renderBuffers: renderBuffers,
+  trackInput: trackInput,
   cpu: function () { return window.__hackCpu || null; },
   playing: playing, setSynthPart: setSynthPart, synthStatus: synthStatus,
   ready: function () { graph(); return G.ready; },
