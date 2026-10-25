@@ -1,9 +1,10 @@
 /* Sampler names for /create/.
  *
  * events.js and sampler.js both read this list. @piano, @guitar, and @cello
- * play the sampler on a notes track or an arp track. @bass does that too,
- * and it also plays a chord track. Bass is B1–A#4. A chord track with
- * @piano, @guitar, or @cello still uses the recording Gather fetches.
+ * play the sampler on a notes track or an arp track. @bass and @strings
+ * do that too, and they also play a chord track. Bass is B1–A#4. Strings
+ * are the violin, G3–C#7. A chord track with @piano, @guitar, or @cello
+ * still uses the recording Gather fetches.
  * Play with no name stays the built-in synth.
  */
 (function (root) {
@@ -12,7 +13,8 @@
     {slug: 'guitar', name: 'Guitar', spread: 0.018, names: ['guitar']},
     {slug: 'cello-pizzicato', name: 'Cello pizzicato', spread: 0.015, names: ['cello', 'cello-pizzicato']},
     {slug: 'piano', name: 'Piano', spread: 0.008, names: ['piano']},
-    {slug: 'bass', name: 'Bass', spread: 0.012, names: ['bass'], chords: true}
+    {slug: 'bass', name: 'Bass', spread: 0.012, names: ['bass'], chords: true},
+    {slug: 'strings', name: 'Strings', spread: 0.010, names: ['strings'], chords: true}
   ];
 
   function row(name) {
