@@ -60,6 +60,23 @@ r = A.commit(mixed.entries, 1, 'move', 3.1, mixed.base, [2, 2.5]);
 check(r.writtenBlock !== true && r.entries[1].at_s === 3.1 && r.entries[1].len_s === 2.5, 'the sketch bar beside it still moves, got ' + ends(r.entries));
 check(typeof A.addLane === 'function', 'another lane can be registered');
 
+const both = [{ id: 't1' }, { id: 't2' }];
+check(A.mixAudible(both, 't1') === true && A.mixAudible(both, 't2') === true, 'both tracks sound when nothing is set');
+check(A.mixAudible([{ id: 't1', mute: true }, { id: 't2' }], 't1') === false, 'mute silences that track');
+check(A.mixAudible([{ id: 't1', mute: true }, { id: 't2' }], 't2') === true, 'a muted neighbour leaves the other track on');
+check(A.mixAudible([{ id: 't1', solo: true }, { id: 't2' }], 't1') === true, 'solo plays that track');
+check(A.mixAudible([{ id: 't1', solo: true }, { id: 't2' }], 't2') === false, 'solo silences every other track');
+check(A.mixAudible([{ id: 't1', solo: true }, { id: 't2', solo: true }], 't1') === true && A.mixAudible([{ id: 't1', solo: true }, { id: 't2', solo: true }], 't2') === true, 'several tracks can be soloed at once');
+check(A.mixAudible([{ id: 't1', solo: true, mute: true }, { id: 't2' }], 't1') === true, 'solo wins over mute');
+check(A.mixAudible([{ id: 't1', solo: true }, { id: 't2', mute: true }], 't2') === false, 'a track that is not soloed stays out');
+check(A.trackSlot('t1') === 0 && A.trackSlot('t8') === 7, 't1–t8 use inputs 0–7');
+check(A.trackSlot('t9') === 8 && A.trackSlot('chords') === 8 && A.trackSlot('synth') === 8 && A.trackSlot('sampler') === 8, 'everything else uses input 8');
+const liveSrc = readFileSync(join(root, 'create/live.js'), 'utf8');
+const eventsSrc = readFileSync(join(root, 'create/events.js'), 'utf8');
+check(/function laneFeed\(lane, bus\)/.test(liveSrc) && /g\.connect\(bus\)/.test(liveSrc) && /laneFeed\(lane, busFor\(entry\.track\)\)/.test(liveSrc) && /laneFeed\(lane, busFor\(part && part\.track\)\)/.test(liveSrc), 'Live solo and mute feed each track bus');
+check(!/laneGains|synthOut|G\.input\)/.test(liveSrc.split('function laneFeed')[1] || ''), 'a lane feed does not land on the dry bus by itself');
+check(/function slotBus\(id\)/.test(eventsSrc) && /g\.connect\(slotBus\(id\)\)/.test(eventsSrc) && /NCEvents\.play\(doc, ctx, ctx\.destination/.test(readFileSync(join(root, 'create/app.js'), 'utf8')), 'Play keeps a dry bus per track and stays off the worklet');
+
 function chromeBin() {
   for (const name of [process.env.CHROME, 'google-chrome', 'google-chrome-stable', 'chromium', 'chromium-browser']) {
     if (!name) continue;
@@ -146,7 +163,11 @@ if (!chrome || typeof WebSocket === 'undefined') {
         var times = (document.querySelector('#prog .times') || {}).textContent || '';
         var chords = document.querySelectorAll('#arrange [data-track="chords"] .src-span');
         var synth = document.querySelectorAll('#arrange [data-track="synth"] .src-span');
-        var names = Array.from(document.querySelectorAll('#arrange .arr-name')).map(function (n) { return n.textContent; });
+        var names = Array.from(document.querySelectorAll('#arrange .arr-name')).map(function (n) {
+          var idx = n.querySelector('.nc-mono');
+          var label = n.querySelector('.arr-label');
+          return ((idx && idx.textContent) || '') + ' ' + ((label && label.textContent) || '');
+        });
         var lanes = document.querySelectorAll('#arrange .arr-lane').length;
         var take = document.getElementById('src-time');
         var ruler = document.querySelector('#arrange .src-ruler');
@@ -288,12 +309,89 @@ if (!chrome || typeof WebSocket === 'undefined') {
       check(lockAfter && lockAfter.at === locked.at, 'a written chord does not move, got ' + (lockAfter && lockAfter.at));
       check(lockAfter && lockAfter.hidden === false && /written in the Composition/.test(lockAfter.text), 'the written-length note shows, got ' + (lockAfter && lockAfter.text));
 
+      await ev(`(() => { var c = document.getElementById('comp'); c.value = 't1: notes C4(2|) E4(2|) @synth\\nt2: notes G3(2|) B3(2|) @synth'; c.dispatchEvent(new Event('input', {bubbles:true})); })()`);
+      await sleep(80);
+      const mix = await ev(`(() => {
+        var comp = document.getElementById('comp').value;
+        var t1s = document.querySelector('#arrange [data-track="t1"] .arr-solo');
+        var t1m = document.querySelector('#arrange [data-track="t1"] .arr-mute');
+        var t2s = document.querySelector('#arrange [data-track="t2"] .arr-solo');
+        var t2m = document.querySelector('#arrange [data-track="t2"] .arr-mute');
+        if (!t1s || !t2m) return { missing: true, lanes: Array.from(document.querySelectorAll('#arrange .arr-lane')).map(function (n) { return n.getAttribute('data-track'); }) };
+        function press(b) { b.click(); }
+        var off = { t1: NCArrange.audible('t1'), t2: NCArrange.audible('t2'), s: t1s.getAttribute('aria-pressed'), m: t2m.getAttribute('aria-pressed') };
+        press(t2m);
+        var muted = { t1: NCArrange.audible('t1'), t2: NCArrange.audible('t2'), pressed: t2m.getAttribute('aria-pressed'), on: t2m.classList.contains('arr-on'), comp: document.getElementById('comp').value === comp };
+        press(t1s);
+        var soloMute = { t1: NCArrange.audible('t1'), t2: NCArrange.audible('t2') };
+        press(t2s);
+        var bothSolo = { t1: NCArrange.audible('t1'), t2: NCArrange.audible('t2'), t2solo: t2s.getAttribute('aria-pressed') };
+        press(t1m);
+        var soloWins = NCArrange.audible('t1') === true && t1m.getAttribute('aria-pressed') === 'true';
+        NCArrange.clearMix();
+        var cleared = NCArrange.audible('t1') && NCArrange.audible('t2') && t1s.getAttribute('aria-pressed') === 'false' && t2m.getAttribute('aria-pressed') === 'false' && !t2m.classList.contains('arr-on');
+        return {
+          labels: [t1s.getAttribute('aria-label'), t1m.getAttribute('aria-label'), t2s.getAttribute('aria-label'), t2m.getAttribute('aria-label')],
+          off: off, muted: muted, soloMute: soloMute, bothSolo: bothSolo, soloWins: soloWins, cleared: cleared,
+          reset: /clearMix/.test(String(NCReset.reset)),
+          comp: document.getElementById('comp').value
+        };
+      })()`);
+      check(mix && mix.missing !== true, 'each track has Solo and Mute, got ' + JSON.stringify(mix && mix.lanes));
+      check(mix && mix.labels && mix.labels.join('|') === 'Solo t1|Mute t1|Solo t2|Mute t2', 'aria labels, got ' + (mix && mix.labels));
+      check(mix && mix.off && mix.off.t1 === true && mix.off.t2 === true && mix.off.s === 'false' && mix.off.m === 'false', 'the toggles start off, got ' + JSON.stringify(mix && mix.off));
+      check(mix && mix.muted && mix.muted.t2 === false && mix.muted.t1 === true && mix.muted.pressed === 'true' && mix.muted.on === true && mix.muted.comp === true, 'mute silences that track and leaves the Composition, got ' + JSON.stringify(mix && mix.muted));
+      check(mix && mix.soloMute && mix.soloMute.t1 === true && mix.soloMute.t2 === false, 'one solo leaves the other track out, got ' + JSON.stringify(mix && mix.soloMute));
+      check(mix && mix.bothSolo && mix.bothSolo.t1 === true && mix.bothSolo.t2 === true, 'two solos play together, got ' + JSON.stringify(mix && mix.bothSolo));
+      check(mix && mix.soloWins === true, 'solo wins over mute on the same track');
+      check(mix && mix.cleared === true && mix.reset === true, 'Reset clears solo and mute, got ' + JSON.stringify(mix && { cleared: mix.cleared, reset: mix.reset }));
+      check(mix && mix.comp === 't1: notes C4(2|) E4(2|) @synth\nt2: notes G3(2|) B3(2|) @synth', 'the Composition text is unchanged, got ' + (mix && mix.comp));
+
+      async function shotBox(name, width) {
+        await metrics(width, 1400, width < 500);
+        await ev('scrollTo(0,0)');
+        await sleep(60);
+        const clipOf = `(() => { var b = document.getElementById('arrange'); var r = b.getBoundingClientRect(); return {x: Math.max(0, r.left + scrollX), y: Math.max(0, r.top + scrollY), w: Math.ceil(r.width), h: Math.ceil(r.height), sy: scrollY}; })()`;
+        let box = await ev(clipOf);
+        const view = await ev('({w: innerWidth, h: innerHeight})');
+        if (box.y + box.h > view.h - 8) {
+          await metrics(width, Math.ceil(box.y + box.h + 32), width < 500);
+          await ev('scrollTo(0,0)');
+          await sleep(40);
+          box = await ev(clipOf);
+        }
+        const img = await send('Page.captureScreenshot', { format: 'png', clip: { x: box.x, y: box.y, width: box.w, height: box.h, scale: 1 }, captureBeyondViewport: true });
+        mkdirSync('/opt/cursor/artifacts', { recursive: true });
+        writeFileSync(join('/opt/cursor/artifacts', name), Buffer.from(img.data, 'base64'));
+        return box;
+      }
+      async function setMix(expr) {
+        await ev(expr);
+        await sleep(40);
+      }
+      await setMix(`NCArrange.clearMix()`);
+      const offDesk = await shotBox('arrange-mix-off-desktop.png', 1280);
+      const offPhone = await shotBox('arrange-mix-off-phone.png', 390);
+      const hit = await ev(`(() => { var b = document.querySelector('#arrange [data-track="t1"] .arr-solo'); var r = b.getBoundingClientRect(); var page = document.documentElement; return {w: r.width, h: r.height, wide: page.scrollWidth > page.clientWidth + 1}; })()`);
+      check(hit && hit.w >= 44 && hit.h >= 44 && hit.wide === false, 'the phone tap target is 44 px and the page stays within 390, got ' + JSON.stringify(hit));
+      await metrics(1280, 1400, false);
+      await setMix(`document.querySelector('#arrange [data-track="t2"] .arr-mute').click()`);
+      await shotBox('arrange-mix-muted-desktop.png', 1280);
+      await shotBox('arrange-mix-muted-phone.png', 390);
+      await metrics(1280, 1400, false);
+      await setMix(`(() => { NCArrange.clearMix(); document.querySelector('#arrange [data-track="t1"] .arr-solo').click(); })()`);
+      await shotBox('arrange-mix-soloed-desktop.png', 1280);
+      await shotBox('arrange-mix-soloed-phone.png', 390);
+      check(offDesk && offDesk.h > 40 && offPhone && offPhone.h > 40 && offPhone.sy === 0, 'arrangement shots include the rows, got ' + JSON.stringify({ d: offDesk, p: offPhone }));
+      await metrics(1280, 1400, false);
+      await ev(`NCArrange.clearMix()`);
+
       const extra = await ev(`(() => {
         NCArrange.addLane(function () { return { id: 'extra', label: 'Pulse', entries: [{ at_s: 0, len_s: 1, cap: 1, written: 1, chord: 'tick' }], base: 1 }; });
         document.getElementById('comp').dispatchEvent(new Event('input', {bubbles: true}));
-        return Array.from(document.querySelectorAll('#arrange .arr-name')).map(function (n) { return n.textContent; });
+        return Array.from(document.querySelectorAll('#arrange .arr-label')).map(function (n) { return n.textContent; });
       })()`);
-      check(extra && extra.some((name) => /Pulse$/.test(name)), 'addLane puts another track on the page, got ' + extra);
+      check(extra && extra.some((name) => name === 'Pulse'), 'addLane puts another track on the page, got ' + extra);
 
       ws.close();
     }

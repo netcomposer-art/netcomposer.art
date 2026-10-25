@@ -220,13 +220,16 @@
         return;
       }
       var t = art.getAttribute('data-type');
-      out.push({
+      var item = {
         id: art.getAttribute('data-id'),
         type: t,
         version: t === 'eq' && art.getAttribute('data-voicing') !== '1' ? 2 : 1,
         bypass: art.getAttribute('data-bypass') === '1',
         params: paramsOf(art)
-      });
+      };
+      var g = art._ncGlide;
+      if (g && !art._ncGlideOff) item.auto = { param: g.param, from: g.from, to: g.to, over: 'piece' };
+      out.push(item);
     });
     return out;
   }
@@ -882,6 +885,39 @@
     else if (type === 'plate') setParams(art, { mix: 0 });
     else art.remove();
   }
+  // Only a filter frequency glides. Delay, plate, and the rest stay on the start value.
+  function glideFor(h) {
+    if (!h || !(h.ramp > 0) || !(h.value > 0)) return null;
+    if (h.type === 'lowpass' || h.type === 'highpass') return { param: 'cutoff_hz', from: +h.value, to: +h.ramp, over: 'piece' };
+    if (h.type === 'bandpass') return { param: 'centre_hz', from: +h.value, to: +h.ramp, over: 'piece' };
+    return null;
+  }
+  function cutoffDial(hz) {
+    if (!(hz > 0) || hz >= 20000) return 0;
+    var v = Math.round(100 * Math.log(hz / 20000) / Math.log(150 / 20000));
+    if (v < 1) v = 1;
+    if (v > 100) v = 100;
+    return v;
+  }
+  // Move the cutoff readout with the glide. Setting value does not fire input,
+  // so this is not a hand on the dial.
+  function follow(pos) {
+    var u = +pos;
+    if (!(u > 0)) u = 0;
+    if (u > 1) u = 1;
+    arts().forEach(function (art) {
+      var g = art._ncGlide;
+      if (!g || art._ncGlideOff || !(g.from > 0) || !(g.to > 0)) return;
+      var hz = Math.exp(Math.log(g.from) + (Math.log(g.to) - Math.log(g.from)) * u);
+      var type = art.getAttribute('data-type');
+      var input = null, dial = null;
+      if (type === 'lowpass') { input = field(art, 'cutoff'); dial = cutoffDial(hz); }
+      else if (type === 'highpass') { input = field(art, 'cutoff'); dial = hpDial(hz); }
+      else if (type === 'bandpass') { input = field(art, 'centre_hz'); dial = bpDial(hz); }
+      if (input && dial != null) input.value = String(dial);
+    });
+    readouts();
+  }
   function applyStart(list) {
     var want = {}, order = [];
     (list || []).forEach(function (h) {
@@ -889,7 +925,7 @@
       if (!want[h.type]) order.push(h.type);
       want[h.type] = h;
     });
-    var sig = JSON.stringify(order.map(function (t) { return [t, want[t].value]; }));
+    var sig = JSON.stringify(order.map(function (t) { return [t, want[t].value, want[t].ramp]; }));
     if (sig === applyStart.sig) return;
     if (!order.length && !Object.keys(composed).length) { applyStart.sig = sig; startList = []; return; }
     applyStart.sig = sig;
@@ -911,6 +947,8 @@
         art.setAttribute('data-from-composition', '1');
       }
       setParams(art, h.params || {});
+      art._ncGlide = glideFor(h);
+      art._ncGlideOff = false;
       var prev = composed[type];
       composed[type] = { id: art.getAttribute('data-id'), added: prev ? prev.added : added };
     });
@@ -943,6 +981,12 @@
   function onEdit(e) {
     var art = e.target.closest && e.target.closest('article.hack');
     if (!art || art.hasAttribute('data-fixed')) return;
+    var param = e.target.getAttribute && e.target.getAttribute('data-param');
+    var type = art.getAttribute('data-type');
+    if (art._ncGlide && !art._ncGlideOff) {
+      if ((type === 'lowpass' || type === 'highpass') && param === 'cutoff') art._ncGlideOff = true;
+      else if (type === 'bandpass' && param === 'centre_hz') art._ncGlideOff = true;
+    }
     // A hand on a dial ends the before/after of the last randomize.
     clearAB(art);
     readouts();
@@ -1014,6 +1058,7 @@
     reset: reset,
     applyChain: applyList,
     applyStart: applyStart,
+    follow: follow,
     count: function () { return movable().length; },
     // For tests and the console: a seeded randomize, and the before/after state of one hack.
     seed: function (n) { rngOverride = n == null || !window.NCRandom ? null : NCRandom.rng(n); },

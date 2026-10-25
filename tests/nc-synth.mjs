@@ -47,6 +47,13 @@ const v1 = S.voiceOf(two.tracks[0], two, 0), v2 = S.voiceOf(two.tracks[1], two, 
 check(v1 && v2 && v1.fmDepth === 1 && v2.fmDepth === 5 && v1.seed !== v2.seed && v1.events[0].pitch === 'C4' && v2.events[0].pitch === 'E4', 'two notes tracks are separate voices, got ' + JSON.stringify([v1 && v1.fmDepth, v2 && v2.fmDepth]));
 const chordTones = S.scheduleChordEvents([{ kind: 'chord', symbol: 'Cm', beats: 4 }], 96, '4/4');
 check(chordTones.length >= 3 && chordTones.every((t) => t.start === 0 && Math.abs(t.length - 2.5) < 0.001), '@synth holds a C minor voicing for 4 beats, got ' + JSON.stringify(chordTones));
+check(S.midiOf('C5') === 72 && S.chordRoot('Cm9', null) === 60 && S.chordRoot('Cm9', 5) === 72 && S.chordRoot('Cm9', 3) === 48 && S.chordRoot('Ebmaj7', 4) === 63 && S.chordRoot('F#m7', 3) === 54 && S.chordRoot('Bm', 0) === 23 && S.midiOf('C5') === S.chordRoot('C', 5), 'a chord octave uses the same MIDI number as the note');
+const m9 = (octave) => S.scheduleChordEvents([{ kind: 'chord', symbol: 'Cm9', beats: 4, octave: octave }], 96, '4/4').map((t) => t.midi);
+check(m9(null).join() === '60,62,63,67,70' && m9(5).join() === '72,74,75,79,82' && m9(3).join() === '48,50,51,55,58', 'Cm9, C5m9 and C3m9 sit on C4, C5 and C3, got ' + [m9(null), m9(5), m9(3)].join(' | '));
+const slashOct = S.scheduleChordEvents([{ kind: 'chord', symbol: 'Cm9', octave: 5, bass: 10, beats: 4 }], 96, '4/4').map((t) => t.midi);
+check(slashOct.indexOf(72) >= 0 && slashOct.indexOf(70) >= 0 && Math.min.apply(null, slashOct) === 70, 'C5m9/Bb keeps the root on C5 and the bass below it, got ' + slashOct.join());
+const arpOct = S.scheduleLine(S.readLine('arp C5m9 (1|)'), null, 1).map((t) => t.midi);
+check(arpOct.length > 0 && arpOct.indexOf(72) >= 0 && Math.min.apply(null, arpOct) >= 72, 'an arp on C5m9 starts at that root, got ' + arpOct.join());
 check(S.readLine('Cm Fm9 Gm7') === null, 'a chord line is not a notes line');
 const bad = S.mergeSettings({ cutoff: 999999, waveform: 'nope', subLevel: 2, attack: -4 });
 check(bad.waveform === 'saw' && bad.subLevel === 1, 'mergeSettings rejects a bad wave and clamps sub level, got ' + JSON.stringify(bad && { waveform: bad.waveform, subLevel: bad.subLevel }));

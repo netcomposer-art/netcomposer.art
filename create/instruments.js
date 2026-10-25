@@ -1,11 +1,11 @@
 /* Sampler names for /create/.
  *
- * events.js and sampler.js both read this list. @piano, @guitar, and @cello
- * play the sampler on a notes track or an arp track. @bass and @vibes do
- * that too, and they also play a chord track. Bass is B1–A#4. Vibes are
- * the cord marimba, C2–G#6. A chord track with @piano, @guitar, or @cello
- * still uses the recording Gather fetches.
- * Play with no name stays the built-in synth.
+ * events.js and sampler.js both read this list. @piano, @guitar, @cello,
+ * @bass, and @vibes play the sampler on a notes track or an arp track. On
+ * Play they also play a chord's voicing. Keep and Perform keep @piano,
+ * @guitar, and @cello chord tracks as the recordings Gather fetches. @bass
+ * and @vibes play a chord track in both, and Gather skips that track. Bass
+ * is B1–A#4. Vibes are C2–G#6. Play with no name stays the built-in synth.
  */
 (function (root) {
   'use strict';

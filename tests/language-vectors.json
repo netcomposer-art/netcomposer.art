@@ -149,7 +149,7 @@
       "Fm9 and Gm7 have no length, so Play sketches each as 1 bar and Gather uses the whole recording. Write `Fm9(4)` or `Gm7(4)` for 4 beats or `Fm9(2|)` or `Gm7(2|)` for 2 bars.",
       "Words are left for the AI. Quote them `\"like this\"` to keep them words."
     ],
-    "iread": "90 BPM · [Cm 4 beats, Fm9 1 bar*, Gm7 1 bar*] ×4 · 48 beats · 32 s · lp500→200 in Live\nT1 - : T2 - steady break beat T3 - notes create melody dorian\nFm9 and Gm7 have no length, so Play sketches each as 1 bar and Gather uses the whole recording. Write `Fm9(4)` or `Gm7(4)` for 4 beats or `Fm9(2|)` or `Gm7(2|)` for 2 bars.\nWords are left for the AI. Quote them `\"like this\"` to keep them words."
+    "iread": "90 BPM · [Cm 4 beats, Fm9 1 bar*, Gm7 1 bar*] ×4 · 48 beats · 32 s · lp500→200 in Live · synth\nT1 - : T2 - steady break beat T3 - notes create melody dorian\nFm9 and Gm7 have no length, so Play sketches each as 1 bar and Gather uses the whole recording. Write `Fm9(4)` or `Gm7(4)` for 4 beats or `Fm9(2|)` or `Gm7(2|)` for 2 bars.\nWords are left for the AI. Quote them `\"like this\"` to keep them words."
   },
   {
     "name": "guard-prose",
@@ -208,7 +208,7 @@
     "notes": [
       "A and E have no length, so Play sketches each as 1 bar and Gather uses the whole recording. Write `A(4)` or `E(4)` for 4 beats or `A(2|)` or `E(2|)` for 2 bars."
     ],
-    "iread": "96 BPM · [A 1 bar*, E 1 bar*] · 8 beats · 5 s\nA and E have no length, so Play sketches each as 1 bar and Gather uses the whole recording. Write `A(4)` or `E(4)` for 4 beats or `A(2|)` or `E(2|)` for 2 bars."
+    "iread": "96 BPM · [A 1 bar*, E 1 bar*] · 8 beats · 5 s · synth\nA and E have no length, so Play sketches each as 1 bar and Gather uses the whole recording. Write `A(4)` or `E(4)` for 4 beats or `A(2|)` or `E(2|)` for 2 bars."
   },
   {
     "name": "lowercase-quality",
@@ -236,7 +236,7 @@
     "notes": [
       "Am has no length, so Play sketches it as 1 bar and Gather uses the whole recording. Write `Am(4)` for 4 beats or `Am(2|)` for 2 bars."
     ],
-    "iread": "96 BPM · Am 1 bar* · 4 beats · 2.5 s\nAm has no length, so Play sketches it as 1 bar and Gather uses the whole recording. Write `Am(4)` for 4 beats or `Am(2|)` for 2 bars."
+    "iread": "96 BPM · Am 1 bar* · 4 beats · 2.5 s · synth\nAm has no length, so Play sketches it as 1 bar and Gather uses the whole recording. Write `Am(4)` for 4 beats or `Am(2|)` for 2 bars."
   },
   {
     "name": "lowercase-duration",
@@ -262,7 +262,7 @@
     "hacks": [],
     "words": [],
     "notes": [],
-    "iread": "96 BPM · A 4 beats · 4 beats · 2.5 s"
+    "iread": "96 BPM · A 4 beats · 4 beats · 2.5 s · synth"
   },
   {
     "name": "quality-parens",
@@ -290,7 +290,7 @@
     "notes": [
       "Cm-maj7 has no length, so Play sketches it as 1 bar and Gather uses the whole recording. Write `Cm-maj7(4)` for 4 beats or `Cm-maj7(2|)` for 2 bars."
     ],
-    "iread": "96 BPM · Cm-maj7 1 bar* · 4 beats · 2.5 s\nCm-maj7 has no length, so Play sketches it as 1 bar and Gather uses the whole recording. Write `Cm-maj7(4)` for 4 beats or `Cm-maj7(2|)` for 2 bars."
+    "iread": "96 BPM · Cm-maj7 1 bar* · 4 beats · 2.5 s · synth\nCm-maj7 has no length, so Play sketches it as 1 bar and Gather uses the whole recording. Write `Cm-maj7(4)` for 4 beats or `Cm-maj7(2|)` for 2 bars."
   },
   {
     "name": "quote-and-mix",
@@ -345,7 +345,7 @@
       "A chord inside quotes stays words. Delete the quotes around `Cm` to play it.",
       "Words are left for the AI. Quote them `\"like this\"` to keep them words."
     ],
-    "iread": "60 BPM · [Dm7 1 bar*, G7 1 bar*, Cmaj7 8 bars] · 40 beats · 40 s\na slow melody \"Cm\"\n`a` is a word, not A major. Write `A` in its place for the chord.\nA chord inside quotes stays words. Delete the quotes around `Cm` to play it.\nWords are left for the AI. Quote them `\"like this\"` to keep them words."
+    "iread": "60 BPM · [Dm7 1 bar*, G7 1 bar*, Cmaj7 8 bars] · 40 beats · 40 s · synth\na slow melody \"Cm\"\n`a` is a word, not A major. Write `A` in its place for the chord.\nA chord inside quotes stays words. Delete the quotes around `Cm` to play it.\nWords are left for the AI. Quote them `\"like this\"` to keep them words."
   },
   {
     "name": "rest-beats",
@@ -392,7 +392,7 @@
     "notes": [
       "C and F have no length, so Play sketches each as 1 bar and Gather uses the whole recording. Write `C(4)` or `F(4)` for 4 beats or `C(2|)` or `F(2|)` for 2 bars."
     ],
-    "iread": "90 BPM · C 1 bar* · rest 2 beats · F 1 bar* · 10 beats · ~6.7 s\nC and F have no length, so Play sketches each as 1 bar and Gather uses the whole recording. Write `C(4)` or `F(4)` for 4 beats or `C(2|)` or `F(2|)` for 2 bars."
+    "iread": "90 BPM · C 1 bar* · rest 2 beats · F 1 bar* · 10 beats · ~6.7 s · synth\nC and F have no length, so Play sketches each as 1 bar and Gather uses the whole recording. Write `C(4)` or `F(4)` for 4 beats or `C(2|)` or `F(2|)` for 2 bars."
   },
   {
     "name": "rest-word",
@@ -429,7 +429,7 @@
     "notes": [
       "C has no length, so Play sketches it as 1 bar and Gather uses the whole recording. Write `C(4)` for 4 beats or `C(2|)` for 2 bars."
     ],
-    "iread": "60 BPM · rest 2 bars · C 1 bar* · 12 beats · 12 s\nC has no length, so Play sketches it as 1 bar and Gather uses the whole recording. Write `C(4)` for 4 beats or `C(2|)` for 2 bars."
+    "iread": "60 BPM · rest 2 bars · C 1 bar* · 12 beats · 12 s · synth\nC has no length, so Play sketches it as 1 bar and Gather uses the whole recording. Write `C(4)` for 4 beats or `C(2|)` for 2 bars."
   },
   {
     "name": "seed-first",
@@ -458,7 +458,7 @@
       "Another seed was written. Keep the first, and delete the later `sd 9`.",
       "Cm has no length, so Play sketches it as 1 bar and Gather uses the whole recording. Write `Cm(4)` for 4 beats or `Cm(2|)` for 2 bars."
     ],
-    "iread": "96 BPM · Cm 1 bar* · 4 beats · 2.5 s · sd4182\nAnother seed was written. Keep the first, and delete the later `sd 9`.\nCm has no length, so Play sketches it as 1 bar and Gather uses the whole recording. Write `Cm(4)` for 4 beats or `Cm(2|)` for 2 bars."
+    "iread": "96 BPM · Cm 1 bar* · 4 beats · 2.5 s · sd4182 · synth\nAnother seed was written. Keep the first, and delete the later `sd 9`.\nCm has no length, so Play sketches it as 1 bar and Gather uses the whole recording. Write `Cm(4)` for 4 beats or `Cm(2|)` for 2 bars."
   },
   {
     "name": "comment",
@@ -496,7 +496,7 @@
     "notes": [
       "Cm and F have no length, so Play sketches each as 1 bar and Gather uses the whole recording. Write `Cm(4)` or `F(4)` for 4 beats or `Cm(2|)` or `F(2|)` for 2 bars."
     ],
-    "iread": "96 BPM · Cm 1 bar* · F 1 bar* · 8 beats · 5 s\nCm and F have no length, so Play sketches each as 1 bar and Gather uses the whole recording. Write `Cm(4)` or `F(4)` for 4 beats or `Cm(2|)` or `F(2|)` for 2 bars."
+    "iread": "96 BPM · Cm 1 bar* · F 1 bar* · 8 beats · 5 s · synth\nCm and F have no length, so Play sketches each as 1 bar and Gather uses the whole recording. Write `Cm(4)` or `F(4)` for 4 beats or `Cm(2|)` or `F(2|)` for 2 bars."
   },
   {
     "name": "bar-line",
@@ -544,7 +544,7 @@
     "notes": [
       "The beats before `|` add up to 2, not 4. Change the lengths before `|` so they add up to 4, or delete the `|`."
     ],
-    "iread": "90 BPM · [C 1 beat, D 1 beat, E 2 beats] · 4 beats · ~2.7 s\nThe beats before `|` add up to 2, not 4. Change the lengths before `|` so they add up to 4, or delete the `|`."
+    "iread": "90 BPM · [C 1 beat, D 1 beat, E 2 beats] · 4 beats · ~2.7 s · synth\nThe beats before `|` add up to 2, not 4. Change the lengths before `|` so they add up to 4, or delete the `|`."
   },
   {
     "name": "legacy-brackets",
@@ -580,7 +580,7 @@
     "hacks": [],
     "words": [],
     "notes": [],
-    "iread": "69 BPM · C 1 bar · Dm7/C 1 bar · 8 beats · ~7 s"
+    "iread": "69 BPM · C 1 bar · Dm7/C 1 bar · 8 beats · ~7 s · synth"
   },
   {
     "name": "bpm-wins",
@@ -609,7 +609,7 @@
       "Another tempo was written. Keep `90 BPM` at the start and delete the other.",
       "C has no length, so Play sketches it as 1 bar and Gather uses the whole recording. Write `C(4)` for 4 beats or `C(2|)` for 2 bars."
     ],
-    "iread": "90 BPM · C 1 bar* · 4 beats · ~2.7 s\nAnother tempo was written. Keep `90 BPM` at the start and delete the other.\nC has no length, so Play sketches it as 1 bar and Gather uses the whole recording. Write `C(4)` for 4 beats or `C(2|)` for 2 bars."
+    "iread": "90 BPM · C 1 bar* · 4 beats · ~2.7 s · synth\nAnother tempo was written. Keep `90 BPM` at the start and delete the other.\nC has no length, so Play sketches it as 1 bar and Gather uses the whole recording. Write `C(4)` for 4 beats or `C(2|)` for 2 bars."
   },
   {
     "name": "tempo-alias",
@@ -637,7 +637,7 @@
     "notes": [
       "C has no length, so Play sketches it as 1 bar and Gather uses the whole recording. Write `C(4)` for 4 beats or `C(2|)` for 2 bars."
     ],
-    "iread": "90 BPM · C 1 bar* · 4 beats · ~2.7 s\nC has no length, so Play sketches it as 1 bar and Gather uses the whole recording. Write `C(4)` for 4 beats or `C(2|)` for 2 bars."
+    "iread": "90 BPM · C 1 bar* · 4 beats · ~2.7 s · synth\nC has no length, so Play sketches it as 1 bar and Gather uses the whole recording. Write `C(4)` for 4 beats or `C(2|)` for 2 bars."
   },
   {
     "name": "q-alias",
@@ -665,7 +665,7 @@
     "notes": [
       "C has no length, so Play sketches it as 1 bar and Gather uses the whole recording. Write `C(4)` for 4 beats or `C(2|)` for 2 bars."
     ],
-    "iread": "90 BPM · C 1 bar* · 4 beats · ~2.7 s\nC has no length, so Play sketches it as 1 bar and Gather uses the whole recording. Write `C(4)` for 4 beats or `C(2|)` for 2 bars."
+    "iread": "90 BPM · C 1 bar* · 4 beats · ~2.7 s · synth\nC has no length, so Play sketches it as 1 bar and Gather uses the whole recording. Write `C(4)` for 4 beats or `C(2|)` for 2 bars."
   },
   {
     "name": "loop-recordings",
@@ -739,7 +739,7 @@
     "notes": [
       "C and F have no length, so Play sketches each as 1 bar and Gather uses the whole recording. Write `C(4)` or `F(4)` for 4 beats or `C(2|)` or `F(2|)` for 2 bars."
     ],
-    "iread": "96 BPM · [C 1 bar*, F 1 bar*] ×3 · 24 beats · 15 s\nC and F have no length, so Play sketches each as 1 bar and Gather uses the whole recording. Write `C(4)` or `F(4)` for 4 beats or `C(2|)` or `F(2|)` for 2 bars."
+    "iread": "96 BPM · [C 1 bar*, F 1 bar*] ×3 · 24 beats · 15 s · synth\nC and F have no length, so Play sketches each as 1 bar and Gather uses the whole recording. Write `C(4)` or `F(4)` for 4 beats or `C(2|)` or `F(2|)` for 2 bars."
   },
   {
     "name": "open-duration",
@@ -767,7 +767,7 @@
     "notes": [
       "`Cm(?)` plays the whole recording when gathered. Play sketches 1 bar. Write `Cm(4)` for 4 beats or `Cm(1|)` for 1 bar in its place."
     ],
-    "iread": "96 BPM · Cm 1 bar* · 4 beats · 2.5 s\n`Cm(?)` plays the whole recording when gathered. Play sketches 1 bar. Write `Cm(4)` for 4 beats or `Cm(1|)` for 1 bar in its place."
+    "iread": "96 BPM · Cm 1 bar* · 4 beats · 2.5 s · synth\n`Cm(?)` plays the whole recording when gathered. Play sketches 1 bar. Write `Cm(4)` for 4 beats or `Cm(1|)` for 1 bar in its place."
   },
   {
     "name": "article",
@@ -835,7 +835,7 @@
     "notes": [
       "Fm9 and Gm7 have no length, so Play sketches each as 1 bar and Gather uses the whole recording. Write `Fm9(4)` or `Gm7(4)` for 4 beats or `Fm9(2|)` or `Gm7(2|)` for 2 bars."
     ],
-    "iread": "90 BPM · [Cm 4 beats, Fm9 1 bar*, Gm7 1 bar*] · 12 beats · 8 s\nFm9 and Gm7 have no length, so Play sketches each as 1 bar and Gather uses the whole recording. Write `Fm9(4)` or `Gm7(4)` for 4 beats or `Fm9(2|)` or `Gm7(2|)` for 2 bars.",
+    "iread": "90 BPM · [Cm 4 beats, Fm9 1 bar*, Gm7 1 bar*] · 12 beats · 8 s · synth\nFm9 and Gm7 have no length, so Play sketches each as 1 bar and Gather uses the whole recording. Write `Fm9(4)` or `Gm7(4)` for 4 beats or `Fm9(2|)` or `Gm7(2|)` for 2 bars.",
     "place_caps": [
       1,
       3.5,
@@ -896,7 +896,7 @@
       "C has no length, so Play sketches it as 1 bar and Gather uses the whole recording. Write `C(4)` for 4 beats or `C(2|)` for 2 bars.",
       "Words are left for the AI. Quote them `\"like this\"` to keep them words."
     ],
-    "iread": "96 BPM · C 1 bar* · 4 beats · 2.5 s\n\"90 BPM\" \"Cm\"\nA chord inside quotes stays words. Delete the quotes around `Cm` to play it.\nC has no length, so Play sketches it as 1 bar and Gather uses the whole recording. Write `C(4)` for 4 beats or `C(2|)` for 2 bars.\nWords are left for the AI. Quote them `\"like this\"` to keep them words."
+    "iread": "96 BPM · C 1 bar* · 4 beats · 2.5 s · synth\n\"90 BPM\" \"Cm\"\nA chord inside quotes stays words. Delete the quotes around `Cm` to play it.\nC has no length, so Play sketches it as 1 bar and Gather uses the whole recording. Write `C(4)` for 4 beats or `C(2|)` for 2 bars.\nWords are left for the AI. Quote them `\"like this\"` to keep them words."
   },
   {
     "name": "arp-pendulum",
@@ -984,7 +984,7 @@
     "notes": [
       "Cm, Fm9, Gm7, and Bb have no length, so Play sketches each as 1 bar and Gather uses the whole recording. Write `Cm(4)` or `Fm9(4)` or `Gm7(4)` or `Bb(4)` for 4 beats or `Cm(2|)` or `Fm9(2|)` or `Gm7(2|)` or `Bb(2|)` for 2 bars."
     ],
-    "iread": "90 BPM · [Cm 1 bar*, Fm9 1 bar*, Gm7 1 bar*, Bb 1 bar*] · 16 beats · ~10.7 s · arp up-down 16ths 2oct\nCm, Fm9, Gm7, and Bb have no length, so Play sketches each as 1 bar and Gather uses the whole recording. Write `Cm(4)` or `Fm9(4)` or `Gm7(4)` or `Bb(4)` for 4 beats or `Cm(2|)` or `Fm9(2|)` or `Gm7(2|)` or `Bb(2|)` for 2 bars.",
+    "iread": "90 BPM · [Cm 1 bar*, Fm9 1 bar*, Gm7 1 bar*, Bb 1 bar*] · 16 beats · ~10.7 s · arp up-down 16ths 2oct · synth\nCm, Fm9, Gm7, and Bb have no length, so Play sketches each as 1 bar and Gather uses the whole recording. Write `Cm(4)` or `Fm9(4)` or `Gm7(4)` or `Bb(4)` for 4 beats or `Cm(2|)` or `Fm9(2|)` or `Gm7(2|)` or `Bb(2|)` for 2 bars.",
     "arp": [
       {
         "chord": null,
@@ -1082,7 +1082,7 @@
     "notes": [
       "Cm, Fm9, and Gm7 have no length, so Play sketches each as 1 bar and Gather uses the whole recording. Write `Cm(4)` or `Fm9(4)` or `Gm7(4)` for 4 beats or `Cm(2|)` or `Fm9(2|)` or `Gm7(2|)` for 2 bars."
     ],
-    "iread": "72 BPM · [Cm 1 bar*, Fm9 1 bar*, Gm7 1 bar*] · 12 beats · 10 s · notes C5(2) Eb5 G5 Bb4 · arp Cm9 pendulum 16ths 2oct\nCm, Fm9, and Gm7 have no length, so Play sketches each as 1 bar and Gather uses the whole recording. Write `Cm(4)` or `Fm9(4)` or `Gm7(4)` for 4 beats or `Cm(2|)` or `Fm9(2|)` or `Gm7(2|)` for 2 bars.",
+    "iread": "72 BPM · [Cm 1 bar*, Fm9 1 bar*, Gm7 1 bar*] · 12 beats · 10 s · notes C5(2) Eb5 G5 Bb4 · arp Cm9 pendulum 16ths 2oct · synth\nCm, Fm9, and Gm7 have no length, so Play sketches each as 1 bar and Gather uses the whole recording. Write `Cm(4)` or `Fm9(4)` or `Gm7(4)` for 4 beats or `Cm(2|)` or `Fm9(2|)` or `Gm7(2|)` for 2 bars.",
     "arp": [
       {
         "chord": "Cm9",
@@ -1134,7 +1134,7 @@
     "hacks": [],
     "words": [],
     "notes": [],
-    "iread": "90 BPM · [Cm 3 beats, Fm 3 beats] · 6 beats · 4 s · 3/4"
+    "iread": "90 BPM · [Cm 3 beats, Fm 3 beats] · 6 beats · 4 s · 3/4 · synth"
   },
   {
     "name": "meter-six-eight",
@@ -1160,7 +1160,7 @@
     "hacks": [],
     "words": [],
     "notes": [],
-    "iread": "96 BPM · Cm 1 bar · 3 beats · ~1.9 s · 6/8"
+    "iread": "96 BPM · Cm 1 bar · 3 beats · ~1.9 s · 6/8 · synth"
   },
   {
     "name": "meter-two-bars",
@@ -1186,7 +1186,7 @@
     "hacks": [],
     "words": [],
     "notes": [],
-    "iread": "96 BPM · Cm 2 bars · 6 beats · ~3.8 s · 3/4"
+    "iread": "96 BPM · Cm 2 bars · 6 beats · ~3.8 s · 3/4 · synth"
   },
   {
     "name": "meter-six-eight-sketch",
@@ -1195,16 +1195,26 @@
     "clock": "legacy",
     "seed": null,
     "meter": "6/8",
-    "gather": ["Cm"],
+    "gather": [
+      "Cm"
+    ],
     "played": [
-      {"kind": "chord", "symbol": "Cm", "bass": null, "beats": null, "bars": null, "seconds": null, "recording": 0}
+      {
+        "kind": "chord",
+        "symbol": "Cm",
+        "bass": null,
+        "beats": null,
+        "bars": null,
+        "seconds": null,
+        "recording": 0
+      }
     ],
     "hacks": [],
     "words": [],
     "notes": [
       "Cm has no length, so Play sketches it as 1 bar and Gather uses the whole recording. Write `Cm(3)` for 3 beats or `Cm(2|)` for 2 bars."
     ],
-    "iread": "96 BPM · Cm 1 bar* · 3 beats · ~1.9 s · 6/8\nCm has no length, so Play sketches it as 1 bar and Gather uses the whole recording. Write `Cm(3)` for 3 beats or `Cm(2|)` for 2 bars."
+    "iread": "96 BPM · Cm 1 bar* · 3 beats · ~1.9 s · 6/8 · synth\nCm has no length, so Play sketches it as 1 bar and Gather uses the whole recording. Write `Cm(3)` for 3 beats or `Cm(2|)` for 2 bars."
   },
   {
     "name": "meter-six-eight-beats",
@@ -1213,14 +1223,24 @@
     "clock": "language",
     "seed": null,
     "meter": "6/8",
-    "gather": ["Cm"],
+    "gather": [
+      "Cm"
+    ],
     "played": [
-      {"kind": "chord", "symbol": "Cm", "bass": null, "beats": 3, "bars": null, "seconds": 1.875, "recording": 0}
+      {
+        "kind": "chord",
+        "symbol": "Cm",
+        "bass": null,
+        "beats": 3,
+        "bars": null,
+        "seconds": 1.875,
+        "recording": 0
+      }
     ],
     "hacks": [],
     "words": [],
     "notes": [],
-    "iread": "96 BPM · Cm 3 beats · 3 beats · ~1.9 s · 6/8"
+    "iread": "96 BPM · Cm 3 beats · 3 beats · ~1.9 s · 6/8 · synth"
   },
   {
     "name": "meter-six-eight-count",
@@ -1229,16 +1249,44 @@
     "clock": "language",
     "seed": null,
     "meter": "6/8",
-    "gather": ["Cm", "G", "Am"],
+    "gather": [
+      "Cm",
+      "G",
+      "Am"
+    ],
     "played": [
-      {"kind": "chord", "symbol": "Cm", "bass": null, "beats": 2, "bars": null, "seconds": 1.25, "recording": 0},
-      {"kind": "chord", "symbol": "G", "bass": null, "beats": 1, "bars": null, "seconds": 0.625, "recording": 1},
-      {"kind": "chord", "symbol": "Am", "bass": null, "beats": 3, "bars": null, "seconds": 1.875, "recording": 2}
+      {
+        "kind": "chord",
+        "symbol": "Cm",
+        "bass": null,
+        "beats": 2,
+        "bars": null,
+        "seconds": 1.25,
+        "recording": 0
+      },
+      {
+        "kind": "chord",
+        "symbol": "G",
+        "bass": null,
+        "beats": 1,
+        "bars": null,
+        "seconds": 0.625,
+        "recording": 1
+      },
+      {
+        "kind": "chord",
+        "symbol": "Am",
+        "bass": null,
+        "beats": 3,
+        "bars": null,
+        "seconds": 1.875,
+        "recording": 2
+      }
     ],
     "hacks": [],
     "words": [],
     "notes": [],
-    "iread": "96 BPM · [Cm 2 beats, G 1 beat, Am 3 beats] · 6 beats · ~3.8 s · 6/8"
+    "iread": "96 BPM · [Cm 2 beats, G 1 beat, Am 3 beats] · 6 beats · ~3.8 s · 6/8 · synth"
   },
   {
     "name": "meter-six-eight-barline",
@@ -1247,16 +1295,26 @@
     "clock": "language",
     "seed": null,
     "meter": "6/8",
-    "gather": ["Cm"],
+    "gather": [
+      "Cm"
+    ],
     "played": [
-      {"kind": "chord", "symbol": "Cm", "bass": null, "beats": 6, "bars": null, "seconds": 3.75, "recording": 0}
+      {
+        "kind": "chord",
+        "symbol": "Cm",
+        "bass": null,
+        "beats": 6,
+        "bars": null,
+        "seconds": 3.75,
+        "recording": 0
+      }
     ],
     "hacks": [],
     "words": [],
     "notes": [
       "The beats before `|` add up to 6, not 3. Change the lengths before `|` so they add up to 3, or delete the `|`."
     ],
-    "iread": "96 BPM · [Cm 6 beats] · 6 beats · ~3.8 s · 6/8\nThe beats before `|` add up to 6, not 3. Change the lengths before `|` so they add up to 3, or delete the `|`."
+    "iread": "96 BPM · [Cm 6 beats] · 6 beats · ~3.8 s · 6/8 · synth\nThe beats before `|` add up to 6, not 3. Change the lengths before `|` so they add up to 3, or delete the `|`."
   },
   {
     "name": "tracks-same-line",
@@ -1265,15 +1323,50 @@
     "clock": "language",
     "seed": null,
     "meter": "4/4",
-    "gather": ["Cm", "Em"],
+    "gather": [
+      "Cm",
+      "Em"
+    ],
     "played": [],
     "hacks": [],
     "words": [],
     "notes": [],
-    "iread": "96 BPM · T1 Cm 4 bars · T2 Em 4 bars · 16 beats · 10 s",
+    "iread": "96 BPM · T1 Cm 4 bars synth · T2 Em 4 bars synth · 16 beats · 10 s",
     "tracks": [
-      {"n": 1, "label": "T1", "kind": "chords", "instrument": "", "beats": 16, "fmDepth": null, "played": [{"kind": "chord", "symbol": "Cm", "beats": null, "bars": 4, "seconds": 10}]},
-      {"n": 2, "label": "T2", "kind": "chords", "instrument": "", "beats": 16, "fmDepth": null, "played": [{"kind": "chord", "symbol": "Em", "beats": null, "bars": 4, "seconds": 10}]}
+      {
+        "n": 1,
+        "label": "T1",
+        "kind": "chords",
+        "instrument": "",
+        "beats": 16,
+        "fmDepth": null,
+        "played": [
+          {
+            "kind": "chord",
+            "symbol": "Cm",
+            "beats": null,
+            "bars": 4,
+            "seconds": 10
+          }
+        ]
+      },
+      {
+        "n": 2,
+        "label": "T2",
+        "kind": "chords",
+        "instrument": "",
+        "beats": 16,
+        "fmDepth": null,
+        "played": [
+          {
+            "kind": "chord",
+            "symbol": "Em",
+            "beats": null,
+            "bars": 4,
+            "seconds": 10
+          }
+        ]
+      }
     ],
     "synth": false
   },
@@ -1284,17 +1377,40 @@
     "clock": "language",
     "seed": null,
     "meter": "4/4",
-    "gather": ["Cm", "Fm"],
+    "gather": [
+      "Cm",
+      "Fm"
+    ],
     "played": [],
     "hacks": [],
     "words": [],
     "notes": [],
-    "iread": "96 BPM · T1 Cm 4 bars, Fm 4 bars · 32 beats · 20 s",
+    "iread": "96 BPM · T1 Cm 4 bars, Fm 4 bars synth · 32 beats · 20 s",
     "tracks": [
-      {"n": 1, "label": "T1", "kind": "chords", "instrument": "", "beats": 32, "fmDepth": null, "played": [
-        {"kind": "chord", "symbol": "Cm", "beats": null, "bars": 4, "seconds": 10},
-        {"kind": "chord", "symbol": "Fm", "beats": null, "bars": 4, "seconds": 10}
-      ]}
+      {
+        "n": 1,
+        "label": "T1",
+        "kind": "chords",
+        "instrument": "",
+        "beats": 32,
+        "fmDepth": null,
+        "played": [
+          {
+            "kind": "chord",
+            "symbol": "Cm",
+            "beats": null,
+            "bars": 4,
+            "seconds": 10
+          },
+          {
+            "kind": "chord",
+            "symbol": "Fm",
+            "beats": null,
+            "bars": 4,
+            "seconds": 10
+          }
+        ]
+      }
     ],
     "synth": false
   },
@@ -1305,15 +1421,50 @@
     "clock": "language",
     "seed": null,
     "meter": "4/4",
-    "gather": ["Cm", "Em"],
+    "gather": [
+      "Cm",
+      "Em"
+    ],
     "played": [],
     "hacks": [],
     "words": [],
     "notes": [],
-    "iread": "96 BPM · T1 Cm 4 bars · T3 Em 2 bars · 16 beats · 10 s",
+    "iread": "96 BPM · T1 Cm 4 bars synth · T3 Em 2 bars synth · 16 beats · 10 s",
     "tracks": [
-      {"n": 1, "label": "T1", "kind": "chords", "instrument": "", "beats": 16, "fmDepth": null, "played": [{"kind": "chord", "symbol": "Cm", "beats": null, "bars": 4, "seconds": 10}]},
-      {"n": 3, "label": "T3", "kind": "chords", "instrument": "", "beats": 8, "fmDepth": null, "played": [{"kind": "chord", "symbol": "Em", "beats": null, "bars": 2, "seconds": 5}]}
+      {
+        "n": 1,
+        "label": "T1",
+        "kind": "chords",
+        "instrument": "",
+        "beats": 16,
+        "fmDepth": null,
+        "played": [
+          {
+            "kind": "chord",
+            "symbol": "Cm",
+            "beats": null,
+            "bars": 4,
+            "seconds": 10
+          }
+        ]
+      },
+      {
+        "n": 3,
+        "label": "T3",
+        "kind": "chords",
+        "instrument": "",
+        "beats": 8,
+        "fmDepth": null,
+        "played": [
+          {
+            "kind": "chord",
+            "symbol": "Em",
+            "beats": null,
+            "bars": 2,
+            "seconds": 5
+          }
+        ]
+      }
     ],
     "synth": false
   },
@@ -1324,16 +1475,34 @@
     "clock": "language",
     "seed": null,
     "meter": "4/4",
-    "gather": ["Cm"],
+    "gather": [
+      "Cm"
+    ],
     "played": [
-      {"kind": "chord", "symbol": "Cm", "bass": null, "beats": null, "bars": 4, "seconds": 10, "recording": 0}
+      {
+        "kind": "chord",
+        "symbol": "Cm",
+        "bass": null,
+        "beats": null,
+        "bars": 4,
+        "seconds": 10,
+        "recording": 0
+      }
     ],
     "hacks": [],
     "words": [],
     "notes": [],
-    "iread": "96 BPM · Cm 4 bars · T1 notes C5(4|) · 16 beats · 10 s",
+    "iread": "96 BPM · Cm 4 bars synth · T1 notes C5(4|) synth · 16 beats · 10 s",
     "tracks": [
-      {"n": 1, "label": "T1", "kind": "notes", "instrument": "", "beats": 16, "fmDepth": null, "played": []}
+      {
+        "n": 1,
+        "label": "T1",
+        "kind": "notes",
+        "instrument": "",
+        "beats": 16,
+        "fmDepth": null,
+        "played": []
+      }
     ],
     "synth": false
   },
@@ -1349,10 +1518,34 @@
     "hacks": [],
     "words": [],
     "notes": [],
-    "iread": "96 BPM · T1 Cm 4 bars @synth · T2 notes C5(4|) G5(4|) fm 2 · 32 beats · 20 s",
+    "iread": "96 BPM · T1 Cm 4 bars @synth · T2 notes C5(4|) G5(4|) fm 2 synth · 32 beats · 20 s",
     "tracks": [
-      {"n": 1, "label": "T1", "kind": "chords", "instrument": "synth", "beats": 16, "fmDepth": null, "played": [{"kind": "chord", "symbol": "Cm", "beats": null, "bars": 4, "seconds": 10}]},
-      {"n": 2, "label": "T2", "kind": "notes", "instrument": "", "beats": 32, "fmDepth": 2, "played": []}
+      {
+        "n": 1,
+        "label": "T1",
+        "kind": "chords",
+        "instrument": "synth",
+        "beats": 16,
+        "fmDepth": null,
+        "played": [
+          {
+            "kind": "chord",
+            "symbol": "Cm",
+            "beats": null,
+            "bars": 4,
+            "seconds": 10
+          }
+        ]
+      },
+      {
+        "n": 2,
+        "label": "T2",
+        "kind": "notes",
+        "instrument": "",
+        "beats": 32,
+        "fmDepth": 2,
+        "played": []
+      }
     ],
     "synth": false
   },
@@ -1363,14 +1556,32 @@
     "clock": "language",
     "seed": null,
     "meter": "6/8",
-    "gather": ["Cm"],
+    "gather": [
+      "Cm"
+    ],
     "played": [],
     "hacks": [],
     "words": [],
     "notes": [],
-    "iread": "96 BPM · T1 Cm 1 bar · 3 beats · ~1.9 s · 6/8",
+    "iread": "96 BPM · T1 Cm 1 bar synth · 3 beats · ~1.9 s · 6/8",
     "tracks": [
-      {"n": 1, "label": "T1", "kind": "chords", "instrument": "", "beats": 3, "fmDepth": null, "played": [{"kind": "chord", "symbol": "Cm", "beats": null, "bars": 1, "seconds": 1.875}]}
+      {
+        "n": 1,
+        "label": "T1",
+        "kind": "chords",
+        "instrument": "",
+        "beats": 3,
+        "fmDepth": null,
+        "played": [
+          {
+            "kind": "chord",
+            "symbol": "Cm",
+            "beats": null,
+            "bars": 1,
+            "seconds": 1.875
+          }
+        ]
+      }
     ],
     "synth": false
   },
@@ -1381,16 +1592,43 @@
     "clock": "language",
     "seed": null,
     "meter": "4/4",
-    "gather": ["Fm", "Cm"],
+    "gather": [
+      "Fm",
+      "Cm"
+    ],
     "played": [
-      {"kind": "chord", "symbol": "Fm", "bass": null, "beats": null, "bars": 4, "seconds": 10, "recording": 1}
+      {
+        "kind": "chord",
+        "symbol": "Fm",
+        "bass": null,
+        "beats": null,
+        "bars": 4,
+        "seconds": 10,
+        "recording": 1
+      }
     ],
     "hacks": [],
     "words": [],
     "notes": [],
-    "iread": "96 BPM · Fm 4 bars · T1 Cm 4 bars · 16 beats · 10 s",
+    "iread": "96 BPM · Fm 4 bars synth · T1 Cm 4 bars synth · 16 beats · 10 s",
     "tracks": [
-      {"n": 1, "label": "T1", "kind": "chords", "instrument": "", "beats": 16, "fmDepth": null, "played": [{"kind": "chord", "symbol": "Cm", "beats": null, "bars": 4, "seconds": 10}]}
+      {
+        "n": 1,
+        "label": "T1",
+        "kind": "chords",
+        "instrument": "",
+        "beats": 16,
+        "fmDepth": null,
+        "played": [
+          {
+            "kind": "chord",
+            "symbol": "Cm",
+            "beats": null,
+            "bars": 4,
+            "seconds": 10
+          }
+        ]
+      }
     ],
     "synth": false
   },
@@ -1401,14 +1639,580 @@
     "clock": "language",
     "seed": null,
     "meter": "4/4",
-    "gather": ["Cm"],
+    "gather": [
+      "Cm"
+    ],
     "played": [
-      {"kind": "chord", "symbol": "Cm", "bass": null, "beats": 4, "bars": null, "seconds": 2.5, "recording": 0}
+      {
+        "kind": "chord",
+        "symbol": "Cm",
+        "bass": null,
+        "beats": 4,
+        "bars": null,
+        "seconds": 2.5,
+        "recording": 0
+      }
     ],
     "hacks": [],
-    "words": ["t0", ":"],
-    "notes": ["Words are left for the AI. Quote them `\"like this\"` to keep them words."],
-    "iread": "96 BPM · Cm 4 beats · 4 beats · 2.5 s\nt0 :\nWords are left for the AI. Quote them `\"like this\"` to keep them words.",
+    "words": [
+      "t0",
+      ":"
+    ],
+    "notes": [
+      "Words are left for the AI. Quote them `\"like this\"` to keep them words."
+    ],
+    "iread": "96 BPM · Cm 4 beats · 4 beats · 2.5 s · synth\nt0 :\nWords are left for the AI. Quote them `\"like this\"` to keep them words.",
+    "tracks": [],
+    "synth": false
+  },
+  {
+    "name": "cp-threshold",
+    "text": "90 BPM Cm(4) cp-18",
+    "bpm": 90,
+    "clock": "language",
+    "seed": null,
+    "meter": "4/4",
+    "gather": ["Cm"],
+    "played": [
+      {"kind": "chord", "symbol": "Cm", "bass": null, "beats": 4, "bars": null, "seconds": 2.667, "recording": 0}
+    ],
+    "hacks": [
+      {"abbr": "cp", "type": "compressor", "value": -18, "ramp": null}
+    ],
+    "words": [],
+    "notes": [],
+    "iread": "90 BPM · Cm 4 beats · 4 beats · ~2.7 s · cp-18 · synth"
+  },
+  {
+    "name": "chord-octave",
+    "text": "C5m9(4|)",
+    "bpm": null,
+    "clock": "language",
+    "seed": null,
+    "meter": "4/4",
+    "gather": [
+      "Cm9"
+    ],
+    "played": [
+      {
+        "kind": "chord",
+        "symbol": "Cm9",
+        "bass": null,
+        "beats": null,
+        "bars": 4,
+        "seconds": 10,
+        "recording": 0,
+        "octave": 5
+      }
+    ],
+    "hacks": [],
+    "words": [],
+    "notes": [],
+    "iread": "96 BPM · C5m9 4 bars · 16 beats · 10 s · synth",
+    "arp": [],
+    "unmapped": [],
+    "tracks": [],
+    "synth": false
+  },
+  {
+    "name": "chord-octave-plain",
+    "text": "Cm9(4|)",
+    "bpm": null,
+    "clock": "language",
+    "seed": null,
+    "meter": "4/4",
+    "gather": [
+      "Cm9"
+    ],
+    "played": [
+      {
+        "kind": "chord",
+        "symbol": "Cm9",
+        "bass": null,
+        "beats": null,
+        "bars": 4,
+        "seconds": 10,
+        "recording": 0
+      }
+    ],
+    "hacks": [],
+    "words": [],
+    "notes": [],
+    "iread": "96 BPM · Cm9 4 bars · 16 beats · 10 s · synth",
+    "arp": [],
+    "unmapped": [],
+    "tracks": [],
+    "synth": false
+  },
+  {
+    "name": "chord-octave-flat",
+    "text": "Eb4maj7(2|)",
+    "bpm": null,
+    "clock": "language",
+    "seed": null,
+    "meter": "4/4",
+    "gather": [
+      "Ebmaj7"
+    ],
+    "played": [
+      {
+        "kind": "chord",
+        "symbol": "Ebmaj7",
+        "bass": null,
+        "beats": null,
+        "bars": 2,
+        "seconds": 5,
+        "recording": 0,
+        "octave": 4
+      }
+    ],
+    "hacks": [],
+    "words": [],
+    "notes": [],
+    "iread": "96 BPM · Eb4maj7 2 bars · 8 beats · 5 s · synth",
+    "arp": [],
+    "unmapped": [],
+    "tracks": [],
+    "synth": false
+  },
+  {
+    "name": "chord-octave-sharp",
+    "text": "F#3m7(2|)",
+    "bpm": null,
+    "clock": "language",
+    "seed": null,
+    "meter": "4/4",
+    "gather": [
+      "F#m7"
+    ],
+    "played": [
+      {
+        "kind": "chord",
+        "symbol": "F#m7",
+        "bass": null,
+        "beats": null,
+        "bars": 2,
+        "seconds": 5,
+        "recording": 0,
+        "octave": 3
+      }
+    ],
+    "hacks": [],
+    "words": [],
+    "notes": [],
+    "iread": "96 BPM · F#3m7 2 bars · 8 beats · 5 s · synth",
+    "arp": [],
+    "unmapped": [],
+    "tracks": [],
+    "synth": false
+  },
+  {
+    "name": "chord-octave-slash",
+    "text": "C5m9/Bb(2|)",
+    "bpm": null,
+    "clock": "language",
+    "seed": null,
+    "meter": "4/4",
+    "gather": [
+      "Cm9"
+    ],
+    "played": [
+      {
+        "kind": "chord",
+        "symbol": "Cm9",
+        "bass": 10,
+        "beats": null,
+        "bars": 2,
+        "seconds": 5,
+        "recording": 0,
+        "octave": 5
+      }
+    ],
+    "hacks": [],
+    "words": [],
+    "notes": [],
+    "iread": "96 BPM · C5m9/Bb 2 bars · 8 beats · 5 s · synth",
+    "arp": [],
+    "unmapped": [],
+    "tracks": [],
+    "synth": false
+  },
+  {
+    "name": "chord-octave-loop",
+    "text": "[C5m9(1) Fm9(1)]x2",
+    "bpm": null,
+    "clock": "language",
+    "seed": null,
+    "meter": "4/4",
+    "gather": [
+      "Cm9",
+      "Fm9"
+    ],
+    "played": [
+      {
+        "kind": "chord",
+        "symbol": "Cm9",
+        "bass": null,
+        "beats": 1,
+        "bars": null,
+        "seconds": 0.625,
+        "recording": 0,
+        "octave": 5
+      },
+      {
+        "kind": "chord",
+        "symbol": "Fm9",
+        "bass": null,
+        "beats": 1,
+        "bars": null,
+        "seconds": 0.625,
+        "recording": 1
+      },
+      {
+        "kind": "chord",
+        "symbol": "Cm9",
+        "bass": null,
+        "beats": 1,
+        "bars": null,
+        "seconds": 0.625,
+        "recording": 0,
+        "octave": 5
+      },
+      {
+        "kind": "chord",
+        "symbol": "Fm9",
+        "bass": null,
+        "beats": 1,
+        "bars": null,
+        "seconds": 0.625,
+        "recording": 1
+      }
+    ],
+    "hacks": [],
+    "words": [],
+    "notes": [],
+    "iread": "96 BPM · [C5m9 1 beat, Fm9 1 beat] ×2 · 4 beats · 2.5 s · synth",
+    "arp": [],
+    "unmapped": [],
+    "tracks": [],
+    "synth": false
+  },
+  {
+    "name": "chord-octave-pair",
+    "text": "Cm9(2|) C5m9(2|)",
+    "bpm": null,
+    "clock": "language",
+    "seed": null,
+    "meter": "4/4",
+    "gather": [
+      "Cm9",
+      "Cm9"
+    ],
+    "played": [
+      {
+        "kind": "chord",
+        "symbol": "Cm9",
+        "bass": null,
+        "beats": null,
+        "bars": 2,
+        "seconds": 5,
+        "recording": 0
+      },
+      {
+        "kind": "chord",
+        "symbol": "Cm9",
+        "bass": null,
+        "beats": null,
+        "bars": 2,
+        "seconds": 5,
+        "recording": 1,
+        "octave": 5
+      }
+    ],
+    "hacks": [],
+    "words": [],
+    "notes": [],
+    "iread": "96 BPM · Cm9 2 bars · C5m9 2 bars · 16 beats · 10 s · synth",
+    "arp": [],
+    "unmapped": [],
+    "tracks": [],
+    "synth": false
+  },
+  {
+    "name": "chord-octave-synth",
+    "text": "@synth Cm9(2|) C5m9(2|) C3m9(2|)",
+    "bpm": null,
+    "clock": "language",
+    "seed": null,
+    "meter": "4/4",
+    "gather": [],
+    "played": [
+      {
+        "kind": "chord",
+        "symbol": "Cm9",
+        "bass": null,
+        "beats": null,
+        "bars": 2,
+        "seconds": 5,
+        "recording": 0
+      },
+      {
+        "kind": "chord",
+        "symbol": "Cm9",
+        "bass": null,
+        "beats": null,
+        "bars": 2,
+        "seconds": 5,
+        "recording": 1,
+        "octave": 5
+      },
+      {
+        "kind": "chord",
+        "symbol": "Cm9",
+        "bass": null,
+        "beats": null,
+        "bars": 2,
+        "seconds": 5,
+        "recording": 2,
+        "octave": 3
+      }
+    ],
+    "hacks": [],
+    "words": [],
+    "notes": [],
+    "iread": "96 BPM · Cm9 2 bars · C5m9 2 bars · C3m9 2 bars · 24 beats · 15 s · @synth",
+    "arp": [],
+    "unmapped": [],
+    "tracks": [],
+    "synth": true
+  },
+  {
+    "name": "chord-octave-piano",
+    "text": "C5m9(2|) @piano",
+    "bpm": null,
+    "clock": "language",
+    "seed": null,
+    "meter": "4/4",
+    "gather": [
+      "Cm9"
+    ],
+    "played": [
+      {
+        "kind": "chord",
+        "symbol": "Cm9",
+        "bass": null,
+        "beats": null,
+        "bars": 2,
+        "seconds": 5,
+        "recording": 0,
+        "octave": 5
+      }
+    ],
+    "hacks": [],
+    "words": [],
+    "notes": [],
+    "iread": "96 BPM · C5m9 2 bars · 8 beats · 5 s · @piano",
+    "arp": [],
+    "unmapped": [],
+    "tracks": [],
+    "synth": false
+  },
+  {
+    "name": "chord-octave-track",
+    "text": "t1: C5m9(2|) @synth",
+    "bpm": null,
+    "clock": "language",
+    "seed": null,
+    "meter": "4/4",
+    "gather": [],
+    "played": [],
+    "hacks": [],
+    "words": [],
+    "notes": [],
+    "iread": "96 BPM · T1 C5m9 2 bars @synth · 8 beats · 5 s",
+    "arp": [],
+    "unmapped": [],
+    "tracks": [
+      {
+        "n": 1,
+        "label": "T1",
+        "kind": "chords",
+        "instrument": "synth",
+        "beats": 8,
+        "fmDepth": null,
+        "played": [
+          {
+            "kind": "chord",
+            "symbol": "Cm9",
+            "beats": null,
+            "bars": 2,
+            "seconds": 5,
+            "octave": 5
+          }
+        ]
+      }
+    ],
+    "synth": false
+  },
+  {
+    "name": "chord-octave-arp",
+    "text": "arp C5m9 up (2|)",
+    "bpm": null,
+    "clock": "legacy",
+    "seed": null,
+    "meter": "4/4",
+    "gather": [],
+    "played": [],
+    "hacks": [],
+    "words": [],
+    "notes": [],
+    "iread": "arp C5m9 up 16ths (2|)",
+    "arp": [
+      {
+        "chord": "C5m9",
+        "chordId": "minor-9",
+        "order": "up",
+        "rate": "16ths",
+        "octaves": 1,
+        "spread": "compact",
+        "inversion": 0,
+        "fmDepth": null,
+        "beats": null,
+        "bars": 2,
+        "instrument": "",
+        "rootOctave": 5
+      }
+    ],
+    "unmapped": [],
+    "tracks": [],
+    "synth": false
+  },
+  {
+    "name": "chord-octave-arp-sampler",
+    "text": "arp F#3m7 (1|) @piano",
+    "bpm": null,
+    "clock": "legacy",
+    "seed": null,
+    "meter": "4/4",
+    "gather": [],
+    "played": [],
+    "hacks": [],
+    "words": [],
+    "notes": [],
+    "iread": "arp F#3m7 up 16ths (1|) @piano",
+    "arp": [
+      {
+        "chord": "F#3m7",
+        "chordId": "minor-7",
+        "order": "up",
+        "rate": "16ths",
+        "octaves": 1,
+        "spread": "compact",
+        "inversion": 0,
+        "fmDepth": null,
+        "beats": null,
+        "bars": 1,
+        "instrument": "piano",
+        "rootOctave": 3
+      }
+    ],
+    "unmapped": [],
+    "tracks": [],
+    "synth": false
+  },
+  {
+    "name": "chord-octave-range",
+    "text": "C10m9",
+    "bpm": null,
+    "clock": "legacy",
+    "seed": null,
+    "meter": "4/4",
+    "gather": [],
+    "played": [],
+    "hacks": [],
+    "words": [
+      "C10m9"
+    ],
+    "notes": [
+      "`C10` is not a note. Write a pitch from `C-1` to `G9`.",
+      "Words are left for the AI. Quote them `\"like this\"` to keep them words."
+    ],
+    "iread": "C10m9\n`C10` is not a note. Write a pitch from `C-1` to `G9`.\nWords are left for the AI. Quote them `\"like this\"` to keep them words.",
+    "arp": [],
+    "unmapped": [],
+    "tracks": [],
+    "synth": false
+  },
+  {
+    "name": "chord-octave-notes-range",
+    "text": "notes C10",
+    "bpm": null,
+    "clock": "legacy",
+    "seed": null,
+    "meter": "4/4",
+    "gather": [],
+    "played": [],
+    "hacks": [],
+    "words": [],
+    "notes": [
+      "`C10` is not a note. Write a pitch from `C-1` to `G9`."
+    ],
+    "iread": "notes C10\n`C10` is not a note. Write a pitch from `C-1` to `G9`.",
+    "arp": [],
+    "unmapped": [],
+    "tracks": [],
+    "synth": false
+  },
+  {
+    "name": "chord-octave-bare-pitch",
+    "text": "C5",
+    "bpm": null,
+    "clock": "legacy",
+    "seed": null,
+    "meter": "4/4",
+    "gather": [],
+    "played": [],
+    "hacks": [],
+    "words": [
+      "C5"
+    ],
+    "notes": [
+      "`C5` is a pitch, not a chord. Write `notes C5` on its own line.",
+      "Words are left for the AI. Quote them `\"like this\"` to keep them words."
+    ],
+    "iread": "C5\n`C5` is a pitch, not a chord. Write `notes C5` on its own line.\nWords are left for the AI. Quote them `\"like this\"` to keep them words.",
+    "arp": [],
+    "unmapped": [],
+    "tracks": [],
+    "synth": false
+  },
+  {
+    "name": "chord-octave-quality",
+    "text": "C9(2|)",
+    "bpm": null,
+    "clock": "language",
+    "seed": null,
+    "meter": "4/4",
+    "gather": [
+      "C9"
+    ],
+    "played": [
+      {
+        "kind": "chord",
+        "symbol": "C9",
+        "bass": null,
+        "beats": null,
+        "bars": 2,
+        "seconds": 5,
+        "recording": 0
+      }
+    ],
+    "hacks": [],
+    "words": [],
+    "notes": [],
+    "iread": "96 BPM · C9 2 bars · 8 beats · 5 s · synth",
+    "arp": [],
+    "unmapped": [],
     "tracks": [],
     "synth": false
   }

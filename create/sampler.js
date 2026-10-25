@@ -29,6 +29,8 @@
   var chordUse = {};
   var sources = [];
   var timers = [];
+  var mixReleases = [];
+  var playSlots = [];
   var sac = null;
   var savedCopy = {};
   var prefetchToken = 0;
@@ -295,6 +297,13 @@
     var bundle = lineBundle(compText(), 0);
     return bundle.events.length > 0;
   }
+  function catalogWritten(c) {
+    if (!c || c.octave == null || !root.NCSynth || !NCSynth.chordRoot || !root.NCChords || !NCChords.voicedChord) return null;
+    var id = NCChords.idForSymbol ? NCChords.idForSymbol(c.symbol) : null;
+    if (!id) return null;
+    try { return NCChords.voicedChord(NCSynth.chordRoot(c.symbol, c.octave), id, 0, 'compact', c.bass); }
+    catch (e) { return null; }
+  }
   function pieceEvents(from, speed) {
     var text = compText();
     var parsed = root.NC && root.NC.read ? root.NC.read() : null;
@@ -312,8 +321,10 @@
         if (i < from) return;
         var hold = c.slot != null ? c.slot : c.dur;
         if (!(hold > 0)) hold = 1;
+        var catalog = catalogWritten(c);
         events.push({
-          symbol: c.symbol, written: (c.voicing || []).slice(),
+          symbol: c.octave != null && c.name ? c.name : c.symbol,
+          written: catalog || (c.voicing || []).slice(),
           start: ((c.t || 0) - baseT) / speed, hold: hold / speed,
           origin: 'chord', index: i
         });
@@ -336,8 +347,13 @@
     var events = [];
     if (tl && tl.chords) {
       tl.chords.forEach(function (c, i) {
-        (c.voicing || []).forEach(function (m) { chordUse[+m] = 1; });
-        events.push({symbol: c.symbol, written: (c.voicing || []).slice(), start: 0, hold: 1, origin: 'chord', index: i});
+        var catalog = catalogWritten(c);
+        var written = catalog || (c.voicing || []).slice();
+        written.forEach(function (m) { chordUse[+m] = 1; });
+        events.push({
+          symbol: c.octave != null && c.name ? c.name : c.symbol,
+          written: written, start: 0, hold: 1, origin: 'chord', index: i
+        });
       });
     }
     var bpm = parsed && parsed.bpm > 0 ? parsed.bpm : 96;
@@ -405,6 +421,24 @@
   function halt() {
     timers.splice(0).forEach(function (t) { clearTimeout(t); });
     sources.splice(0).forEach(function (s) { try { s.stop(); } catch (e) {} });
+    mixReleases.splice(0).forEach(function (fn) { try { fn(); } catch (e) {} });
+    playSlots = [];
+  }
+  function slotBus(ctx, id) {
+    var slot = root.NCArrange && NCArrange.trackSlot ? NCArrange.trackSlot(id) : 8;
+    if (playSlots[slot]) return playSlots[slot];
+    var bus = ctx.createGain();
+    bus.gain.value = 1;
+    bus.connect(ctx.destination);
+    playSlots[slot] = bus;
+    return bus;
+  }
+  function openBus(ctx, id) {
+    var g = ctx.createGain();
+    g.connect(slotBus(ctx, id));
+    if (root.NCArrange && NCArrange.hold) mixReleases.push(NCArrange.hold(id, g, 1, ctx));
+    else g.gain.value = 1;
+    return g;
   }
   function schedule(ctx, dest, planned, buffers, output, lead, record, origin) {
     var master = ctx.createGain();
@@ -503,12 +537,16 @@
       var notes = planned.notes.slice().sort(function (a, b) { return a.start - b.start || a.midi - b.midi; });
       var t0 = ctx.currentTime + 0.05;
       var next = 0;
+      var chordBus = openBus(ctx, 'chords');
+      var noteBus = openBus(ctx, noteTrack || 'sampler');
       function pump() {
         if (!live()) return;
         var until = ctx.currentTime + 0.12 - t0;
-        var due = [];
+        var due = [], chordDue = [], noteDue = [];
         while (next < notes.length && notes[next].start <= until + 1e-6) due.push(notes[next++]);
-        if (due.length) schedule(ctx, ctx.destination, { notes: due }, buffers, outputGain(), 0, true, t0);
+        due.forEach(function (n) { (n.origin === 'chord' ? chordDue : noteDue).push(n); });
+        if (chordDue.length) schedule(ctx, chordBus, { notes: chordDue }, buffers, outputGain(), 0, true, t0);
+        if (noteDue.length) schedule(ctx, noteBus, { notes: noteDue }, buffers, outputGain(), 0, true, t0);
         if (next < notes.length && live()) timers.push(setTimeout(pump, 25));
       }
       pump();
@@ -857,6 +895,33 @@
     paint();
     if (root.NCPerform && root.NCPerform.sync) root.NCPerform.sync();
   }
+  var manifestPromise = null;
+  function fetchManifests(expose) {
+    if (manifestPromise) return manifestPromise;
+    manifestPromise = Promise.all(LIBRARY.map(function (row) {
+      return fetch(manifestUrl(row.slug)).then(function (r) {
+        if (!r.ok) return null;
+        return r.json();
+      }).then(function (man) {
+        if (!man || man.format !== 'nc-sampler/1' || !man.notes) return;
+        manifests[row.slug] = man;
+        if (expose && flag()) addOption(row.slug, row.name);
+      }).catch(function () {});
+    })).then(function () {
+      manifestsDone = true;
+      if (expose && flag()) {
+        var box = $('sampler');
+        if (box) box.setAttribute('data-sampler-ready', '1');
+        applyOptions();
+        settle();
+      }
+    });
+    return manifestPromise;
+  }
+  function ready() {
+    if (manifestsDone) return Promise.resolve();
+    return fetchManifests(flag());
+  }
   function boot() {
     if (!document.body) return;
     buildPanel();
@@ -876,22 +941,7 @@
     if (window.MutationObserver && document.body) {
       new MutationObserver(settle).observe(document.body, {attributes: true, attributeFilter: ['data-ready']});
     }
-    Promise.all(LIBRARY.map(function (row) {
-      return fetch(manifestUrl(row.slug)).then(function (r) {
-        if (!r.ok) return null;
-        return r.json();
-      }).then(function (man) {
-        if (!man || man.format !== 'nc-sampler/1' || !man.notes) return;
-        manifests[row.slug] = man;
-        addOption(row.slug, row.name);
-      }).catch(function () {});
-    })).then(function () {
-      manifestsDone = true;
-      var box = $('sampler');
-      if (box) box.setAttribute('data-sampler-ready', '1');
-      applyOptions();
-      settle();
-    });
+    fetchManifests(true);
   }
   function applyOptions() {
     LIBRARY.forEach(function (row) {
@@ -904,7 +954,7 @@
     noteName: noteName, joinNames: joinNames, selectWritten: selectWritten, plainMissing: plainMissing,
     levelGains: levelGains, creditLine: creditLine, syntaxHint: syntaxHint, plan: plan, mix: mix,
     guitarCheck: guitarCheck, noteUrl: noteUrl, manifestUrl: manifestUrl,
-    flag: flag, active: active, canPlay: canPlay, linesFor: linesFor, credit: credit,
+    flag: flag, active: active, canPlay: canPlay, linesFor: linesFor, credit: credit, ready: ready,
     play: play, halt: halt, collect: collect, boot: boot, paint: paint,
     slug: function () { return selectedSlug(); },
     manifest: function (slug) { return manifests[slug || selectedSlug()] || null; },
