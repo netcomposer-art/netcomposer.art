@@ -80,9 +80,9 @@
   }
   // Keep and Perform. Notes and arp tracks can play the sampler. @synth stays
   // the synth. A name in NCInstruments is the sampler even when the hidden
-  // sampler switch is off. @bass and @vibes do that on a chord track too.
-  // Bass is B1–A#4. Vibes are C2–G#6. @piano, @guitar, and @cello on a
-  // chord track stay recordings.
+  // sampler switch is off. @bass, @vibes, and @strings do that on a chord
+  // track too. Bass is B1–A#4. Vibes are C2–G#6. Strings are G3–C#7.
+  // @piano, @guitar, and @cello on a chord track stay recordings.
   // Any other @name keeps the synth out.
   function roleOf(tr) {
     if (!tr) return '';
@@ -101,7 +101,7 @@
   }
   // Play. The line decides. No @name, and any name that is not a sampler,
   // sounds the synth, including a chord's catalog voicing. @piano, @guitar,
-  // @cello, @bass, and @vibes play the sampler, including a chord's voicing. This
+  // @cello, @bass, @vibes, and @strings play the sampler, including a chord's voicing. This
   // does not read the instrument select.
   function playRole(tr) {
     if (!tr) return '';

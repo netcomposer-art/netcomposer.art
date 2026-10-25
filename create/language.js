@@ -21,11 +21,11 @@
 // owns the tokens after it until the next label or the end of the statement.
 // The same number again appends. `T1` and `t1` are one track. A gap in the
 // numbers stays a gap. A line with no label is read exactly as before.
-// Play sounds the built-in synth. `@piano`, `@guitar`, `@cello`, `@bass`, and
-// `@vibes` play the sampler, including a chord's voicing. Any other `@name`
-// only labels the line. `@synth` is the synth and is not gathered. Gather
-// still fetches a recording for every other chord, and it skips a chord track
-// that says `@bass` or `@vibes`.
+// Play sounds the built-in synth. `@piano`, `@guitar`, `@cello`, `@bass`,
+// `@vibes`, and `@strings` play the sampler, including a chord's voicing.
+// Any other `@name` only labels the line. `@synth` is the synth and is not
+// gathered. Gather still fetches a recording for every other chord, and it
+// skips a chord track that says `@bass`, `@vibes`, or `@strings`.
 // An octave after the root, as in `C5m9`, puts that chord's root on the same
 // pitch as `notes C5`. `Cm9` with no octave is unchanged. Gather uses the
 // chord name and leaves the recording where it is.
@@ -1456,6 +1456,7 @@
       if (key === 'cello' || key === 'cello-pizzicato') return '@cello';
       if (key === 'bass') return '@bass';
       if (key === 'vibes') return '@vibes';
+      if (key === 'strings') return '@strings';
       return '';
     }
     function markPhrase(phrase, name) {
