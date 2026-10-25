@@ -1452,6 +1452,7 @@
     function samplerToken(name) {
       var key = String(name || '').toLowerCase();
       if (key === 'piano') return '@piano';
+      if (key === 'strings') return '@strings';
       if (key === 'guitar') return '@guitar';
       if (key === 'cello' || key === 'cello-pizzicato') return '@cello';
       if (key === 'bass') return '@bass';

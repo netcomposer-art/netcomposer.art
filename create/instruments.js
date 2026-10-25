@@ -34,4 +34,6 @@
   }
 
   root.NCInstruments = {rows: ROWS, row: row, slug: slug, playsChords: playsChords};
+  // @strings is G3–C#7. Play sounds it, including a chord voicing, and Gather skips that chord track.
+  ROWS.push({slug: 'strings', name: 'Strings', spread: 0.010, names: ['strings'], chords: true});
 })(typeof globalThis !== 'undefined' ? globalThis : this);

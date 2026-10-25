@@ -153,6 +153,21 @@ check(docOf('t1: notes C4(4|) @flute').tracks.length === 0, 'Keep still leaves a
 const keys = ['v', 'bpm', 'meter', 'beat', 'tracks'];
 check(keys.every((k) => k in synth) && synth.tracks[0].events[0].velocity <= 1, 'the document is the portable shape');
 
+// @strings is a sampler. The "@strings is not a sampler" check above is the
+// line this file shares with the vibes change, so editing it would conflict
+// after that squash. Drop the stale failure and check @strings here.
+for (let i = problems.length - 1; i >= 0; i--) {
+  if (String(problems[i]).indexOf('@strings is not a sampler') === 0) problems.splice(i, 1);
+}
+const strings = docOf('t1: notes G3(1) D5(1) @strings');
+check(strings.tracks[0] && strings.tracks[0].voice === 'sampler' && strings.tracks[0].instrument === 'strings' && strings.tracks[0].events.length === 2, '@strings is a sampler notes track, got ' + JSON.stringify(strings.tracks[0] && { voice: strings.tracks[0].voice, instrument: strings.tracks[0].instrument, n: strings.tracks[0].events.length }));
+const stringsChord = docOf('t1: Cm(2|) @strings');
+check(stringsChord.tracks[0] && stringsChord.tracks[0].voice === 'sampler' && stringsChord.tracks[0].instrument === 'strings' && stringsChord.tracks[0].events.length > 1 && stringsChord.tracks[0].events.every((e) => e.type === 'note'), '@strings expands a chord track, got ' + JSON.stringify(stringsChord.tracks[0] && { voice: stringsChord.tracks[0].voice, instrument: stringsChord.tracks[0].instrument, n: stringsChord.tracks[0].events.length }));
+const stringsGathered = L.parse('t1: Cm(2|) @strings', { known });
+check(!stringsGathered.gather.length, 'a strings chord track is not gathered, got ' + JSON.stringify(stringsGathered.gather));
+const stringsPlay = playOf('t1: Cm(2|) @strings');
+check(stringsPlay.tracks.length === 1 && stringsPlay.tracks[0].voice === 'sampler' && stringsPlay.tracks[0].instrument === 'strings' && stringsPlay.tracks[0].events.length > 1, 'Play sounds a strings chord voicing on the sampler, got ' + JSON.stringify(stringsPlay.tracks[0] && { voice: stringsPlay.tracks[0].voice, instrument: stringsPlay.tracks[0].instrument, n: stringsPlay.tracks[0].events.length }));
+
 if (problems.length) {
   console.error(problems.join('\n'));
   process.exit(1);
