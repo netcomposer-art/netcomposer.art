@@ -113,21 +113,18 @@ sb.NCSampler.manifest = function (slug) {
 };
 const bass = docOf('t1: notes B1(1) E2(1) @bass');
 check(bass.tracks[0] && bass.tracks[0].voice === 'sampler' && bass.tracks[0].instrument === 'bass' && bass.tracks[0].events.length === 2, '@bass is a sampler notes track, got ' + JSON.stringify(bass.tracks[0] && { voice: bass.tracks[0].voice, instrument: bass.tracks[0].instrument, n: bass.tracks[0].events.length }));
-const strings = docOf('t1: Cm(2|)\nt2: arp 8ths @strings');
-check(strings.tracks[1] && strings.tracks[1].voice === 'sampler' && strings.tracks[1].instrument === 'strings' && strings.tracks[1].events.length > 0, '@strings is a sampler arp, got ' + JSON.stringify(strings.tracks[1] && { voice: strings.tracks[1].voice, instrument: strings.tracks[1].instrument, n: strings.tracks[1].events.length }));
-const vibes = docOf('t1: Cm(2|) @vibes');
-check(vibes.tracks[0] && vibes.tracks[0].voice === 'sampler' && vibes.tracks[0].instrument === 'vibes' && vibes.tracks[0].events.length > 1 && vibes.tracks[0].events.every((e) => e.type === 'note'), '@vibes expands a chord track, got ' + JSON.stringify(vibes.tracks[0] && { voice: vibes.tracks[0].voice, instrument: vibes.tracks[0].instrument, n: vibes.tracks[0].events.length }));
+const bassChord = docOf('t1: Cm(2|) @bass');
+check(bassChord.tracks[0] && bassChord.tracks[0].voice === 'sampler' && bassChord.tracks[0].instrument === 'bass' && bassChord.tracks[0].events.length > 1 && bassChord.tracks[0].events.every((e) => e.type === 'note'), '@bass expands a chord track, got ' + JSON.stringify(bassChord.tracks[0] && { voice: bassChord.tracks[0].voice, instrument: bassChord.tracks[0].instrument, n: bassChord.tracks[0].events.length }));
 const pianoChord = docOf('t1: Cm(2|) @piano');
 check(pianoChord.tracks[0] && pianoChord.tracks[0].voice === 'audio', '@piano on a chord track stays a recording, got ' + (pianoChord.tracks[0] && pianoChord.tracks[0].voice));
 const gathered = L.parse('t1: Cm(2|) @bass', { known });
 check(!gathered.gather.length, 'a bass chord track is not gathered, got ' + JSON.stringify(gathered.gather));
-sb.NCSampler.manifest = function () {
-  return { notes: { 31: {}, 43: {} }, slug: 'kalimba', instrument: 'kalimba' };
-};
-const kalimba = docOf('t1: notes G1(1) C4(1) @kalimba');
-check(kalimba.tracks[0] && kalimba.tracks[0].voice === 'sampler' && kalimba.tracks[0].instrument === 'kalimba', '@kalimba is a sampler track');
-check(kalimba.tracks[0].events.length === 1 && kalimba.tracks[0].events[0].midi === 31, 'kalimba plays only the tine it has, got ' + JSON.stringify(kalimba.tracks[0].events));
-check(kalimba.tracks[0].skipped.some((s) => s.midi === 60), 'the missing kalimba pitch is named, got ' + JSON.stringify(kalimba.tracks[0].skipped));
+const dropped = docOf('t1: notes C4(1) @strings');
+check(!dropped.tracks.some((t) => t.voice === 'sampler' || t.instrument === 'strings'), '@strings is not a sampler, got ' + JSON.stringify(dropped.tracks));
+const droppedChord = docOf('t1: Cm(2|) @vibes');
+check(droppedChord.tracks[0] && droppedChord.tracks[0].voice === 'audio', '@vibes on a chord track stays a recording, got ' + (droppedChord.tracks[0] && droppedChord.tracks[0].voice));
+const droppedKalimba = docOf('t1: notes G1(1) @kalimba');
+check(!droppedKalimba.tracks.some((t) => t.instrument === 'kalimba'), '@kalimba is not a sampler, got ' + JSON.stringify(droppedKalimba.tracks));
 
 const keys = ['v', 'bpm', 'meter', 'beat', 'tracks'];
 check(keys.every((k) => k in synth) && synth.tracks[0].events[0].velocity <= 1, 'the document is the portable shape');
