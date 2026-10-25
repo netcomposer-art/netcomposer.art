@@ -123,6 +123,47 @@
       ruler.appendChild(tick);
     }
   }
+  function chordLane(tr, parsed) {
+    var out = [], gap = 0, bpm = parsed && parsed.bpm > 0 ? parsed.bpm : 96, qpb = 4;
+    if (root.NCLanguage && NCLanguage.beatsInBar) qpb = NCLanguage.beatsInBar(parsed && parsed.meter);
+    var sketch = qpb * 60 / bpm;
+    (tr.played || []).forEach(function (ev) {
+      if (ev.kind === 'rest') { if (ev.seconds > 0) gap += ev.seconds; return; }
+      if (ev.kind !== 'chord') return;
+      var slot = ev.seconds == null ? null : ev.seconds;
+      out.push({ symbol: ev.symbol || 'Chord', slot: slot, gapBefore: gap, sketchDur: slot == null ? sketch : 0, dur: slot || sketch });
+      gap = 0;
+    });
+    return out;
+  }
+  function laneFor(tr, parsed) {
+    if (!tr) return null;
+    var id = 't' + tr.n, bpm = parsed && parsed.bpm > 0 ? parsed.bpm : 96, beat = 60 / bpm;
+    if (tr.kind === 'chords') {
+      var chords = chordLane(tr, parsed);
+      if (!chords.length) return null;
+      var laid = layoutChords(chords);
+      return { id: id, label: tr.label, entries: laid.entries, base: laid.base };
+    }
+    if (tr.kind === 'notes' && root.NCSynth && NCSynth.voiceOf) {
+      var voice = NCSynth.voiceOf(tr, parsed, 0);
+      if (!voice || !voice.events || !voice.events.length) return null;
+      var entries = [], base = 0;
+      voice.events.forEach(function (n) {
+        var len = secs(Math.max(0.05, n.length));
+        var at = secs(n.start);
+        entries.push({ at_s: at, len_s: len, cap: len, written: len, chord: n.pitch || 'note' });
+        if (at + len > base) base = at + len;
+      });
+      return { id: id, label: tr.label, entries: entries, base: base > 0 ? secs(base) : 0.001 };
+    }
+    if (tr.kind === 'arp') {
+      var len = secs(Math.max(0.05, (tr.beats > 0 ? tr.beats : 4) * beat));
+      var name = tr.arp && tr.arp.chord ? tr.arp.chord : 'arp';
+      return { id: id, label: tr.label, entries: [{ at_s: 0, len_s: len, cap: len, written: len, chord: name }], base: len };
+    }
+    return null;
+  }
   function noteLane(parsed) {
     if (!root.NCSynth || !NCSynth.readLine) return null;
     var text = $('comp') ? $('comp').value : '';
@@ -146,6 +187,12 @@
     }
     var notes = noteLane(parsed);
     if (notes) tracks.push(notes);
+    if (parsed && parsed.tracks) {
+      parsed.tracks.forEach(function (tr) {
+        var lane = laneFor(tr, parsed);
+        if (lane && lane.entries && lane.entries.length) tracks.push(lane);
+      });
+    }
     laneFns.forEach(function (fn) {
       var extra = null;
       try { extra = fn(tl, parsed); } catch (e) { extra = null; }
@@ -446,16 +493,16 @@
     state.grid = gridClock(parsed);
     render();
   }
-  function rows(chords) {
-    var tr = trackById('chords');
+  function rows(chords, trackId) {
+    var tr = trackById(trackId || 'chords');
     if (!tr || !chords || tr.entries.length < chords.length) return null;
     return chords.map(function (c, i) {
       var e = tr.entries[i];
       return e ? { at: e.at_s, len: e.len_s } : null;
     });
   }
-  function learn(chords, clips) {
-    var tr = trackById('chords');
+  function learn(chords, clips, trackId) {
+    var tr = trackById(trackId || 'chords');
     if (!tr || !clips) return;
     clips.forEach(function (clip, i) {
       var e = tr.entries[i];

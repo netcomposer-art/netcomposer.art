@@ -37,7 +37,7 @@ footer.site{margin-top:5rem;padding-bottom:4rem}
 <p>Above the Composition field, the tempo and the time signature are already filled in: 96 and 4/4. They are there even when the field is empty. Change either box, or write the same thing in the field. The field is what is kept. A number you have not written looks a little quieter.</p>
 <p>Play is the button that sounds the chords. Gather finds a recording for each chord. Perform puts those recordings into the piece. Live is where filters and the other effects are heard.</p>
 <nav class="m" aria-label="On this page">
-<p><a href="#first">First</a> · <a href="#chords">Chords</a> · <a href="#durations">Lengths</a> · <a href="#tempo">Tempo</a> · <a href="#time">Time</a> · <a href="#groups">Repeats</a> · <a href="#notes">Notes</a> · <a href="#fm">FM</a> · <a href="#arp">Arpeggio</a> · <a href="#words">Words</a> · <a href="#instrument">Instrument</a> · <a href="#hacks">Hacks</a> · <a href="#iread">I read</a> · <a href="#play">Play</a> · <a href="#also">Also</a></p>
+<p><a href="#first">First</a> · <a href="#chords">Chords</a> · <a href="#durations">Lengths</a> · <a href="#tempo">Tempo</a> · <a href="#time">Time</a> · <a href="#groups">Repeats</a> · <a href="#notes">Notes</a> · <a href="#tracks">Tracks</a> · <a href="#fm">FM</a> · <a href="#arp">Arpeggio</a> · <a href="#words">Words</a> · <a href="#instrument">Instrument</a> · <a href="#hacks">Hacks</a> · <a href="#iread">I read</a> · <a href="#play">Play</a> · <a href="#also">Also</a></p>
 </nav>
 
 <section id="first">
@@ -275,11 +275,22 @@ arp</pre>
 
 <section id="instrument">
 <h2>An instrument</h2>
-<p>Glue <code>@</code> and a name onto a pitch, or onto an arp. <code>@piano</code> and <code>@flute</code> are names you choose. The built-in synth then stays out. The name is kept on the line. This mark does not, by itself, send Gather looking for a flute recording.</p>
+<p>Glue <code>@</code> and a name onto a pitch, or onto an arp. <code>@piano</code> and <code>@flute</code> are names you choose. The built-in synth then stays out. The name is kept on the line. This mark does not, by itself, send Gather looking for a flute recording. <code>@synth</code> is the other way: a chord line, or a chord track, plays on the built-in synth, and Gather does not fetch a recording for it.</p>
 <pre class="ex">n C5@piano Eb5</pre>
 <p class="hear">Play lists the pitches and the piano name, and stays quiet. The built-in synth does not render this line.</p>
 <pre class="ex">arp Cm9 @flute</pre>
 <p class="hear">The arpeggio is kept, named for flute. Play lists it. The built-in synth does not render it.</p>
+</section>
+
+<section id="tracks">
+<h2>Tracks</h2>
+<p>A track label is <code>t1:</code>, <code>t2:</code>, and so on. Write it at the start of a line, or several on one line. Everything after a label, up to the next label or the end of that line, belongs to that track. The same label again adds to that track. <code>T1</code> and <code>t1</code> are the same track. A line with no label is read the way it always was.</p>
+<p>Tracks start together. They share the tempo and the time signature. Each one can be a chord progression, a notes line, or an arp, with its own lengths and its own FM depth. Each synth track is its own voice. <code>@synth</code> on a chord track plays those chords on the built-in synth instead of fetching recordings.</p>
+<pre class="ex">t1: Cm(4|) Fm(4|) @synth
+t2: notes C5(4|) G5(4|) fm 2</pre>
+<p class="hear">T1 holds C minor for 4 bars, then F minor for 4 bars, on the synth. T2 plays C5 for 4 bars, then G5 for 4 bars, with FM depth 2. They start together. 32 beats, 20 seconds at 96 BPM. Gather does not fetch a recording for T1.</p>
+<pre class="ex">t1: Cm(4|) t2: Em(4|)</pre>
+<p class="hear">T1 is C minor and T2 is E minor, both for 4 bars, starting together. These are recordings, one lane each. 16 beats, 10 seconds at 96 BPM.</p>
 </section>
 
 <section id="hacks">

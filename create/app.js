@@ -43,6 +43,26 @@ function findChords(text) {
   parsed.played.forEach(function (e) {
     if (e.kind === 'chord') out.push({sym: e.symbol, bass: e.bass == null ? null : e.bass});
   });
+  (parsed.tracks || []).forEach(function (tr) {
+    if (tr.kind !== 'chords' || tr.instrument === 'synth') return;
+    (tr.played || []).forEach(function (e) {
+      if (e.kind === 'chord') out.push({sym: e.symbol, bass: e.bass == null ? null : e.bass});
+    });
+  });
+  return out;
+}
+function trackRecordings(parsed) {
+  parsed = parsed || readLang($('comp').value);
+  var out = [];
+  if (!parsed || !parsed.tracks) return out;
+  var clk = sketchClock(parsed);
+  parsed.tracks.forEach(function (tr) {
+    if (tr.kind !== 'chords' || tr.instrument === 'synth') return;
+    var tl = timelineFrom({ played: tr.played, gather: [], seed: parsed.seed, bpm: parsed.bpm });
+    if (!tl) return;
+    tl.chords.forEach(function (c) { if (c.slot == null) c.sketchDur = clk.bar; });
+    out.push({ id: 't' + tr.n, label: tr.label, instrument: tr.instrument || '', chords: tl.chords });
+  });
   return out;
 }
 function pickVoicing(sym, prev, bass) {
@@ -305,6 +325,11 @@ function timeline() {
     }
   }
   if (built) { showIRead(parsed, built); return built; }
+  if (parsed && ((parsed.tracks && parsed.tracks.length) || parsed.synth)) {
+    showIRead(parsed, null);
+    var only = sketchClock(parsed);
+    return { L: null, chords: [], unique: (parsed.gather || []).slice(), written: true, language: true, seed: parsed.seed, bpm: parsed.bpm, syntax: parsed.syntax || [], sketch: only, tracks: true };
+  }
   var words = comp + ' ' + promptWords(), fromComp = true;
   var found = findChords(comp);
   if (!found.length) { found = findChords(words); fromComp = false; }
@@ -402,6 +427,51 @@ function groupMetaOf(s) {
     }
   }
   return { times: times, slots: slots };
+}
+function paintTrackRow(el, tr, clk) {
+  var lab = document.createElement('p');
+  lab.className = 'play-line';
+  lab.textContent = tr.label;
+  el.appendChild(lab);
+  if (tr.kind !== 'chords') {
+    (tr.syntax || []).forEach(function (s) {
+      var line = document.createElement('p');
+      line.className = 'play-line';
+      line.textContent = s.text;
+      el.appendChild(line);
+    });
+    return tr.beats || 0;
+  }
+  var pi = 0, played = tr.played || [], local = 0;
+  function take(n) {
+    var out = [];
+    while (out.length < n && pi < played.length) out.push(played[pi++]);
+    return out;
+  }
+  (tr.syntax || []).forEach(function (s) {
+    if (s.kind === 'group') {
+      var meta = groupMetaOf(s), evs = take(meta.slots * meta.times), once = evs.slice(0, meta.slots);
+      if (!once.length) return;
+      once.forEach(function (ev) { local += chipBeats(ev, clk.qpb) * meta.times; });
+      var g = document.createElement('span');
+      g.className = 'grp';
+      once.forEach(function (ev) { g.appendChild(makeChip(ev, [], '', clk.qpb)); });
+      if (meta.times > 1) {
+        var times = document.createElement('span');
+        times.className = 'times';
+        times.textContent = '×' + meta.times;
+        g.appendChild(times);
+      }
+      el.appendChild(g);
+      return;
+    }
+    if (s.kind !== 'chord' && s.kind !== 'rest') return;
+    var ev = take(1)[0];
+    if (!ev) return;
+    local += chipBeats(ev, clk.qpb);
+    el.appendChild(makeChip(ev, [], '', clk.qpb));
+  });
+  return local || tr.beats || 0;
 }
 function playMeta(total, clk) {
   if (!(total > 0) || !clk) return '';
@@ -529,7 +599,13 @@ function refresh() {
     addChip(el, ev, at);
     any = true;
   });
+  (parsed.tracks || []).forEach(function (tr) {
+    var rowBeats = paintTrackRow(el, tr, clk);
+    if (rowBeats > total) total = rowBeats;
+    any = true;
+  });
   var samplerOn = !!(window.NCSampler && NCSampler.canPlay && NCSampler.canPlay());
+  var tracked = parsed && ((parsed.tracks && parsed.tracks.length) || parsed.synth);
   if (!any) {
     $('progmeta').textContent = '';
     el.classList.add('empty');
@@ -537,7 +613,7 @@ function refresh() {
   } else {
     el.classList.remove('empty');
     $('progmeta').textContent = playMeta(total, clk);
-    $('play').disabled = !(tl && tl.chords && tl.chords.length) && !samplerOn;
+    $('play').disabled = !(tl && tl.chords && tl.chords.length) && !samplerOn && !tracked;
   }
   if (window.NCPerform && NCPerform.sync) NCPerform.sync();
   if (window.NCArrange && NCArrange.paint) NCArrange.paint();
@@ -702,9 +778,134 @@ function playLanguage(tl, from, speed, master, my) {
     stop();
   });
 }
+function arrangeVoice(v) {
+  var events = (v.voice.events || []).map(function (n) { return Object.assign({}, n); });
+  if (!window.NCArrange || !NCArrange.clip || !v.track) return events;
+  if (v.track.kind === 'notes') {
+    return events.map(function (n, i) {
+      var c = NCArrange.clip(v.id, i);
+      if (!c) return n;
+      return Object.assign({}, n, { start: c.at, length: Math.max(0.02, c.len) });
+    });
+  }
+  if (v.track.kind !== 'chords' || !v.track.played) return events;
+  var bpm = v.voice.bpm > 0 ? v.voice.bpm : 96, meter = v.voice.meter || '4/4';
+  var qpb = beatsInBar(meter), beat = 60 / bpm, cursor = 0, ci = 0, map = [];
+  v.track.played.forEach(function (ev) {
+    var beats = ev.beats;
+    if (ev.bars != null) beats = ev.bars * qpb;
+    if (beats == null) beats = ev.kind === 'rest' ? 0 : qpb;
+    if (ev.kind === 'chord') {
+      map.push({ at: cursor * beat, clip: NCArrange.clip(v.id, ci) });
+      ci++;
+    }
+    if (beats > 0) cursor += beats;
+  });
+  return events.map(function (n) {
+    var hit = null, i;
+    for (i = 0; i < map.length; i++) if (Math.abs(n.start - map[i].at) < 0.03) hit = map[i];
+    if (!hit || !hit.clip) return n;
+    return Object.assign({}, n, { start: hit.clip.at, length: Math.max(0.02, hit.clip.len) });
+  });
+}
+function playTracked(parsed) {
+  stop();
+  var my = gen; active = true;
+  $('play').textContent = 'Stop'; $('sinenote').hidden = true; status('Loading…');
+  AC = AC || new (window.AudioContext || window.webkitAudioContext)(); AC.resume();
+  var master = AC.createGain(); master.gain.value = 0.8; master.connect(AC.destination);
+  var jobs = [], clk = sketchClock(parsed);
+  if (parsed.played && parsed.played.some(function (e) { return e.kind === 'chord'; }) && !parsed.synth) {
+    var bed = timelineFrom(parsed);
+    if (bed) {
+      bed.chords.forEach(function (c) { if (c.slot == null) c.sketchDur = clk.bar; });
+      jobs.push(window.MM.prepare(AC, bed.chords, CAT, $('inst').value || 'piano').then(function (clips) {
+        return { kind: 'rec', id: 'chords', chords: bed.chords, clips: clips };
+      }));
+    }
+  }
+  trackRecordings(parsed).forEach(function (layer) {
+    var inst = layer.instrument || ($('inst').value || 'piano');
+    jobs.push(window.MM.prepare(AC, layer.chords, CAT, inst).then(function (clips) {
+      return { kind: 'rec', id: layer.id, chords: layer.chords, clips: clips };
+    }));
+  });
+  if (window.NCSynth && NCSynth.voiceOf) {
+    (parsed.tracks || []).forEach(function (tr, i) {
+      var voice = NCSynth.voiceOf(tr, parsed, i);
+      if (!voice) return;
+      var settings = NCSynth.mergeSettings(voice.fmDepth == null ? null : { fmDepth: voice.fmDepth });
+      var events = arrangeVoice({ voice: voice, id: 't' + tr.n, track: tr });
+      jobs.push(NCSynth.renderNotes(events, settings, voice.seed).then(function (buf) {
+        return { kind: 'synth', buffer: buf };
+      }));
+    });
+    if (parsed.synth && NCSynth.chordVoice) {
+      var cv = NCSynth.chordVoice(parsed, (parsed.tracks || []).length);
+      if (cv) {
+        var settingsC = NCSynth.mergeSettings(cv.fmDepth == null ? null : { fmDepth: cv.fmDepth });
+        var eventsC = arrangeVoice({ voice: cv, id: 'chords', track: { kind: 'chords', played: parsed.played } });
+        jobs.push(NCSynth.renderNotes(eventsC, settingsC, cv.seed).then(function (buf) {
+          return { kind: 'synth', buffer: buf };
+        }));
+      }
+    }
+  }
+  if (!jobs.length) { stop(); status('Nothing on these tracks to play yet.', true); return; }
+  Promise.all(jobs).then(function (ready) {
+    if (my !== gen) return;
+    showCredit();
+    var t0 = AC.currentTime + 0.12, end = 0;
+    ready.forEach(function (item) {
+      if (item.kind === 'synth' && item.buffer) {
+        var src = AC.createBufferSource();
+        src.buffer = item.buffer; src.connect(master); src.start(t0); playing.push(src);
+        if (item.buffer.duration > end) end = item.buffer.duration;
+        return;
+      }
+      if (item.kind !== 'rec') return;
+      if (window.NCArrange && NCArrange.learn) NCArrange.learn(item.chords, item.clips, item.id);
+      var arranged = window.NCArrange && NCArrange.rows ? NCArrange.rows(item.chords, item.id) : null;
+      var cursor = 0;
+      item.chords.forEach(function (c, i) {
+        var clip = item.clips[i], cap = clip && clip.buffer && clip.buffer.duration > 0 ? clip.buffer.duration : 2;
+        var sketch = c.sketchDur > 0 ? c.sketchDur : 0;
+        var placed = arranged && arranged[i];
+        var play = placed ? placed.len : (c.slot == null ? (sketch || cap) : c.slot);
+        if (clip && clip.buffer && play > clip.buffer.duration) play = clip.buffer.duration;
+        if (!(play > 0)) play = 0.1;
+        var advance = placed ? placed.len : (c.slot != null ? c.slot : (sketch || play));
+        var at = placed ? placed.at : cursor + (c.gapBefore || 0);
+        var t = t0 + at;
+        if (!clip || !clip.buffer) sine(c.voicing, t, play, master);
+        else {
+          var hear = Math.min(play, clip.buffer.duration);
+          var s = AC.createBufferSource(), g = AC.createGain(); s.buffer = clip.buffer;
+          g.gain.setValueAtTime(0.8, t);
+          g.gain.setTargetAtTime(0, t + Math.max(0.02, hear - 0.04), 0.015);
+          s.connect(g); g.connect(master); s.start(t, 0, hear); playing.push(s);
+        }
+        if (at + advance > end) end = at + advance;
+        if (!placed) cursor = at + advance;
+      });
+    });
+    if (window.NCArrange && NCArrange.armPlay) NCArrange.armPlay(AC, t0, 0, 1, end);
+    timers.push(setTimeout(function () { if (my === gen) { stop(); cur = 0; } }, (end + 0.35) * 1000));
+    status('');
+  }).catch(function () {
+    if (my !== gen) return;
+    status('Could not start playback. Try again in a moment.', true);
+    stop();
+  });
+}
 function start(from) {
   var heard = $('perform-audio');
   if (heard && !heard.paused) heard.pause();
+  var parsedNow = readLang($('comp').value);
+  if (parsedNow && ((parsedNow.tracks && parsedNow.tracks.length) || parsedNow.synth)) {
+    playTracked(parsedNow);
+    return;
+  }
   if (window.NCSampler && NCSampler.active && NCSampler.active() && NCSampler.canPlay && NCSampler.canPlay()) {
     stop();
     var mine = gen; active = true;
@@ -1167,7 +1368,7 @@ window.addEventListener('pagehide', function () { if (persistT) persist(); });
 window.NC = {timeline: timeline, toPlan: toPlan, toMd: toMd, parseMd: parseMd, state: state, raw: raw, fill: fill, findChords: findChords, pickVoicing: pickVoicing, shareUrl: shareUrl,
   read: function () { return readLang($('comp').value); }, reuseSeed: reuseSeed, seed: writtenSeed,
   fromText: fromText, makeSurprise: makeSurprise, progression: progression, start: start, stop: stop, undo: undo, sched: function () { return SCHED.slice(); }, markChord: markChord,
-  catalog: function () { return CAT; }, audition: function (ac, chords) { return window.MM.prepare(ac, chords, CAT, $('inst').value || 'piano'); }, showSources: showSources, creditsFor: creditsFor, chordLabel: chordLabel, instrument: function () { return $('inst').value || 'piano'; }, creditSentence: creditSentence,
+  catalog: function () { return CAT; }, audition: function (ac, chords) { return window.MM.prepare(ac, chords, CAT, $('inst').value || 'piano'); }, trackRecordings: trackRecordings, showSources: showSources, creditsFor: creditsFor, chordLabel: chordLabel, instrument: function () { return $('inst').value || 'piano'; }, creditSentence: creditSentence,
   PREVIEW_TEMPO: PREVIEW_TEMPO, perform: PERFORM, showPerformance: showPerformance, performStatus: performStatus, pushUndo: pushUndo, persist: persist, commitNotes: commitNotes, growNotes: growNotes};
 fetch('chords.json').then(function (r) { return r.json(); }).then(function (c) {
   CAT = c; Object.keys(c.chords).forEach(function (k) { QUALS[k.replace(/^[A-G](#|b)?/, '')] = 1; });
