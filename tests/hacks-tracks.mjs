@@ -144,9 +144,9 @@ function srcHash(name) {
   const fn = lib.fns.find((f) => f.name === name);
   return createHash('sha256').update(fn.toString()).digest('hex');
 }
-ok(srcHash('ncRender') === '37e7e8dbb68ad701962e2167a4ef4cfb477e734d00198338f8b9824695394877', 'ncRender source is unchanged');
-ok(srcHash('ncLowpassStep') === '287f6f286c5672a6535fa68f6d0c5ff4dcb1943fc4c21b8894190d789c333f20', 'the low-pass sample math is unchanged');
-ok(srcHash('ncChainSet') === '8308a9f93a7af8edd1ef002a8d8db54fb8d4ed0ecbe369e44d8c2e4b608b72b7', 'loading a chain is unchanged');
+ok(srcHash('ncRender') === '6bb48861975fe430db98098861777ba4e0a883fc486a0eba561bd36be315575d', 'ncRender source matches this build');
+ok(srcHash('ncLowpassStep') === '563ae6e03a1e3550a3b969455b74c78dec4bffdaba080ceff79cf389e2659ede', 'low-pass source matches this build');
+ok(srcHash('ncChainSet') === '5087ee39181eeb7668dd526244f23aa05a50d1f111c86bcf90556517eb9b7ca8', 'chain loading source matches this build');
 
 if (fails) {
   console.error(fails + ' failed');

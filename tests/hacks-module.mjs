@@ -7,10 +7,9 @@ import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
-// Step 2 locked the pre-track blob and one worklet input. Step 6 added
-// ncTrackSlot, ncTrackRender and ncMixRender, and the nine inputs those
-// functions read. The lock is the blob this branch actually ships.
-const BLOB = '268a36229893937004148a0d78b7b46e7200baa29e6107dff45a935a15cf3219';
+// Step 2 locked the pre-track blob. Step 6 added the track helpers and nine
+// inputs. Step 7 added the glide. The lock is the blob this branch ships.
+const BLOB = 'fd45aa04f6c72c0ca44daf6c8c70abeb2428fccc40c0fcfbbf0a8dbbbee1cf38';
 const problems = [];
 const ok = (c, m) => { if (!c) { problems.push(m); console.log('FAIL', m); } else console.log('ok  ', m); };
 

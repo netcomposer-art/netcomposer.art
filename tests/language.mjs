@@ -181,6 +181,12 @@ check(L.parse('arp Cm max', { known }).iread.indexOf('maximum') >= 0, 'max is th
 ['seed 4182', 'seed4182', 'sd4182', 'sd 4182'].forEach((t) => {
   check(L.parse(t + ' C', { known }).seed === 4182, 'seed form ' + t);
 });
+check(L.hackParams('cp', 18).threshold_db === -18 && L.hackParams('cp', -18).threshold_db === -18 && L.hackParams('cp', 0).threshold_db === 0, 'cp18 and cp-18 are −18 dB, and cp0 is 0');
+const cp18 = L.parse('cp18', { known });
+const cpm = L.parse('cp -18', { known });
+check(cp18.hacks[0].value === 18 && cp18.hacks[0].params.threshold_db === -18 && cp18.iread.indexOf('cp18') >= 0, 'cp18 reads as a −18 dB threshold, got ' + JSON.stringify(cp18.hacks[0]));
+check(cpm.hacks[0].value === -18 && cpm.hacks[0].params.threshold_db === -18 && cpm.iread.indexOf('cp-18') >= 0, 'cp -18 reads as the same threshold, got ' + cpm.iread);
+check(L.parse('lp500->200', { known }).hacks[0].ramp === 200 && L.parse('dl20->80', { known }).hacks[0].ramp === 80, 'filter and delay arrows are both stored');
 
 // The finder the page used before this slice. Starters and published
 // Compositions must list the same chords, including bass.

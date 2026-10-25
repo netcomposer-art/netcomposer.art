@@ -116,7 +116,7 @@ function syncAudio(snap) {
       seq = seq.then(function () { return G.api.send({op: 'add', widget: w}); });
       known[w.id] = 1;
     } else {
-      seq = seq.then(function () { return G.api.send({op: 'patch', id: w.id, params: w.params, bypass: !!w.bypass, immediate: !!snap}); });
+      seq = seq.then(function () { return G.api.send({op: 'patch', id: w.id, params: w.params, bypass: !!w.bypass, immediate: !!snap, auto: w.auto || null}); });
     }
   });
   Object.keys(known).forEach(function (id) { if (ids.indexOf(id) < 0) delete known[id]; });
@@ -199,6 +199,34 @@ function prime() {
   if (AC.state === 'suspended') AC.resume();
   return AC;
 }
+var clockRaf = 0;
+function postClock() {
+  if (!G || !G.hack || !AC) return;
+  var a = player();
+  var dur = a && a.duration;
+  if (!(dur > 0) || dur === Infinity) return;
+  var pos = (a.currentTime || 0) / dur;
+  if (pos < 0) pos = 0;
+  if (pos > 1) pos = 1;
+  var step = (live && !a.paused) ? 1 / (dur * AC.sampleRate) : 0;
+  try { G.hack.port.postMessage({ op: 'clock', pos: pos, step: step }); } catch (err) {}
+  if (window.NCStack && NCStack.follow) NCStack.follow(pos);
+}
+function armClock() {
+  if (clockRaf || !window.requestAnimationFrame) { postClock(); return; }
+  var tick = function () {
+    clockRaf = 0;
+    postClock();
+    if (!live) return;
+    clockRaf = requestAnimationFrame(tick);
+  };
+  tick();
+}
+function stopClock() {
+  if (clockRaf && window.cancelAnimationFrame) cancelAnimationFrame(clockRaf);
+  clockRaf = 0;
+  postClock();
+}
 function wirePlayer(a) {
   if (a._ncLive) return;
   a._ncLive = true;
@@ -215,11 +243,13 @@ function wirePlayer(a) {
     // The page player is the clock. Starting it places the rendered clips,
     // or the live engine, from the playhead. perform.js does this too.
     if (lastSpec) scheduleClips({ entries: lastSpec.entries, offset: a.currentTime || 0 });
+    armClock();
     buttons();
   });
-  a.addEventListener('pause', function () { live = false; buttons(); });
+  a.addEventListener('pause', function () { live = false; stopClock(); buttons(); });
   a.addEventListener('ended', function () {
     live = false;
+    stopClock();
     if (REC && !a.loop) finish('The Performance ended; the take is ready.');
     else buttons();
   });
@@ -615,7 +645,7 @@ function renderBuffers(spec) {
       buses.push(one);
     }
     (spec.entries || []).forEach(function (entry) { placeClip(off, buses[trackInput(entry.track)], entry, 0, 0); });
-    return NCHacks.attach(off, {widgets: list, immediate: true}).then(function (api) {
+    return NCHacks.attach(off, {widgets: list, immediate: true, piece: musical}).then(function (api) {
       buses.forEach(function (g, i) { g.connect(api.node, 0, i); });
       api.node.connect(off.destination);
       return off.startRendering();
@@ -1021,7 +1051,7 @@ function render() {
     var off = new (window.OfflineAudioContext || window.webkitOfflineAudioContext)(2, length, rate);
     var src = off.createBufferSource();
     src.buffer = buffer;
-    return NCHacks.attach(off, {widgets: list, immediate: true}).then(function (api) {
+    return NCHacks.attach(off, {widgets: list, immediate: true, piece: buffer.duration}).then(function (api) {
       // A saved Performance is one mix. It enters the dry master bus, not a track.
       src.connect(api.node, 0, 8);
       api.node.connect(off.destination);

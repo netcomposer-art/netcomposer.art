@@ -2474,6 +2474,7 @@
   var SAVE_CAP = 40 * 1024 * 1024, STATE_CAP = 64 * 1024;
   function processingOf(list) {
     var chain = [];
+    var glide = false;
     (list || []).forEach(function (node) {
       if (!node || !node.type) return;
       var item = {
@@ -2484,9 +2485,11 @@
         params: node.params || {}
       };
       if (node.fixed) item.fixed = true;
+      if (node.auto) { item.auto = node.auto; glide = true; }
       chain.push(item);
     });
-    return { schema: 2, chain: chain };
+    if (!glide) return { schema: 2, chain: chain };
+    return { schema: 3, master: { chain: chain }, tracks: {} };
   }
   function planEntries(entries) {
     return (entries || []).map(function (e) {
