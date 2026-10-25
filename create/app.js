@@ -621,7 +621,7 @@ function refresh() {
 
 // ---------- play (WebAudio) ----------
 // Edits, Undo, Apply and the speed slider restart the preview at the chord it was on, with the new chords.
-var AC = null, playing = [], timers = [], gen = 0, active = false, cur = 0, restartT = null, SCHED = [], liveHandle = null;
+var AC = null, playing = [], timers = [], gen = 0, active = false, cur = 0, restartT = null, SCHED = [], liveHandle = null, arrangeHold = null;
 // iPhone Safari stays silent until a tap resumes the context. The first
 // pointer or touch does that, and Play does it again in the same gesture.
 function unlockAudio() {
@@ -639,6 +639,7 @@ function unlockAudio() {
 }
 function stop() {
   gen++; active = false; clearTimeout(restartT);
+  if (arrangeHold) { try { arrangeHold(); } catch (e0) {} arrangeHold = null; }
   if (liveHandle) { try { liveHandle.stop(); } catch (e) {} liveHandle = null; }
   if (window.NCArrange && NCArrange.disarm) NCArrange.disarm();
   if (window.NCSampler && NCSampler.halt) NCSampler.halt();
@@ -884,9 +885,9 @@ function playTracked(parsed) {
       clips: clips,
       output: window.NCSampler && NCSampler.output ? NCSampler.output() : 0.8,
       live: function () { return my === gen; },
-      missingClip: function (tr, ev, when) {
+      missingClip: function (tr, ev, when, dest) {
         var v = voices[tr.id + ':' + ev.slot];
-        if (v) sine(v, when, Math.max(0.05, ev.length), ctx.destination);
+        if (v) sine(v, when, Math.max(0.05, ev.length), dest || ctx.destination);
       }
     });
     liveHandle = handle;
@@ -928,6 +929,7 @@ function start(from) {
   var speed = (tl.language ? 1 : PREVIEW_TEMPO) * +$('spd').value, chords = tl.chords.slice(from, from + 64), my = gen; active = true; SCHED = [];
   $('play').textContent = 'Stop'; $('sinenote').hidden = true; status('Loading chord recordings…');
   var master = AC.createGain(); master.gain.value = 0.8; master.connect(AC.destination);
+  if (window.NCArrange && NCArrange.hold) arrangeHold = NCArrange.hold('chords', master, 0.8, AC);
   if (tl.language) { playLanguage(tl, from, speed, master, my); return; }
   window.MM.prepare(AC, chords, CAT, $('inst').value || 'piano').then(function (clips) {
     if (my !== gen) return;

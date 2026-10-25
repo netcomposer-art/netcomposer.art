@@ -388,12 +388,24 @@
     var scheduled = {};
     var stopped = false;
     var output = opts.output;
+    var releases = [];
+    var buses = {};
+    function busFor(id) {
+      if (buses[id]) return buses[id];
+      var g = ctx.createGain();
+      g.connect(dest);
+      buses[id] = g;
+      if (root.NCArrange && NCArrange.hold) releases.push(NCArrange.hold(id, g, 1, ctx));
+      else g.gain.value = 1;
+      return g;
+    }
     function stop() {
       if (stopped) return;
       stopped = true;
       timers.splice(0).forEach(function (t) { clearTimeout(t); });
       sources.splice(0).forEach(function (s) { try { s.stop(); } catch (e) {} });
       engines.forEach(function (row) { try { row.engine.panic(); } catch (e) {} });
+      releases.splice(0).forEach(function (fn) { try { fn(); } catch (e) {} });
       if (current === doc) current = null;
     }
     function due(tr, ev, i) {
@@ -425,7 +437,7 @@
           tr.events.forEach(function (ev, i) {
             if (!due(tr, ev, i)) return;
             var buffer = opts.buffers && opts.buffers[tr.instrument + ':' + ev.midi];
-            var node = scheduleSamplerNote(ctx, dest, ev, origin, buffer, output);
+            var node = scheduleSamplerNote(ctx, busFor(tr.id), ev, origin, buffer, output);
             if (node) sources.push(node.src);
           });
           return;
@@ -434,9 +446,9 @@
           tr.events.forEach(function (ev, i) {
             if (!due(tr, ev, i)) return;
             var buffer = opts.clips && opts.clips[tr.id + ':' + ev.slot];
-            if (!buffer && opts.missingClip) opts.missingClip(tr, ev, origin + ev.start);
+            if (!buffer && opts.missingClip) opts.missingClip(tr, ev, origin + ev.start, busFor(tr.id));
             else {
-              var node = scheduleClip(ctx, dest, ev, origin, buffer);
+              var node = scheduleClip(ctx, busFor(tr.id), ev, origin, buffer);
               if (node) sources.push(node.src);
             }
           });
@@ -452,7 +464,7 @@
       var engine = new Eng(settings);
       var node = ctx.createGain();
       node.gain.value = 0.8;
-      node.connect(dest);
+      node.connect(busFor(tr.id));
       opening.push(engine.open(ctx, NCSynth.mulberry32(tr.seed >>> 0), node).then(function () {
         engines.push({ id: tr.id, engine: engine });
       }));
