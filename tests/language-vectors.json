@@ -1664,5 +1664,23 @@
     "iread": "96 BPM · Cm 4 beats · 4 beats · 2.5 s · synth\nt0 :\nWords are left for the AI. Quote them `\"like this\"` to keep them words.",
     "tracks": [],
     "synth": false
+  },
+  {
+    "name": "cp-threshold",
+    "text": "90 BPM Cm(4) cp-18",
+    "bpm": 90,
+    "clock": "language",
+    "seed": null,
+    "meter": "4/4",
+    "gather": ["Cm"],
+    "played": [
+      {"kind": "chord", "symbol": "Cm", "bass": null, "beats": 4, "bars": null, "seconds": 2.667, "recording": 0}
+    ],
+    "hacks": [
+      {"abbr": "cp", "type": "compressor", "value": -18, "ramp": null}
+    ],
+    "words": [],
+    "notes": [],
+    "iread": "90 BPM · Cm 4 beats · 4 beats · ~2.7 s · cp-18 · synth"
   }
 ]

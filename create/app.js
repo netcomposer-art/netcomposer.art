@@ -249,7 +249,7 @@ var hackSig = '';
 function applyHacks(parsed) {
   if (!window.NCStack || !NCStack.applyStart) return;
   var list = (parsed && parsed.hacks) || [];
-  var sig = JSON.stringify(list.map(function (h) { return [h.type, h.value]; }));
+  var sig = JSON.stringify(list.map(function (h) { return [h.type, h.value, h.ramp]; }));
   if (sig === hackSig) return;
   hackSig = sig;
   NCStack.applyStart(list);

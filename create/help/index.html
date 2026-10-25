@@ -314,8 +314,8 @@ t2: notes G3(4) @cello</pre>
 <pre class="ex">90 BPM Cm(2) lowpass 800</pre>
 <p class="hear">The same idea, written as words. It is read as lp800. Live starts the low-pass at 800 Hz.</p>
 <pre class="ex">90 BPM Cm(2) lp500->200</pre>
-<p class="hear">Live parks the low-pass at 500 Hz. The arrow is written as <code>-&gt;</code>, and I-read keeps it. Play still sketches the chord dry.</p>
-<p>The other hacks take a number too. <code>eq</code> is a mid boost in decibels. <code>dl</code> or <code>delay</code> is an echo, from 0 to 100. <code>rv</code> or <code>reverb</code> is a plate, which is a kind of room, from 0 to 100. <code>dr</code> or <code>drive</code> is extra push, from 0 to 24. <code>wd</code> or <code>width</code> is the stereo width, from 0 to 200. 100 is the normal width. <code>cp</code> or <code>comp</code> is a compressor, which evens loud and quiet. Write <code>cp0</code>. A minus number is not read yet.</p>
+<p class="hear">Live moves the low-pass from 500 Hz to 200 Hz across the whole piece, evenly in pitch. A hand on that dial stops the move, and the dial wins. The arrow is written as <code>-&gt;</code>. Play still sketches the chord dry.</p>
+<p>The other hacks take a number too. <code>eq</code> is a mid boost in decibels. <code>dl</code> or <code>delay</code> is an echo, from 0 to 100. <code>rv</code> or <code>reverb</code> is a plate, which is a kind of room, from 0 to 100. <code>dr</code> or <code>drive</code> is extra push, from 0 to 24. <code>wd</code> or <code>width</code> is the stereo width, from 0 to 200. 100 is the normal width. <code>cp</code> or <code>comp</code> is a compressor, which evens loud and quiet. Write <code>cp18</code> or <code>cp-18</code>. Both mean a threshold of −18 dB. <code>cp0</code> is 0 dB.</p>
 <pre class="ex">90 BPM Cm(2) hp200 bp1000 eq2 dl20 rv15 dr6 wd100</pre>
 <p class="hear">Play sketches the chord dry. Live starts with a high-pass at 200 Hz, a band-pass around 1000 Hz, a small mid boost, a little delay, a little plate, a little drive, and normal width.</p>
 <p>Write each hack once. If you write the same one twice, the later number wins, and the line under the field tells you to delete the earlier one. A hack inside the brackets is not for that chord. Move it outside, at the start.</p>
@@ -336,7 +336,7 @@ t2: notes G3(4) @cello</pre>
 <h2>Play, Gather, and Perform</h2>
 <p>Play sounds the chords you wrote on the built-in synth, once each, at the speed you wrote. A group repeat is shown once, with a times mark, and Play still goes around it that many times. Play does not fill the piece out to two minutes. A notes line or an arp with no track label is listed, and Play stays quiet. Play does not sound a hack. <code>@piano</code>, <code>@guitar</code>, and <code>@cello</code> play the sampler, including the voicing of a chord line. Any other <code>@name</code> only labels the line, and Play uses the synth. A synth track or a sampler track plays live from its notes, with no render wait. Gather still finds the recordings. Play does not play those recordings.</p>
 <p>Gather finds one recording per chord. A written length uses that much of the recording. No length uses the whole recording. A repeat reuses the same recording. A notes line or an arp with no <code>@instrument</code> is rendered here on the built-in synth, and listed with the recordings.</p>
-<p>Perform puts what Gather found into the piece, with the synth and sampler tracks. Keep writes one fixed file of what you heard. Live parks each hack at the number you wrote. A low-pass written <code>lp500-&gt;200</code> stays at 500 Hz.</p>
+<p>Perform puts what Gather found into the piece, with the synth and sampler tracks. Keep writes one fixed file of what you heard. Live parks each hack at the number you wrote, and moves a filter arrow across the whole piece. A low-pass written <code>lp500-&gt;200</code> goes from 500 Hz to 200 Hz.</p>
 <p>A piece that is only the built-in synth plays with no connection. The sampler, and the recordings, need a connection once.</p>
 <pre class="ex">90 BPM
 [Cm(2) Fm9 Gm7(8)]x4
@@ -344,7 +344,7 @@ n C5(2) Eb5 G5 Bb4 fm 3
 arp Cm9 pendulum 16ths 2oct wide inv1 (2|)
 lp500->200
 "keep it close"</pre>
-<p class="hear">Play sketches the three chords four times at 90 BPM, about 37.3 seconds, on the built-in synth: C minor for 2 beats, F minor 9 as one bar, G minor 7 for 8 beats. It also lists the notes, the arp, and the filter, and those stay quiet. Gather fetches the three recordings, renders the melody and the arp on the synth with FM depth 3, and keeps the quoted words as words. Perform plays the recordings and the synth. Live parks the low-pass at 500 Hz.</p>
+<p class="hear">Play sketches the three chords four times at 90 BPM, about 37.3 seconds, on the built-in synth: C minor for 2 beats, F minor 9 as one bar, G minor 7 for 8 beats. It also lists the notes, the arp, and the filter, and those stay quiet. Gather fetches the three recordings, renders the melody and the arp on the synth with FM depth 3, and keeps the quoted words as words. Perform plays the recordings and the synth. Live moves the low-pass from 500 Hz to 200 Hz across the whole piece, evenly in pitch. A hand on that dial stops the move.</p>
 </section>
 
 <section id="also">

@@ -9,7 +9,8 @@
 // A duration belongs to its own chord. A chord with none plays its whole
 // recording when gathered; Play sketches it as one bar. loop(n) and xn repeat
 // a group with the same recordings. A hack sets Live's starting chain for the
-// whole piece. A ramp keeps the start value. With no written tempo, Play and
+// whole piece. A filter ramp glides across the whole piece. Any other ramp
+// keeps the start value. With no written tempo, Play and
 // a written duration use 96 BPM (the NC Synth page default). A time signature
 // (`3/4`, `6/8`, and the other n/2, n/4, n/8 marks) sets the bar in quarter
 // notes. 6/8 counts as 3 beats in a bar, not 6. With none written, the bar is
@@ -55,6 +56,10 @@
     if (Math.abs(n - Math.round(n)) < 1e-9) return String(Math.round(n));
     return String(+n.toFixed(3)).replace(/0+$/, '').replace(/\.$/, '');
   }
+  function trimHack(n) {
+    if (typeof n === 'number' && n < 0) return '-' + trimNum(-n);
+    return trimNum(n);
+  }
   function round3(n) { return +(+n).toFixed(3); }
   function pcOf(n) {
     var r = n[0].toUpperCase();
@@ -94,7 +99,10 @@
     if (abbr === 'dl') return { wet: clamp(value, 0, 100) / 100 };
     if (abbr === 'rv') return { mix: clamp(value, 0, 100) / 100 };
     if (abbr === 'dr') return { drive_db: clamp(value, 0, 24) };
-    if (abbr === 'cp') return { threshold_db: clamp(value, -60, 0) };
+    if (abbr === 'cp') {
+      var db = value > 0 ? -value : value;
+      return { threshold_db: clamp(db, -60, 0) };
+    }
     if (abbr === 'wd') return { width: clamp(value, 0, 200) / 100 };
     if (abbr === 'eq') return { mid_db: clamp(Math.round(value), -18, 18) };
     return {};
@@ -528,19 +536,21 @@
       var t = tokens[i];
       if (!t || t.type !== 'word') return false;
       var name = null, value = null, ramp = null, eat = 0;
-      var glued = /^(lowpass|highpass|bandpass|reverb|delay|drive|width|comp|eq|lp|hp|bp|dl|rv|dr|cp|wd)(\d+(?:\.\d+)?)(?:->(\d+(?:\.\d+)?))?$/i.exec(t.text);
+      var glued = /^(lowpass|highpass|bandpass|reverb|delay|drive|width|comp|eq|lp|hp|bp|dl|rv|dr|cp|wd)(-?\d+(?:\.\d+)?)(?:->(-?\d+(?:\.\d+)?))?$/i.exec(t.text);
       if (glued) { name = glued[1]; value = +glued[2]; ramp = glued[3] != null ? +glued[3] : null; eat = 1; }
       else if (HACK_WORD.test(t.text)) {
         var n = tokens[i + 1];
-        var val = n && n.type === 'word' && /^(\d+(?:\.\d+)?)(?:->(\d+(?:\.\d+)?))?$/.exec(n.text);
+        var val = n && n.type === 'word' && /^(-?\d+(?:\.\d+)?)(?:->(-?\d+(?:\.\d+)?))?$/.exec(n.text);
         if (!val) return false;
         name = t.text; value = +val[1]; ramp = val[2] != null ? +val[2] : null; eat = 2;
       } else return false;
+      var abbrPeek = HACK[name.toLowerCase()];
+      if ((value < 0 || (ramp != null && ramp < 0)) && abbrPeek !== 'cp') return false;
       i += eat;
       var abbr = HACK[name.toLowerCase()];
       var prev = null;
       hacks.forEach(function (h) { if (h.abbr === abbr) prev = h; });
-      if (prev && prev.value !== value) note('`' + abbr + trimNum(value) + '` was written twice. Keep `' + abbr + trimNum(value) + '` and delete the earlier one.');
+      if (prev && prev.value !== value) note('`' + abbr + trimHack(value) + '` was written twice. Keep `' + abbr + trimHack(value) + '` and delete the earlier one.');
       var row = { abbr: abbr, type: HACK_TYPE[abbr], value: value, ramp: ramp, params: hackParams(abbr, value) };
       if (prev) {
         prev.value = value; prev.ramp = ramp; prev.params = row.params;
@@ -548,10 +558,10 @@
         for (si = syntax.length - 1; si >= 0; si--) {
           if (syntax[si].kind === 'hack' && syntax[si].text.indexOf(abbr) === 0) { shown = syntax[si]; break; }
         }
-        if (shown) shown.text = abbr + trimNum(value);
+        if (shown) shown.text = abbr + trimHack(value);
       } else {
         hacks.push(row);
-        syntax.push({ kind: 'hack', text: abbr + trimNum(value) });
+        syntax.push({ kind: 'hack', text: abbr + trimHack(value) });
       }
       return true;
     }
@@ -1300,7 +1310,7 @@
     function hackEcho(s) {
       var h = null, k;
       for (k = 0; k < hacks.length; k++) if (s.text.indexOf(hacks[k].abbr) === 0) h = hacks[k];
-      if (h && h.ramp != null) return h.abbr + trimNum(h.value) + '→' + trimNum(h.ramp) + ' in Live';
+      if (h && h.ramp != null) return h.abbr + trimHack(h.value) + '→' + trimHack(h.ramp) + ' in Live';
       return s.text;
     }
     // What will play: tempo, each chord's length once, a loop as ×N, then the total.

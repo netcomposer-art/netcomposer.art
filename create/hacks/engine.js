@@ -24,8 +24,10 @@
     return moduleUrl().then(function (url) {
       return ctx.audioWorklet.addModule(url);
     }).then(function () {
+      // One worklet. Inputs 0–7 are track hacks (empty is dry: no 0.8, no limiter).
+      // Input 8 goes straight into the master chain, which is where every track past those eight is heard.
       var node = new AudioWorkletNode(ctx, 'nc-hack-stack', {
-        numberOfInputs: 1,
+        numberOfInputs: 9,
         numberOfOutputs: 1,
         outputChannelCount: [2],
         channelCount: 2,
