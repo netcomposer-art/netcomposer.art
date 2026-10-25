@@ -107,11 +107,37 @@ ok(!same(direct, darker), 'a low-pass on track 0 changes the sound');
 const withSilence = mix(emptyTracks(), master(), [[inL, inR], [new Float32Array(inL.length), new Float32Array(inR.length)]], inL.length);
 ok(same(direct, withSilence), 'silence on the next track input does not change the mix');
 
+const bL = new Float32Array(inL.length), bR = new Float32Array(inR.length);
+const sumL = new Float32Array(inL.length), sumR = new Float32Array(inR.length);
+for (let i = 0; i < bL.length; i++) {
+  bL[i] = inR[i] * 0.5;
+  bR[i] = inL[i] * 0.25;
+  sumL[i] = inL[i] + bL[i];
+  sumR[i] = inR[i] + bR[i];
+}
+const split = [];
+split[0] = [inL, inR];
+split[1] = [bL, bR];
+const splitMix = mix(emptyTracks(), master(), split, inL.length);
+const summed = run((c, a, b, x, y) => W.ncRender(c, a, b, x, y), master(), sumL, sumR);
+ok(same(splitMix, summed), 't1 and t2 through empty chains match one mix into the master, sample for sample');
+const withRest = [];
+withRest[0] = [inL, inR];
+withRest[8] = [bL, bR];
+ok(same(mix(emptyTracks(), master(), withRest, inL.length), summed), 'a track input plus the dry bus matches that same mix');
+
 const live = readFileSync(join(root, 'create/live.js'), 'utf8');
+const perform = readFileSync(join(root, 'create/perform.js'), 'utf8');
+const app = readFileSync(join(root, 'create/app.js'), 'utf8');
 const processor = readFileSync(join(root, 'create/hacks/processor.js'), 'utf8');
 ok(/numberOfInputs:\s*9/.test(engineSrc), 'the worklet has nine inputs');
 ok(!/latencyHint/.test(engineSrc + live), 'latencyHint stays unset');
 ok(/dry\.gain\.value = 0\.8/.test(live), 'the worklet fallback is still a dry 0.8');
+ok(/one\.connect\(G\.hack, 0, i\)/.test(live) && /buses\[trackInput\(entry\.track\)\]/.test(live), 'each track bus reaches its own worklet input');
+ok(/bus\.gain\.value = 1/.test(live) && !/G\.input\.connect\(G\.hack\)/.test(live), 'track buses stay at unity; the old single mix is not stuck on input 0');
+ok(/src\.connect\(api\.node, 0, 8\)/.test(live), 'a saved Performance enters the dry master bus');
+ok(/trackN: tr\.n/.test(perform) && /track: trackNumber\(sound\)/.test(perform), 'synth, sampler and tN clips carry their track number');
+ok(/NCEvents\.play\(doc, ctx, ctx\.destination/.test(app) && !/NCHacks\.attach/.test(app), 'Play stays dry and does not attach the worklet');
 ok(/ncMixRender\(this\.tracks/.test(processor) && /ncTrackSlot\(msg\.track\)/.test(processor), 'the processor mixes eight tracks and ignores the rest');
 ok(/this\.tracks\.push\(ncChainCreate/.test(processor), 'track chains are created empty');
 function srcHash(name) {
