@@ -1210,6 +1210,7 @@
     }
     resolved.forEach(function (tr) {
       if (tr.kind !== 'chords' || tr.instrument === 'synth') return;
+      if (root.NCInstruments && NCInstruments.playsChords && NCInstruments.playsChords(tr.instrument)) return;
       var seen = {};
       tr.played.forEach(function (c) {
         if (c.kind !== 'chord' || c.recording == null || seen[c.recording]) return;
