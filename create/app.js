@@ -1128,7 +1128,7 @@ function commitNotes() {
 // borrowed chords (iv, bVI, bVII, bIII), secondary dominants and chromatic mediants. The last chord leads back to chord 1.
 var GRAMMAR = {
   major: {w: 3, keys: [0, 2, 3, 5, 7, 8, 10], tonic: 'I', tok: {
-      I: [0, ['maj7', 'add9', '6-9', 'maj9', '6', '']], ii: [2, ['m7', 'm9', 'm11']], iii: [4, ['m7', 'm9']], IV: [5, ['maj7', 'add9', 'maj9', '6-9', 'maj7#11', '']],
+      I: [0, ['maj7', 'add9', '6-9', 'maj9', '']], ii: [2, ['m7', 'm9', 'm11']], iii: [4, ['m7', 'm9']], IV: [5, ['maj7', 'add9', 'maj9', '6-9', 'maj7#11', '']],
       V: [7, ['9', '7', '13', '9sus4', '7sus4', '']], vi: [9, ['m7', 'm9', 'm11', '']], iv: [5, ['m6', 'm7', 'm-add9', 'm']], bVI: [8, ['maj7', 'add9', 'maj9']],
       bVII: [10, ['9', '13', 'add9', '']], bIII: [3, ['maj7', 'add9', '6-9']], I7: [0, ['7', '9']], VI7: [9, ['7', '7b9', '13']], III7: [4, ['7', '7b9', '7#9']], II7: [2, ['9', '7', '13']]},
     next: {I: {IV: 3, vi: 3, ii: 2, iii: 1, V: 1.5, bVII: 0.8, bVI: 0.7, bIII: 0.5, I7: 0.6, VI7: 0.6, III7: 0.5},
@@ -1150,12 +1150,12 @@ var GRAMMAR = {
       ii: {bIII: 1.5, i: 1, v: 1, IV: 1}, bIII: {IV: 2, bVII: 1.5, ii: 0.8}, v: {bVII: 1.5, i: 1.5, IV: 1, bIII: 1}},
     mood: ['Cool and floating, a little night air.', 'Easy groove, soft and round; let the major IV glow.', 'Smoky and slow. Gentle strikes.', 'A walking pulse, nothing glossy.', 'Modal and open, the major IV as the light.', 'Restless, then it settles.']},
   lydian: {w: 1.5, keys: [5, 7, 8, 10, 0, 1, 3], tonic: 'I', tok: {
-      I: [0, ['maj7#11', 'maj9', 'maj7', '6-9', 'maj13', 'add9']], II: [2, ['', 'add9', '6']], iii: [4, ['m7']], V: [7, ['maj7', 'add9', 'maj9', '']], vi: [9, ['m7', 'm9']], vii: [11, ['m7', 'm']], bVI: [8, ['maj7', 'add9']]},
+      I: [0, ['maj7#11', 'maj9', 'maj7', '6-9', 'maj13', 'add9']], II: [2, ['', 'add9']], iii: [4, ['m7']], V: [7, ['maj7', 'add9', 'maj9', '']], vi: [9, ['m7', 'm9']], vii: [11, ['m7', 'm']], bVI: [8, ['maj7', 'add9']]},
     next: {I: {II: 4, V: 1.5, vi: 1.5, vii: 1, iii: 1, bVI: 0.5}, II: {I: 3, V: 1, vi: 1, iii: 1.2, vii: 1}, V: {I: 2, II: 1.5, vi: 1.5},
       vi: {II: 2, V: 1.5, vii: 1, I: 0.8}, iii: {II: 1.5, vi: 1.5, V: 1}, vii: {I: 1.5, vi: 1, II: 1}, bVI: {I: 1.5, V: 0.8}},
     mood: ['Bright and weightless; let the #11 shimmer.', 'Wide open sky. Slow, clear, a little wonder.', 'Floating, unhurried; let the high notes ring.', 'Glassy and strange. Let the #11 stay.', 'High and clear, almost weightless.', 'A slow lift, brighter than it starts.']},
   mixolydian: {w: 1.5, keys: [7, 9, 10, 0, 2, 3, 5], tonic: 'I', tok: {
-      I: [0, ['add9', '6-9', '', '13', '9']], ii: [2, ['m7', 'm9']], IV: [5, ['', 'maj7', 'add9', '6-9', '6']], v: [7, ['m7', 'm9', 'm11']], vi: [9, ['m7', 'm9']], bVII: [10, ['', 'add9', '6-9', 'maj7', '6']]},
+      I: [0, ['add9', '6-9', '', '13', '9']], ii: [2, ['m7', 'm9']], IV: [5, ['', 'maj7', 'add9', '6-9']], v: [7, ['m7', 'm9', 'm11']], vi: [9, ['m7', 'm9']], bVII: [10, ['', 'add9', '6-9', 'maj7']]},
     next: {I: {bVII: 4, IV: 2.5, v: 1.5, vi: 0.8, ii: 0.8}, bVII: {IV: 3, I: 2.5, v: 0.8, vi: 0.5}, IV: {I: 3, bVII: 1.5, v: 1.2, ii: 0.5},
       v: {IV: 2, bVII: 1.5, vi: 1, I: 1}, vi: {IV: 2, v: 1, bVII: 1, ii: 1}, ii: {v: 1.5, IV: 1, bVII: 1}},
     mood: ['Easy and sunlit, a slow sway.', 'Open road at dusk. Warm, unhurried.', 'Relaxed and bright; let the flat seven hang.', 'A stomp, then it loosens.', 'Folk and wide. The flat seven stays.', 'Sunny, a little dusty.']}

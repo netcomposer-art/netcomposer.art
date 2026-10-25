@@ -166,7 +166,7 @@ check(notesLine.gather.length === 0 && notesLine.words.length === 0 && notesLine
 check(L.parse('notes C4 Eb4 G4(2)', { known }).iread === 'notes C4 Eb4 G4(2)', 'the notes keyword is the same line, got ' + L.parse('notes C4 Eb4 G4(2)', { known }).iread);
 check(L.parse('notes create melody', { known }).words.join(' ') === 'notes create melody' && L.parse('notes create melody', { known }).iread.indexOf('is not a chord') < 0, 'notes without a pitch stays words');
 const notesEdge = L.parse('n C5(2) Eb5 G5 Bb4\nC5', { known });
-check(notesEdge.iread.indexOf('notes C5(2) Eb5 G5 Bb4') >= 0 && notesEdge.iread.indexOf('`C5` is a pitch, not a chord.') >= 0 && notesEdge.iread.split('is a pitch').length === 2, 'a pitch on the next line is still not a chord, got ' + notesEdge.iread);
+check(notesEdge.iread.indexOf('notes C5(2) Eb5 G5 Bb4') >= 0 && notesEdge.iread.indexOf('notes C5') >= 0 && notesEdge.gather.length === 0 && notesEdge.iread.indexOf('is a pitch') < 0, 'a pitch on the next line is a note, got ' + notesEdge.iread);
 const twoNotes = L.parse('t1: notes C4(2) fm 1\nt2: notes E4(2) fm 4', { known });
 check(twoNotes.tracks.length === 2 && twoNotes.tracks[0].kind === 'notes' && twoNotes.tracks[1].kind === 'notes' && twoNotes.tracks[0].fmDepth === 1 && twoNotes.tracks[1].fmDepth === 4 && twoNotes.played.length === 0, 'two notes tracks keep separate FM depths');
 check(L.parse('Tempo 90, T1 - [Cm(4) fm9, gm7]loop(4)', { known }).tracks.length === 0, 'T1 without a colon is not a track');
@@ -176,8 +176,13 @@ check(arpTrack.tracks.length === 2 && arpTrack.tracks[1].kind === 'arp' && arpTr
 
 const arpPitches = L.parse('arp Cm9 pendulum 16ths C5 Eb5 G5', { known });
 check(arpPitches.arp[0].chord === 'Cm9' && arpPitches.arp[0].order === 'pendulum' && arpPitches.iread === 'arp Cm9 pendulum 16ths C5 Eb5 G5' && arpPitches.notes.length === 0, 'pitches on an arp line are not failed chords, got ' + arpPitches.iread);
-check(L.parse('C5', { known }).iread.indexOf('`C5` is a pitch, not a chord.') >= 0 && L.parse('steady', { known }).iread.indexOf('Words are left for the AI.') >= 0, 'a real non-chord is still reported');
-['C9', 'C7', 'C13', 'C7b9', 'C9sus4', 'C2', 'fm9'].forEach((tok) => {
+check(L.parse('C5', { known }).iread === 'notes C5' && L.parse('C5', { known }).gather.length === 0 && L.parse('steady', { known }).iread.indexOf('Words are left for the AI.') >= 0, 'a bare octave is a note, and a real non-chord is still reported');
+const bassPitches = L.parse('@bass C2 E2 G2', { known });
+check(bassPitches.iread === 'notes @bass C2 E2 G2' && bassPitches.gather.length === 0 && bassPitches.played.length === 0 && bassPitches.instrument === 'bass', '@bass C2 E2 G2 is three notes, got ' + bassPitches.iread);
+check(L.parse('t1: @bass C2 E2 G2', { known }).tracks[0].kind === 'notes' && L.parse('arp C2', { known }).arp[0].chord == null && L.parse('arp Csus2', { known }).arp[0].chord === 'Csus2', 'tracks and arp read C2 as a pitch and Csus2 as a chord');
+check(L.parse('Csus2', { known }).gather[0] === 'Csus2' && L.parse('C5m9', { known }).played[0].symbol === 'Cm9' && L.parse('C5m9', { known }).played[0].octave === 5, 'Csus2 stays a chord and C5m9 keeps its octave');
+check(L.parse('C7', { known }).gather[0] === 'C7' && L.parse('C9(2|)', { known }).gather[0] === 'C9' && L.parse('C6', { known }).iread === 'notes C6' && L.parse('F#3', { known }).iread === 'notes F#3' && L.parse('Bb1', { known }).iread === 'notes Bb1', 'C7 and C9 stay dominant chords; C6, F#3, and Bb1 are notes');
+['C9', 'C7', 'C13', 'C7b9', 'C9sus4', 'fm9'].forEach((tok) => {
   const kept = L.parse(tok, { known });
   check(kept.played.length === 1 && kept.played[0].octave == null && kept.gather.length === 1, tok + ' stays a chord with no octave, got ' + JSON.stringify(kept.played[0]));
 });
@@ -372,7 +377,7 @@ if (!chrome || typeof WebSocket === 'undefined') {
       return document.getElementById('iread').textContent;
     })()`);
     check(notesShown && notesShown.indexOf('I read  72 BPM') === 0 && notesShown.indexOf('notes C5(2) Eb5 G5 Bb4') > 0 && notesShown.indexOf('arp Cm9 pendulum 16ths C5 Eb5') > 0, 'page echoes notes and arp pitches: ' + notesShown);
-    check(notesShown && notesShown.indexOf('C5 is a pitch, not a chord.') >= 0 && notesShown.split('is a pitch').length === 2 && notesShown.indexOf('notes C5') >= 0, 'page still reports a pitch that is not on a notes or arp line: ' + notesShown);
+    check(notesShown && notesShown.indexOf('is a pitch') < 0 && notesShown.indexOf('notes C5') >= 0, 'page reads a bare C5 as a note: ' + notesShown);
     async function shotPlay(name, width, height, mobile) {
       await send('Emulation.setDeviceMetricsOverride', { width, height, deviceScaleFactor: 1, mobile: !!mobile });
       await sleep(80);

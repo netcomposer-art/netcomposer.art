@@ -2173,14 +2173,9 @@
     "gather": [],
     "played": [],
     "hacks": [],
-    "words": [
-      "C5"
-    ],
-    "notes": [
-      "`C5` is a pitch, not a chord. Write `notes C5` on its own line.",
-      "Words are left for the AI. Quote them `\"like this\"` to keep them words."
-    ],
-    "iread": "C5\n`C5` is a pitch, not a chord. Write `notes C5` on its own line.\nWords are left for the AI. Quote them `\"like this\"` to keep them words.",
+    "words": [],
+    "notes": [],
+    "iread": "notes C5",
     "arp": [],
     "unmapped": [],
     "tracks": [],
@@ -2211,6 +2206,107 @@
     "words": [],
     "notes": [],
     "iread": "96 BPM · C9 2 bars · 8 beats · 5 s · synth",
+    "arp": [],
+    "unmapped": [],
+    "tracks": [],
+    "synth": false
+  },
+  {
+    "name": "octave-note-c2-e2-g2",
+    "text": "C2 E2 G2",
+    "bpm": null,
+    "clock": "legacy",
+    "seed": null,
+    "meter": "4/4",
+    "gather": [],
+    "played": [],
+    "hacks": [],
+    "words": [],
+    "notes": [],
+    "iread": "notes C2 E2 G2",
+    "arp": [],
+    "unmapped": [],
+    "tracks": [],
+    "synth": false
+  },
+  {
+    "name": "octave-note-bass",
+    "text": "@bass C2 E2 G2",
+    "bpm": null,
+    "clock": "legacy",
+    "seed": null,
+    "meter": "4/4",
+    "gather": [],
+    "played": [],
+    "hacks": [],
+    "words": [],
+    "notes": [],
+    "iread": "notes @bass C2 E2 G2",
+    "arp": [],
+    "unmapped": [],
+    "tracks": [],
+    "synth": false
+  },
+  {
+    "name": "octave-note-csus2",
+    "text": "Csus2",
+    "bpm": null,
+    "clock": "legacy",
+    "seed": null,
+    "meter": "4/4",
+    "gather": [
+      "Csus2"
+    ],
+    "played": [
+      {
+        "kind": "chord",
+        "symbol": "Csus2",
+        "bass": null,
+        "beats": null,
+        "bars": null,
+        "seconds": null,
+        "recording": 0
+      }
+    ],
+    "hacks": [],
+    "words": [],
+    "notes": [
+      "Csus2 has no length, so Play sketches it as 1 bar and Gather uses the whole recording. Write `Csus2(4)` for 4 beats or `Csus2(2|)` for 2 bars."
+    ],
+    "iread": "96 BPM · Csus2 1 bar* · 4 beats · 2.5 s · synth\nCsus2 has no length, so Play sketches it as 1 bar and Gather uses the whole recording. Write `Csus2(4)` for 4 beats or `Csus2(2|)` for 2 bars.",
+    "arp": [],
+    "unmapped": [],
+    "tracks": [],
+    "synth": false
+  },
+  {
+    "name": "octave-note-c5m9",
+    "text": "C5m9",
+    "bpm": null,
+    "clock": "legacy",
+    "seed": null,
+    "meter": "4/4",
+    "gather": [
+      "Cm9"
+    ],
+    "played": [
+      {
+        "kind": "chord",
+        "symbol": "Cm9",
+        "bass": null,
+        "beats": null,
+        "bars": null,
+        "seconds": null,
+        "recording": 0,
+        "octave": 5
+      }
+    ],
+    "hacks": [],
+    "words": [],
+    "notes": [
+      "C5m9 has no length, so Play sketches it as 1 bar and Gather uses the whole recording. Write `C5m9(4)` for 4 beats or `C5m9(2|)` for 2 bars."
+    ],
+    "iread": "96 BPM · C5m9 1 bar* · 4 beats · 2.5 s · synth\nC5m9 has no length, so Play sketches it as 1 bar and Gather uses the whole recording. Write `C5m9(4)` for 4 beats or `C5m9(2|)` for 2 bars.",
     "arp": [],
     "unmapped": [],
     "tracks": [],

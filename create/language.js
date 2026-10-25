@@ -28,6 +28,8 @@
 // An octave after the root, as in `C5m9`, puts that chord's root on the same
 // pitch as `notes C5`. `Cm9` with no octave is unchanged. Gather uses the
 // chord name and leaves the recording where it is.
+// A letter plus one octave digit is a pitch: `C2`, `F#3`, `Bb1`. `Csus2` is
+// the suspended 2 chord. `C7` and `C9` stay dominant 7 and dominant 9.
 (function (root) {
   'use strict';
   var PC = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
@@ -49,7 +51,7 @@
   var HACK_WORD = /^(?:lowpass|highpass|bandpass|reverb|delay|drive|width|comp|eq|lp|hp|bp|dl|rv|dr|cp|wd)$/i;
   var CHANGE = /\b(?:at|from)\s+bar\s+\d+\b[^.\n]{0,40}?\d+(?:\.\d+)?\s*BPM\b|\bbar\s+\d+\s*:\s*\d+(?:\.\d+)?\s*BPM\b/gi;
   var SKETCH_BPM = 96;
-  var HINT_Q = ['', 'm', '6', '7', 'maj7', 'm7', '9', 'maj9', 'm9', '11', 'm11', '13', 'maj13', 'm13', 'dim', 'dim7', 'aug', 'sus2', 'sus4', 'add9', 'm6', 'm7b5', '7b9', '7#9', '7b5', '7sus4', '9sus4', 'maj7#11', 'maj7#5', '6-9', 'm6-9', 'm-add9', 'm-maj7', '7alt', '7#11', '7b13', 'min', 'mi', 'maj', 'M7', 'sus', '9sus', '7sus', '2'];
+  var HINT_Q = ['', 'm', '7', 'maj7', 'm7', '9', 'maj9', 'm9', '11', 'm11', '13', 'maj13', 'm13', 'dim', 'dim7', 'aug', 'sus2', 'sus4', 'add9', 'm6', 'm7b5', '7b9', '7#9', '7b5', '7sus4', '9sus4', 'maj7#11', 'maj7#5', '6-9', 'm6-9', 'm-add9', 'm-maj7', '7alt', '7#11', '7b13', 'min', 'mi', 'maj', 'M7', 'sus', '9sus', '7sus', '2'];
 
   function uncomment(text) {
     return String(text || '').replace(/"(?:[^"\\]|\\.)*"/g, ' ').replace(/(?:^|\n|\s)#[^\n]*/g, ' ');
@@ -266,7 +268,7 @@
     var direct = readChord(token, inGroup, known);
     if (direct && !direct.unknown && !direct.guard) return direct;
     // Octave right after the root, then a quality: C5m9, Eb4maj7, F#3m7.
-    // A bare C5, and C9 where 9 is the quality, stay as they are.
+    // A bare C5 is the pitch. C9, where 9 is the quality, stays dominant 9.
     var split = /^([A-Ga-g])([#b]?)(-?\d+)([^\d(\s][\s\S]*)$/.exec(token);
     if (!split) return direct;
     var oct = +split[3];
@@ -278,6 +280,7 @@
     return again;
   }
   function readChord(token, inGroup, known) {
+    if (isOctaveNote(token)) return null;
     var m = /^([A-Ga-g])([#b]?)([\s\S]*)$/.exec(token);
     if (!m) return null;
     var rest = m[3], q = '', k = 0;
@@ -334,6 +337,14 @@
 
   // A pitch is a note name plus an octave, optional (beats) or (bars|).
   // C5 is a note. Cm is not. The pitches run from C-1 to G9.
+  // One octave digit is always that pitch, except 7 and 9: those stay
+  // dominant 7 and dominant 9, the only spelling each of those chords has.
+  function isOctaveNote(text) {
+    var m = /^([A-Ga-g])([#b])?(-1|[0-9])(?:\((\d+(?:\.\d+)?)(\|)?\))?$/.exec(text || '');
+    if (!m || m[3] === '7' || m[3] === '9') return false;
+    var shaped = pitchParts(text);
+    return !!(shaped && shaped.ok);
+  }
   function pitchParts(text) {
     var m = /^([A-Ga-g])(#|b)?(-?\d+)(?:\((\d+(?:\.\d+)?)(\|)?\))?$/.exec(text || '');
     if (!m) return null;
@@ -518,6 +529,11 @@
       var text = t.text, gluedName = '';
       var glued = /^(.*)@([A-Za-z][\w-]*)$/.exec(text);
       if (glued && glued[1]) { text = glued[1]; gluedName = glued[2].toLowerCase(); }
+      if (isOctaveNote(text)) {
+        var shown = pitchEcho(text);
+        if (shown) err('`' + shown.replace(/\(.*/, '') + '` is a pitch, not a chord. Write `notes ' + shown + '` on its own line.');
+        return null;
+      }
       var c = chordOf(text, inGroup, known);
       if (!c) return null;
       if (c.guard) {
@@ -1038,7 +1054,54 @@
       i += 2;
       return true;
     }
+    // `C2 E2 G2` and `@bass C2 E2 G2` are those pitches. `C7` and `C9` are
+    // not in that line: they stay dominant chords. A line that starts with
+    // `notes` is left to tryNotes.
+    function tryPitchLine() {
+      if (!tokens[i]) return false;
+      var limit = statementEnd(tokenPos(tokens[i]));
+      var j = i, pitches = 0, parts = [], inst = '';
+      while (j < tokens.length && tokenPos(tokens[j]) < limit && !blockedTrack(j)) {
+        var tok = tokens[j];
+        if (!tok || tok.type !== 'word') return false;
+        var glued = /^(.*)@([A-Za-z][\w-]*)$/.exec(tok.text);
+        if (glued && glued[1] && isOctaveNote(glued[1])) {
+          var gluedEcho = pitchEcho(glued[1]);
+          if (!gluedEcho) return false;
+          parts.push(gluedEcho);
+          parts.push('@' + glued[2].toLowerCase());
+          inst = glued[2].toLowerCase();
+          pitches++;
+          j++;
+          continue;
+        }
+        var at = /^@([A-Za-z][\w-]*)$/.exec(tok.text);
+        if (at) { parts.push('@' + at[1].toLowerCase()); inst = at[1].toLowerCase(); j++; continue; }
+        if (isOctaveNote(tok.text)) {
+          var echo = pitchEcho(tok.text);
+          if (!echo) return false;
+          parts.push(echo);
+          pitches++;
+          j++;
+          continue;
+        }
+        var fmGlued = /^fm(\d+(?:\.\d+)?)$/i.exec(tok.text);
+        if (fmGlued) { parts.push('fm ' + trimNum(+fmGlued[1])); j++; continue; }
+        if (/^fm$/i.test(tok.text) && tokens[j + 1] && tokens[j + 1].type === 'word' && tokenPos(tokens[j + 1]) < limit && /^\d+(?:\.\d+)?$/.test(tokens[j + 1].text)) {
+          parts.push('fm ' + trimNum(+tokens[j + 1].text));
+          j += 2;
+          continue;
+        }
+        return false;
+      }
+      if (!pitches) return false;
+      i = j;
+      if (inst) setInstrument(inst);
+      musSyntax().push({ kind: 'notes', implicit: true, text: 'notes ' + parts.join(' ') });
+      return true;
+    }
     function atStatement() {
+      if (tryPitchLine()) return true;
       if (tryAt()) return true;
       if (tryHack()) return true;
       if (tryTempo()) return true;
