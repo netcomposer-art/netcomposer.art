@@ -507,7 +507,7 @@
       },
       {
         "bar": 3,
-        "chord": "G7/B",
+        "chord": "Gdom7/B",
         "chord_pcs": [
           "D",
           "F",
@@ -1074,7 +1074,7 @@
       },
       {
         "bar": 6,
-        "chord": "D7/C",
+        "chord": "Ddom7/C",
         "chord_pcs": [
           "C",
           "D",
@@ -1926,7 +1926,7 @@
       },
       {
         "bar": 10,
-        "chord": "D7",
+        "chord": "Ddom7",
         "chord_pcs": [
           "C",
           "D",
@@ -3561,7 +3561,7 @@
       },
       {
         "bar": 18,
-        "chord": "G7",
+        "chord": "Gdom7",
         "chord_pcs": [
           "D",
           "F",
@@ -3986,7 +3986,7 @@
       },
       {
         "bar": 20,
-        "chord": "C7",
+        "chord": "Cdom7",
         "chord_pcs": [
           "C",
           "E",
@@ -4832,7 +4832,7 @@
       },
       {
         "bar": 24,
-        "chord": "G7",
+        "chord": "Gdom7",
         "chord_pcs": [
           "D",
           "F",
@@ -5467,7 +5467,7 @@
       },
       {
         "bar": 27,
-        "chord": "G7",
+        "chord": "Gdom7",
         "chord_pcs": [
           "D",
           "F",
@@ -6348,7 +6348,7 @@
       },
       {
         "bar": 31,
-        "chord": "G7",
+        "chord": "Gdom7",
         "chord_pcs": [
           "D",
           "F",
@@ -6563,7 +6563,7 @@
       },
       {
         "bar": 32,
-        "chord": "C7",
+        "chord": "Cdom7",
         "chord_pcs": [
           "C",
           "E",
@@ -6994,7 +6994,7 @@
       },
       {
         "bar": 34,
-        "chord": "G7/C",
+        "chord": "Gdom7/C",
         "chord_pcs": [
           "D",
           "F",

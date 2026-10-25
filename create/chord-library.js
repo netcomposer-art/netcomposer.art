@@ -193,7 +193,7 @@
   // Composition quality (after the language aliases) → library id.
   // null is a real Composition chord with no library definition.
   var COMPOSITION = {
-    '': 'major', '6': 'major-6', '6-9': '6-9', '7': 'dominant-7',
+    '': 'major', '6': 'major-6', '6-9': '6-9', '7': 'dominant-7', 'pow': 'power',
     '7#11': null, '7#9': '7-sharp9', '7alt': '7alt', '7b13': null,
     '7b5': '7b5', '7b9': '7b9', '7sus4': '7sus4', '9': 'dominant-9',
     '9sus4': '9sus4', '13': 'dominant-13', 'add9': 'add9', 'aug': 'augmented',

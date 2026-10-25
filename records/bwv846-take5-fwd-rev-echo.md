@@ -61,7 +61,7 @@ Tempo: 69 BPM, broadening over bars 33–35 (+4%, +10%, +18%). Two strikes per b
 
 - Bars 26, 30: Layered substitution: G7sus4 = Gsus4 + Csus4/G (no 7sus4 recording)
 - Bars 28: G pedal under F#dim7 not carried (G is not a chord tone of any dim7 take)
-- Bars 34: C pedal under G7 not available
+- Bars 34: C pedal under Gdom7 not available
 
 ## License & attribution
 

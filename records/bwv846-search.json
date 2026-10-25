@@ -143,7 +143,7 @@
       },
       {
         "bar": 3,
-        "chord": "G7/B",
+        "chord": "Gdom7/B",
         "section": 1,
         "rhythm_donor": {
           "freesound_id": 445632,
@@ -218,7 +218,7 @@
       },
       {
         "bar": 6,
-        "chord": "D7/C",
+        "chord": "Ddom7/C",
         "section": 1,
         "rhythm_donor": {
           "freesound_id": 445632,
@@ -319,7 +319,7 @@
       },
       {
         "bar": 10,
-        "chord": "D7",
+        "chord": "Ddom7",
         "section": 1,
         "rhythm_donor": {
           "freesound_id": 445632,
@@ -496,7 +496,7 @@
       },
       {
         "bar": 18,
-        "chord": "G7",
+        "chord": "Gdom7",
         "section": 3,
         "rhythm_donor": {
           "freesound_id": 553948,
@@ -546,7 +546,7 @@
       },
       {
         "bar": 20,
-        "chord": "C7",
+        "chord": "Cdom7",
         "section": 4,
         "rhythm_donor": {
           "freesound_id": 527783,
@@ -632,7 +632,7 @@
       },
       {
         "bar": 24,
-        "chord": "G7",
+        "chord": "Gdom7",
         "section": 5,
         "rhythm_donor": {
           "freesound_id": 572381,
@@ -707,7 +707,7 @@
       },
       {
         "bar": 27,
-        "chord": "G7",
+        "chord": "Gdom7",
         "section": 5,
         "rhythm_donor": {
           "freesound_id": 572381,
@@ -809,7 +809,7 @@
       },
       {
         "bar": 31,
-        "chord": "G7",
+        "chord": "Gdom7",
         "section": 5,
         "rhythm_donor": {
           "freesound_id": 572381,
@@ -834,7 +834,7 @@
       },
       {
         "bar": 32,
-        "chord": "C7",
+        "chord": "Cdom7",
         "section": 6,
         "rhythm_donor": {
           "freesound_id": 106749,
@@ -884,7 +884,7 @@
       },
       {
         "bar": 34,
-        "chord": "G7/C",
+        "chord": "Gdom7/C",
         "section": 6,
         "rhythm_donor": {
           "freesound_id": 106749,

@@ -212,7 +212,7 @@ function byId(id) {
   return els[id];
 }
 ['comp', 'perf', 'perform-status', 'perform-out', 'perform-audio', 'gather-list', 'gatherBtn', 'performBtn', 'gather-again', 'perform-public', 'perform-keep', 'plan-src', 'plan-seed', 'src-lanes', 'src-time', 'src-now', 'live', 'perform-title', 'perform-sources', 'perform-mp3', 'perform-flac', 'perform-record', 'perform-bar', 'perform-kept', 'perform-keep-note', 'perform-meta', 'perform-claim', 'perform-turnstile', 'perform-stop', 'perform-trim', 'foot-src', 'foot-tester', 'perform-record-view', 'perform-json', 'perform-json-pre', 'gather-box'].forEach(byId);
-byId('comp').value = 'Surprise in C minor\nCm7 Dm7b5 G7 Cm9 Gm9';
+byId('comp').value = 'Surprise in C minor\nCm7 Dm7b5 Gdom7 Cm9 Gm9';
 byId('perf').value = 'A mixed collection after the cellos.';
 byId('perform-out').hidden = true;
 

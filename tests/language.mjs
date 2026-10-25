@@ -181,11 +181,24 @@ const bassPitches = L.parse('@bass C2 E2 G2', { known });
 check(bassPitches.iread === 'notes @bass C2 E2 G2' && bassPitches.gather.length === 0 && bassPitches.played.length === 0 && bassPitches.instrument === 'bass', '@bass C2 E2 G2 is three notes, got ' + bassPitches.iread);
 check(L.parse('t1: @bass C2 E2 G2', { known }).tracks[0].kind === 'notes' && L.parse('arp C2', { known }).arp[0].chord == null && L.parse('arp Csus2', { known }).arp[0].chord === 'Csus2', 'tracks and arp read C2 as a pitch and Csus2 as a chord');
 check(L.parse('Csus2', { known }).gather[0] === 'Csus2' && L.parse('C5m9', { known }).played[0].symbol === 'Cm9' && L.parse('C5m9', { known }).played[0].octave === 5, 'Csus2 stays a chord and C5m9 keeps its octave');
-check(L.parse('C7', { known }).gather[0] === 'C7' && L.parse('C9(2|)', { known }).gather[0] === 'C9' && L.parse('C6', { known }).iread === 'notes C6' && L.parse('F#3', { known }).iread === 'notes F#3' && L.parse('Bb1', { known }).iread === 'notes Bb1', 'C7 and C9 stay dominant chords; C6, F#3, and Bb1 are notes');
-['C9', 'C7', 'C13', 'C7b9', 'C9sus4', 'fm9'].forEach((tok) => {
+check(L.parse('C7', { known }).iread === 'notes C7' && L.parse('C9', { known }).iread === 'notes C9' && L.parse('C6', { known }).iread === 'notes C6' && L.parse('C5', { known }).iread === 'notes C5' && L.parse('C2', { known }).iread === 'notes C2' && L.parse('F#3', { known }).iread === 'notes F#3' && L.parse('Bb1', { known }).iread === 'notes Bb1', 'one octave digit is always a note');
+check(L.parse('Cdom7', { known }).gather[0] === 'C7' && L.parse('Cdom7', { known }).iread.indexOf('Cdom7') >= 0 && L.parse('Cdom9(2|)', { known }).gather[0] === 'C9' && L.parse('Cdom9(2|)', { known }).iread.indexOf('Cdom9') >= 0, 'dom7 and dom9 gather the old catalog chords, got ' + L.parse('Cdom7', { known }).iread);
+check(L.parse('Cmaj6', { known }).gather[0] === 'C6' && L.parse('Cmaj6', { known }).played[0].symbol === 'C6' && L.parse('Cmaj6', { known }).iread.indexOf('Cmaj6') >= 0, 'maj6 gathers major 6, got ' + L.parse('Cmaj6', { known }).iread);
+const pow = L.parse('Cpow', { known });
+check(pow.played[0].symbol === 'Cpow' && pow.gather.length === 0 && pow.iread.indexOf('Cpow') >= 0 && L.parse('arp Cpow', { known }).arp[0].chordId === 'power' && L.parse('arp Cpow', { known }).arp[0].chord === 'Cpow', 'pow is a power chord and is not gathered, got ' + pow.iread + ' ' + JSON.stringify(L.parse('arp Cpow', { known }).arp[0]));
+const domOct = L.parse('C4dom7/E', { known });
+check(domOct.played[0].symbol === 'C7' && domOct.played[0].octave === 4 && domOct.played[0].bass === 4 && domOct.gather[0] === 'C7' && domOct.iread.indexOf('C4dom7/E') >= 0, 'chord octave and slash on dom7, got ' + domOct.iread);
+const powOct = L.parse('C3pow', { known });
+check(powOct.played[0].symbol === 'Cpow' && powOct.played[0].octave === 3 && powOct.iread.indexOf('C3pow') >= 0, 'pow takes an octave, got ' + powOct.iread);
+check(L.parse('t1: Cdom7(1|)', { known }).tracks[0].kind === 'chords' && L.parse('t1: Cdom7(1|)', { known }).tracks[0].played[0].symbol === 'C7' && L.parse('arp C4dom7', { known }).arp[0].chord === 'C4dom7' && L.parse('arp C4dom7', { known }).arp[0].chordId === 'dominant-7' && L.parse('arp C4dom7', { known }).arp[0].rootOctave === 4, 'dom7 works on a track and an arp');
+check(L.parse('C7/E', { known }).played.length === 0 && L.parse('C6/E', { known }).played.length === 0 && L.parse('C2/E', { known }).played.length === 0, 'a bare octave digit with a slash is not the old chord');
+['C13', 'C7b9', 'C9sus4', 'C7sus4', 'fm9', 'C11'].forEach((tok) => {
   const kept = L.parse(tok, { known });
-  check(kept.played.length === 1 && kept.played[0].octave == null && kept.gather.length === 1, tok + ' stays a chord with no octave, got ' + JSON.stringify(kept.played[0]));
+  const chord = kept.played.length === 1 && kept.played[0].octave == null;
+  const arp = tok === 'C11' && L.parse('arp C11', { known }).arp[0].chordId === 'dominant-11';
+  check(tok === 'C11' ? (kept.played.length === 0 && arp) : (chord && kept.gather.length === 1), tok + ' stays as it was, got ' + JSON.stringify(kept.played[0]) + ' ' + kept.iread);
 });
+check(L.parse('C69', { known }).played[0].symbol === 'C6-9' && L.parse('C6/9', { known }).played[0].symbol === 'C6-9', 'C69 and C6/9 stay the six-nine chord');
 check(L.parse('C6/9', { known }).played[0].symbol === 'C6-9' && L.parse('C6/9', { known }).played[0].octave == null, 'C6/9 stays the six-nine chord');
 const c5m9 = L.parse('C5m9(4|)', { known });
 check(c5m9.played[0].symbol === 'Cm9' && c5m9.played[0].octave === 5 && c5m9.gather.join() === 'Cm9' && c5m9.iread.indexOf('C5m9 4 bars') >= 0, 'C5m9 is Cm9 on C5, got ' + c5m9.iread);
@@ -227,8 +240,9 @@ check(L.parse('lp500->200', { known }).hacks[0].ramp === 200 && L.parse('dl20->8
 
 // The finder the page used before this slice. Starters and published
 // Compositions must list the same chords, including bass.
-const TOKEN = /(^|[^A-Za-z#])([A-G](?:#|b)?)((?:maj|min|mi|m|M|dim|aug|sus|add|alt|ø|°|Δ|o|\+|-|[0-9]|#|b|\(|\)|\/(?=9))*)(\/[A-G](?:#|b)?)?(?![A-Za-z])/g;
-const ALIAS = {'maj': '', 'M': '', 'min': 'm', '-': 'm', 'mi': 'm', 'Δ7': 'maj7', 'Δ': 'maj7', 'M7': 'maj7', 'ma7': 'maj7', 'M9': 'maj9', 'ø7': 'm7b5', 'ø': 'm7b5', '°7': 'dim7', 'o7': 'dim7', '°': 'dim', 'o': 'dim', '+': 'aug', '#5': 'aug', 'mMaj7': 'm-maj7', 'mmaj7': 'm-maj7', 'm(maj7)': 'm-maj7', 'madd9': 'm-add9', 'm(add9)': 'm-add9', '6/9': '6-9', '69': '6-9', 'm6/9': 'm6-9', 'm69': 'm6-9', 'sus': 'sus4', '7sus': '7sus4', '9sus': '9sus4', 'add2': 'add9', '2': 'sus2', '7+5': 'maj7#5'};
+const TOKEN = /(^|[^A-Za-z#])([A-G](?:#|b)?)((?:dom|pow|maj|min|mi|m|M|dim|aug|sus|add|alt|ø|°|Δ|o|\+|-|[0-9]|#|b|\(|\)|\/(?=9))*)(\/[A-G](?:#|b)?)?(?![A-Za-z])/g;
+const ALIAS = {'maj': '', 'M': '', 'min': 'm', '-': 'm', 'mi': 'm', 'Δ7': 'maj7', 'Δ': 'maj7', 'M7': 'maj7', 'ma7': 'maj7', 'M9': 'maj9', 'ø7': 'm7b5', 'ø': 'm7b5', '°7': 'dim7', 'o7': 'dim7', '°': 'dim', 'o': 'dim', '+': 'aug', '#5': 'aug', 'mMaj7': 'm-maj7', 'mmaj7': 'm-maj7', 'm(maj7)': 'm-maj7', 'madd9': 'm-add9', 'm(add9)': 'm-add9', '6/9': '6-9', '69': '6-9', 'm6/9': 'm6-9', 'm69': 'm6-9', 'sus': 'sus4', '7sus': '7sus4', '9sus': '9sus4', 'add2': 'add9', '7+5': 'maj7#5', 'dom7': '7', 'dom9': '9', 'maj6': '6'};
+const BARE_OCTAVE = { '2': 1, '5': 1, '6': 1, '7': 1, '9': 1 };
 const PC = {C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11};
 const SPELL = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab', 'A', 'Bb', 'B'];
 function pcOf(n) { return (PC[n[0]] + (n[1] === '#' ? 1 : n[1] === 'b' ? -1 : 0) + 12) % 12; }
@@ -238,6 +252,8 @@ function legacy(text) {
     let q = m[3].replace(/[()]+$/, '');
     const after = text.slice(TOKEN.lastIndex, TOKEN.lastIndex + 2);
     if (m[2] === 'A' && !m[3] && !m[4] && /^ [a-z]/.test(after)) continue;
+    if (BARE_OCTAVE[q]) continue;
+    if (q === 'pow') { out.push(SPELL[pcOf(m[2])] + 'pow' + (m[4] ? '/' + m[4].slice(1) : '')); continue; }
     if (!(q in QUALS) && (q in ALIAS)) q = ALIAS[q];
     if (!(q in QUALS)) continue;
     out.push(SPELL[pcOf(m[2])] + q + (m[4] ? '/' + m[4].slice(1) : ''));

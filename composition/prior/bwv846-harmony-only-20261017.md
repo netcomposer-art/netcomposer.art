@@ -25,22 +25,22 @@ Keep the harmony clear and the space modest: a room, not a cathedral.
 | Bar | Chord | Bar | Chord | Bar | Chord |
 |---|---|---|---|---|---|
 | 1 | C | 13 | Dm/F | 25 | C/G |
-| 2 | Dm7/C | 14 | Bdim7/F | 26 | G7sus4 (→ G7) |
-| 3 | G7/B | 15 | C/E | 27 | G7 |
+| 2 | Dm7/C | 14 | Bdim7/F | 26 | G7sus4 (→ Gdom7) |
+| 3 | Gdom7/B | 15 | C/E | 27 | Gdom7 |
 | 4 | C | 16 | Fmaj7/E | 28 | F#dim7/G |
 | 5 | Am/C | 17 | Dm7 | 29 | C/G |
-| 6 | D7/C | 18 | G7 | 30 | G7sus4 (→ G7) |
-| 7 | G/B | 19 | C | 31 | G7 |
-| 8 | Cmaj7/B | 20 | C7 | 32 | C7 (C pedal) |
+| 6 | Ddom7/C | 18 | Gdom7 | 30 | G7sus4 (→ Gdom7) |
+| 7 | G/B | 19 | C | 31 | Gdom7 |
+| 8 | Cmaj7/B | 20 | Cdom7 | 32 | Cdom7 (C pedal) |
 | 9 | Am7 | 21 | Fmaj7 | 33 | Dm7/C |
-| 10 | D7 | 22 | F#dim7 | 34 | G7/C |
+| 10 | Ddom7 | 22 | F#dim7 | 34 | Gdom7/C |
 | 11 | G | 23 | Bdim7/Ab | 35 | C (held, ringing) |
-| 12 | C#dim7/G | 24 | G7 (G pedal begins) | | |
+| 12 | C#dim7/G | 24 | Gdom7 (G pedal begins) | | |
 
 Slash chords name the bass. Bars 24–31 sit on a G pedal and bars 32–35 on a C pedal. A Performer that can't
 match a bass note may let it go, but it should keep the chord.
 
-*Structure (spec §5.6):* `4/4 · 69 BPM · [1 bar C][1 bar Dm7/C][1 bar G7/B] … [1 bar C] · 35 sections · loops: 1`
+*Structure (spec §5.6):* `4/4 · 69 BPM · [1 bar C][1 bar Dm7/C][1 bar Gdom7/B] … [1 bar C] · 35 sections · loops: 1`
 
 ## Credits
 
