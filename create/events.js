@@ -18,7 +18,6 @@
   var LEAD = 0.05;
   var HORIZON = 0.12;
   var TICK = 25;
-  var LIBRARY = { guitar: 'guitar', piano: 'piano', cello: 'cello-pizzicato', 'cello-pizzicato': 'cello-pizzicato' };
   var current = null;
 
   function beatOf(bpm) { return 60 / (bpm > 0 ? bpm : 96); }
@@ -30,8 +29,11 @@
     return '';
   }
   function librarySlug(name) {
-    var key = String(name || '').toLowerCase();
-    return LIBRARY[key] || '';
+    if (root.NCInstruments && NCInstruments.slug) return NCInstruments.slug(name) || '';
+    return '';
+  }
+  function playsChords(name) {
+    return !!(root.NCInstruments && NCInstruments.playsChords && NCInstruments.playsChords(name));
   }
   function copyNote(ev) {
     return {
@@ -69,11 +71,16 @@
     };
   }
   // Notes and arp tracks can play the sampler. @synth stays the synth.
-  // A named sampler (@piano, @guitar, @cello) is the sampler even when the
-  // hidden sampler switch is off. Any other @name keeps the synth out.
+  // A name in NCInstruments is the sampler even when the hidden sampler
+  // switch is off. @bass does that on a chord track too. Bass is B1–A#4.
+  // Any other @name keeps the synth out.
   function roleOf(tr) {
     if (!tr) return '';
-    if (tr.kind === 'chords') return tr.instrument === 'synth' ? 'synth' : 'audio';
+    if (tr.kind === 'chords') {
+      if (tr.instrument === 'synth') return 'synth';
+      if (playsChords(tr.instrument)) return 'sampler';
+      return 'audio';
+    }
     if (tr.kind !== 'notes' && tr.kind !== 'arp') return '';
     if (tr.instrument === 'synth') return 'synth';
     var named = librarySlug(tr.instrument);
@@ -210,6 +217,9 @@
       }
       var src = bare(tr);
       if (role === 'sampler') src.source = String(src.source || '').replace(/@[A-Za-z][\w-]*/g, '');
+      // voiceOf expands a chord track only when the instrument is synth.
+      // The slug below stays the sampler name from the written line.
+      if (role === 'sampler' && tr.kind === 'chords') src.instrument = 'synth';
       var voice = root.NCSynth && NCSynth.voiceOf ? NCSynth.voiceOf(src, parsed, i) : null;
       if (!voice || !voice.events || !voice.events.length) return;
       var fm = voice.fmDepth == null ? 0 : voice.fmDepth;

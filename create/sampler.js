@@ -18,11 +18,8 @@
   var RING_S = 8;
   var FADE_S = 0.12;
   var API_NOTES = 'https://nc-perform-api.psemme.workers.dev/api/notes/';
-  var LIBRARY = [
-    {slug: 'guitar', name: 'Guitar', spread: 0.018},
-    {slug: 'cello-pizzicato', name: 'Cello pizzicato', spread: 0.015},
-    {slug: 'piano', name: 'Piano', spread: 0.008}
-  ];
+  // The names live in instruments.js so events.js and this panel share one list.
+  var LIBRARY = (root.NCInstruments && NCInstruments.rows) ? NCInstruments.rows : [];
   var configured = '';
   var manifests = {};
   var cache = {};
