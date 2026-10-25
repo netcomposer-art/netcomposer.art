@@ -35,6 +35,14 @@
     if (any) return !!row.solo;
     return !row.mute;
   }
+  // t1 is input 0 … t8 is input 7. Every other lane shares input 8.
+  function trackSlot(id) {
+    var m = /^t(\d+)$/i.exec(String(id || ''));
+    if (!m) return 8;
+    var n = +m[1];
+    if (n >= 1 && n <= 8) return n - 1;
+    return 8;
+  }
   function secs(n) { return +(+n).toFixed(3); }
   function layoutChords(chords) {
     var entries = [], cursor = 0, i, c, written, nominal, at;
@@ -80,7 +88,7 @@
   }
 
   if (typeof document === 'undefined') {
-    root.NCArrange = { layoutChords: layoutChords, commit: commit, addLane: function () {}, mixAudible: mixAudible };
+    root.NCArrange = { layoutChords: layoutChords, commit: commit, addLane: function () {}, mixAudible: mixAudible, trackSlot: trackSlot };
     return;
   }
 
@@ -665,6 +673,7 @@
     disarm: disarm,
     resumeFrom: resumeFrom,
     mixAudible: mixAudible,
+    trackSlot: trackSlot,
     audible: audible,
     hold: hold,
     clearMix: clearMix

@@ -33,6 +33,7 @@
   var sources = [];
   var timers = [];
   var mixReleases = [];
+  var playSlots = [];
   var sac = null;
   var savedCopy = {};
   var prefetchToken = 0;
@@ -410,10 +411,20 @@
     timers.splice(0).forEach(function (t) { clearTimeout(t); });
     sources.splice(0).forEach(function (s) { try { s.stop(); } catch (e) {} });
     mixReleases.splice(0).forEach(function (fn) { try { fn(); } catch (e) {} });
+    playSlots = [];
+  }
+  function slotBus(ctx, id) {
+    var slot = root.NCArrange && NCArrange.trackSlot ? NCArrange.trackSlot(id) : 8;
+    if (playSlots[slot]) return playSlots[slot];
+    var bus = ctx.createGain();
+    bus.gain.value = 1;
+    bus.connect(ctx.destination);
+    playSlots[slot] = bus;
+    return bus;
   }
   function openBus(ctx, id) {
     var g = ctx.createGain();
-    g.connect(ctx.destination);
+    g.connect(slotBus(ctx, id));
     if (root.NCArrange && NCArrange.hold) mixReleases.push(NCArrange.hold(id, g, 1, ctx));
     else g.gain.value = 1;
     return g;

@@ -116,7 +116,7 @@ function syncAudio(snap) {
       seq = seq.then(function () { return G.api.send({op: 'add', widget: w}); });
       known[w.id] = 1;
     } else {
-      seq = seq.then(function () { return G.api.send({op: 'patch', id: w.id, params: w.params, bypass: !!w.bypass, immediate: !!snap}); });
+      seq = seq.then(function () { return G.api.send({op: 'patch', id: w.id, params: w.params, bypass: !!w.bypass, immediate: !!snap, auto: w.auto || null}); });
     }
   });
   Object.keys(known).forEach(function (id) { if (ids.indexOf(id) < 0) delete known[id]; });
@@ -128,11 +128,37 @@ function syncAudio(snap) {
   }
   return seq;
 }
+// t1 is worklet input 0 … t8 is input 7. Chords, the player, and any later
+// track share input 8, the dry bus into the master chain. Empty track chains
+// copy their samples, so the sum still matches one mix into the master.
+function trackInput(n) {
+  var i = 0;
+  if (typeof n === 'number' && n === n) i = n;
+  else if (typeof n === 'string') {
+    var m = /^t(\d+)$/i.exec(n);
+    if (m) i = +m[1];
+  }
+  if (i >= 1 && i <= 8) return i - 1;
+  return 8;
+}
+function busFor(n) {
+  graph();
+  var slot = trackInput(n);
+  return (G.buses && G.buses[slot]) || G.input;
+}
 function graph() {
   if (G) return G;
   var Ctx = window.AudioContext || window.webkitAudioContext;
   try { AC = new Ctx({sampleRate: 48000}); } catch (e) { AC = new Ctx(); }
-  G = {input: AC.createGain(), sink: AC.createGain(), hack: null, api: null, ready: null, known: {}, orderKey: ''};
+  G = {input: null, buses: [], sink: AC.createGain(), hack: null, api: null, ready: null, known: {}, orderKey: ''};
+  var b, bus;
+  for (b = 0; b < 9; b++) {
+    bus = AC.createGain();
+    bus.gain.value = 1;
+    G.buses.push(bus);
+  }
+  // Unnumbered audio uses the dry master bus. The gain is 1: 0.8 stays on the master.
+  G.input = G.buses[8];
   G.meter = AC.createAnalyser(); G.meter.fftSize = 2048; G.meter.smoothingTimeConstant = 0.3;
   G.sink.gain.value = 0; G.sink.connect(AC.destination);
   G.ready = NCHacks.attach(AC).then(function (api) {
@@ -149,11 +175,13 @@ function graph() {
     }
     return replaceAudio();
   }).then(function () {
-    G.input.connect(G.hack);
+    // One bus per worklet input. Empty chains pass the samples through.
+    G.buses.forEach(function (one, i) { one.connect(G.hack, 0, i); });
     return G;
   }).catch(function () {
     var dry = AC.createGain(); dry.gain.value = 0.8; G.master = dry;
-    G.input.connect(dry); dry.connect(AC.destination); dry.connect(G.meter);
+    G.buses.forEach(function (one) { one.connect(dry); });
+    dry.connect(AC.destination); dry.connect(G.meter);
     status('These hacks need a browser that can run an audio worklet.');
     return G;
   });
@@ -171,6 +199,34 @@ function prime() {
   if (AC.state === 'suspended') AC.resume();
   return AC;
 }
+var clockRaf = 0;
+function postClock() {
+  if (!G || !G.hack || !AC) return;
+  var a = player();
+  var dur = a && a.duration;
+  if (!(dur > 0) || dur === Infinity) return;
+  var pos = (a.currentTime || 0) / dur;
+  if (pos < 0) pos = 0;
+  if (pos > 1) pos = 1;
+  var step = (live && !a.paused) ? 1 / (dur * AC.sampleRate) : 0;
+  try { G.hack.port.postMessage({ op: 'clock', pos: pos, step: step }); } catch (err) {}
+  if (window.NCStack && NCStack.follow) NCStack.follow(pos);
+}
+function armClock() {
+  if (clockRaf || !window.requestAnimationFrame) { postClock(); return; }
+  var tick = function () {
+    clockRaf = 0;
+    postClock();
+    if (!live) return;
+    clockRaf = requestAnimationFrame(tick);
+  };
+  tick();
+}
+function stopClock() {
+  if (clockRaf && window.cancelAnimationFrame) cancelAnimationFrame(clockRaf);
+  clockRaf = 0;
+  postClock();
+}
 function wirePlayer(a) {
   if (a._ncLive) return;
   a._ncLive = true;
@@ -187,11 +243,13 @@ function wirePlayer(a) {
     // The page player is the clock. Starting it places the rendered clips,
     // or the live engine, from the playhead. perform.js does this too.
     if (lastSpec) scheduleClips({ entries: lastSpec.entries, offset: a.currentTime || 0 });
+    armClock();
     buttons();
   });
-  a.addEventListener('pause', function () { live = false; buttons(); });
+  a.addEventListener('pause', function () { live = false; stopClock(); buttons(); });
   a.addEventListener('ended', function () {
     live = false;
+    stopClock();
     if (REC && !a.loop) finish('The Performance ended; the take is ready.');
     else buttons();
   });
@@ -362,7 +420,7 @@ var clipNodes = [], clipPlays = 0, clipEnd = 0;
 // The written synth line, played by the engine into the hack chain when the
 // Live toggle is on. Off: the rendered buffer is one more clip, as before.
 var SYNTH = null, synthEngine = null, synthOpening = null, synthGen = 0, lastSpec = null, lastAlign = null, lastNotes = [];
-var laneGains = {}, synthGain = null, synthHold = null, synthLane = '';
+var feeds = {};
 function synthWanted() {
   var box = $('live-synth-on');
   return !!(box && box.checked && SYNTH && SYNTH.notes && SYNTH.notes.length);
@@ -384,7 +442,8 @@ function ensureEngine() {
     if (settings && settings.oscillatorMode === 'wavetable') settings.oscillatorMode = 'vco';
     var engine = new Eng(settings);
     var random = window.NCSynth && NCSynth.mulberry32 ? NCSynth.mulberry32(part.seed) : Math.random;
-    return engine.open(AC, random, synthOut((SYNTH && SYNTH.lane) || part.lane || 'synth')).then(function () {
+    var lane = (SYNTH && SYNTH.lane) || (part && part.track >= 1 ? 't' + part.track : 'synth');
+    return engine.open(AC, random, laneFeed(lane, busFor(part && part.track))).then(function () {
       synthEngine = engine;
       synthOpening = null;
       return engine;
@@ -423,33 +482,25 @@ function startSynth(when, offset) {
     lastAlign = { when: when, offset: offset, ac: AC ? AC.currentTime : null, media: a.currentTime || 0, notes: notes };
   }).catch(function () {});
 }
-function laneDest(id) {
-  id = id || 'chords';
-  var row = laneGains[id];
-  if (row && row.node) return row.node;
+// Solo and Mute sit on the way into that track's bus. The bus itself stays
+// at unity: t1–t8 are inputs 0–7, and every other lane shares input 8.
+function laneFeed(lane, bus) {
+  lane = lane || 'chords';
+  var row = feeds[lane];
+  if (row && row.bus === bus) return row.gain;
+  if (row && row.release) { try { row.release(); } catch (e) {} }
   var g = AC.createGain();
-  g.connect(G.input);
-  var release = window.NCArrange && NCArrange.hold ? NCArrange.hold(id, g, 1, AC) : null;
+  g.connect(bus);
+  var release = window.NCArrange && NCArrange.hold ? NCArrange.hold(lane, g, 1, AC) : null;
   if (!release) g.gain.value = 1;
-  laneGains[id] = { node: g, release: release };
+  feeds[lane] = { gain: g, bus: bus, release: release };
   return g;
 }
-function synthOut(lane) {
-  if (!synthGain) {
-    synthGain = AC.createGain();
-    synthGain.connect(G.input);
-  }
-  lane = lane || '';
-  if (lane && lane === synthLane && synthHold) return synthGain;
-  if (synthHold) { try { synthHold(); } catch (e) {} synthHold = null; }
-  synthLane = lane;
-  if (lane && window.NCArrange && NCArrange.hold) synthHold = NCArrange.hold(lane, synthGain, 1, AC);
-  else {
-    var v = lane ? 1 : 0;
-    try { synthGain.gain.cancelScheduledValues(AC.currentTime); synthGain.gain.setValueAtTime(v, AC.currentTime); }
-    catch (e2) { synthGain.gain.value = v; }
-  }
-  return synthGain;
+function clipLane(entry) {
+  if (!entry) return 'chords';
+  if (entry.lane) return entry.lane;
+  if (entry.track >= 1) return 't' + entry.track;
+  return 'chords';
 }
 function setSynthPart(part) {
   var depth = part && part.settings && part.settings.fmDepth != null ? +part.settings.fmDepth : (part && +part.depth) || 0;
@@ -462,15 +513,15 @@ function setSynthPart(part) {
     seed: (part.seed >>> 0) || 1,
     depth: depth,
     mods: part.mods || [],
-    lane: part.lane || 'synth'
+    lane: part.lane || (part.track >= 1 ? 't' + part.track : 'synth'),
+    track: part.track >= 1 ? part.track : null
   } : null;
-  if (synthEngine && (!next || !SYNTH || next.seed !== SYNTH.seed)) {
+  if (synthEngine && (!next || !SYNTH || next.seed !== SYNTH.seed || next.track !== SYNTH.track || next.lane !== SYNTH.lane)) {
     try { synthEngine.panic(); } catch (e) {}
     synthEngine = null;
     synthOpening = null;
   }
   SYNTH = next;
-  if (G && AC) synthOut(next && next.lane || '');
   var row = $('live-synth'), name = $('live-synth-name'), box = $('live-synth-on');
   if (!next) {
     if (box) box.checked = false;
@@ -583,9 +634,11 @@ function scheduleClips(spec) {
     var offset = spec.offset || 0;
     var liveOn = synthWanted();
     (spec.entries || []).forEach(function (entry) {
-      // The rendered synth buffer stays out of the chain while the engine plays it.
-      if (liveOn && entry.synth && (entry.lane || 'synth') === ((SYNTH && SYNTH.lane) || 'synth')) return;
-      var node = placeClip(AC, laneDest(entry.lane || 'chords'), entry, when, offset);
+      // The rendered synth buffer stays out while the engine plays that same track.
+      var lane = clipLane(entry);
+      var liveLane = SYNTH && (SYNTH.lane || (SYNTH.track >= 1 ? 't' + SYNTH.track : 'synth'));
+      if (liveOn && entry.synth && lane === liveLane) return;
+      var node = placeClip(AC, laneFeed(lane, busFor(entry.track)), entry, when, offset);
       if (node) {
         node.synth = !!entry.synth;
         clipNodes.push(node);
@@ -610,13 +663,19 @@ function renderBuffers(spec) {
     if (musical + tail > 180) tail = Math.max(0, 180 - musical);
     var total = musical + tail;
     var off = new (window.OfflineAudioContext || window.webkitOfflineAudioContext)(2, Math.max(1, Math.ceil(total * rate)), rate);
-    var bus = off.createGain();
+    var buses = [], bi, one;
+    for (bi = 0; bi < 9; bi++) {
+      one = off.createGain();
+      one.gain.value = 1;
+      buses.push(one);
+    }
     (spec.entries || []).forEach(function (entry) {
-      if (entry && entry.lane && window.NCArrange && NCArrange.audible && !NCArrange.audible(entry.lane)) return;
-      placeClip(off, bus, entry, 0, 0);
+      var lane = clipLane(entry);
+      if (lane && window.NCArrange && NCArrange.audible && !NCArrange.audible(lane)) return;
+      placeClip(off, buses[trackInput(entry.track)], entry, 0, 0);
     });
-    return NCHacks.attach(off, {widgets: list, immediate: true}).then(function (api) {
-      bus.connect(api.node);
+    return NCHacks.attach(off, {widgets: list, immediate: true, piece: musical}).then(function (api) {
+      buses.forEach(function (g, i) { g.connect(api.node, 0, i); });
       api.node.connect(off.destination);
       return off.startRendering();
     });
@@ -1021,8 +1080,9 @@ function render() {
     var off = new (window.OfflineAudioContext || window.webkitOfflineAudioContext)(2, length, rate);
     var src = off.createBufferSource();
     src.buffer = buffer;
-    return NCHacks.attach(off, {widgets: list, immediate: true}).then(function (api) {
-      src.connect(api.node);
+    return NCHacks.attach(off, {widgets: list, immediate: true, piece: buffer.duration}).then(function (api) {
+      // A saved Performance is one mix. It enters the dry master bus, not a track.
+      src.connect(api.node, 0, 8);
       api.node.connect(off.destination);
       src.start(0);
       return off.startRendering();
@@ -1122,6 +1182,7 @@ document.addEventListener('keyup', function (e) {
 readouts(); buttons();
 window.NCLive = {settings: settings, cutoffHz: cutoffHz, validate: validate, open: open, hide: hide, level: level, bands: bands, prime: prime, render: render,
   adjusted: adjusted, chain: chain, applyChain: applyChain, scheduleClips: scheduleClips, stopClips: stopClips, renderBuffers: renderBuffers,
+  trackInput: trackInput,
   cpu: function () { return window.__hackCpu || null; },
   playing: playing, setSynthPart: setSynthPart, synthStatus: synthStatus,
   ready: function () { graph(); return G.ready; },

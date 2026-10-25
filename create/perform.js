@@ -1849,7 +1849,8 @@
           events: tr.events, notes: tr.events,
           fmDepth: tr.params ? tr.params.fmDepth : 0,
           bpm: doc.bpm, meter: doc.meter, label: tr.label || '',
-          instrument: '', seed: tr.seed, clipId: tr.clipId, eventTrack: tr, lane: tr.id
+          instrument: '', seed: tr.seed, clipId: tr.clipId, eventTrack: tr, lane: tr.id,
+          trackN: tr.n
         });
       });
       return lines;
@@ -1861,6 +1862,7 @@
       if (!voice) return;
       voice.clipId = 'nc-synth-' + String(tr.label || ('t' + tr.n)).toLowerCase();
       voice.lane = 't' + tr.n;
+      voice.trackN = tr.n;
       lines.push(voice);
     });
     if (parsed.synth && NCSynth.chordVoice) {
@@ -1895,7 +1897,8 @@
               title: (tr.label || 'Sampler') + (tr.instrument ? ' · ' + tr.instrument : ''),
               buffer: buf, duration_s: buf.duration, start_s: 0, gain_db: 0,
               gather_id: gatherId || 'nc-event', clip_id: tr.clipId, url: '', cache: '',
-              notes: tr.events, detail: (tr.messages || []).join(' '), lane: tr.id
+              notes: tr.events, detail: (tr.messages || []).join(' '), lane: tr.id,
+              trackN: tr.n
             });
             gatherSounds = acc;
             return acc;
@@ -1991,6 +1994,7 @@
       buffer: buf,
       gather_id: gatherId || 'nc-synth',
       clip_id: clipId || 'nc-synth',
+      trackN: line && line.trackN >= 1 ? line.trackN : null,
       duration_s: buf.duration,
       start_s: 0,
       gain_db: 0,
@@ -2167,6 +2171,15 @@
     str(36, 'data'); v.setUint32(40, dataLen, true);
     return new Blob([ab], { type: 'audio/wav' });
   }
+  // 1-based track number for the worklet. t1–t8 get their own inputs.
+  // Chords and an unnumbered line stay null, which is the dry master bus.
+  function trackNumber(sound) {
+    if (!sound) return null;
+    if (typeof sound.trackN === 'number' && sound.trackN >= 1) return sound.trackN;
+    var id = sound.trackId || '';
+    var m = /^t(\d+)$/i.exec(id);
+    return m ? +m[1] : null;
+  }
   function clipEntries(plan) {
     return (plan.entries || []).map(function (e, i) {
       var sound = (gatherSounds || [])[soundIndex(e, i)];
@@ -2179,7 +2192,8 @@
         fadeIn: (e.fade_in_ms != null ? e.fade_in_ms : 12) / 1000,
         fadeOut: (e.fade_out_ms != null ? e.fade_out_ms : 12) / 1000,
         synth: !!(sound && isSynth(sound)),
-        lane: soundLane(sound)
+        lane: soundLane(sound),
+        track: trackNumber(sound)
       };
     });
   }
@@ -2351,7 +2365,8 @@
       seed: synth.synth.seed,
       depth: depth,
       lane: soundLane(synth),
-      mods: modsFor(synth.notes, chordBeds(localPlan))
+      mods: modsFor(synth.notes, chordBeds(localPlan)),
+      track: synth.trackN >= 1 ? synth.trackN : null
     });
   }
   function noteSynthRecord(plan) {
@@ -2478,6 +2493,7 @@
   var SAVE_CAP = 40 * 1024 * 1024, STATE_CAP = 64 * 1024;
   function processingOf(list) {
     var chain = [];
+    var glide = false;
     (list || []).forEach(function (node) {
       if (!node || !node.type) return;
       var item = {
@@ -2488,9 +2504,11 @@
         params: node.params || {}
       };
       if (node.fixed) item.fixed = true;
+      if (node.auto) { item.auto = node.auto; glide = true; }
       chain.push(item);
     });
-    return { schema: 2, chain: chain };
+    if (!glide) return { schema: 2, chain: chain };
+    return { schema: 3, master: { chain: chain }, tracks: {} };
   }
   function planEntries(entries) {
     return (entries || []).map(function (e) {

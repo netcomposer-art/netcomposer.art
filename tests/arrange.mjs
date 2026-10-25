@@ -69,6 +69,13 @@ check(A.mixAudible([{ id: 't1', solo: true }, { id: 't2' }], 't2') === false, 's
 check(A.mixAudible([{ id: 't1', solo: true }, { id: 't2', solo: true }], 't1') === true && A.mixAudible([{ id: 't1', solo: true }, { id: 't2', solo: true }], 't2') === true, 'several tracks can be soloed at once');
 check(A.mixAudible([{ id: 't1', solo: true, mute: true }, { id: 't2' }], 't1') === true, 'solo wins over mute');
 check(A.mixAudible([{ id: 't1', solo: true }, { id: 't2', mute: true }], 't2') === false, 'a track that is not soloed stays out');
+check(A.trackSlot('t1') === 0 && A.trackSlot('t8') === 7, 't1–t8 use inputs 0–7');
+check(A.trackSlot('t9') === 8 && A.trackSlot('chords') === 8 && A.trackSlot('synth') === 8 && A.trackSlot('sampler') === 8, 'everything else uses input 8');
+const liveSrc = readFileSync(join(root, 'create/live.js'), 'utf8');
+const eventsSrc = readFileSync(join(root, 'create/events.js'), 'utf8');
+check(/function laneFeed\(lane, bus\)/.test(liveSrc) && /g\.connect\(bus\)/.test(liveSrc) && /laneFeed\(lane, busFor\(entry\.track\)\)/.test(liveSrc) && /laneFeed\(lane, busFor\(part && part\.track\)\)/.test(liveSrc), 'Live solo and mute feed each track bus');
+check(!/laneGains|synthOut|G\.input\)/.test(liveSrc.split('function laneFeed')[1] || ''), 'a lane feed does not land on the dry bus by itself');
+check(/function slotBus\(id\)/.test(eventsSrc) && /g\.connect\(slotBus\(id\)\)/.test(eventsSrc) && /NCEvents\.play\(doc, ctx, ctx\.destination/.test(readFileSync(join(root, 'create/app.js'), 'utf8')), 'Play keeps a dry bus per track and stays off the worklet');
 
 function chromeBin() {
   for (const name of [process.env.CHROME, 'google-chrome', 'google-chrome-stable', 'chromium', 'chromium-browser']) {

@@ -389,12 +389,30 @@
     var stopped = false;
     var output = opts.output;
     var releases = [];
-    var buses = {};
-    function busFor(id) {
-      if (buses[id]) return buses[id];
+    var lanes = {};
+    var slots = [];
+    function slotOf(id) {
+      if (root.NCArrange && NCArrange.trackSlot) return NCArrange.trackSlot(id);
+      var m = /^t(\d+)$/i.exec(String(id || ''));
+      if (!m) return 8;
+      var n = +m[1];
+      return n >= 1 && n <= 8 ? n - 1 : 8;
+    }
+    // One dry bus per worklet input. t1–t8 keep their own; the rest share input 8.
+    function slotBus(id) {
+      var slot = slotOf(id);
+      if (slots[slot]) return slots[slot];
       var g = ctx.createGain();
+      g.gain.value = 1;
       g.connect(dest);
-      buses[id] = g;
+      slots[slot] = g;
+      return g;
+    }
+    function busFor(id) {
+      if (lanes[id]) return lanes[id];
+      var g = ctx.createGain();
+      g.connect(slotBus(id));
+      lanes[id] = g;
       if (root.NCArrange && NCArrange.hold) releases.push(NCArrange.hold(id, g, 1, ctx));
       else g.gain.value = 1;
       return g;
