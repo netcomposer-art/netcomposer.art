@@ -379,6 +379,7 @@
     }
     if (mark && tr.entries[index]) tr.entries[index].mark = mark;
     reposition(tr, index);
+    if (root.NCEvents && NCEvents.follow && NCEvents.current && NCEvents.current()) NCEvents.follow(NCEvents.current());
     if (result.writtenBlock) showNote(0);
     else if (result.clipBlock) showNote(result.clip_s || (tr.entries[index] && tr.entries[index].cap));
     var grown = result.total_s > state.duration + 1e-6;
