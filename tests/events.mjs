@@ -128,6 +128,22 @@ check(droppedChord.tracks[0] && droppedChord.tracks[0].voice === 'audio', '@vibe
 const droppedKalimba = docOf('t1: notes G1(1) @kalimba');
 check(!droppedKalimba.tracks.some((t) => t.instrument === 'kalimba'), '@kalimba is not a sampler, got ' + JSON.stringify(droppedKalimba.tracks));
 
+function playOf(text) {
+  return E.build(L.parse(text, { known }), { play: true });
+}
+const plainPlay = playOf('Cm11');
+check(plainPlay.tracks.length === 1 && plainPlay.tracks[0].id === 'chords' && plainPlay.tracks[0].voice === 'synth' && plainPlay.tracks[0].events.length >= 3 && plainPlay.tracks[0].events.every((e) => e.type === 'note' && e.midi >= 0), 'Play sounds a plain chord on the synth, got ' + JSON.stringify(plainPlay.tracks.map((t) => t.voice)));
+const pianoPlay = playOf('Cm11 @piano');
+check(pianoPlay.tracks.length === 1 && pianoPlay.tracks[0].voice === 'sampler' && pianoPlay.tracks[0].instrument === 'piano', 'Play sounds Cm11 @piano on the piano sampler, got ' + JSON.stringify(pianoPlay.tracks[0] && { voice: pianoPlay.tracks[0].voice, instrument: pianoPlay.tracks[0].instrument, n: pianoPlay.tracks[0].events.length }));
+const bassPlay = playOf('t1: Cm(2|) @bass');
+check(bassPlay.tracks.length === 1 && bassPlay.tracks[0].voice === 'sampler' && bassPlay.tracks[0].instrument === 'bass' && bassPlay.tracks[0].events.length > 1, 'Play sounds a bass chord voicing on the sampler, got ' + JSON.stringify(bassPlay.tracks[0] && { voice: bassPlay.tracks[0].voice, instrument: bassPlay.tracks[0].instrument, n: bassPlay.tracks[0].events.length }));
+const flutePlay = playOf('t1: notes C4(4|) @flute');
+check(flutePlay.tracks.length === 1 && flutePlay.tracks[0].voice === 'synth' && flutePlay.tracks[0].events[0] && flutePlay.tracks[0].events[0].pitch === 'C4', '@flute labels the line and Play uses the synth, got ' + JSON.stringify(flutePlay.tracks[0] && { voice: flutePlay.tracks[0].voice, pitch: flutePlay.tracks[0].events[0] && flutePlay.tracks[0].events[0].pitch }));
+const duo = playOf('t1: Cm11(4)\nt2: notes G3(4) @cello');
+check(duo.tracks.length === 2 && duo.tracks[0].voice === 'synth' && duo.tracks[1].voice === 'sampler' && duo.tracks[1].instrument === 'cello-pizzicato', 'a synth chord track and a cello notes track, got ' + duo.tracks.map((t) => t.voice + ':' + t.instrument).join(' '));
+check(docOf('Cm11').tracks[0].voice === 'audio', 'Keep still treats a plain chord as a recording');
+check(docOf('t1: notes C4(4|) @flute').tracks.length === 0, 'Keep still leaves a labelling name off the synth');
+
 const keys = ['v', 'bpm', 'meter', 'beat', 'tracks'];
 check(keys.every((k) => k in synth) && synth.tracks[0].events[0].velocity <= 1, 'the document is the portable shape');
 

@@ -35,6 +35,14 @@
   function playsChords(name) {
     return !!(root.NCInstruments && NCInstruments.playsChords && NCInstruments.playsChords(name));
   }
+  function strumOf(slug) {
+    var rows = root.NCInstruments && NCInstruments.rows;
+    if (!rows) return 0;
+    for (var i = 0; i < rows.length; i++) {
+      if (rows[i].slug === slug) return rows[i].spread || 0;
+    }
+    return 0;
+  }
   function copyNote(ev) {
     return {
       type: 'note',
@@ -70,9 +78,10 @@
       level: s.level
     };
   }
-  // Notes and arp tracks can play the sampler. @synth stays the synth.
-  // A name in NCInstruments is the sampler even when the hidden sampler
-  // switch is off. @bass does that on a chord track too. Bass is B1–A#4.
+  // Keep and Perform. Notes and arp tracks can play the sampler. @synth stays
+  // the synth. A name in NCInstruments is the sampler even when the hidden
+  // sampler switch is off. @bass does that on a chord track too. Bass is
+  // B1–A#4. @piano, @guitar, and @cello on a chord track stay recordings.
   // Any other @name keeps the synth out.
   function roleOf(tr) {
     if (!tr) return '';
@@ -88,6 +97,73 @@
     if (tr.instrument) return '';
     if (samplerOn()) return 'sampler';
     return 'synth';
+  }
+  // Play. The line decides. No @name, and any name that is not a sampler,
+  // sounds the synth, including a chord's catalog voicing. @piano, @guitar,
+  // @cello, and @bass play the sampler, including a chord's voicing. This
+  // does not read the instrument select.
+  function playRole(tr) {
+    if (!tr) return '';
+    if (tr.kind === 'chords') return librarySlug(tr.instrument) ? 'sampler' : 'synth';
+    if (tr.kind !== 'notes' && tr.kind !== 'arp') return '';
+    if (librarySlug(tr.instrument)) return 'sampler';
+    return 'synth';
+  }
+  function asSynth(tr) {
+    var src = bare(tr);
+    src.source = String(src.source || '').replace(/@[A-Za-z][\w-]*/g, '');
+    if (src.arp && src.arp.instrument) src.arp = Object.assign({}, src.arp, { instrument: '' });
+    if (tr.kind === 'chords') src.instrument = 'synth';
+    return src;
+  }
+  function chordSamplerEvents(played, slug, bpm, meter, beat) {
+    var man = null;
+    if (root.NCSampler && NCSampler.manifest) man = NCSampler.manifest(slug);
+    var skipped = [], messages = [];
+    if (!man || !root.NCSampler || !NCSampler.plan || !root.NCSynth || !NCSynth.scheduleChordEvents) {
+      return { events: [], skipped: skipped, messages: messages };
+    }
+    var raw = NCSynth.scheduleChordEvents(played, bpm, meter);
+    var symbols = [];
+    (played || []).forEach(function (ev) { if (ev.kind === 'chord') symbols.push(ev.symbol || 'chord'); });
+    var groups = [], gi = 0;
+    raw.forEach(function (n) {
+      var last = groups[groups.length - 1];
+      if (!last || Math.abs(n.start - last.start) > 1e-4) {
+        last = { start: n.start, hold: n.length, midis: [], symbol: symbols[gi] || 'chord', index: gi };
+        groups.push(last);
+        gi++;
+      }
+      if (n.midi != null) last.midis.push(n.midi);
+      if (n.length > last.hold) last.hold = n.length;
+    });
+    var incoming = groups.map(function (g) {
+      return { symbol: g.symbol, written: g.midis, start: g.start, hold: g.hold, origin: 'chord', index: g.index };
+    });
+    var planned = NCSampler.plan(man, incoming, strumOf(slug), 0.12);
+    var out = [];
+    planned.notes.forEach(function (n) {
+      var hold = Math.max(0.02, n.keep - (n.fade || 0));
+      var gain = n.gain == null ? 1 : n.gain;
+      out.push(stamp({
+        type: 'note',
+        pitch: NCSampler.noteName ? NCSampler.noteName(n.midi) : '',
+        midi: n.midi,
+        velocity: Math.max(0, Math.min(1, gain)),
+        gain: gain,
+        fade: n.fade || 0,
+        start: n.start,
+        length: hold,
+        fmDepth: 0
+      }, beat, n.index == null ? out.length : n.index));
+    });
+    incoming.forEach(function (ev) {
+      var picked = NCSampler.selectWritten(ev.written, man.notes || {});
+      (picked.missing || []).forEach(function (midi) {
+        skipped.push({ midi: midi, pitch: NCSampler.noteName(midi), slot: ev.index });
+      });
+    });
+    return { events: out, skipped: skipped, messages: planned.messages || [] };
   }
   function bare(tr) {
     var copy = {
@@ -197,31 +273,57 @@
     doc.tracks.push(track);
     return track;
   }
-  function build(parsed) {
+  function pushChordPlay(doc, id, n, label, played, instrument, seedIndex, bpm, meter, beat, parsed) {
+    var slug = librarySlug(instrument);
+    var seed = ((parsed.seed == null ? 1 : parsed.seed) + seedIndex) >>> 0;
+    if (slug) {
+      var extra = chordSamplerEvents(played, slug, bpm, meter, beat);
+      pushVoice(doc, id, n, label, 'sampler', slug, seed, voiceParams(0), extra.events, extra);
+      return;
+    }
+    if (!root.NCSynth || !NCSynth.scheduleChordEvents) return;
+    var notes = groupSlots(NCSynth.scheduleChordEvents(played, bpm, meter).map(copyNote), beat, 0);
+    if (!notes.length) return;
+    pushVoice(doc, id, n, label, 'synth', '', seed, voiceParams(0), notes, null);
+  }
+  function build(parsed, opts) {
     parsed = parsed || {};
+    var play = !!(opts && opts.play);
     var bpm = parsed.bpm > 0 ? parsed.bpm : 96;
     var meter = parsed.meter || '4/4';
     var beat = beatOf(bpm);
     var qpb = root.NCLanguage && NCLanguage.beatsInBar ? NCLanguage.beatsInBar(meter) : 4;
     var doc = { v: 1, bpm: bpm, meter: meter, beat: beat, tracks: [] };
     var chosen = samplerSlug();
-    if (!parsed.synth && (parsed.played || []).some(function (e) { return e.kind === 'chord'; })) {
+    var chordLine = (parsed.played || []).some(function (e) { return e.kind === 'chord'; });
+    if (play && chordLine) {
+      pushChordPlay(doc, 'chords', null, 'Chords', parsed.played, parsed.instrument, (parsed.tracks || []).length, bpm, meter, beat, parsed);
+    } else if (!parsed.synth && chordLine) {
       pushVoice(doc, 'chords', null, 'Chords', 'audio', '', (parsed.seed == null ? 1 : parsed.seed), voiceParams(0), audioEvents(parsed.played, beat, qpb * beat), null);
     }
     (parsed.tracks || []).forEach(function (tr, i) {
-      var role = roleOf(tr);
+      var role = play ? playRole(tr) : roleOf(tr);
       if (!role) return;
       if (role === 'audio') {
         pushVoice(doc, 't' + tr.n, tr.n, tr.label || ('T' + tr.n), 'audio', tr.instrument || '', (parsed.seed || 1) + i, voiceParams(0), audioEvents(tr.played, beat, qpb * beat), null);
         return;
       }
-      var src = bare(tr);
+      if (play && role === 'sampler' && tr.kind === 'chords') {
+        pushChordPlay(doc, 't' + tr.n, tr.n, tr.label || ('T' + tr.n), tr.played, tr.instrument, i, bpm, meter, beat, parsed);
+        return;
+      }
+      var src = (play && role === 'synth') ? asSynth(tr) : bare(tr);
       if (role === 'sampler') src.source = String(src.source || '').replace(/@[A-Za-z][\w-]*/g, '');
       // voiceOf expands a chord track only when the instrument is synth.
       // The slug below stays the sampler name from the written line.
       if (role === 'sampler' && tr.kind === 'chords') src.instrument = 'synth';
       var voice = root.NCSynth && NCSynth.voiceOf ? NCSynth.voiceOf(src, parsed, i) : null;
-      if (!voice || !voice.events || !voice.events.length) return;
+      if (!voice || !voice.events || !voice.events.length) {
+        if (play && role === 'sampler') {
+          pushVoice(doc, 't' + tr.n, tr.n, tr.label || ('T' + tr.n), 'sampler', librarySlug(tr.instrument) || chosen, (parsed.seed || 1) + i, voiceParams(0), [], null);
+        }
+        return;
+      }
       var fm = voice.fmDepth == null ? 0 : voice.fmDepth;
       var notes = groupSlots(voice.events.map(copyNote), beat, fm);
       var slug = librarySlug(tr.instrument) || (role === 'sampler' ? chosen : '');
@@ -236,7 +338,7 @@
       }
       pushVoice(doc, 't' + tr.n, tr.n, tr.label || ('T' + tr.n), role, slug, voice.seed, voiceParams(role === 'synth' ? fm : 0), notes, Object.assign({ region: tr.kind === 'arp' }, extra));
     });
-    if (parsed.synth && root.NCSynth && NCSynth.chordVoice) {
+    if (!play && parsed.synth && root.NCSynth && NCSynth.chordVoice) {
       var cv = NCSynth.chordVoice(parsed, (parsed.tracks || []).length);
       if (cv && cv.events && cv.events.length) {
         var notesC = groupSlots(cv.events.map(copyNote), beat, cv.fmDepth || 0);

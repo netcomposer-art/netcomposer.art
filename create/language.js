@@ -21,8 +21,10 @@
 // owns the tokens after it until the next label or the end of the statement.
 // The same number again appends. `T1` and `t1` are one track. A gap in the
 // numbers stays a gap. A line with no label is read exactly as before.
-// `@synth` plays that track's chords on the built-in synth, and they are not
-// gathered. Another `@name` is an instrument, same as on a notes line.
+// Play sounds the built-in synth. `@piano`, `@guitar`, `@cello`, and `@bass`
+// play the sampler, including a chord's voicing. Any other `@name` only labels
+// the line. `@synth` is the synth and is not gathered. Gather still fetches a
+// recording for every other chord, and it skips a chord track that says `@bass`.
 // An octave after the root, as in `C5m9`, puts that chord's root on the same
 // pitch as `notes C5`. `Cm9` with no octave is unchanged. Gather uses the
 // chord name and leaves the recording where it is.
@@ -1286,7 +1288,7 @@
     else if (echo && echo.open.length) say(lengthNotes, openNote(echo.open));
     notes = errors.concat(otherNotes, lengthNotes).slice(0, 2).concat(aiNotes);
     var line = echo && echo.line ? echo.line : joinSyntax(syntax);
-    if (!resolved.length && pieceInstrument === 'synth' && line) line += ' · @synth';
+    if (!resolved.length && echo && echo.music && line) line = markLine(line, pieceInstrument);
     var iread = line;
     if (words.length) iread += (iread ? '\n' : '') + words.join(' ');
     notes.forEach(function (s) { iread += (iread ? '\n' : '') + s; });
@@ -1294,7 +1296,8 @@
       bpm: bpm, meter: meter, meterWritten: meterWritten, seed: seed, clock: clock, hacks: hacks,
       played: played, gather: gather, words: words, notes: notes, quoted: quoted,
       iread: iread, arp: arps, unmapped: unmapped, syntax: syntax,
-      tracks: resolved, trackSpans: trackSpans, synth: pieceInstrument === 'synth'
+      tracks: resolved, trackSpans: trackSpans, synth: pieceInstrument === 'synth',
+      instrument: pieceInstrument
     };
     function nameList(list) {
       if (list.length === 1) return list[0];
@@ -1423,20 +1426,15 @@
           var te = musicalEcho(tr.played, tr.syntax);
           te.loose.forEach(function (n) { if (loose.indexOf(n) < 0) loose.push(n); });
           te.open.forEach(function (n) { if (open.indexOf(n) < 0) open.push(n); });
-          if (te.parts.length) {
-            var phrase = tr.label + ' ' + te.parts.join(', ');
-            if (tr.instrument === 'synth') phrase += ' @synth';
-            else if (tr.instrument) phrase += ' @' + tr.instrument;
-            phrases.push(phrase);
-          }
+          if (te.parts.length) phrases.push(markPhrase(tr.label + ' ' + te.parts.join(', '), tr.instrument));
           if (te.total > maxBeats) maxBeats = te.total;
           tr.beats = te.total;
         } else if (tr.syntax.length) {
-          phrases.push(tr.label + ' ' + tr.syntax.map(function (s) { return s.text; }).join(', '));
+          phrases.push(markPhrase(tr.label + ' ' + tr.syntax.map(function (s) { return s.text; }).join(', '), tr.instrument));
           if (tr.beats > maxBeats) maxBeats = tr.beats;
         }
       });
-      if (base.music && pieceInstrument === 'synth' && phrases.length) phrases[0] += ' @synth';
+      if (base.music && phrases.length) phrases[0] = markPhrase(phrases[0], pieceInstrument);
       if (!phrases.length) return base;
       var extras = [];
       syntax.forEach(function (s) {
@@ -1447,6 +1445,34 @@
       var built = trimNum(bpmUse) + ' BPM · ' + phrases.join(' · ') + ' · ' + beatsWord + ' · ' + secText(maxBeats);
       if (extras.length) built += ' · ' + extras.join(' · ');
       return { line: built, music: true, loose: loose, open: open, total: maxBeats };
+    }
+    // What Play will sound. A sampler name is already the sound. Any other
+    // name only labels the line, and the synth is what plays.
+    function samplerToken(name) {
+      var key = String(name || '').toLowerCase();
+      if (key === 'piano') return '@piano';
+      if (key === 'guitar') return '@guitar';
+      if (key === 'cello' || key === 'cello-pizzicato') return '@cello';
+      if (key === 'bass') return '@bass';
+      return '';
+    }
+    function markPhrase(phrase, name) {
+      var key = String(name || '').toLowerCase();
+      if (key === 'synth') return /@synth\b/.test(phrase) ? phrase : phrase + ' @synth';
+      var token = samplerToken(key);
+      if (token) return phrase.indexOf(token) >= 0 ? phrase : phrase + ' ' + token;
+      if (key && phrase.indexOf('@' + key) < 0) phrase += ' @' + key;
+      if (/@synth\b/.test(phrase) || /(?:^|\s)synth$/.test(phrase)) return phrase;
+      return phrase + ' synth';
+    }
+    function markLine(line, name) {
+      var key = String(name || '').toLowerCase();
+      if (key === 'synth') return line.indexOf('@synth') >= 0 ? line : line + ' · @synth';
+      var token = samplerToken(key);
+      if (token) return line.indexOf(token) >= 0 ? line : line + ' · ' + token;
+      if (key && line.indexOf('@' + key) < 0) line += ' · @' + key;
+      if (/@synth\b/.test(line) || /(?:^| · )synth$/.test(line)) return line;
+      return line + ' · synth';
     }
   }
 

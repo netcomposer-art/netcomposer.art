@@ -39,6 +39,7 @@ select{appearance:none;-webkit-appearance:none;cursor:pointer;padding:6px 18px 6
   background-position:calc(100% - 7px) 55%,calc(100% - 3px) 55%;background-size:4px 4px;background-repeat:no-repeat;transition:border-color .15s}
 select:disabled{opacity:.35;cursor:not-allowed}
 #inst{width:auto;min-width:8.5rem;max-width:100%;padding:6px 18px 6px 0}
+#playrow label[hidden],#playrow #inst[hidden]{display:none !important}
 @media(pointer:coarse){input[type=text],textarea,select{font-size:16px}}
 button,.btn{font-family:Inter,sans-serif;font-size:12px;font-weight:400;letter-spacing:.2em;text-transform:uppercase;line-height:1;color:var(--nc-text);background:transparent;border:1px solid var(--nc-text);border-radius:0;padding:12px 16px;margin:.3rem .4rem .3rem 0;cursor:pointer;text-decoration:none;transition:background .15s,color .15s,transform .1s}
 button:hover:not(:disabled),.btn:hover{background:var(--nc-surf)}
@@ -392,7 +393,7 @@ button.rewind:hover,button.rewind:active{background:transparent;transform:none}
 <p class="m" id="arrange-now"></p>
 </div>
 <div class="row" id="playrow"><button id="play" type="button" disabled>Play</button>
-<label class="inlbl" for="inst">Instrument</label><select id="inst" aria-label="Instrument"></select></div>
+<label class="inlbl" for="inst" hidden>Instrument</label><select id="inst" aria-label="Instrument" hidden></select></div>
 <p class="m" id="status"></p>
 <p class="m" id="sinenote" hidden></p>
 <div id="sampler" class="nc" hidden></div>
@@ -432,7 +433,7 @@ button.rewind:hover,button.rewind:active{background:transparent;transform:none}
 <label for="title">Title</label><input id="title" type="text" autocomplete="off">
 <label for="by">Composer</label><input id="by" type="text" autocomplete="off" placeholder="your name">
 <p class="m">Chords as symbols: Cm, Am7, Bb7sus4, F#dim7, Ebmaj9, A7alt, G/B. Any of the 420 in the full chord set.</p>
-<p class="m" id="instnote">A missing chord plays another voicing of this instrument, then piano, then a simple tone.</p>
+<p class="m" id="instnote">Play sounds the built-in synth. @piano, @guitar, and @cello play the sampler. Gather still finds a recording.</p>
 <p class="m">speed <input id="spd" type="range" min="1" max="4" step="0.5" value="1" aria-label="speed"> <span id="spdv">1.0×</span></p>
 <div class="row"><button id="share" type="button">Copy link</button></div>
 <input id="shareurl" type="text" readonly hidden aria-label="Share link">
