@@ -897,4 +897,5 @@
     render: ncRender
   };
   if (typeof window !== 'undefined') window.NCHacksLib = lib;
+  if (typeof module !== 'undefined' && module.exports) module.exports = lib;
 })();
