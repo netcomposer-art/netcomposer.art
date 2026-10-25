@@ -43,7 +43,15 @@ function project(text) {
       octaves: a.octaves, spread: a.spread, inversion: a.inversion,
       fmDepth: a.fmDepth, beats: a.beats, bars: a.bars, instrument: a.instrument || ''
     })),
-    unmapped: p.unmapped || []
+    unmapped: p.unmapped || [],
+    tracks: (p.tracks || []).map((t) => ({
+      n: t.n, label: t.label, kind: t.kind, instrument: t.instrument || '',
+      beats: t.beats, fmDepth: t.fmDepth == null ? null : t.fmDepth,
+      played: (t.played || []).map((e) => ({
+        kind: e.kind, symbol: e.symbol || null, beats: e.beats, bars: e.bars, seconds: e.seconds
+      }))
+    })),
+    synth: !!p.synth
   };
 }
 const rows = JSON.parse(readFileSync(join(root, 'tests/language-vectors.json'), 'utf8'));
@@ -52,7 +60,7 @@ rows.forEach((row) => {
   ['bpm', 'clock', 'seed', 'meter', 'gather', 'played', 'hacks', 'words', 'notes', 'iread'].forEach((k) => {
     if (JSON.stringify(got[k]) !== JSON.stringify(row[k])) problems.push(row.name + ' ' + k + '\n  got ' + JSON.stringify(got[k]));
   });
-  ['arp', 'unmapped'].forEach((k) => {
+  ['arp', 'unmapped', 'tracks', 'synth'].forEach((k) => {
     if (k in row && JSON.stringify(got[k]) !== JSON.stringify(row[k])) problems.push(row.name + ' ' + k + '\n  got ' + JSON.stringify(got[k]));
   });
   if (row.place) {
@@ -147,6 +155,13 @@ check(L.parse('notes C4 Eb4 G4(2)', { known }).iread === 'notes C4 Eb4 G4(2)', '
 check(L.parse('notes create melody', { known }).words.join(' ') === 'notes create melody' && L.parse('notes create melody', { known }).iread.indexOf('is not a chord') < 0, 'notes without a pitch stays words');
 const notesEdge = L.parse('n C5(2) Eb5 G5 Bb4\nC5', { known });
 check(notesEdge.iread.indexOf('notes C5(2) Eb5 G5 Bb4') >= 0 && notesEdge.iread.indexOf('`C5` is a pitch, not a chord.') >= 0 && notesEdge.iread.split('is a pitch').length === 2, 'a pitch on the next line is still not a chord, got ' + notesEdge.iread);
+const twoNotes = L.parse('t1: notes C4(2) fm 1\nt2: notes E4(2) fm 4', { known });
+check(twoNotes.tracks.length === 2 && twoNotes.tracks[0].kind === 'notes' && twoNotes.tracks[1].kind === 'notes' && twoNotes.tracks[0].fmDepth === 1 && twoNotes.tracks[1].fmDepth === 4 && twoNotes.played.length === 0, 'two notes tracks keep separate FM depths');
+check(L.parse('Tempo 90, T1 - [Cm(4) fm9, gm7]loop(4)', { known }).tracks.length === 0, 'T1 without a colon is not a track');
+check(L.parse('Cm(4|) @synth', { known }).synth === true && L.parse('Cm(4|) @synth', { known }).gather.length === 0 && L.parse('Cm(4|) @synth', { known }).played.length === 1, '@synth on an unlabelled chord line is not gathered');
+const arpTrack = L.parse('t1: Cm(4|) Fm(4|)\nt2: arp fm 3', { known });
+check(arpTrack.tracks.length === 2 && arpTrack.tracks[1].kind === 'arp' && arpTrack.tracks[1].fmDepth === 3 && arpTrack.tracks[1].beats === 32, 'an arp track follows the other track and keeps its own FM, got ' + JSON.stringify(arpTrack.tracks.map((t) => [t.kind, t.fmDepth, t.beats])));
+
 const arpPitches = L.parse('arp Cm9 pendulum 16ths C5 Eb5 G5', { known });
 check(arpPitches.arp[0].chord === 'Cm9' && arpPitches.arp[0].order === 'pendulum' && arpPitches.iread === 'arp Cm9 pendulum 16ths C5 Eb5 G5' && arpPitches.notes.length === 0, 'pitches on an arp line are not failed chords, got ' + arpPitches.iread);
 check(L.parse('C5', { known }).iread.indexOf('`C5` is a pitch, not a chord.') >= 0 && L.parse('steady', { known }).iread.indexOf('Words are left for the AI.') >= 0, 'a real non-chord is still reported');

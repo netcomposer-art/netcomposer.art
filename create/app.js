@@ -43,6 +43,26 @@ function findChords(text) {
   parsed.played.forEach(function (e) {
     if (e.kind === 'chord') out.push({sym: e.symbol, bass: e.bass == null ? null : e.bass});
   });
+  (parsed.tracks || []).forEach(function (tr) {
+    if (tr.kind !== 'chords' || tr.instrument === 'synth') return;
+    (tr.played || []).forEach(function (e) {
+      if (e.kind === 'chord') out.push({sym: e.symbol, bass: e.bass == null ? null : e.bass});
+    });
+  });
+  return out;
+}
+function trackRecordings(parsed) {
+  parsed = parsed || readLang($('comp').value);
+  var out = [];
+  if (!parsed || !parsed.tracks) return out;
+  var clk = sketchClock(parsed);
+  parsed.tracks.forEach(function (tr) {
+    if (tr.kind !== 'chords' || tr.instrument === 'synth') return;
+    var tl = timelineFrom({ played: tr.played, gather: [], seed: parsed.seed, bpm: parsed.bpm });
+    if (!tl) return;
+    tl.chords.forEach(function (c) { if (c.slot == null) c.sketchDur = clk.bar; });
+    out.push({ id: 't' + tr.n, label: tr.label, instrument: tr.instrument || '', chords: tl.chords });
+  });
   return out;
 }
 function pickVoicing(sym, prev, bass) {
@@ -305,6 +325,11 @@ function timeline() {
     }
   }
   if (built) { showIRead(parsed, built); return built; }
+  if (parsed && ((parsed.tracks && parsed.tracks.length) || parsed.synth)) {
+    showIRead(parsed, null);
+    var only = sketchClock(parsed);
+    return { L: null, chords: [], unique: (parsed.gather || []).slice(), written: true, language: true, seed: parsed.seed, bpm: parsed.bpm, syntax: parsed.syntax || [], sketch: only, tracks: true };
+  }
   var words = comp + ' ' + promptWords(), fromComp = true;
   var found = findChords(comp);
   if (!found.length) { found = findChords(words); fromComp = false; }
@@ -402,6 +427,51 @@ function groupMetaOf(s) {
     }
   }
   return { times: times, slots: slots };
+}
+function paintTrackRow(el, tr, clk) {
+  var lab = document.createElement('p');
+  lab.className = 'play-line';
+  lab.textContent = tr.label;
+  el.appendChild(lab);
+  if (tr.kind !== 'chords') {
+    (tr.syntax || []).forEach(function (s) {
+      var line = document.createElement('p');
+      line.className = 'play-line';
+      line.textContent = s.text;
+      el.appendChild(line);
+    });
+    return tr.beats || 0;
+  }
+  var pi = 0, played = tr.played || [], local = 0;
+  function take(n) {
+    var out = [];
+    while (out.length < n && pi < played.length) out.push(played[pi++]);
+    return out;
+  }
+  (tr.syntax || []).forEach(function (s) {
+    if (s.kind === 'group') {
+      var meta = groupMetaOf(s), evs = take(meta.slots * meta.times), once = evs.slice(0, meta.slots);
+      if (!once.length) return;
+      once.forEach(function (ev) { local += chipBeats(ev, clk.qpb) * meta.times; });
+      var g = document.createElement('span');
+      g.className = 'grp';
+      once.forEach(function (ev) { g.appendChild(makeChip(ev, [], '', clk.qpb)); });
+      if (meta.times > 1) {
+        var times = document.createElement('span');
+        times.className = 'times';
+        times.textContent = '×' + meta.times;
+        g.appendChild(times);
+      }
+      el.appendChild(g);
+      return;
+    }
+    if (s.kind !== 'chord' && s.kind !== 'rest') return;
+    var ev = take(1)[0];
+    if (!ev) return;
+    local += chipBeats(ev, clk.qpb);
+    el.appendChild(makeChip(ev, [], '', clk.qpb));
+  });
+  return local || tr.beats || 0;
 }
 function playMeta(total, clk) {
   if (!(total > 0) || !clk) return '';
@@ -529,7 +599,13 @@ function refresh() {
     addChip(el, ev, at);
     any = true;
   });
+  (parsed.tracks || []).forEach(function (tr) {
+    var rowBeats = paintTrackRow(el, tr, clk);
+    if (rowBeats > total) total = rowBeats;
+    any = true;
+  });
   var samplerOn = !!(window.NCSampler && NCSampler.canPlay && NCSampler.canPlay());
+  var tracked = parsed && ((parsed.tracks && parsed.tracks.length) || parsed.synth);
   if (!any) {
     $('progmeta').textContent = '';
     el.classList.add('empty');
@@ -537,7 +613,7 @@ function refresh() {
   } else {
     el.classList.remove('empty');
     $('progmeta').textContent = playMeta(total, clk);
-    $('play').disabled = !(tl && tl.chords && tl.chords.length) && !samplerOn;
+    $('play').disabled = !(tl && tl.chords && tl.chords.length) && !samplerOn && !tracked;
   }
   if (window.NCPerform && NCPerform.sync) NCPerform.sync();
   if (window.NCArrange && NCArrange.paint) NCArrange.paint();
@@ -545,9 +621,25 @@ function refresh() {
 
 // ---------- play (WebAudio) ----------
 // Edits, Undo, Apply and the speed slider restart the preview at the chord it was on, with the new chords.
-var AC = null, playing = [], timers = [], gen = 0, active = false, cur = 0, restartT = null, SCHED = [];
+var AC = null, playing = [], timers = [], gen = 0, active = false, cur = 0, restartT = null, SCHED = [], liveHandle = null;
+// iPhone Safari stays silent until a tap resumes the context. The first
+// pointer or touch does that, and Play does it again in the same gesture.
+function unlockAudio() {
+  var Ctor = window.AudioContext || window.webkitAudioContext;
+  if (!Ctor) return null;
+  if (!AC || AC.state === 'closed') {
+    try { AC = new Ctor({ latencyHint: 'interactive' }); }
+    catch (e) { try { AC = new Ctor(); } catch (e2) { return null; } }
+  }
+  if (AC.state === 'suspended' && AC.resume) {
+    var resumed = AC.resume();
+    if (resumed && resumed.catch) resumed.catch(function () {});
+  }
+  return AC;
+}
 function stop() {
   gen++; active = false; clearTimeout(restartT);
+  if (liveHandle) { try { liveHandle.stop(); } catch (e) {} liveHandle = null; }
   if (window.NCArrange && NCArrange.disarm) NCArrange.disarm();
   if (window.NCSampler && NCSampler.halt) NCSampler.halt();
   playing.forEach(function (n) { try { n.stop(); } catch (e) {} }); playing = [];
@@ -702,9 +794,126 @@ function playLanguage(tl, from, speed, master, my) {
     stop();
   });
 }
+function arrangeVoice(v) {
+  var events = (v.voice.events || []).map(function (n) { return Object.assign({}, n); });
+  if (!window.NCArrange || !NCArrange.clip || !v.track) return events;
+  if (v.track.kind === 'notes') {
+    return events.map(function (n, i) {
+      var c = NCArrange.clip(v.id, i);
+      if (!c) return n;
+      return Object.assign({}, n, { start: c.at, length: Math.max(0.02, c.len) });
+    });
+  }
+  if (v.track.kind !== 'chords' || !v.track.played) return events;
+  var bpm = v.voice.bpm > 0 ? v.voice.bpm : 96, meter = v.voice.meter || '4/4';
+  var qpb = beatsInBar(meter), beat = 60 / bpm, cursor = 0, ci = 0, map = [];
+  v.track.played.forEach(function (ev) {
+    var beats = ev.beats;
+    if (ev.bars != null) beats = ev.bars * qpb;
+    if (beats == null) beats = ev.kind === 'rest' ? 0 : qpb;
+    if (ev.kind === 'chord') {
+      map.push({ at: cursor * beat, clip: NCArrange.clip(v.id, ci) });
+      ci++;
+    }
+    if (beats > 0) cursor += beats;
+  });
+  return events.map(function (n) {
+    var hit = null, i;
+    for (i = 0; i < map.length; i++) if (Math.abs(n.start - map[i].at) < 0.03) hit = map[i];
+    if (!hit || !hit.clip) return n;
+    return Object.assign({}, n, { start: hit.clip.at, length: Math.max(0.02, hit.clip.len) });
+  });
+}
+function playTracked(parsed) {
+  stop();
+  var my = gen; active = true;
+  $('play').textContent = 'Stop'; $('sinenote').hidden = true;
+  var ctx = unlockAudio();
+  if (!ctx || !window.NCEvents) { status('Could not start playback. Try again in a moment.', true); stop(); return; }
+  var doc = NCEvents.build(parsed);
+  NCEvents.follow(doc);
+  var jobs = [], clips = {}, voices = {}, buffers = {};
+  if (parsed.played && parsed.played.some(function (e) { return e.kind === 'chord'; }) && !parsed.synth) {
+    var bed = timelineFrom(parsed);
+    if (bed) {
+      var clk0 = sketchClock(parsed);
+      bed.chords.forEach(function (c) { if (c.slot == null) c.sketchDur = clk0.bar; });
+      jobs.push(window.MM.prepare(ctx, bed.chords, CAT, $('inst').value || 'piano').then(function (ready) {
+        if (window.NCArrange && NCArrange.learn) NCArrange.learn(bed.chords, ready, 'chords');
+        ready.forEach(function (clip, i) {
+          clips['chords:' + i] = clip && clip.buffer;
+          voices['chords:' + i] = bed.chords[i] && bed.chords[i].voicing;
+        });
+      }));
+    }
+  }
+  trackRecordings(parsed).forEach(function (layer) {
+    var inst = layer.instrument || ($('inst').value || 'piano');
+    jobs.push(window.MM.prepare(ctx, layer.chords, CAT, inst).then(function (ready) {
+      if (window.NCArrange && NCArrange.learn) NCArrange.learn(layer.chords, ready, layer.id);
+      ready.forEach(function (clip, i) {
+        clips[layer.id + ':' + i] = clip && clip.buffer;
+        voices[layer.id + ':' + i] = layer.chords[i] && layer.chords[i].voicing;
+      });
+    }));
+  });
+  var slug = '', midis = [], seenMidi = {};
+  doc.tracks.forEach(function (tr) {
+    if (tr.voice !== 'sampler') return;
+    slug = tr.instrument || slug;
+    tr.events.forEach(function (ev) {
+      if (ev.midi == null || seenMidi[ev.midi]) return;
+      seenMidi[ev.midi] = 1;
+      midis.push(ev.midi);
+    });
+  });
+  if (slug && midis.length && window.NCSampler && NCSampler.prepare) {
+    jobs.push(NCSampler.prepare(ctx, slug, midis).then(function (bag) {
+      midis.forEach(function (m) { if (bag[m] && bag[m].buffer) buffers[slug + ':' + m] = bag[m].buffer; });
+    }));
+  }
+  var playable = doc.tracks.some(function (tr) { return tr.events && tr.events.length; });
+  if (!playable && !jobs.length) { stop(); status('Nothing on these tracks to play yet.', true); return; }
+  if (jobs.length) status(slug && midis.length ? 'Loading notes…' : 'Loading…');
+  Promise.all(jobs).then(function () {
+    if (my !== gen) return;
+    showCredit();
+    NCEvents.follow(doc);
+    var handle = NCEvents.play(doc, ctx, ctx.destination, {
+      buffers: buffers,
+      clips: clips,
+      output: window.NCSampler && NCSampler.output ? NCSampler.output() : 0.8,
+      live: function () { return my === gen; },
+      missingClip: function (tr, ev, when) {
+        var v = voices[tr.id + ':' + ev.slot];
+        if (v) sine(v, when, Math.max(0.05, ev.length), ctx.destination);
+      }
+    });
+    liveHandle = handle;
+    var msgs = [];
+    doc.tracks.forEach(function (tr) {
+      (tr.messages || []).forEach(function (m) { if (m && msgs.indexOf(m) < 0) msgs.push(m); });
+    });
+    status(msgs.join(' '));
+    if (handle.ready && handle.ready.then) handle.ready.then(function () {
+      if (my !== gen || !liveHandle) return;
+      if (window.NCArrange && NCArrange.armPlay) NCArrange.armPlay(ctx, handle.when, 0, 1, handle.end);
+    });
+    timers.push(setTimeout(function () { if (my === gen) { stop(); cur = 0; } }, (handle.end + 0.5) * 1000));
+  }).catch(function () {
+    if (my !== gen) return;
+    status('Could not start playback. Try again in a moment.', true);
+    stop();
+  });
+}
 function start(from) {
   var heard = $('perform-audio');
   if (heard && !heard.paused) heard.pause();
+  var parsedNow = readLang($('comp').value);
+  if (parsedNow && ((parsedNow.tracks && parsedNow.tracks.length) || parsedNow.synth)) {
+    playTracked(parsedNow);
+    return;
+  }
   if (window.NCSampler && NCSampler.active && NCSampler.active() && NCSampler.canPlay && NCSampler.canPlay()) {
     stop();
     var mine = gen; active = true;
@@ -714,7 +923,7 @@ function start(from) {
   }
   stop();
   var tl = timeline(); if (!tl) return;
-  AC = AC || new (window.AudioContext || window.webkitAudioContext)(); AC.resume();
+  unlockAudio();
   from = (from || 0) % tl.chords.length;
   var speed = (tl.language ? 1 : PREVIEW_TEMPO) * +$('spd').value, chords = tl.chords.slice(from, from + 64), my = gen; active = true; SCHED = [];
   $('play').textContent = 'Stop'; $('sinenote').hidden = true; status('Loading chord recordings…');
@@ -1164,10 +1373,13 @@ $('share').onclick = function () {
 window.addEventListener('resize', growNotes);
 window.addEventListener('hashchange', fromHash);
 window.addEventListener('pagehide', function () { if (persistT) persist(); });
+document.addEventListener('pointerdown', unlockAudio, true);
+document.addEventListener('touchend', unlockAudio, true);
 window.NC = {timeline: timeline, toPlan: toPlan, toMd: toMd, parseMd: parseMd, state: state, raw: raw, fill: fill, findChords: findChords, pickVoicing: pickVoicing, shareUrl: shareUrl,
+  audio: unlockAudio,
   read: function () { return readLang($('comp').value); }, reuseSeed: reuseSeed, seed: writtenSeed,
   fromText: fromText, makeSurprise: makeSurprise, progression: progression, start: start, stop: stop, undo: undo, sched: function () { return SCHED.slice(); }, markChord: markChord,
-  catalog: function () { return CAT; }, audition: function (ac, chords) { return window.MM.prepare(ac, chords, CAT, $('inst').value || 'piano'); }, showSources: showSources, creditsFor: creditsFor, chordLabel: chordLabel, instrument: function () { return $('inst').value || 'piano'; }, creditSentence: creditSentence,
+  catalog: function () { return CAT; }, audition: function (ac, chords) { return window.MM.prepare(ac, chords, CAT, $('inst').value || 'piano'); }, trackRecordings: trackRecordings, showSources: showSources, creditsFor: creditsFor, chordLabel: chordLabel, instrument: function () { return $('inst').value || 'piano'; }, creditSentence: creditSentence,
   PREVIEW_TEMPO: PREVIEW_TEMPO, perform: PERFORM, showPerformance: showPerformance, performStatus: performStatus, pushUndo: pushUndo, persist: persist, commitNotes: commitNotes, growNotes: growNotes};
 fetch('chords.json').then(function (r) { return r.json(); }).then(function (c) {
   CAT = c; Object.keys(c.chords).forEach(function (k) { QUALS[k.replace(/^[A-G](#|b)?/, '')] = 1; });

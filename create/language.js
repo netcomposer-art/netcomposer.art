@@ -15,6 +15,14 @@
 // (`3/4`, `6/8`, and the other n/2, n/4, n/8 marks) sets the bar in quarter
 // notes. 6/8 counts as 3 beats in a bar, not 6. With none written, the bar is
 // 4/4. `(n|)` is n of those bars. `(n)` is n beats, so `(3)` is one bar of 6/8.
+//
+// `t1:`, `t2:`, … name a track. The label is a word `t` plus a number from 1,
+// then a colon, on the same line. Several labels may share a line. The label
+// owns the tokens after it until the next label or the end of the statement.
+// The same number again appends. `T1` and `t1` are one track. A gap in the
+// numbers stays a gap. A line with no label is read exactly as before.
+// `@synth` plays that track's chords on the built-in synth, and they are not
+// gathered. Another `@name` is an instrument, same as on a notes line.
 (function (root) {
   'use strict';
   var PC = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
@@ -387,6 +395,7 @@
     var seen = {}, flags = { paren: false, rest: false, loop: false, lower: false, quoteChord: false };
     var meter = '4/4', meterWritten = false, seed = null, tempos = [], seeds = [], nextRec = 0, quoted = false;
     var arps = [], unmapped = [];
+    var tracks = [], trackByN = {}, sink = null, trackSpans = [], pieceInstrument = '';
     var errors = [], lengthNotes = [], otherNotes = [], aiNotes = [];
     function say(list, s) { if (s && !seen[s]) { seen[s] = 1; list.push(s); } }
     function note(s) { say(otherNotes, s); }
@@ -403,13 +412,63 @@
       if (tok.at != null) return tok.at;
       return tok.end != null ? tok.end - 1 : src.length;
     }
+    // `t12:` is a track. `t0`, `t`, and a colon on a later line are not.
+    function labelNumber(idx) {
+      var a = tokens[idx], b = tokens[idx + 1];
+      if (!a || !b || a.type !== 'word' || b.type !== 'word' || b.text !== ':') return 0;
+      var m = /^t(\d+)$/i.exec(a.text);
+      if (!m || !(+m[1] >= 1)) return 0;
+      var aEnd = a.end != null ? a.end : tokenPos(a) + 1;
+      var colonAt = b.end != null ? b.end - 1 : -1;
+      if (!(colonAt >= aEnd)) return 0;
+      if (/[\n;]/.test(src.slice(aEnd, colonAt))) return 0;
+      return +m[1];
+    }
+    function blockedTrack(idx) {
+      if (labelNumber(idx)) return true;
+      return !!(sink && tokens[idx] && tokenPos(tokens[idx]) >= sink.limit);
+    }
+    function closeSpan() {
+      if (!sink || sink.spanAt == null) return;
+      var end = sink.limit;
+      if (i < tokens.length) {
+        var at = tokenPos(tokens[i]);
+        if (at < end) end = at;
+      }
+      if (end < sink.spanAt) end = sink.spanAt;
+      trackSpans.push({ start: sink.spanAt, end: end });
+      var chunk = src.slice(sink.contentAt, end).trim();
+      if (chunk) sink.sources.push(chunk);
+      sink.spanAt = null;
+    }
+    function openTrack(n, limit, spanAt, contentAt) {
+      closeSpan();
+      var tr = trackByN[n];
+      if (!tr) {
+        tr = { n: n, label: 'T' + n, played: [], syntax: [], arps: [], instrument: '', sources: [] };
+        trackByN[n] = tr;
+        tracks.push(tr);
+      }
+      sink = tr;
+      sink.limit = limit;
+      sink.spanAt = spanAt;
+      sink.contentAt = contentAt;
+    }
+    function musPlayed() { return sink ? sink.played : played; }
+    function musSyntax() { return sink ? sink.syntax : syntax; }
+    function musArps() { return sink ? sink.arps : arps; }
+    function setInstrument(name) {
+      if (!name) return;
+      if (sink) sink.instrument = name;
+      else pieceInstrument = name;
+    }
 
     function stamp(ev) {
       var copy = {
         kind: ev.kind, symbol: ev.symbol, bass: ev.bass == null ? null : ev.bass,
         beats: ev.beats, bars: ev.bars, openDur: !!ev.openDur, recording: ev.recording
       };
-      played.push(copy);
+      musPlayed().push(copy);
       return copy;
     }
     function assign(ev) {
@@ -420,7 +479,10 @@
     function tryChord(inGroup) {
       var t = tokens[i];
       if (!t || t.type !== 'word') return null;
-      var c = chordOf(t.text, inGroup, known);
+      var text = t.text, gluedName = '';
+      var glued = /^(.*)@([A-Za-z][\w-]*)$/.exec(text);
+      if (glued && glued[1]) { text = glued[1]; gluedName = glued[2].toLowerCase(); }
+      var c = chordOf(text, inGroup, known);
       if (!c) return null;
       if (c.guard) {
         err('`' + c.guard + '` is a word, not ' + c.guard.toUpperCase() + ' major. Write `' + c.guard.toUpperCase() + '` in its place for the chord.');
@@ -437,7 +499,17 @@
       i++;
       if (c.paren) flags.paren = true;
       if (c.lower) flags.lower = true;
+      if (gluedName) setInstrument(gluedName);
       return c;
+    }
+    function tryAt() {
+      var t = tokens[i];
+      if (!t || t.type !== 'word') return false;
+      var m = /^@([A-Za-z][\w-]*)$/.exec(t.text);
+      if (!m) return false;
+      setInstrument(m[1].toLowerCase());
+      i++;
+      return true;
     }
     function tryRest() {
       var t = tokens[i];
@@ -710,6 +782,7 @@
         return true;
       }
       while (i < tokens.length) {
+        if (blockedTrack(i)) break;
         var w = tokens[i];
         if (!w || w.type !== 'word') break;
         var text = w.text, low = text.toLowerCase();
@@ -823,7 +896,8 @@
         break;
       }
       delete spec.bareRoot;
-      arps.push(spec);
+      if (spec.instrument) setInstrument(spec.instrument);
+      musArps().push(spec);
       var arpText = arpSyntax(spec);
       if (trailing.length) arpText += ' ' + trailing.join(' ');
       syntax.push({ kind: 'arp', text: arpText });
@@ -857,7 +931,7 @@
         return tok.type === 'groupStart' || tok.type === 'groupEnd' || tok.type === 'bar';
       }
       var j = i + 1, saw = false;
-      while (j < tokens.length && inside(tokens[j]) && !blocked(tokens[j])) {
+      while (j < tokens.length && inside(tokens[j]) && !blocked(tokens[j]) && !blockedTrack(j)) {
         var scan = tokens[j];
         if (scan.type === 'word' && /^arp$/i.test(scan.text)) break;
         if (scan.type === 'word') {
@@ -869,7 +943,7 @@
       if (!saw) return false;
       var parts = [];
       j = i + 1;
-      while (j < tokens.length && inside(tokens[j]) && !blocked(tokens[j])) {
+      while (j < tokens.length && inside(tokens[j]) && !blocked(tokens[j]) && !blockedTrack(j)) {
         var tok = tokens[j];
         if (tok.type === 'word' && /^arp$/i.test(tok.text)) break;
         if (tok.type === 'quote') parts.push('"' + tok.text + '"');
@@ -888,7 +962,12 @@
         j++;
       }
       i = j;
-      if (parts.length) syntax.push({ kind: 'notes', text: 'notes ' + parts.join(' ') });
+      if (parts.length) {
+        var notesText = 'notes ' + parts.join(' ');
+        musSyntax().push({ kind: 'notes', text: notesText });
+        var named = /@([A-Za-z][\w-]*)/.exec(notesText);
+        if (named) setInstrument(named[1].toLowerCase());
+      }
       return true;
     }
     // `fm 3` is a depth on the notes line, not the chord F minor. `fm t2`
@@ -902,18 +981,19 @@
       return true;
     }
     function atStatement() {
+      if (tryAt()) return true;
       if (tryHack()) return true;
       if (tryTempo()) return true;
       if (trySeed()) return true;
       if (tryMeter()) return true;
       if (tryLength()) return true;
       var rest = tryRest();
-      if (rest) { assign(rest); stamp(rest); syntax.push({ kind: 'rest', text: renderRest(rest) }); return true; }
+      if (rest) { assign(rest); stamp(rest); musSyntax().push({ kind: 'rest', text: renderRest(rest) }); return true; }
       if (tryArp()) return true;
       if (tryNotes()) return true;
       if (tryNotesFm()) return true;
       var ch = tryChord(false);
-      if (ch) { assign(ch); stamp(ch); syntax.push({ kind: 'chord', text: renderChord(ch) }); return true; }
+      if (ch) { assign(ch); stamp(ch); musSyntax().push({ kind: 'chord', text: renderChord(ch) }); return true; }
       var times = tryLoop();
       if (times) { err('A repeat needs chords to wrap. Wrap them in `[ ]x4` to repeat.'); flags.loop = true; return true; }
       return false;
@@ -923,6 +1003,7 @@
       if (isLegacy()) { parseLegacy(); return; }
       var items = [];
       while (i < tokens.length && tokens[i].type !== 'groupEnd') {
+        if (blockedTrack(i)) break;
         var t = tokens[i];
         if (t.type === 'groupStart') { err('Nested groups are not read. Keep one pair of `[ ]` around the chords.'); i++; continue; }
         if (t.type === 'bar') { items.push({ kind: 'bar' }); i++; continue; }
@@ -933,6 +1014,7 @@
           note('Hacks are for the whole piece. Move `' + token + '` outside the brackets, at the start.');
           continue;
         }
+        if (tryAt()) continue;
         if (tryTempo() || trySeed() || tryMeter() || tryLength()) continue;
         var rest = tryRest();
         if (rest) { items.push(rest); continue; }
@@ -950,7 +1032,7 @@
       if (times > 1) flags.loop = true;
       checkBars(items);
       expand(items, times);
-      syntax.push({
+      musSyntax().push({
         kind: 'group', text: renderItems(items, times), times: times,
         slots: items.filter(function (it) { return it.kind !== 'bar'; }).length
       });
@@ -980,7 +1062,7 @@
       chord.paren = false;
       assign(chord);
       stamp(chord);
-      syntax.push({ kind: 'chord', text: renderChord(chord) });
+      musSyntax().push({ kind: 'chord', text: renderChord(chord) });
     }
     function takeQuote() {
       var t = tokens[i++];
@@ -1002,6 +1084,16 @@
     }
 
     while (i < tokens.length) {
+      if (sink && tokenPos(tokens[i]) >= sink.limit) { closeSpan(); sink = null; }
+      if (labelNumber(i)) {
+        var lab = labelNumber(i);
+        var limit = statementEnd(tokenPos(tokens[i]));
+        var spanAt = tokenPos(tokens[i]);
+        var contentAt = tokens[i + 1] && tokens[i + 1].end != null ? tokens[i + 1].end : spanAt;
+        openTrack(lab, limit, spanAt, contentAt);
+        i += 2;
+        continue;
+      }
       var t = tokens[i];
       if (t.type === 'quote') { takeQuote(); continue; }
       if (t.type === 'groupStart') { parseGroup(); continue; }
@@ -1010,6 +1102,7 @@
       if (t.type === 'word') { addWord(t.text); i++; continue; }
       i++;
     }
+    closeSpan();
 
     var ot = openingTempo(src);
     var bpm = ot ? ot.bpm : (tempos.length ? tempos[0] : null);
@@ -1025,47 +1118,129 @@
     }
     var qpb = qpbOf(meter);
     var bpmUse = bpm > 0 ? bpm : SKETCH_BPM;
-    played.forEach(function (ev) {
-      var beats = ev.beats;
-      if (ev.bars != null) beats = ev.bars * qpb;
-      ev.seconds = beats != null ? round3(beats * 60 / bpmUse) : null;
-    });
+    function stampSeconds(list) {
+      list.forEach(function (ev) {
+        var beats = ev.beats;
+        if (ev.bars != null) beats = ev.bars * qpb;
+        ev.seconds = beats != null ? round3(beats * 60 / bpmUse) : null;
+      });
+    }
+    stampSeconds(played);
+    tracks.forEach(function (tr) { stampSeconds(tr.played); });
     var chords = played.filter(function (e) { return e.kind === 'chord'; });
     var clock = (flags.paren || flags.rest || flags.loop || flags.lower || flags.quoteChord) ? 'language' : 'legacy';
     CHANGE.lastIndex = 0;
     if (clock === 'language' && CHANGE.test(uncomment(src))) note('A later tempo is not read yet. Keep `' + trimNum(bpm > 0 ? bpm : SKETCH_BPM) + ' BPM` at the start and delete the later one.');
-    arps.forEach(function (a) {
-      if (a.chord) return;
-      played.forEach(function (ev) {
-        if (ev.kind !== 'chord') return;
-        var id = root.NCChords && root.NCChords.idForSymbol ? root.NCChords.idForSymbol(ev.symbol) : null;
-        if (!id) {
-          var label = pretty(ev.symbol);
-          if (ev.bass != null) label += '/' + SPELL[ev.bass];
-          markUnmapped(label);
+    function scanUnmapped(list, pool) {
+      list.forEach(function (a) {
+        if (!a || a.chord) return;
+        (pool || []).forEach(function (ev) {
+          if (ev.kind !== 'chord') return;
+          var id = root.NCChords && root.NCChords.idForSymbol ? root.NCChords.idForSymbol(ev.symbol) : null;
+          if (!id) {
+            var label = pretty(ev.symbol);
+            if (ev.bass != null) label += '/' + SPELL[ev.bass];
+            markUnmapped(label);
+          }
+        });
+      });
+    }
+    scanUnmapped(arps, played);
+    function notesBeatsOf(text) {
+      var total = 0, re = /([A-Ga-g])(#|b)?(-?\d+)(?:\((\d+(?:\.\d+)?)(\|)?\))?/g, tok;
+      while ((tok = re.exec(text || ''))) {
+        var nbeats = tok[4] ? +tok[4] : 1;
+        if (!(nbeats > 0)) nbeats = 1;
+        if (tok[5]) nbeats *= qpb;
+        total += nbeats;
+      }
+      return total;
+    }
+    function fmOfText(text) {
+      var m = /\bfm\s+(\d+(?:\.\d+)?)/i.exec(text || '');
+      if (!m) return null;
+      var n = +m[1];
+      return n < 0 ? 0 : n > 10 ? 10 : n;
+    }
+    function harmonyFor(tr) {
+      var local = tr.played.filter(function (e) { return e.kind === 'chord' || e.kind === 'rest'; });
+      if (local.some(function (e) { return e.kind === 'chord'; })) return local;
+      if (played.some(function (e) { return e.kind === 'chord'; })) return played;
+      var ti, other;
+      for (ti = 0; ti < tracks.length; ti++) {
+        if (tracks[ti] === tr) continue;
+        other = tracks[ti].played.filter(function (e) { return e.kind === 'chord'; });
+        if (other.length) return tracks[ti].played;
+      }
+      return local;
+    }
+    var resolved = [];
+    tracks.forEach(function (tr) {
+      var hasNotes = tr.syntax.some(function (s) { return s.kind === 'notes'; });
+      var hasArp = tr.arps.length > 0;
+      var hasChords = tr.played.some(function (e) { return e.kind === 'chord'; });
+      var kind = hasNotes ? 'notes' : hasArp ? 'arp' : hasChords ? 'chords' : '';
+      if (!kind) return;
+      var kept = tr.syntax.filter(function (s) {
+        if (kind === 'notes') return s.kind === 'notes';
+        if (kind === 'arp') return s.kind === 'arp';
+        return s.kind === 'chord' || s.kind === 'rest' || s.kind === 'group';
+      });
+      var arp = kind === 'arp' ? tr.arps[0] : null;
+      var text = kept.map(function (s) { return s.text; }).join(' ');
+      var beats = 0;
+      if (kind === 'notes') beats = notesBeatsOf(text);
+      else if (kind === 'arp') {
+        if (arp.bars != null) beats = arp.bars * qpb;
+        else if (arp.beats != null) beats = arp.beats;
+        else {
+          harmonyFor(tr).forEach(function (ev) { beats += eventBeats(ev); });
+          if (!(beats > 0)) beats = qpb;
         }
+      } else tr.played.forEach(function (ev) { beats += eventBeats(ev); });
+      var fm = kind === 'arp' && arp && arp.fmDepth != null ? arp.fmDepth : fmOfText(text);
+      if (kind === 'arp') scanUnmapped([arp], harmonyFor(tr));
+      resolved.push({
+        n: tr.n, label: tr.label, kind: kind, instrument: tr.instrument || '',
+        played: kind === 'chords' ? tr.played : [],
+        harmony: harmonyFor(tr),
+        syntax: kept, arp: arp, source: tr.sources.join('\n'),
+        beats: beats, fmDepth: fm
       });
     });
     if (words.length) say(aiNotes, 'Words are left for the AI. Quote them `"like this"` to keep them words.');
 
     var gather = [], gathered = {};
-    chords.forEach(function (c) {
-      if (gathered[c.recording]) return;
-      gathered[c.recording] = 1;
-      gather.push(c.symbol);
+    if (pieceInstrument !== 'synth') {
+      chords.forEach(function (c) {
+        if (gathered[c.recording]) return;
+        gathered[c.recording] = 1;
+        gather.push(c.symbol);
+      });
+    }
+    resolved.forEach(function (tr) {
+      if (tr.kind !== 'chords' || tr.instrument === 'synth') return;
+      var seen = {};
+      tr.played.forEach(function (c) {
+        if (c.kind !== 'chord' || c.recording == null || seen[c.recording]) return;
+        seen[c.recording] = 1;
+        gather.push(c.symbol);
+      });
     });
-    var echo = musicalEcho();
+    var echo = pieceEcho();
     if (echo && echo.loose.length) say(lengthNotes, lengthNote(echo.loose));
     else if (echo && echo.open.length) say(lengthNotes, openNote(echo.open));
     notes = errors.concat(otherNotes, lengthNotes).slice(0, 2).concat(aiNotes);
     var line = echo && echo.line ? echo.line : joinSyntax(syntax);
+    if (!resolved.length && pieceInstrument === 'synth' && line) line += ' · @synth';
     var iread = line;
     if (words.length) iread += (iread ? '\n' : '') + words.join(' ');
     notes.forEach(function (s) { iread += (iread ? '\n' : '') + s; });
     return {
       bpm: bpm, meter: meter, meterWritten: meterWritten, seed: seed, clock: clock, hacks: hacks,
       played: played, gather: gather, words: words, notes: notes, quoted: quoted,
-      iread: iread, arp: arps, unmapped: unmapped, syntax: syntax
+      iread: iread, arp: arps, unmapped: unmapped, syntax: syntax,
+      tracks: resolved, trackSpans: trackSpans, synth: pieceInstrument === 'synth'
     };
     function nameList(list) {
       if (list.length === 1) return list[0];
@@ -1137,14 +1312,16 @@
     }
     // What will play: tempo, each chord's length once, a loop as ×N, then the total.
     // A star is a length the writer did not write. Play sketches one bar; Gather uses the recording.
-    function musicalEcho() {
+    function musicalEcho(evs, items) {
+      if (!evs) evs = played;
+      if (!items) items = syntax;
       var pi = 0, parts = [], total = 0, loose = [], open = [], music = false;
       function take(n) {
         var out = [];
-        while (out.length < n && pi < played.length) out.push(played[pi++]);
+        while (out.length < n && pi < evs.length) out.push(evs[pi++]);
         return out;
       }
-      syntax.forEach(function (s) {
+      items.forEach(function (s) {
         if (s.kind === 'chord' || s.kind === 'rest') {
           var ev = take(1)[0];
           if (!ev) return;
@@ -1169,9 +1346,9 @@
           parts.push(g);
         }
       });
-      if (!music) return { line: '', music: false, loose: loose, open: open };
+      if (!music) return { line: '', music: false, loose: loose, open: open, parts: parts, total: total };
       var extra = [];
-      syntax.forEach(function (s) {
+      items.forEach(function (s) {
         if (s.kind === 'hack') extra.push(hackEcho(s));
         else if (s.kind === 'arp' || s.kind === 'notes' || s.kind === 'seed' || s.kind === 'style' || s.kind === 'key') extra.push(s.text);
         else if (s.kind === 'meter') extra.push(s.text);
@@ -1179,7 +1356,45 @@
       var beats = trimNum(total) + (Math.abs(total - 1) < 1e-9 ? ' beat' : ' beats');
       var line = trimNum(bpmUse) + ' BPM · ' + parts.join(' · ') + ' · ' + beats + ' · ' + secText(total);
       if (extra.length) line += ' · ' + extra.join(' · ');
-      return { line: line, music: true, loose: loose, open: open };
+      return { line: line, music: true, loose: loose, open: open, parts: parts, total: total };
+    }
+    // Unlabelled music keeps musicalEcho's line. Tracks are named on that same line
+    // and the beat total is the longer part, because the tracks start together.
+    function pieceEcho() {
+      var base = musicalEcho(played, syntax);
+      if (!resolved.length) return base;
+      var loose = base.loose.slice(), open = base.open.slice();
+      var phrases = base.music ? base.parts.slice() : [];
+      var maxBeats = base.music ? base.total : 0;
+      resolved.forEach(function (tr) {
+        if (tr.kind === 'chords') {
+          var te = musicalEcho(tr.played, tr.syntax);
+          te.loose.forEach(function (n) { if (loose.indexOf(n) < 0) loose.push(n); });
+          te.open.forEach(function (n) { if (open.indexOf(n) < 0) open.push(n); });
+          if (te.parts.length) {
+            var phrase = tr.label + ' ' + te.parts.join(', ');
+            if (tr.instrument === 'synth') phrase += ' @synth';
+            else if (tr.instrument) phrase += ' @' + tr.instrument;
+            phrases.push(phrase);
+          }
+          if (te.total > maxBeats) maxBeats = te.total;
+          tr.beats = te.total;
+        } else if (tr.syntax.length) {
+          phrases.push(tr.label + ' ' + tr.syntax.map(function (s) { return s.text; }).join(', '));
+          if (tr.beats > maxBeats) maxBeats = tr.beats;
+        }
+      });
+      if (base.music && pieceInstrument === 'synth' && phrases.length) phrases[0] += ' @synth';
+      if (!phrases.length) return base;
+      var extras = [];
+      syntax.forEach(function (s) {
+        if (s.kind === 'hack') extras.push(hackEcho(s));
+        else if (s.kind === 'arp' || s.kind === 'notes' || s.kind === 'seed' || s.kind === 'style' || s.kind === 'key' || s.kind === 'meter') extras.push(s.text);
+      });
+      var beatsWord = trimNum(maxBeats) + (Math.abs(maxBeats - 1) < 1e-9 ? ' beat' : ' beats');
+      var built = trimNum(bpmUse) + ' BPM · ' + phrases.join(' · ') + ' · ' + beatsWord + ' · ' + secText(maxBeats);
+      if (extras.length) built += ' · ' + extras.join(' · ');
+      return { line: built, music: true, loose: loose, open: open, total: maxBeats };
     }
   }
 

@@ -1259,6 +1259,160 @@
     "iread": "96 BPM · [Cm 6 beats] · 6 beats · ~3.8 s · 6/8\nThe beats before `|` add up to 6, not 3. Change the lengths before `|` so they add up to 3, or delete the `|`."
   },
   {
+    "name": "tracks-same-line",
+    "text": "t1: Cm(4|) t2: Em(4|)",
+    "bpm": null,
+    "clock": "language",
+    "seed": null,
+    "meter": "4/4",
+    "gather": ["Cm", "Em"],
+    "played": [],
+    "hacks": [],
+    "words": [],
+    "notes": [],
+    "iread": "96 BPM · T1 Cm 4 bars · T2 Em 4 bars · 16 beats · 10 s",
+    "tracks": [
+      {"n": 1, "label": "T1", "kind": "chords", "instrument": "", "beats": 16, "fmDepth": null, "played": [{"kind": "chord", "symbol": "Cm", "beats": null, "bars": 4, "seconds": 10}]},
+      {"n": 2, "label": "T2", "kind": "chords", "instrument": "", "beats": 16, "fmDepth": null, "played": [{"kind": "chord", "symbol": "Em", "beats": null, "bars": 4, "seconds": 10}]}
+    ],
+    "synth": false
+  },
+  {
+    "name": "tracks-append-case",
+    "text": "t1: Cm(4|)\nT1: Fm(4|)",
+    "bpm": null,
+    "clock": "language",
+    "seed": null,
+    "meter": "4/4",
+    "gather": ["Cm", "Fm"],
+    "played": [],
+    "hacks": [],
+    "words": [],
+    "notes": [],
+    "iread": "96 BPM · T1 Cm 4 bars, Fm 4 bars · 32 beats · 20 s",
+    "tracks": [
+      {"n": 1, "label": "T1", "kind": "chords", "instrument": "", "beats": 32, "fmDepth": null, "played": [
+        {"kind": "chord", "symbol": "Cm", "beats": null, "bars": 4, "seconds": 10},
+        {"kind": "chord", "symbol": "Fm", "beats": null, "bars": 4, "seconds": 10}
+      ]}
+    ],
+    "synth": false
+  },
+  {
+    "name": "tracks-gap",
+    "text": "t1: Cm(4|)\nt3: Em(2|)",
+    "bpm": null,
+    "clock": "language",
+    "seed": null,
+    "meter": "4/4",
+    "gather": ["Cm", "Em"],
+    "played": [],
+    "hacks": [],
+    "words": [],
+    "notes": [],
+    "iread": "96 BPM · T1 Cm 4 bars · T3 Em 2 bars · 16 beats · 10 s",
+    "tracks": [
+      {"n": 1, "label": "T1", "kind": "chords", "instrument": "", "beats": 16, "fmDepth": null, "played": [{"kind": "chord", "symbol": "Cm", "beats": null, "bars": 4, "seconds": 10}]},
+      {"n": 3, "label": "T3", "kind": "chords", "instrument": "", "beats": 8, "fmDepth": null, "played": [{"kind": "chord", "symbol": "Em", "beats": null, "bars": 2, "seconds": 5}]}
+    ],
+    "synth": false
+  },
+  {
+    "name": "tracks-unlabelled-stays",
+    "text": "Cm(4|)\nt1: notes C5(4|)",
+    "bpm": null,
+    "clock": "language",
+    "seed": null,
+    "meter": "4/4",
+    "gather": ["Cm"],
+    "played": [
+      {"kind": "chord", "symbol": "Cm", "bass": null, "beats": null, "bars": 4, "seconds": 10, "recording": 0}
+    ],
+    "hacks": [],
+    "words": [],
+    "notes": [],
+    "iread": "96 BPM · Cm 4 bars · T1 notes C5(4|) · 16 beats · 10 s",
+    "tracks": [
+      {"n": 1, "label": "T1", "kind": "notes", "instrument": "", "beats": 16, "fmDepth": null, "played": []}
+    ],
+    "synth": false
+  },
+  {
+    "name": "tracks-synth-only",
+    "text": "t1: Cm(4|) @synth\nt2: notes C5(4|) G5(4|) fm 2",
+    "bpm": null,
+    "clock": "language",
+    "seed": null,
+    "meter": "4/4",
+    "gather": [],
+    "played": [],
+    "hacks": [],
+    "words": [],
+    "notes": [],
+    "iread": "96 BPM · T1 Cm 4 bars @synth · T2 notes C5(4|) G5(4|) fm 2 · 32 beats · 20 s",
+    "tracks": [
+      {"n": 1, "label": "T1", "kind": "chords", "instrument": "synth", "beats": 16, "fmDepth": null, "played": [{"kind": "chord", "symbol": "Cm", "beats": null, "bars": 4, "seconds": 10}]},
+      {"n": 2, "label": "T2", "kind": "notes", "instrument": "", "beats": 32, "fmDepth": 2, "played": []}
+    ],
+    "synth": false
+  },
+  {
+    "name": "tracks-six-eight",
+    "text": "6/8 t1: Cm(1|)",
+    "bpm": null,
+    "clock": "language",
+    "seed": null,
+    "meter": "6/8",
+    "gather": ["Cm"],
+    "played": [],
+    "hacks": [],
+    "words": [],
+    "notes": [],
+    "iread": "96 BPM · T1 Cm 1 bar · 3 beats · ~1.9 s · 6/8",
+    "tracks": [
+      {"n": 1, "label": "T1", "kind": "chords", "instrument": "", "beats": 3, "fmDepth": null, "played": [{"kind": "chord", "symbol": "Cm", "beats": null, "bars": 1, "seconds": 1.875}]}
+    ],
+    "synth": false
+  },
+  {
+    "name": "tracks-label-ends-at-line",
+    "text": "t1: Cm(4|)\nFm(4|)",
+    "bpm": null,
+    "clock": "language",
+    "seed": null,
+    "meter": "4/4",
+    "gather": ["Fm", "Cm"],
+    "played": [
+      {"kind": "chord", "symbol": "Fm", "bass": null, "beats": null, "bars": 4, "seconds": 10, "recording": 1}
+    ],
+    "hacks": [],
+    "words": [],
+    "notes": [],
+    "iread": "96 BPM · Fm 4 bars · T1 Cm 4 bars · 16 beats · 10 s",
+    "tracks": [
+      {"n": 1, "label": "T1", "kind": "chords", "instrument": "", "beats": 16, "fmDepth": null, "played": [{"kind": "chord", "symbol": "Cm", "beats": null, "bars": 4, "seconds": 10}]}
+    ],
+    "synth": false
+  },
+  {
+    "name": "tracks-not-zero",
+    "text": "t0: Cm(4)",
+    "bpm": null,
+    "clock": "language",
+    "seed": null,
+    "meter": "4/4",
+    "gather": ["Cm"],
+    "played": [
+      {"kind": "chord", "symbol": "Cm", "bass": null, "beats": 4, "bars": null, "seconds": 2.5, "recording": 0}
+    ],
+    "hacks": [],
+    "words": ["t0", ":"],
+    "notes": ["Words are left for the AI. Quote them `\"like this\"` to keep them words."],
+    "iread": "96 BPM · Cm 4 beats · 4 beats · 2.5 s\nt0 :\nWords are left for the AI. Quote them `\"like this\"` to keep them words.",
+    "tracks": [],
+    "synth": false
+  },
+  {
     "name": "cp-threshold",
     "text": "90 BPM Cm(4) cp-18",
     "bpm": 90,
