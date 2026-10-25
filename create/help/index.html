@@ -35,7 +35,7 @@ footer.site{margin-top:5rem;padding-bottom:4rem}
 <p>The Composition field is the box on <a href="../">Create</a>. What you type there is what the page reads. Copy any example below straight into that box.</p>
 <p>A beat is one count. A bar is a group of beats. Unless you write another time, a bar has four beats. That time is called 4/4.</p>
 <p>Above the Composition field, the tempo and the time signature are already filled in: 96 and 4/4. They are there even when the field is empty. Change either box, or write the same thing in the field. The field is what is kept. A number you have not written looks a little quieter.</p>
-<p>Play is the button that sounds the chords, and a synth or sampler track. Gather finds a recording for each chord. Perform puts those recordings into the piece. Keep writes one fixed file of what you heard. Live holds each filter, and the other effects, at the number you wrote.</p>
+<p>Play is the button that sounds what you wrote. With no <code>@name</code>, that is the built-in synth, including a chord such as <code>Cm11</code>. <code>@piano</code>, <code>@guitar</code>, and <code>@cello</code> play the sampler. Gather finds a recording for each chord. Perform puts those recordings into the piece. Keep writes one fixed file of what you heard. Live holds each filter, and the other effects, at the number you wrote.</p>
 <nav class="m" aria-label="On this page">
 <p><a href="#first">First</a> · <a href="#chords">Chords</a> · <a href="#durations">Lengths</a> · <a href="#tempo">Tempo</a> · <a href="#time">Time</a> · <a href="#groups">Repeats</a> · <a href="#notes">Notes</a> · <a href="#tracks">Tracks</a> · <a href="#fm">FM</a> · <a href="#arp">Arpeggio</a> · <a href="#words">Words</a> · <a href="#instrument">Instrument</a> · <a href="#hacks">Hacks</a> · <a href="#iread">I read</a> · <a href="#play">Play</a> · <a href="#also">Also</a></p>
 </nav>
@@ -45,7 +45,7 @@ footer.site{margin-top:5rem;padding-bottom:4rem}
 <p>Start with one chord. A capital letter is the root. <code>m</code> after it means minor. <code>Cm</code> is C minor.</p>
 <pre class="ex">Cm</pre>
 <p class="hear">Play sketches one bar of C minor, about 2.5 seconds, at 96 BPM. Gather uses the whole recording. The line under the field asks you to write a length. The tempo above the field stays 96, because you did not write one.</p>
-<p>A sketch is the stand-in Play uses when you did not write a length. One bar. BPM means beats per minute, which is the speed. 96 BPM is the speed used when you have not written one. It is already showing above the field.</p>
+<p>A sketch is the stand-in Play uses when you did not write a length. One bar, on the built-in synth. BPM means beats per minute, which is the speed. 96 BPM is the speed used when you have not written one. It is already showing above the field.</p>
 <pre class="ex">90 BPM Cm(2)</pre>
 <p class="hear">Two beats of C minor at 90 BPM, about 1.3 seconds. That is half a bar, shorter than the one-bar sketch above. The length and the speed are both written, so the line under the field adds nothing.</p>
 </section>
@@ -63,6 +63,9 @@ footer.site{margin-top:5rem;padding-bottom:4rem}
 <p class="hear">C sharp minor, read as Dbm. Play sketches one bar of that chord at 96 BPM.</p>
 <pre class="ex">Cm/G</pre>
 <p class="hear">C minor with G in the bass. The note after the slash is the bottom note. Play sketches one bar.</p>
+<pre class="ex">C5m9(4|)</pre>
+<p class="hear">C minor 9 with its root on C5, held for 4 bars at 96 BPM. Cm9 with no octave stays in its usual place. Gather still finds Cm9.</p>
+<p>Write the octave right after the root, the same way a note does: <code>Eb4maj7</code>, <code>F#3m7</code>, <code>C5m9/Bb</code>. The bass note sits below that root. A bare <code>C5</code> stays a note. A pitch runs from <code>C-1</code> to <code>G9</code>.</p>
 <p>A few short forms mean the same chord. <code>Cmin</code> and <code>C-</code> are Cm. <code>CM7</code> is Cmaj7. <code>Csus</code> is Csus4. <code>C6/9</code> is the 6/9 chord. <code>C2</code> is Csus2. <code>C+</code> is Caug.</p>
 <pre class="ex">CM7</pre>
 <p class="hear">C major 7, read from the short form CM7. Play sketches one bar at 96 BPM.</p>
@@ -275,28 +278,37 @@ arp</pre>
 
 <section id="instrument">
 <h2>An instrument</h2>
-<p>Glue <code>@</code> and a name onto a pitch, or onto an arp. <code>@piano</code>, <code>@guitar</code>, and <code>@cello</code> play the sampler when that line is a track. A plain name, such as <code>@flute</code>, only labels the line. The built-in synth stays out, and the name does not send Gather looking for a recording. The two lines below have no track label, so Play lists them and stays quiet. <code>@synth</code> plays a chord line, or a chord track, on the built-in synth, and Gather does not fetch a recording for it.</p>
+<p>Play sounds the built-in synth. <code>@piano</code>, <code>@guitar</code>, <code>@cello</code>, and <code>@bass</code> play the sampler instead, on a notes line, an arp, or a chord line. On a chord line the sampler plays that chord's voicing. <code>@bass</code> is B1–A#4. A pitch the instrument does not have is left out. Any other name, such as <code>@flute</code>, only labels the line, and Play uses the synth. Gather still finds a recording. It skips a line that says <code>@synth</code>, and a chord track that says <code>@bass</code>. A notes line or an arp with no track label is listed, and Play stays quiet.</p>
+<pre class="ex">Cm11</pre>
+<p class="hear">Play sounds C minor 11 on the built-in synth, one sketched bar at 96 BPM, from the catalog voicing. Gather still finds a recording.</p>
+<pre class="ex">Cm11 @piano</pre>
+<p class="hear">Play sounds that same C minor 11 voicing on the piano sampler. The built-in synth stays out. The piano notes need a connection once. Gather still finds a recording.</p>
 <pre class="ex">n C5@piano Eb5</pre>
-<p class="hear">Play lists the pitches and the piano name, and stays quiet. The built-in synth does not render this line.</p>
+<p class="hear">Play lists the pitches and the piano name, and stays quiet. There is no track label, so the sampler does not play this line.</p>
 <pre class="ex">arp Cm9 @flute</pre>
-<p class="hear">The arpeggio is kept, named for flute. Play lists it. The built-in synth does not render it.</p>
+<p class="hear">The arpeggio is kept, and the name flute only labels it. Play lists it and stays quiet. There is no track label.</p>
 </section>
 
 <section id="tracks">
 <h2>Tracks</h2>
 <p>A track label is <code>t1:</code>, <code>t2:</code>, and so on. Write it at the start of a line, or several on one line. Everything after a label, up to the next label or the end of that line, belongs to that track. The same label again adds to that track. <code>T1</code> and <code>t1</code> are the same track. A line with no label is read the way it always was.</p>
-<p>Tracks start together. They share the tempo and the time signature. Each one can be a chord progression, a notes line, or an arp, with its own lengths and its own FM depth. Each synth track is its own voice. <code>@synth</code> on a chord track plays those chords on the built-in synth, and Gather does not fetch a recording for it.</p>
-<p>Play sounds a synth track, and a sampler track, from its notes as soon as you press Play. There is no render wait. On a notes track or an arp track, <code>@piano</code>, <code>@guitar</code>, and <code>@cello</code> play that sampler. A plain name, such as <code>@flute</code>, only labels the track. A chord track with no <code>@synth</code> plays the recordings Gather fetches. A piece that is only the built-in synth plays with no connection. The sampler, and the recordings, need a connection once.</p>
+<p>Tracks start together. They share the tempo and the time signature. Each one can be a chord progression, a notes line, or an arp, with its own lengths and its own FM depth. Each synth track is its own voice. On Play, a chord track sounds the built-in synth. <code>@piano</code>, <code>@guitar</code>, <code>@cello</code>, and <code>@bass</code> play the sampler, and on a chord track the sampler plays that chord's voicing. <code>@bass</code> is B1–A#4. A pitch the bass does not have is left out. A plain name, such as <code>@flute</code>, only labels the track, and Play uses the synth. <code>@synth</code> is the same synth. Gather skips a chord track that says <code>@synth</code> or <code>@bass</code>.</p>
+<p>Play sounds a synth track, and a sampler track, from its notes as soon as you press Play. There is no render wait. A piece that is only the built-in synth plays with no connection. The sampler needs a connection once. Gather still finds a recording for every other chord.</p>
 <p>Arrangement, under Play, puts <code>S</code> and <code>M</code> on each lane. S solos that lane. M mutes it. Reset clears them. Play, Live, and Keep follow them. If any lane is soloed, only the soloed lanes play. A soloed lane still plays when it is also muted. A muted lane is silent when nothing is soloed.</p>
 <pre class="ex">t1: Cm(4|) Fm(4|) @synth
 t2: notes C5(4|) G5(4|) fm 2</pre>
 <p class="hear">Play sounds both from their notes as soon as you press it, with no render wait. T1 is C minor for 4 bars, then F minor for 4 bars, on the synth. T2 is C5 for 4 bars, then G5 for 4 bars, with FM depth 2 written on the line. They start together. 32 beats, 20 seconds at 96 BPM. Gather does not fetch a recording. This piece plays with no connection.</p>
 <pre class="ex">t1: Cm(4|) t2: Em(4|)</pre>
-<p class="hear">Play sounds both from the recordings Gather fetches, one lane each. T1 is C minor and T2 is E minor, both for 4 bars, starting together. 16 beats, 10 seconds at 96 BPM. Those recordings need a connection once.</p>
+<p class="hear">Play sounds both on the built-in synth, from the catalog voicing, one lane each. T1 is C minor and T2 is E minor, both for 4 bars, starting together. 16 beats, 10 seconds at 96 BPM. Gather still fetches those recordings, and they need a connection once.</p>
 <pre class="ex">t1: notes C4(4|) @piano</pre>
 <p class="hear">Play sounds C4 for 4 bars on the piano, from the note, with no render wait. The built-in synth stays out. 16 beats, 10 seconds at 96 BPM. The piano notes need a connection once.</p>
+<pre class="ex">t1: Cm(2|) @bass</pre>
+<p class="hear">Play sounds the bass notes of Cm for 2 bars. Bass is B1–A#4. A pitch the bass does not have is left out. The built-in synth stays out. 8 beats, 5 seconds at 96 BPM. The bass notes need a connection once.</p>
 <pre class="ex">t1: notes C4(4|) @flute</pre>
-<p class="hear">T1 keeps C4 for 4 bars, and the name flute only labels it. Play finds nothing on this track to sound. The built-in synth stays out.</p>
+<p class="hear">T1 keeps C4 for 4 bars. The name flute only labels it. Play sounds C4 on the built-in synth. 16 beats, 10 seconds at 96 BPM. This piece plays with no connection.</p>
+<pre class="ex">t1: Cm11(4)
+t2: notes G3(4) @cello</pre>
+<p class="hear">Play sounds T1, C minor 11 for 4 beats, on the built-in synth, and T2, G3 for 4 beats, on the cello sampler. They start together. 4 beats, 2.5 seconds at 96 BPM. The cello notes need a connection once. Gather still finds a recording for C minor 11.</p>
 </section>
 
 <section id="hacks">
@@ -317,10 +329,10 @@ t2: notes C5(4|) G5(4|) fm 2</pre>
 
 <section id="iread">
 <h2>The I-read line</h2>
-<p>Under the Composition field, a line begins “I read”. It is the page saying what it understood. The first line is the music. Then any words left for the AI. Then a note, only when you may want to change something. A note always includes the exact text to type, in a grey box, and says where it goes. A How link on that note opens the part of this page that matches.</p>
+<p>Under the Composition field, a line begins “I read”. It is the page saying what it understood. The first line is the music, and it names what Play will sound: synth, or <code>@piano</code>, <code>@guitar</code>, <code>@cello</code>, or <code>@bass</code>. Then any words left for the AI. Then a note, only when you may want to change something. A note always includes the exact text to type, in a grey box, and says where it goes. A How link on that note opens the part of this page that matches.</p>
 <p>A star on a length, written <code>1 bar*</code>, means you did not write that length. Play sketches one bar. Gather uses the whole recording.</p>
 <pre class="ex">Cm</pre>
-<p class="hear">I-read says: 96 BPM, Cm as 1 bar*, 4 beats, 2.5 seconds. Then it asks you to write Cm(4) for 4 beats or Cm(2|) for 2 bars. The 96 is already in the tempo box, so it does not ask you to add a tempo. You hear one sketched bar.</p>
+<p class="hear">I-read says: 96 BPM, Cm as 1 bar*, 4 beats, 2.5 seconds, and synth. Then it asks you to write Cm(4) for 4 beats or Cm(2|) for 2 bars. The 96 is already in the tempo box, so it does not ask you to add a tempo. You hear one sketched bar on the synth.</p>
 <pre class="ex">90 BPM [Cm(2) Fm9(2|)]x4</pre>
 <p class="hear">I-read says: 90 BPM, the pair times 4, 40 beats, about 26.7 seconds. There is no note, because the speed and both lengths are written. You hear 2 beats, then 2 bars, four times.</p>
 <p>A chord the page does not know is a note too. It suggests the nearest real chord when it can, such as <code>Cmaj13</code> for <code>Cmaj13b</code>.</p>
@@ -328,7 +340,7 @@ t2: notes C5(4|) G5(4|) fm 2</pre>
 
 <section id="play">
 <h2>Play, Gather, and Perform</h2>
-<p>Play sounds the chords you wrote, once each, at the speed you wrote. A group repeat is shown once, with a times mark, and Play still goes around it that many times. Play does not fill the piece out to two minutes. A notes line or an arp with no track label is listed, and Play stays quiet. Play does not sound a hack. A synth track or a sampler track plays live from its notes, with no render wait. A recorded chord track plays the recordings Gather fetched.</p>
+<p>Play sounds the chords you wrote on the built-in synth, once each, at the speed you wrote. A group repeat is shown once, with a times mark, and Play still goes around it that many times. Play does not fill the piece out to two minutes. A notes line or an arp with no track label is listed, and Play stays quiet. Play does not sound a hack. <code>@piano</code>, <code>@guitar</code>, <code>@cello</code>, and <code>@bass</code> play the sampler, including the voicing of a chord line. <code>@bass</code> is B1–A#4. Any other <code>@name</code> only labels the line, and Play uses the synth. A synth track or a sampler track plays live from its notes, with no render wait. Gather still finds the recordings. It skips a chord line that says <code>@synth</code>, and a chord track that says <code>@bass</code>. Play does not play those recordings.</p>
 <p>Gather finds one recording per chord. A written length uses that much of the recording. No length uses the whole recording. A repeat reuses the same recording. A notes line or an arp with no <code>@instrument</code> is rendered here on the built-in synth, and listed with the recordings.</p>
 <p>Perform puts what Gather found into the piece, with the synth and sampler tracks. Keep writes one fixed file of what you heard. Live parks each hack at the number you wrote, and moves a filter arrow across the whole piece. A low-pass written <code>lp500-&gt;200</code> goes from 500 Hz to 200 Hz.</p>
 <p>A piece that is only the built-in synth plays with no connection. The sampler, and the recordings, need a connection once.</p>
@@ -338,7 +350,7 @@ n C5(2) Eb5 G5 Bb4 fm 3
 arp Cm9 pendulum 16ths 2oct wide inv1 (2|)
 lp500->200
 "keep it close"</pre>
-<p class="hear">Play sketches the three chords four times at 90 BPM, about 37.3 seconds: C minor for 2 beats, F minor 9 as one bar, G minor 7 for 8 beats. It also lists the notes, the arp, and the filter. Gather fetches the three recordings, renders the melody and the arp on the synth with FM depth 3, and keeps the quoted words as words. Perform plays the recordings and the synth. Live moves the low-pass from 500 Hz to 200 Hz across the whole piece, evenly in pitch. A hand on that dial stops the move.</p>
+<p class="hear">Play sketches the three chords four times at 90 BPM, about 37.3 seconds, on the built-in synth: C minor for 2 beats, F minor 9 as one bar, G minor 7 for 8 beats. It also lists the notes, the arp, and the filter, and those stay quiet. Gather fetches the three recordings, renders the melody and the arp on the synth with FM depth 3, and keeps the quoted words as words. Perform plays the recordings and the synth. Live moves the low-pass from 500 Hz to 200 Hz across the whole piece, evenly in pitch. A hand on that dial stops the move.</p>
 </section>
 
 <section id="also">

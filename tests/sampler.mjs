@@ -350,11 +350,11 @@ if (!chrome || typeof WebSocket === 'undefined') {
             groups: document.querySelectorAll('#prog .grp').length
           };
         })()`);
-        if (celloPage && celloPage.iread && celloPage.iread.indexOf('plays F4 only') >= 0) break;
+        if (celloPage && celloPage.f4 === '1' && celloPage.iread && celloPage.iread.indexOf('synth') >= 0) break;
         await sleep(40);
       }
       check(celloPage && celloPage.voicing && celloPage.voicing.Fm === '56,60,65' && celloPage.voicing.Cm === '55,60,63', 'the page voices from the catalog, got ' + JSON.stringify(celloPage && celloPage.voicing));
-      check(celloPage && celloPage.iread.indexOf(FM_SENTENCE) >= 0 && celloPage.iread.indexOf(CM_SENTENCE) >= 0, 'I read uses the catalog voicing, got ' + (celloPage && celloPage.iread));
+      check(celloPage && celloPage.iread.indexOf('synth') >= 0 && celloPage.iread.indexOf(FM_SENTENCE) < 0, 'I read names the synth, not the hidden instrument, got ' + (celloPage && celloPage.iread));
       check(celloPage && celloPage.iread.indexOf('96 BPM') >= 0 && celloPage.iread.indexOf('×2') >= 0 && celloPage.iread.indexOf('q96') < 0, 'I read keeps the current line, got ' + (celloPage && celloPage.iread));
       check(celloPage && celloPage.groups === 1 && celloPage.chips === 3 && celloPage.times === '×2', 'Play shows [Cm Fm Gm] once, got ' + JSON.stringify(celloPage && { groups: celloPage.groups, chips: celloPage.chips, times: celloPage.times }));
       check(celloPage && celloPage.strum === '15 ms' && celloPage.gaps >= 2 && celloPage.f4 === '1' && celloPage.c4 === '0' && celloPage.gs === '0', 'cello dims the missing pitches and accents F4, got ' + JSON.stringify(celloPage));
@@ -463,7 +463,7 @@ if (!chrome || typeof WebSocket === 'undefined') {
             const o = OfflineAudioContext.prototype.createBufferSource;
             OfflineAudioContext.prototype.createBufferSource = function () { return wrap(o.apply(this, arguments)); };
           }
-          document.getElementById('comp').value = '96 BPM\\nn E4';
+          document.getElementById('comp').value = '96 BPM\\nt1: n E4 @guitar';
           document.getElementById('comp').dispatchEvent(new Event('input'));
           document.getElementById('inst').value = 'guitar';
           document.getElementById('inst').dispatchEvent(new Event('change'));

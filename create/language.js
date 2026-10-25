@@ -21,8 +21,13 @@
 // owns the tokens after it until the next label or the end of the statement.
 // The same number again appends. `T1` and `t1` are one track. A gap in the
 // numbers stays a gap. A line with no label is read exactly as before.
-// `@synth` plays that track's chords on the built-in synth, and they are not
-// gathered. Another `@name` is an instrument, same as on a notes line.
+// Play sounds the built-in synth. `@piano`, `@guitar`, `@cello`, and `@bass`
+// play the sampler, including a chord's voicing. Any other `@name` only labels
+// the line. `@synth` is the synth and is not gathered. Gather still fetches a
+// recording for every other chord, and it skips a chord track that says `@bass`.
+// An octave after the root, as in `C5m9`, puts that chord's root on the same
+// pitch as `notes C5`. `Cm9` with no octave is unchanged. Gather uses the
+// chord name and leaves the recording where it is.
 (function (root) {
   'use strict';
   var PC = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
@@ -258,6 +263,21 @@
   }
 
   function chordOf(token, inGroup, known) {
+    var direct = readChord(token, inGroup, known);
+    if (direct && !direct.unknown && !direct.guard) return direct;
+    // Octave right after the root, then a quality: C5m9, Eb4maj7, F#3m7.
+    // A bare C5, and C9 where 9 is the quality, stay as they are.
+    var split = /^([A-Ga-g])([#b]?)(-?\d+)([^\d(\s][\s\S]*)$/.exec(token);
+    if (!split) return direct;
+    var oct = +split[3];
+    var again = readChord(split[1] + (split[2] || '') + split[4], inGroup, known);
+    if (!(again && !again.unknown && !again.guard)) return direct;
+    var midi = (oct + 1) * 12 + PC[split[1].toUpperCase()] + (split[2] === '#' ? 1 : split[2] === 'b' ? -1 : 0);
+    if (!(midi >= 0 && midi <= 127)) return { range: split[1].toUpperCase() + (split[2] || '') + split[3] };
+    again.octave = Math.floor(midi / 12) - 1;
+    return again;
+  }
+  function readChord(token, inGroup, known) {
     var m = /^([A-Ga-g])([#b]?)([\s\S]*)$/.exec(token);
     if (!m) return null;
     var rest = m[3], q = '', k = 0;
@@ -313,19 +333,34 @@
   }
 
   // A pitch is a note name plus an octave, optional (beats) or (bars|).
-  // C5 is a note. Cm is not. Out-of-range octaves are not notes.
-  function pitchEcho(text) {
+  // C5 is a note. Cm is not. The pitches run from C-1 to G9.
+  function pitchParts(text) {
     var m = /^([A-Ga-g])(#|b)?(-?\d+)(?:\((\d+(?:\.\d+)?)(\|)?\))?$/.exec(text || '');
-    if (!m) return '';
+    if (!m) return null;
     var midi = (+m[3] + 1) * 12 + PC[m[1].toUpperCase()] + (m[2] === '#' ? 1 : m[2] === 'b' ? -1 : 0);
-    if (!(midi >= 0 && midi <= 127)) return '';
-    var echo = m[1].toUpperCase() + (m[2] || '') + m[3];
+    var name = m[1].toUpperCase() + (m[2] || '') + m[3];
+    var echo = name;
     if (m[4] != null) echo += '(' + trimNum(+m[4]) + (m[5] ? '|' : '') + ')';
-    return echo;
+    return { midi: midi, name: name, echo: echo, ok: midi >= 0 && midi <= 127 };
+  }
+  function pitchEcho(text) {
+    var p = pitchParts(text);
+    return p && p.ok ? p.echo : '';
+  }
+  function rangeNote(name) {
+    return '`' + name + '` is not a note. Write a pitch from `C-1` to `G9`.';
+  }
+  function chordName(ev) {
+    var s = pretty(ev && ev.symbol);
+    if (ev && ev.octave != null) {
+      var m = /^([A-G](?:#|b)?)(.*)$/.exec(s);
+      if (m) s = m[1] + ev.octave + m[2];
+    }
+    if (ev && ev.bass != null) s += '/' + SPELL[ev.bass];
+    return s;
   }
   function renderChord(ev) {
-    var s = pretty(ev.symbol);
-    if (ev.bass != null) s += '/' + SPELL[ev.bass];
+    var s = chordName(ev);
     if (ev.openDur) s += '(?)';
     else if (ev.bars != null) s += '(' + trimNum(ev.bars) + '|)';
     else if (ev.beats != null) s += '(' + trimNum(ev.beats) + ')';
@@ -466,7 +501,8 @@
     function stamp(ev) {
       var copy = {
         kind: ev.kind, symbol: ev.symbol, bass: ev.bass == null ? null : ev.bass,
-        beats: ev.beats, bars: ev.bars, openDur: !!ev.openDur, recording: ev.recording
+        beats: ev.beats, bars: ev.bars, openDur: !!ev.openDur, recording: ev.recording,
+        octave: ev.octave == null ? null : ev.octave
       };
       musPlayed().push(copy);
       return copy;
@@ -488,7 +524,16 @@
         err('`' + c.guard + '` is a word, not ' + c.guard.toUpperCase() + ' major. Write `' + c.guard.toUpperCase() + '` in its place for the chord.');
         return null;
       }
+      if (c.range) {
+        err(rangeNote(c.range));
+        return null;
+      }
       if (c.unknown) {
+        var shaped = pitchParts(t.text);
+        if (shaped && !shaped.ok) {
+          err(rangeNote(shaped.name));
+          return null;
+        }
         var hint = suggestSymbol(t.text, known);
         if (hint && hint.pitch) err('`' + hint.pitch.replace(/\(.*/, '') + '` is a pitch, not a chord. Write `notes ' + hint.pitch + '` on its own line.');
         else if (hint && hint.symbol) err(c.unknown + ' is not a chord. Did you mean `' + hint.symbol + '`?');
@@ -765,13 +810,16 @@
         if (!claim('chord')) return false;
         var id = root.NCChords && root.NCChords.idForQuality ? root.NCChords.idForQuality(qualityOf(c.symbol)) : null;
         spec.rootPc = pcOf(c.symbol);
+        spec.rootOctave = c.octave == null ? null : c.octave;
         spec.bass = c.bass == null ? null : c.bass;
         spec.bareRoot = qualityOf(c.symbol) === '' && !display;
         spec.chordId = display || id;
         if (display) spec.chordId = display;
         else spec.chordId = id;
-        var label = display ? (c.symbol.replace(/[^A-G#b].*$/, '') + ' ' + display) : pretty(c.symbol);
-        if (c.bass != null) label += '/' + SPELL[c.bass];
+        var rootShown = pretty(c.symbol).replace(/[^A-G#b].*$/, '');
+        if (c.octave != null) rootShown += c.octave;
+        var label = display ? (rootShown + ' ' + display) : chordName(c);
+        if (display && c.bass != null) label += '/' + SPELL[c.bass];
         spec.chord = label;
         spec.unmapped = !spec.chordId;
         if (!set.dur) {
@@ -868,6 +916,11 @@
         if (takeDur(text)) { i++; continue; }
         if (!set.chord) {
           var c = chordOf(text, true, arpKnown);
+          if (c && c.range) {
+            err(rangeNote(c.range));
+            i++;
+            continue;
+          }
           if (c && !c.guard && !c.unknown) {
             applyChord(c, null);
             i++;
@@ -936,7 +989,9 @@
         if (scan.type === 'word' && /^arp$/i.test(scan.text)) break;
         if (scan.type === 'word') {
           var glued = /^(.*)@([A-Za-z][\w-]*)$/.exec(scan.text);
-          if (pitchEcho(scan.text) || (glued && glued[1] && pitchEcho(glued[1]))) saw = true;
+          var scanBody = glued ? glued[1] : scan.text;
+          var scanPitch = pitchParts(scanBody);
+          if ((scanBody && pitchEcho(scanBody)) || (scanPitch && !scanPitch.ok)) saw = true;
         }
         j++;
       }
@@ -950,8 +1005,11 @@
         else if (tok.type === 'word') {
           var at = /^(.*)@([A-Za-z][\w-]*)$/.exec(tok.text);
           var body = tok.text, inst = '';
-          if (at && (!at[1] || pitchEcho(at[1]))) { body = at[1]; inst = '@' + at[2].toLowerCase(); }
-          if (body && pitchEcho(body)) parts.push(pitchEcho(body));
+          var atPitch = at && at[1] ? pitchParts(at[1]) : null;
+          if (at && (!at[1] || atPitch)) { body = at[1]; inst = '@' + at[2].toLowerCase(); }
+          var heard = pitchParts(body);
+          if (heard && heard.ok) parts.push(heard.echo);
+          else if (heard && !heard.ok) { err(rangeNote(heard.name)); if (body) parts.push(body); }
           else if (body && /^fm(\d+(?:\.\d+)?)$/i.test(body)) parts.push('fm ' + trimNum(+body.slice(2)));
           else if (body && /^fm$/i.test(body) && tokens[j + 1] && tokens[j + 1].type === 'word' && inside(tokens[j + 1]) && /^\d+(?:\.\d+)?$/.test(tokens[j + 1].text)) {
             parts.push('fm ' + trimNum(+tokens[j + 1].text));
@@ -1078,7 +1136,8 @@
       for (k = 0; k < inner.length; k++) {
         if (inner[k].type !== 'word') continue;
         c = chordOf(inner[k].text, false, known);
-        if (c && !c.guard && !c.unknown && !c.lower && !c.bareA) return pretty(c.symbol);
+        if (c && c.range) return c.range;
+        if (c && !c.guard && !c.unknown && !c.lower && !c.bareA) return chordName(c);
       }
       return '';
     }
@@ -1137,11 +1196,7 @@
         (pool || []).forEach(function (ev) {
           if (ev.kind !== 'chord') return;
           var id = root.NCChords && root.NCChords.idForSymbol ? root.NCChords.idForSymbol(ev.symbol) : null;
-          if (!id) {
-            var label = pretty(ev.symbol);
-            if (ev.bass != null) label += '/' + SPELL[ev.bass];
-            markUnmapped(label);
-          }
+          if (!id) markUnmapped(chordName(ev));
         });
       });
     }
@@ -1220,6 +1275,7 @@
     }
     resolved.forEach(function (tr) {
       if (tr.kind !== 'chords' || tr.instrument === 'synth') return;
+      if (root.NCInstruments && NCInstruments.playsChords && NCInstruments.playsChords(tr.instrument)) return;
       var seen = {};
       tr.played.forEach(function (c) {
         if (c.kind !== 'chord' || c.recording == null || seen[c.recording]) return;
@@ -1232,7 +1288,7 @@
     else if (echo && echo.open.length) say(lengthNotes, openNote(echo.open));
     notes = errors.concat(otherNotes, lengthNotes).slice(0, 2).concat(aiNotes);
     var line = echo && echo.line ? echo.line : joinSyntax(syntax);
-    if (!resolved.length && pieceInstrument === 'synth' && line) line += ' · @synth';
+    if (!resolved.length && echo && echo.music && line) line = markLine(line, pieceInstrument);
     var iread = line;
     if (words.length) iread += (iread ? '\n' : '') + words.join(' ');
     notes.forEach(function (s) { iread += (iread ? '\n' : '') + s; });
@@ -1240,7 +1296,8 @@
       bpm: bpm, meter: meter, meterWritten: meterWritten, seed: seed, clock: clock, hacks: hacks,
       played: played, gather: gather, words: words, notes: notes, quoted: quoted,
       iread: iread, arp: arps, unmapped: unmapped, syntax: syntax,
-      tracks: resolved, trackSpans: trackSpans, synth: pieceInstrument === 'synth'
+      tracks: resolved, trackSpans: trackSpans, synth: pieceInstrument === 'synth',
+      instrument: pieceInstrument
     };
     function nameList(list) {
       if (list.length === 1) return list[0];
@@ -1271,9 +1328,7 @@
     }
     function eventName(ev) {
       if (!ev || ev.kind === 'rest') return 'rest';
-      var s = pretty(ev.symbol);
-      if (ev.bass != null) s += '/' + SPELL[ev.bass];
-      return s;
+      return chordName(ev);
     }
     function eventLen(ev) {
       if (!ev || ev.openDur || (ev.beats == null && ev.bars == null)) return '1 bar*';
@@ -1371,20 +1426,15 @@
           var te = musicalEcho(tr.played, tr.syntax);
           te.loose.forEach(function (n) { if (loose.indexOf(n) < 0) loose.push(n); });
           te.open.forEach(function (n) { if (open.indexOf(n) < 0) open.push(n); });
-          if (te.parts.length) {
-            var phrase = tr.label + ' ' + te.parts.join(', ');
-            if (tr.instrument === 'synth') phrase += ' @synth';
-            else if (tr.instrument) phrase += ' @' + tr.instrument;
-            phrases.push(phrase);
-          }
+          if (te.parts.length) phrases.push(markPhrase(tr.label + ' ' + te.parts.join(', '), tr.instrument));
           if (te.total > maxBeats) maxBeats = te.total;
           tr.beats = te.total;
         } else if (tr.syntax.length) {
-          phrases.push(tr.label + ' ' + tr.syntax.map(function (s) { return s.text; }).join(', '));
+          phrases.push(markPhrase(tr.label + ' ' + tr.syntax.map(function (s) { return s.text; }).join(', '), tr.instrument));
           if (tr.beats > maxBeats) maxBeats = tr.beats;
         }
       });
-      if (base.music && pieceInstrument === 'synth' && phrases.length) phrases[0] += ' @synth';
+      if (base.music && phrases.length) phrases[0] = markPhrase(phrases[0], pieceInstrument);
       if (!phrases.length) return base;
       var extras = [];
       syntax.forEach(function (s) {
@@ -1395,6 +1445,34 @@
       var built = trimNum(bpmUse) + ' BPM · ' + phrases.join(' · ') + ' · ' + beatsWord + ' · ' + secText(maxBeats);
       if (extras.length) built += ' · ' + extras.join(' · ');
       return { line: built, music: true, loose: loose, open: open, total: maxBeats };
+    }
+    // What Play will sound. A sampler name is already the sound. Any other
+    // name only labels the line, and the synth is what plays.
+    function samplerToken(name) {
+      var key = String(name || '').toLowerCase();
+      if (key === 'piano') return '@piano';
+      if (key === 'guitar') return '@guitar';
+      if (key === 'cello' || key === 'cello-pizzicato') return '@cello';
+      if (key === 'bass') return '@bass';
+      return '';
+    }
+    function markPhrase(phrase, name) {
+      var key = String(name || '').toLowerCase();
+      if (key === 'synth') return /@synth\b/.test(phrase) ? phrase : phrase + ' @synth';
+      var token = samplerToken(key);
+      if (token) return phrase.indexOf(token) >= 0 ? phrase : phrase + ' ' + token;
+      if (key && phrase.indexOf('@' + key) < 0) phrase += ' @' + key;
+      if (/@synth\b/.test(phrase) || /(?:^|\s)synth$/.test(phrase)) return phrase;
+      return phrase + ' synth';
+    }
+    function markLine(line, name) {
+      var key = String(name || '').toLowerCase();
+      if (key === 'synth') return line.indexOf('@synth') >= 0 ? line : line + ' · @synth';
+      var token = samplerToken(key);
+      if (token) return line.indexOf(token) >= 0 ? line : line + ' · ' + token;
+      if (key && line.indexOf('@' + key) < 0) line += ' · @' + key;
+      if (/@synth\b/.test(line) || /(?:^| · )synth$/.test(line)) return line;
+      return line + ' · synth';
     }
   }
 
@@ -1434,6 +1512,7 @@
     pretty: pretty,
     sketchBpm: SKETCH_BPM,
     beatsInBar: beatsInBar,
+    chordName: chordName,
     setTempo: setTempo,
     setMeter: setMeter
   };
