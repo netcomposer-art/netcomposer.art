@@ -860,6 +860,33 @@
     paint();
     if (root.NCPerform && root.NCPerform.sync) root.NCPerform.sync();
   }
+  var manifestPromise = null;
+  function fetchManifests(expose) {
+    if (manifestPromise) return manifestPromise;
+    manifestPromise = Promise.all(LIBRARY.map(function (row) {
+      return fetch(manifestUrl(row.slug)).then(function (r) {
+        if (!r.ok) return null;
+        return r.json();
+      }).then(function (man) {
+        if (!man || man.format !== 'nc-sampler/1' || !man.notes) return;
+        manifests[row.slug] = man;
+        if (expose && flag()) addOption(row.slug, row.name);
+      }).catch(function () {});
+    })).then(function () {
+      manifestsDone = true;
+      if (expose && flag()) {
+        var box = $('sampler');
+        if (box) box.setAttribute('data-sampler-ready', '1');
+        applyOptions();
+        settle();
+      }
+    });
+    return manifestPromise;
+  }
+  function ready() {
+    if (manifestsDone) return Promise.resolve();
+    return fetchManifests(flag());
+  }
   function boot() {
     if (!document.body) return;
     buildPanel();
@@ -879,22 +906,7 @@
     if (window.MutationObserver && document.body) {
       new MutationObserver(settle).observe(document.body, {attributes: true, attributeFilter: ['data-ready']});
     }
-    Promise.all(LIBRARY.map(function (row) {
-      return fetch(manifestUrl(row.slug)).then(function (r) {
-        if (!r.ok) return null;
-        return r.json();
-      }).then(function (man) {
-        if (!man || man.format !== 'nc-sampler/1' || !man.notes) return;
-        manifests[row.slug] = man;
-        addOption(row.slug, row.name);
-      }).catch(function () {});
-    })).then(function () {
-      manifestsDone = true;
-      var box = $('sampler');
-      if (box) box.setAttribute('data-sampler-ready', '1');
-      applyOptions();
-      settle();
-    });
+    fetchManifests(true);
   }
   function applyOptions() {
     LIBRARY.forEach(function (row) {
@@ -907,7 +919,7 @@
     noteName: noteName, joinNames: joinNames, selectWritten: selectWritten, plainMissing: plainMissing,
     levelGains: levelGains, creditLine: creditLine, syntaxHint: syntaxHint, plan: plan, mix: mix,
     guitarCheck: guitarCheck, noteUrl: noteUrl, manifestUrl: manifestUrl,
-    flag: flag, active: active, canPlay: canPlay, linesFor: linesFor, credit: credit,
+    flag: flag, active: active, canPlay: canPlay, linesFor: linesFor, credit: credit, ready: ready,
     play: play, halt: halt, collect: collect, boot: boot, paint: paint,
     slug: function () { return selectedSlug(); },
     manifest: function (slug) { return manifests[slug || selectedSlug()] || null; },
