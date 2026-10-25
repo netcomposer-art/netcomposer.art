@@ -121,10 +121,14 @@ const pianoChord = docOf('t1: Cm(2|) @piano');
 check(pianoChord.tracks[0] && pianoChord.tracks[0].voice === 'audio', '@piano on a chord track stays a recording, got ' + (pianoChord.tracks[0] && pianoChord.tracks[0].voice));
 const gathered = L.parse('t1: Cm(2|) @bass', { known });
 check(!gathered.gather.length, 'a bass chord track is not gathered, got ' + JSON.stringify(gathered.gather));
+const vibes = docOf('t1: notes C3(1) E4(1) @vibes');
+check(vibes.tracks[0] && vibes.tracks[0].voice === 'sampler' && vibes.tracks[0].instrument === 'vibes' && vibes.tracks[0].events.length === 2, '@vibes is a sampler notes track, got ' + JSON.stringify(vibes.tracks[0] && { voice: vibes.tracks[0].voice, instrument: vibes.tracks[0].instrument, n: vibes.tracks[0].events.length }));
+const vibesChord = docOf('t1: Cm(2|) @vibes');
+check(vibesChord.tracks[0] && vibesChord.tracks[0].voice === 'sampler' && vibesChord.tracks[0].instrument === 'vibes' && vibesChord.tracks[0].events.length > 1 && vibesChord.tracks[0].events.every((e) => e.type === 'note'), '@vibes expands a chord track, got ' + JSON.stringify(vibesChord.tracks[0] && { voice: vibesChord.tracks[0].voice, instrument: vibesChord.tracks[0].instrument, n: vibesChord.tracks[0].events.length }));
+const vibesGathered = L.parse('t1: Cm(2|) @vibes', { known });
+check(!vibesGathered.gather.length, 'a vibes chord track is not gathered, got ' + JSON.stringify(vibesGathered.gather));
 const dropped = docOf('t1: notes C4(1) @strings');
 check(!dropped.tracks.some((t) => t.voice === 'sampler' || t.instrument === 'strings'), '@strings is not a sampler, got ' + JSON.stringify(dropped.tracks));
-const droppedChord = docOf('t1: Cm(2|) @vibes');
-check(droppedChord.tracks[0] && droppedChord.tracks[0].voice === 'audio', '@vibes on a chord track stays a recording, got ' + (droppedChord.tracks[0] && droppedChord.tracks[0].voice));
 const droppedKalimba = docOf('t1: notes G1(1) @kalimba');
 check(!droppedKalimba.tracks.some((t) => t.instrument === 'kalimba'), '@kalimba is not a sampler, got ' + JSON.stringify(droppedKalimba.tracks));
 
@@ -137,6 +141,8 @@ const pianoPlay = playOf('Cm11 @piano');
 check(pianoPlay.tracks.length === 1 && pianoPlay.tracks[0].voice === 'sampler' && pianoPlay.tracks[0].instrument === 'piano', 'Play sounds Cm11 @piano on the piano sampler, got ' + JSON.stringify(pianoPlay.tracks[0] && { voice: pianoPlay.tracks[0].voice, instrument: pianoPlay.tracks[0].instrument, n: pianoPlay.tracks[0].events.length }));
 const bassPlay = playOf('t1: Cm(2|) @bass');
 check(bassPlay.tracks.length === 1 && bassPlay.tracks[0].voice === 'sampler' && bassPlay.tracks[0].instrument === 'bass' && bassPlay.tracks[0].events.length > 1, 'Play sounds a bass chord voicing on the sampler, got ' + JSON.stringify(bassPlay.tracks[0] && { voice: bassPlay.tracks[0].voice, instrument: bassPlay.tracks[0].instrument, n: bassPlay.tracks[0].events.length }));
+const vibesPlay = playOf('t1: Cm(2|) @vibes');
+check(vibesPlay.tracks.length === 1 && vibesPlay.tracks[0].voice === 'sampler' && vibesPlay.tracks[0].instrument === 'vibes' && vibesPlay.tracks[0].events.length > 1, 'Play sounds a vibes chord voicing on the sampler, got ' + JSON.stringify(vibesPlay.tracks[0] && { voice: vibesPlay.tracks[0].voice, instrument: vibesPlay.tracks[0].instrument, n: vibesPlay.tracks[0].events.length }));
 const flutePlay = playOf('t1: notes C4(4|) @flute');
 check(flutePlay.tracks.length === 1 && flutePlay.tracks[0].voice === 'synth' && flutePlay.tracks[0].events[0] && flutePlay.tracks[0].events[0].pitch === 'C4', '@flute labels the line and Play uses the synth, got ' + JSON.stringify(flutePlay.tracks[0] && { voice: flutePlay.tracks[0].voice, pitch: flutePlay.tracks[0].events[0] && flutePlay.tracks[0].events[0].pitch }));
 const duo = playOf('t1: Cm11(4)\nt2: notes G3(4) @cello');
@@ -146,6 +152,21 @@ check(docOf('t1: notes C4(4|) @flute').tracks.length === 0, 'Keep still leaves a
 
 const keys = ['v', 'bpm', 'meter', 'beat', 'tracks'];
 check(keys.every((k) => k in synth) && synth.tracks[0].events[0].velocity <= 1, 'the document is the portable shape');
+
+// @strings is a sampler. The "@strings is not a sampler" check above is the
+// line this file shares with the vibes change, so editing it would conflict
+// after that squash. Drop the stale failure and check @strings here.
+for (let i = problems.length - 1; i >= 0; i--) {
+  if (String(problems[i]).indexOf('@strings is not a sampler') === 0) problems.splice(i, 1);
+}
+const strings = docOf('t1: notes G3(1) D5(1) @strings');
+check(strings.tracks[0] && strings.tracks[0].voice === 'sampler' && strings.tracks[0].instrument === 'strings' && strings.tracks[0].events.length === 2, '@strings is a sampler notes track, got ' + JSON.stringify(strings.tracks[0] && { voice: strings.tracks[0].voice, instrument: strings.tracks[0].instrument, n: strings.tracks[0].events.length }));
+const stringsChord = docOf('t1: Cm(2|) @strings');
+check(stringsChord.tracks[0] && stringsChord.tracks[0].voice === 'sampler' && stringsChord.tracks[0].instrument === 'strings' && stringsChord.tracks[0].events.length > 1 && stringsChord.tracks[0].events.every((e) => e.type === 'note'), '@strings expands a chord track, got ' + JSON.stringify(stringsChord.tracks[0] && { voice: stringsChord.tracks[0].voice, instrument: stringsChord.tracks[0].instrument, n: stringsChord.tracks[0].events.length }));
+const stringsGathered = L.parse('t1: Cm(2|) @strings', { known });
+check(!stringsGathered.gather.length, 'a strings chord track is not gathered, got ' + JSON.stringify(stringsGathered.gather));
+const stringsPlay = playOf('t1: Cm(2|) @strings');
+check(stringsPlay.tracks.length === 1 && stringsPlay.tracks[0].voice === 'sampler' && stringsPlay.tracks[0].instrument === 'strings' && stringsPlay.tracks[0].events.length > 1, 'Play sounds a strings chord voicing on the sampler, got ' + JSON.stringify(stringsPlay.tracks[0] && { voice: stringsPlay.tracks[0].voice, instrument: stringsPlay.tracks[0].instrument, n: stringsPlay.tracks[0].events.length }));
 
 if (problems.length) {
   console.error(problems.join('\n'));
