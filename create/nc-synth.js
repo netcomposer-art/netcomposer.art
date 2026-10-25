@@ -230,9 +230,24 @@
     var bpm = parsed ? (parsed.bpm > 0 ? parsed.bpm : 0) : bpmOf(text);
     var bar = parsed && parsed.meter ? barBeats(parsed.meter) : beatsPerBar(text);
     var found = null;
-    String(text || '').split(/[\n;]+/).some(function (stmt) {
+    var srcNotes = String(text || '');
+    var spans = parsed && parsed.trackSpans ? parsed.trackSpans : [];
+    function covered(idx) {
+      var s;
+      for (s = 0; s < spans.length; s++) {
+        if (idx >= spans[s].start && idx < spans[s].end) return true;
+      }
+      return false;
+    }
+    var from = 0;
+    while (from <= srcNotes.length && !found) {
+      var rel = srcNotes.slice(from).search(/[\n;]/);
+      var stmt = rel < 0 ? srcNotes.slice(from) : srcNotes.slice(from, from + rel);
+      var abs = from;
+      from = rel < 0 ? srcNotes.length + 1 : from + rel + 1;
+      if (!stmt || covered(abs)) continue;
       var km = /(?:^|\s)(?:notes|n)\s+(.+)$/i.exec(stmt);
-      if (!km) return false;
+      if (!km || covered(abs + km.index)) continue;
       var taken = fmDepthOf(km[1]);
       var rest = taken.rest, re = /([A-Ga-g])(#|b)?(-?\d+)(?:\((\d+(?:\.\d+)?)(\|)?\))?/g, tok, notes = [];
       while ((tok = re.exec(rest))) {
@@ -243,18 +258,19 @@
         if (midiOf(name) == null) continue;
         notes.push({pitch: name, beats: beats});
       }
-      if (!notes.length) return false;
+      if (!notes.length) continue;
       var inst = /@([A-Za-z][\w-]*)/.exec(stmt);
+      var instName = inst ? inst[1].toLowerCase() : '';
+      if (instName === 'synth') instName = '';
       found = {
         notes: notes,
-        instrument: inst ? inst[1].toLowerCase() : '',
+        instrument: instName,
         bpm: bpm,
         fmDepth: taken.fmDepth,
         notesLabel: notes.map(function (n) { return n.pitch; }).join(' '),
         label: notes.map(function (n) { return n.pitch; }).join(' ')
       };
-      return true;
-    });
+    }
     var arp = parsed && parsed.arp && parsed.arp.length ? parsed.arp[0] : null;
     if (!found && !arp) return null;
     if (!found) {
@@ -334,6 +350,90 @@
       cursor += beats;
     });
   }
+  function scheduleChordEvents(played, bpm, meter) {
+    var lib = root.NCChords;
+    if (!lib || !lib.voicedChord) return [];
+    var beat = 60 / (bpm > 0 ? bpm : 96), qpb = barBeats(meter), t = 0, out = [];
+    (played || []).forEach(function (ev) {
+      var beats = ev.beats;
+      if (ev.bars != null) beats = ev.bars * qpb;
+      if (beats == null) beats = ev.kind === 'rest' ? 0 : qpb;
+      if (!(beats > 0)) return;
+      if (ev.kind === 'chord') {
+        var id = lib.idForSymbol ? lib.idForSymbol(ev.symbol) : null;
+        var m = /^([A-G])(#|b)?/.exec(ev.symbol || '');
+        var pc = 0;
+        if (m) pc = PC[m[1]] + (m[2] === '#' ? 1 : m[2] === 'b' ? -1 : 0);
+        var rootMidi = 60 + ((pc % 12) + 12) % 12;
+        var midis = [];
+        try { midis = id ? lib.voicedChord(rootMidi, id, 0, 'compact', ev.bass) : []; }
+        catch (e) { midis = []; }
+        var len = Math.max(0.02, beats * beat);
+        midis.forEach(function (midi) {
+          out.push({ pitch: spellMidi(midi), midi: midi, velocity: 0.64, start: t, length: len });
+        });
+      }
+      t += beats * beat;
+    });
+    return out;
+  }
+  // One voice for one explicit track. Notes and an arp on different tracks
+  // do not share FM. `@synth` chords use the catalog voicing, held for the
+  // written length. `@name` other than synth keeps that voice out.
+  function voiceOf(track, parsed, index) {
+    if (!track) return null;
+    parsed = parsed || {};
+    var bpm = parsed.bpm > 0 ? parsed.bpm : 96;
+    var meter = parsed.meter || '4/4';
+    var bar = barBeats(meter);
+    var fm = track.fmDepth;
+    var seed = ((parsed.seed == null ? 1 : parsed.seed) + (index || 0)) >>> 0;
+    var events = [], label = track.label || '';
+    if (track.kind === 'notes') {
+      var got = { notes: [], fmDepth: null, instrument: '' };
+      String(track.source || '').split(/[\n;]+/).forEach(function (stmt) {
+        var km = /(?:^|\s)(?:notes|n)\s+(.+)$/i.exec(stmt);
+        if (!km) return;
+        var taken = fmDepthOf(km[1]);
+        if (taken.fmDepth != null) got.fmDepth = taken.fmDepth;
+        var inst = /@([A-Za-z][\w-]*)/.exec(stmt);
+        if (inst) got.instrument = inst[1].toLowerCase();
+        var rest = taken.rest, re = /([A-Ga-g])(#|b)?(-?\d+)(?:\((\d+(?:\.\d+)?)(\|)?\))?/g, tok;
+        while ((tok = re.exec(rest))) {
+          var beats = tok[4] ? +tok[4] : 1;
+          if (!(beats > 0)) beats = 1;
+          if (tok[5]) beats *= bar;
+          var name = spell(tok[1] + (tok[2] || '') + tok[3]);
+          if (midiOf(name) == null) continue;
+          got.notes.push({ pitch: name, beats: beats });
+        }
+      });
+      if (got.instrument && got.instrument !== 'synth') return null;
+      if (fm == null) fm = got.fmDepth;
+      var beat = 60 / bpm, t = 0;
+      got.notes.forEach(function (n) {
+        var len = Math.max(0.02, n.beats * beat);
+        events.push({ pitch: n.pitch, midi: midiOf(n.pitch), velocity: 0.82, start: t, length: len });
+        t += len;
+      });
+      label = (track.label ? track.label + ' ' : '') + got.notes.map(function (n) { return n.pitch; }).join(' ');
+    } else if (track.kind === 'arp' && track.arp) {
+      if (track.arp.instrument && track.arp.instrument !== 'synth') return null;
+      var arp = track.arp.instrument === 'synth' ? Object.assign({}, track.arp, { instrument: '' }) : track.arp;
+      var harmony = track.harmony && track.harmony.length ? track.harmony : (parsed.played || []);
+      events = scheduleLine({ notes: [], arp: arp, bpm: bpm, meter: meter, harmony: harmony }, fm == null ? null : { fmDepth: fm }, seed);
+      label = (track.label ? track.label + ' ' : '') + (arpWords(arp) || 'arp');
+    } else if (track.kind === 'chords' && track.instrument === 'synth') {
+      events = scheduleChordEvents(track.played, bpm, meter);
+      label = (track.label ? track.label + ' ' : '') + '@synth';
+    } else return null;
+    if (!events.length) return null;
+    return { events: events, notes: events, fmDepth: fm, bpm: bpm, meter: meter, label: label, instrument: '', seed: seed, arp: null };
+  }
+  function chordVoice(parsed, index) {
+    if (!parsed || !parsed.synth) return null;
+    return voiceOf({ kind: 'chords', instrument: 'synth', played: parsed.played || [], label: '', n: 0 }, parsed, index || 0);
+  }
   function scheduleLine(line, settings, seed) {
     if (!line || (!line.notes && !line.arp)) return [];
     var s = mergeSettings(settings);
@@ -396,6 +496,9 @@
     mergeSettings: mergeSettings,
     readLine: readLine,
     scheduleLine: scheduleLine,
+    scheduleChordEvents: scheduleChordEvents,
+    voiceOf: voiceOf,
+    chordVoice: chordVoice,
     arpWords: arpWords,
     renderNotes: renderNotes,
     describe: describe,

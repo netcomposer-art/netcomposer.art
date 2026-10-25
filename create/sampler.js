@@ -364,24 +364,37 @@
     return list;
   }
   function audioCtx() {
+    if (root.NC && NC.audio) {
+      try {
+        var shared = NC.audio();
+        if (shared) { sac = shared; return sac; }
+      } catch (e) {}
+    }
     if (sac && sac.state !== 'closed') return sac;
     var AC = root.AudioContext || root.webkitAudioContext;
-    try { sac = new AC({sampleRate: 48000}); }
-    catch (e) { sac = new AC(); }
+    try { sac = new AC({ latencyHint: 'interactive' }); }
+    catch (e2) { sac = new AC(); }
     return sac;
   }
-  function loadNotes(slug, midis, progress) {
+  function loadNotes(slug, midis, progress, ctx) {
+    ctx = ctx || audioCtx();
     var pending = [], done = 0;
-    midis.forEach(function (m) { if (cache[slug + ':' + m]) done++; else pending.push(m); });
+    midis.forEach(function (m) {
+      var hit = cache[slug + ':' + m];
+      if (hit && hit.buffer && hit.ctx === ctx) done++;
+      else pending.push(m);
+    });
     if (progress) progress(done, midis.length);
-    var ctx = audioCtx();
     return Promise.all(pending.map(function (midi) {
-      return fetch(noteUrl(slug, midi)).then(function (r) {
+      var key = slug + ':' + midi;
+      var hit = cache[key];
+      var bytesP = hit && hit.bytes ? Promise.resolve(hit.bytes) : fetch(noteUrl(slug, midi)).then(function (r) {
         if (!r.ok) throw new Error(noteName(midi) + ' did not load.');
         return r.arrayBuffer();
-      }).then(function (bytes) {
+      });
+      return bytesP.then(function (bytes) {
         return ctx.decodeAudioData(bytes.slice(0)).then(function (buffer) {
-          cache[slug + ':' + midi] = {bytes: bytes, buffer: buffer};
+          cache[key] = { bytes: bytes, buffer: buffer, ctx: ctx };
           done++;
           if (progress) progress(done, midis.length);
         });
@@ -396,11 +409,11 @@
     timers.splice(0).forEach(function (t) { clearTimeout(t); });
     sources.splice(0).forEach(function (s) { try { s.stop(); } catch (e) {} });
   }
-  function schedule(ctx, dest, planned, buffers, output, lead, record) {
+  function schedule(ctx, dest, planned, buffers, output, lead, record, origin) {
     var master = ctx.createGain();
     master.gain.value = output == null ? 0.8 : output;
     master.connect(dest);
-    var t0 = ctx.currentTime + (lead || 0);
+    var t0 = origin != null ? origin : ctx.currentTime + (lead || 0);
     var end = 0, seen = {};
     planned.notes.forEach(function (n) {
       var buffer = buffers[n.midi];
@@ -432,7 +445,7 @@
           document.querySelectorAll('.ch.on').forEach(function (e) { e.classList.remove('on'); });
           var chip = $('ch' + n.index);
           if (chip) chip.classList.add('on');
-        }, Math.max(0, at * 1000)));
+        }, Math.max(0, (t - ctx.currentTime) * 1000)));
       }
     });
     return end;
@@ -490,13 +503,25 @@
       if (ctx.resume) ctx.resume();
       var buffers = {};
       midis.forEach(function (m) { buffers[m] = bag[m].buffer; });
-      var lead = ctx.currentTime + 0.15;
-      var end = schedule(ctx, ctx.destination, planned, buffers, outputGain(), 0.15, true);
-      if (root.NCArrange && NCArrange.armPlay) NCArrange.armPlay(ctx, lead, origin, speed, 0);
+      var notes = planned.notes.slice().sort(function (a, b) { return a.start - b.start || a.midi - b.midi; });
+      var t0 = ctx.currentTime + 0.05;
+      var next = 0;
+      function pump() {
+        if (!live()) return;
+        var until = ctx.currentTime + 0.12 - t0;
+        var due = [];
+        while (next < notes.length && notes[next].start <= until + 1e-6) due.push(notes[next++]);
+        if (due.length) schedule(ctx, ctx.destination, { notes: due }, buffers, outputGain(), 0, true, t0);
+        if (next < notes.length && live()) timers.push(setTimeout(pump, 25));
+      }
+      pump();
+      var end = 0;
+      notes.forEach(function (n) { var e = n.start + n.keep; if (e > end) end = e; });
+      if (root.NCArrange && NCArrange.armPlay) NCArrange.armPlay(ctx, t0, origin, speed, end);
       var msg = planned.messages.concat(planned.hints).join(' ');
       if (opts.status) opts.status(msg);
       paintLoaded(midis);
-      timers.push(setTimeout(function () { if (live() && opts.done) opts.done(); }, (end + 0.15 + 0.35) * 1000));
+      timers.push(setTimeout(function () { if (live() && opts.done) opts.done(); }, (end + 0.05 + 0.35) * 1000));
     }).catch(function (err) {
       if (!live()) return;
       if (opts.status) opts.status(err && err.message ? err.message : 'The notes did not load.', true);
@@ -633,6 +658,16 @@
     var slug = selectedSlug();
     var midis;
     try { midis = neededMidis(); } catch (e) { return; }
+    if (root.NCEvents && NCEvents.build && root.NC && NC.read) {
+      try {
+        NCEvents.build(NC.read()).tracks.forEach(function (tr) {
+          if (tr.voice !== 'sampler' || (tr.instrument && tr.instrument !== slug)) return;
+          tr.events.forEach(function (ev) {
+            if (ev.midi != null && midis.indexOf(ev.midi) < 0) midis.push(ev.midi);
+          });
+        });
+      } catch (e2) {}
+    }
     paintLoaded(midis);
     var token = ++prefetchToken;
     if (!midis.length) return;
@@ -874,6 +909,11 @@
     guitarCheck: guitarCheck, noteUrl: noteUrl, manifestUrl: manifestUrl,
     flag: flag, active: active, canPlay: canPlay, linesFor: linesFor, credit: credit,
     play: play, halt: halt, collect: collect, boot: boot, paint: paint,
+    slug: function () { return selectedSlug(); },
+    manifest: function (slug) { return manifests[slug || selectedSlug()] || null; },
+    prepare: function (ctx, slug, midis) { return loadNotes(slug || selectedSlug(), midis || [], null, ctx || audioCtx()); },
+    output: outputGain,
+    strum: strumSeconds,
     configure: function (opts) { if (opts && opts.base) configured = opts.base; },
     base: base
   };
