@@ -1,0 +1,156 @@
+{
+  "format": "netcomposer.arp-patterns",
+  "version": 1,
+  "note": "Stable IDs and numbers (num, Off = 0; Arp(5) in NC): never renamed, renumbered or reused. New patterns are only added, with the next free number. Legacy IDs stay valid.",
+  "patterns": [
+    {
+      "id": "off",
+      "num": 0,
+      "name": "Off — chord",
+      "description": "No arp: the chord plays together"
+    },
+    {
+      "id": "up",
+      "num": 1,
+      "name": "Up",
+      "description": "Low to high, then again"
+    },
+    {
+      "id": "down",
+      "num": 2,
+      "name": "Down",
+      "description": "High to low, then again"
+    },
+    {
+      "id": "up-down",
+      "num": 3,
+      "name": "Up/Down",
+      "description": "Up then down, ends not repeated"
+    },
+    {
+      "id": "up-down-repeat",
+      "num": 4,
+      "name": "Up/Down Repeat",
+      "description": "Up then down, ends repeated"
+    },
+    {
+      "id": "random",
+      "num": 5,
+      "name": "Random",
+      "description": "Any note each step"
+    },
+    {
+      "id": "as-played",
+      "num": 6,
+      "name": "As Played",
+      "description": "The order the keys were pressed"
+    },
+    {
+      "id": "outside-in",
+      "num": 7,
+      "name": "Outside-In",
+      "description": "Lowest, highest, then inward"
+    },
+    {
+      "id": "inside-out",
+      "num": 8,
+      "name": "Inside-Out",
+      "description": "From the middle outward, lower first"
+    },
+    {
+      "id": "pendulum",
+      "num": 9,
+      "name": "Pendulum",
+      "description": "From the lower middle, swing between the ends"
+    },
+    {
+      "id": "blossom-up",
+      "num": 10,
+      "name": "Blossom Up",
+      "description": "From center, spiral up"
+    },
+    {
+      "id": "blossom-down",
+      "num": 11,
+      "name": "Blossom Down",
+      "description": "From center, spiral down"
+    },
+    {
+      "id": "low-and-up",
+      "num": 12,
+      "name": "Low&Up",
+      "description": "Low pedal, others ascending"
+    },
+    {
+      "id": "low-and-down",
+      "num": 13,
+      "name": "Low&Down",
+      "description": "Low pedal, others descending"
+    },
+    {
+      "id": "hi-and-up",
+      "num": 14,
+      "name": "Hi&Up",
+      "description": "High pedal, others ascending"
+    },
+    {
+      "id": "hi-and-down",
+      "num": 15,
+      "name": "Hi&Down",
+      "description": "High pedal, others descending"
+    },
+    {
+      "id": "walk",
+      "num": 16,
+      "name": "Walk",
+      "description": "Next 50%, repeat 25%, back 25%"
+    },
+    {
+      "id": "euclidean",
+      "num": 17,
+      "name": "Euclidean",
+      "description": "Hits spread evenly over Steps, rests between"
+    },
+    {
+      "id": "down-up",
+      "num": 18,
+      "name": "Down/Up (legacy)",
+      "description": "Down then up, ends not repeated",
+      "legacy": true
+    }
+  ],
+  "aliases": {
+    "none": "off",
+    "chord": "off",
+    "updown": "up-down",
+    "up-and-down": "up-down",
+    "downup": "down-up",
+    "down-and-up": "down-up",
+    "down-up-legacy": "down-up",
+    "off-chord": "off",
+    "rand": "random",
+    "played": "as-played",
+    "order": "as-played",
+    "converge": "outside-in",
+    "diverge": "inside-out",
+    "thumb-up": "low-and-up",
+    "thumb-down": "low-and-down",
+    "pinky-up": "hi-and-up",
+    "pinky-down": "hi-and-down",
+    "high-and-up": "hi-and-up",
+    "high-and-down": "hi-and-down",
+    "euclid": "euclidean",
+    "drunk": "walk"
+  },
+  "euclidean": {
+    "hits": "arpHits",
+    "steps": "arpSteps",
+    "rotate": "arpRotate"
+  },
+  "euclideanDefaults": {
+    "hits": 5,
+    "steps": 8,
+    "rotate": 0
+  },
+  "euclideanMaxSteps": 16
+}

@@ -252,6 +252,38 @@ loop(4)</pre>
 <p class="hear">The notes in the order the chord is written, not sorted low to high.</p>
 <pre class="ex">arp Cm9 down-up</pre>
 <p class="hear">The reverse of up-down. down/up is the same name.</p>
+<p id="arp-numbers">Every order also has a number that never changes, so <code>Arp(5)</code> is always random. Write <code>Arp(number)</code> or <code>Arp(short name)</code> on an arp line, or start the line with it. A number or name that is not on this list plays the chord together, the same as <code>Arp(0)</code>. The short name also works on its own, as in <code>arp Cm9 blossom-up</code>.</p>
+<table>
+<tr><th>#</th><th>Name</th><th>Short name</th></tr>
+<tr><td>0</td><td>Off — chord</td><td><code>off</code></td></tr>
+<tr><td>1</td><td>Up</td><td><code>up</code></td></tr>
+<tr><td>2</td><td>Down</td><td><code>down</code></td></tr>
+<tr><td>3</td><td>Up/Down</td><td><code>up-down</code></td></tr>
+<tr><td>4</td><td>Up/Down Repeat</td><td><code>up-down-repeat</code></td></tr>
+<tr><td>5</td><td>Random</td><td><code>random</code></td></tr>
+<tr><td>6</td><td>As Played</td><td><code>as-played</code></td></tr>
+<tr><td>7</td><td>Outside-In</td><td><code>outside-in</code></td></tr>
+<tr><td>8</td><td>Inside-Out</td><td><code>inside-out</code></td></tr>
+<tr><td>9</td><td>Pendulum</td><td><code>pendulum</code></td></tr>
+<tr><td>10</td><td>Blossom Up</td><td><code>blossom-up</code></td></tr>
+<tr><td>11</td><td>Blossom Down</td><td><code>blossom-down</code></td></tr>
+<tr><td>12</td><td>Low&amp;Up</td><td><code>low-and-up</code></td></tr>
+<tr><td>13</td><td>Low&amp;Down</td><td><code>low-and-down</code></td></tr>
+<tr><td>14</td><td>Hi&amp;Up</td><td><code>hi-and-up</code></td></tr>
+<tr><td>15</td><td>Hi&amp;Down</td><td><code>hi-and-down</code></td></tr>
+<tr><td>16</td><td>Walk</td><td><code>walk</code></td></tr>
+<tr><td>17</td><td>Euclidean</td><td><code>euclidean</code></td></tr>
+<tr><td>18</td><td>Down/Up (legacy)</td><td><code>down-up</code></td></tr>
+</table>
+<p>Blossom starts in the middle of the chord and grows outward. Low&amp;Up and the other pedal orders keep coming back to one note, the lowest or the highest, between the others. Walk steps up, stays, or steps back, the same way every time you play it. Euclidean (17) spreads some hits evenly over a count of steps and rests in the gaps. Write <code>Arp(17, hits, steps, rotate)</code>. Steps go up to 16. Rotate turns the pattern so it starts later. With no numbers it is 5 hits in 8 steps.</p>
+<pre class="ex">Arp(10) Cm9</pre>
+<p class="hear">C minor 9 from the middle note outward, spiralling up. It is the same as arp Cm9 blossom-up.</p>
+<pre class="ex">arp Am7 Arp(12) 8ths</pre>
+<p class="hear">A minor 7 in eighth notes: the low A, then the next note up, then the low A again, climbing.</p>
+<pre class="ex">Arp(17, 5, 8) Am7</pre>
+<p class="hear">A minor 7 going up, but only 5 of every 8 steps play, spread out evenly: note, rest, note, rest, note, note, rest, note.</p>
+<pre class="ex">Arp(17, 3, 8, 2) Cm9</pre>
+<p class="hear">3 notes in every 8 steps, turned 2 steps so the first note comes later.</p>
 <p>Rate is how fast the notes go. <code>4ths</code> or <code>quarter</code> is one note per beat. <code>8ths</code> or <code>eighth</code> is two. <code>16ths</code> is four, and it is the usual rate. <code>32nds</code> is eight. A triplet squeezes three notes into the time of two of that value. <code>8t</code> is three notes in one beat. <code>4t</code>, <code>16t</code>, and <code>32t</code> are the slower and faster triplets.</p>
 <pre class="ex">arp Cm9 4ths</pre>
 <p class="hear">One note per beat, going up.</p>
