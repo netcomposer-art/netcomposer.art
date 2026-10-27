@@ -2505,7 +2505,7 @@
     "hacks": [],
     "words": [],
     "notes": [],
-    "iread": "arp Cdom7/E up 16ths (1|)",
+    "iread": "96 BPM · T1 arp Cdom7/E up 16ths (1|) synth · 4 beats · 2.5 s",
     "arp": [],
     "unmapped": [],
     "tracks": [
@@ -2570,5 +2570,785 @@
     "unmapped": [],
     "tracks": [],
     "synth": false
+  },
+{
+    "name": "preset-number",
+    "text": "@synth(1) Cm9(2|)",
+    "bpm": null,
+    "clock": "language",
+    "seed": null,
+    "meter": "4/4",
+    "gather": [],
+    "played": [
+      {
+        "kind": "chord",
+        "symbol": "Cm9",
+        "bass": null,
+        "beats": null,
+        "bars": 2,
+        "seconds": 5,
+        "recording": 0
+      }
+    ],
+    "hacks": [],
+    "words": [],
+    "notes": [],
+    "iread": "96 BPM · Cm9 2 bars · 8 beats · 5 s · @synth · preset 1 · Example Bright",
+    "arp": [],
+    "unmapped": [],
+    "tracks": [],
+    "synth": true,
+    "preset": {
+      "ref": "1",
+      "found": true,
+      "n": 1,
+      "name": "Example Bright"
+    },
+    "presets": []
+  },
+  {
+    "name": "preset-name",
+    "text": "@synth(example bright) Cm9(2|)",
+    "bpm": null,
+    "clock": "language",
+    "seed": null,
+    "meter": "4/4",
+    "gather": [],
+    "played": [
+      {
+        "kind": "chord",
+        "symbol": "Cm9",
+        "bass": null,
+        "beats": null,
+        "bars": 2,
+        "seconds": 5,
+        "recording": 0
+      }
+    ],
+    "hacks": [],
+    "words": [],
+    "notes": [],
+    "iread": "96 BPM · Cm9 2 bars · 8 beats · 5 s · @synth · preset 1 · Example Bright",
+    "arp": [],
+    "unmapped": [],
+    "tracks": [],
+    "synth": true,
+    "preset": {
+      "ref": "example bright",
+      "found": true,
+      "n": 1,
+      "name": "Example Bright"
+    },
+    "presets": []
+  },
+  {
+    "name": "preset-name-spaces",
+    "text": "@synth(  Example   Dark ) Cm9(2|)",
+    "bpm": null,
+    "clock": "language",
+    "seed": null,
+    "meter": "4/4",
+    "gather": [],
+    "played": [
+      {
+        "kind": "chord",
+        "symbol": "Cm9",
+        "bass": null,
+        "beats": null,
+        "bars": 2,
+        "seconds": 5,
+        "recording": 0
+      }
+    ],
+    "hacks": [],
+    "words": [],
+    "notes": [],
+    "iread": "96 BPM · Cm9 2 bars · 8 beats · 5 s · @synth · preset 2 · Example Dark",
+    "arp": [],
+    "unmapped": [],
+    "tracks": [],
+    "synth": true,
+    "preset": {
+      "ref": "Example Dark",
+      "found": true,
+      "n": 2,
+      "name": "Example Dark"
+    },
+    "presets": []
+  },
+  {
+    "name": "preset-missing",
+    "text": "@synth(99) Cm9(2|)",
+    "bpm": null,
+    "clock": "language",
+    "seed": null,
+    "meter": "4/4",
+    "gather": [],
+    "played": [
+      {
+        "kind": "chord",
+        "symbol": "Cm9",
+        "bass": null,
+        "beats": null,
+        "bars": 2,
+        "seconds": 5,
+        "recording": 0
+      }
+    ],
+    "hacks": [],
+    "words": [],
+    "notes": [],
+    "iread": "96 BPM · Cm9 2 bars · 8 beats · 5 s · @synth · preset 99 wasn't found",
+    "arp": [],
+    "unmapped": [],
+    "tracks": [],
+    "synth": true,
+    "preset": {
+      "ref": "99",
+      "found": false,
+      "n": null,
+      "name": ""
+    },
+    "presets": []
+  },
+  {
+    "name": "preset-missing-name",
+    "text": "@synth(No Such) Cm9(2|)",
+    "bpm": null,
+    "clock": "language",
+    "seed": null,
+    "meter": "4/4",
+    "gather": [],
+    "played": [
+      {
+        "kind": "chord",
+        "symbol": "Cm9",
+        "bass": null,
+        "beats": null,
+        "bars": 2,
+        "seconds": 5,
+        "recording": 0
+      }
+    ],
+    "hacks": [],
+    "words": [],
+    "notes": [],
+    "iread": "96 BPM · Cm9 2 bars · 8 beats · 5 s · @synth · preset No Such wasn't found",
+    "arp": [],
+    "unmapped": [],
+    "tracks": [],
+    "synth": true,
+    "preset": {
+      "ref": "No Such",
+      "found": false,
+      "n": null,
+      "name": ""
+    },
+    "presets": []
+  },
+  {
+    "name": "preset-track",
+    "text": "t1: @synth(1) Cm9(4)",
+    "bpm": null,
+    "clock": "language",
+    "seed": null,
+    "meter": "4/4",
+    "gather": [],
+    "played": [],
+    "hacks": [],
+    "words": [],
+    "notes": [],
+    "iread": "96 BPM · T1 Cm9 4 beats @synth preset 1 · Example Bright · 4 beats · 2.5 s",
+    "arp": [],
+    "unmapped": [],
+    "tracks": [
+      {
+        "n": 1,
+        "label": "T1",
+        "kind": "chords",
+        "instrument": "synth",
+        "beats": 4,
+        "fmDepth": null,
+        "played": [
+          {
+            "kind": "chord",
+            "symbol": "Cm9",
+            "beats": 4,
+            "bars": null,
+            "seconds": 2.5
+          }
+        ]
+      }
+    ],
+    "synth": false,
+    "preset": null,
+    "presets": [
+      {
+        "n": 1,
+        "ref": "1",
+        "found": true,
+        "name": "Example Bright",
+        "preset": 1
+      }
+    ]
+  },
+  {
+    "name": "preset-notes",
+    "text": "t1: notes C5(2) @synth(2)",
+    "bpm": null,
+    "clock": "legacy",
+    "seed": null,
+    "meter": "4/4",
+    "gather": [],
+    "played": [],
+    "hacks": [],
+    "words": [],
+    "notes": [],
+    "iread": "96 BPM · T1 notes C5(2) @synth(2) preset 2 · Example Dark · 2 beats · ~1.3 s",
+    "arp": [],
+    "unmapped": [],
+    "tracks": [
+      {
+        "n": 1,
+        "label": "T1",
+        "kind": "notes",
+        "instrument": "synth",
+        "beats": 2,
+        "fmDepth": null,
+        "played": []
+      }
+    ],
+    "synth": false,
+    "preset": null,
+    "presets": [
+      {
+        "n": 1,
+        "ref": "2",
+        "found": true,
+        "name": "Example Dark",
+        "preset": 2
+      }
+    ]
+  },
+  {
+    "name": "preset-arp",
+    "text": "t1: arp Cm9 @synth(Example Sine) (2|)",
+    "bpm": null,
+    "clock": "legacy",
+    "seed": null,
+    "meter": "4/4",
+    "gather": [],
+    "played": [],
+    "hacks": [],
+    "words": [],
+    "notes": [],
+    "iread": "96 BPM · T1 arp Cm9 up 16ths (2|) @synth(Example Sine) preset 3 · Example Sine · 8 beats · 5 s",
+    "arp": [],
+    "unmapped": [],
+    "tracks": [
+      {
+        "n": 1,
+        "label": "T1",
+        "kind": "arp",
+        "instrument": "synth",
+        "beats": 8,
+        "fmDepth": null,
+        "played": []
+      }
+    ],
+    "synth": false,
+    "preset": null,
+    "presets": [
+      {
+        "n": 1,
+        "ref": "Example Sine",
+        "found": true,
+        "name": "Example Sine",
+        "preset": 3
+      }
+    ]
+  },
+  {
+    "name": "preset-arp-line",
+    "text": "arp Cm9 @synth(1) (2|)",
+    "bpm": null,
+    "clock": "legacy",
+    "seed": null,
+    "meter": "4/4",
+    "gather": [],
+    "played": [],
+    "hacks": [],
+    "words": [],
+    "notes": [],
+    "iread": "arp Cm9 up 16ths (2|) @synth(1) · preset 1 · Example Bright",
+    "arp": [
+      {
+        "chord": "Cm9",
+        "chordId": "minor-9",
+        "order": "up",
+        "rate": "16ths",
+        "octaves": 1,
+        "spread": "compact",
+        "inversion": 0,
+        "fmDepth": null,
+        "beats": null,
+        "bars": 2,
+        "instrument": "synth"
+      }
+    ],
+    "unmapped": [],
+    "tracks": [],
+    "synth": true,
+    "preset": {
+      "ref": "1",
+      "found": true,
+      "n": 1,
+      "name": "Example Bright"
+    },
+    "presets": []
+  },
+  {
+    "name": "preset-tempo-hack",
+    "text": "90 BPM @synth(1) Cm9(2) lp800",
+    "bpm": 90,
+    "clock": "language",
+    "seed": null,
+    "meter": "4/4",
+    "gather": [],
+    "played": [
+      {
+        "kind": "chord",
+        "symbol": "Cm9",
+        "bass": null,
+        "beats": 2,
+        "bars": null,
+        "seconds": 1.333,
+        "recording": 0
+      }
+    ],
+    "hacks": [
+      {
+        "abbr": "lp",
+        "type": "lowpass",
+        "value": 800,
+        "ramp": null
+      }
+    ],
+    "words": [],
+    "notes": [],
+    "iread": "90 BPM · Cm9 2 beats · 2 beats · ~1.3 s · lp800 · @synth · preset 1 · Example Bright",
+    "arp": [],
+    "unmapped": [],
+    "tracks": [],
+    "synth": true,
+    "preset": {
+      "ref": "1",
+      "found": true,
+      "n": 1,
+      "name": "Example Bright"
+    },
+    "presets": []
+  },
+  {
+    "name": "preset-line-fm",
+    "text": "t1: notes C4(2) @synth(Example Bright) fm 3",
+    "bpm": null,
+    "clock": "legacy",
+    "seed": null,
+    "meter": "4/4",
+    "gather": [],
+    "played": [],
+    "hacks": [],
+    "words": [],
+    "notes": [],
+    "iread": "96 BPM · T1 notes C4(2) @synth(Example Bright) fm 3 preset 1 · Example Bright · 2 beats · ~1.3 s",
+    "arp": [],
+    "unmapped": [],
+    "tracks": [
+      {
+        "n": 1,
+        "label": "T1",
+        "kind": "notes",
+        "instrument": "synth",
+        "beats": 2,
+        "fmDepth": 3,
+        "played": []
+      }
+    ],
+    "synth": false,
+    "preset": null,
+    "presets": [
+      {
+        "n": 1,
+        "ref": "Example Bright",
+        "found": true,
+        "name": "Example Bright",
+        "preset": 1
+      }
+    ]
+  },
+  {
+    "name": "preset-hyphen-bank",
+    "text": "@synth(example-dark) Cm9(2|)",
+    "bpm": null,
+    "clock": "language",
+    "seed": null,
+    "meter": "4/4",
+    "gather": [],
+    "played": [
+      {
+        "kind": "chord",
+        "symbol": "Cm9",
+        "bass": null,
+        "beats": null,
+        "bars": 2,
+        "seconds": 5,
+        "recording": 0
+      }
+    ],
+    "hacks": [],
+    "words": [],
+    "notes": [],
+    "iread": "96 BPM · Cm9 2 bars · 8 beats · 5 s · @synth · preset 2 · Example Dark",
+    "arp": [],
+    "unmapped": [],
+    "tracks": [],
+    "synth": true,
+    "preset": {
+      "ref": "example-dark",
+      "found": true,
+      "n": 2,
+      "name": "Example Dark"
+    },
+    "presets": []
+  },
+  {
+    "name": "preset-slug",
+    "text": "@synth(velvet-comet) Cm9(2|)",
+    "bpm": null,
+    "clock": "language",
+    "seed": null,
+    "meter": "4/4",
+    "gather": [],
+    "played": [
+      {
+        "kind": "chord",
+        "symbol": "Cm9",
+        "bass": null,
+        "beats": null,
+        "bars": 2,
+        "seconds": 5,
+        "recording": 0
+      }
+    ],
+    "hacks": [],
+    "words": [],
+    "notes": [],
+    "iread": "96 BPM · Cm9 2 bars · 8 beats · 5 s · @synth · preset 44 · velvet-comet",
+    "arp": [],
+    "unmapped": [],
+    "tracks": [],
+    "synth": true,
+    "preset": {
+      "ref": "velvet-comet",
+      "found": true,
+      "n": 44,
+      "name": "velvet-comet"
+    },
+    "presets": []
+  },
+  {
+    "name": "preset-slug-spaces",
+    "text": "@synth(Velvet Comet) Cm9(2|)",
+    "bpm": null,
+    "clock": "language",
+    "seed": null,
+    "meter": "4/4",
+    "gather": [],
+    "played": [
+      {
+        "kind": "chord",
+        "symbol": "Cm9",
+        "bass": null,
+        "beats": null,
+        "bars": 2,
+        "seconds": 5,
+        "recording": 0
+      }
+    ],
+    "hacks": [],
+    "words": [],
+    "notes": [],
+    "iread": "96 BPM · Cm9 2 bars · 8 beats · 5 s · @synth · preset 44 · velvet-comet",
+    "arp": [],
+    "unmapped": [],
+    "tracks": [],
+    "synth": true,
+    "preset": {
+      "ref": "Velvet Comet",
+      "found": true,
+      "n": 44,
+      "name": "velvet-comet"
+    },
+    "presets": []
+  },
+  {
+    "name": "preset-slug-minus",
+    "text": "@synth(velvet−comet) Cm9(2|)",
+    "bpm": null,
+    "clock": "language",
+    "seed": null,
+    "meter": "4/4",
+    "gather": [],
+    "played": [
+      {
+        "kind": "chord",
+        "symbol": "Cm9",
+        "bass": null,
+        "beats": null,
+        "bars": 2,
+        "seconds": 5,
+        "recording": 0
+      }
+    ],
+    "hacks": [],
+    "words": [],
+    "notes": [],
+    "iread": "96 BPM · Cm9 2 bars · 8 beats · 5 s · @synth · preset 44 · velvet-comet",
+    "arp": [],
+    "unmapped": [],
+    "tracks": [],
+    "synth": true,
+    "preset": {
+      "ref": "velvet−comet",
+      "found": true,
+      "n": 44,
+      "name": "velvet-comet"
+    },
+    "presets": []
+  },
+  {
+    "name": "preset-slug-three",
+    "text": "@synth(clear-night-spark) Cm9(2|)",
+    "bpm": null,
+    "clock": "language",
+    "seed": null,
+    "meter": "4/4",
+    "gather": [],
+    "played": [
+      {
+        "kind": "chord",
+        "symbol": "Cm9",
+        "bass": null,
+        "beats": null,
+        "bars": 2,
+        "seconds": 5,
+        "recording": 0
+      }
+    ],
+    "hacks": [],
+    "words": [],
+    "notes": [],
+    "iread": "96 BPM · Cm9 2 bars · 8 beats · 5 s · @synth · preset 6 · clear-night-spark",
+    "arp": [],
+    "unmapped": [],
+    "tracks": [],
+    "synth": true,
+    "preset": {
+      "ref": "clear-night-spark",
+      "found": true,
+      "n": 6,
+      "name": "clear-night-spark"
+    },
+    "presets": []
+  },
+  {
+    "name": "preset-slug-three-spaces",
+    "text": "@synth(Clear Night Spark) Cm9(2|)",
+    "bpm": null,
+    "clock": "language",
+    "seed": null,
+    "meter": "4/4",
+    "gather": [],
+    "played": [
+      {
+        "kind": "chord",
+        "symbol": "Cm9",
+        "bass": null,
+        "beats": null,
+        "bars": 2,
+        "seconds": 5,
+        "recording": 0
+      }
+    ],
+    "hacks": [],
+    "words": [],
+    "notes": [],
+    "iread": "96 BPM · Cm9 2 bars · 8 beats · 5 s · @synth · preset 6 · clear-night-spark",
+    "arp": [],
+    "unmapped": [],
+    "tracks": [],
+    "synth": true,
+    "preset": {
+      "ref": "Clear Night Spark",
+      "found": true,
+      "n": 6,
+      "name": "clear-night-spark"
+    },
+    "presets": []
+  },
+  {
+    "name": "preset-slug-track",
+    "text": "t1: @synth(night-spark) Cm9(4)",
+    "bpm": null,
+    "clock": "language",
+    "seed": null,
+    "meter": "4/4",
+    "gather": [],
+    "played": [],
+    "hacks": [],
+    "words": [],
+    "notes": [],
+    "iread": "96 BPM · T1 Cm9 4 beats @synth preset 5 · night-spark · 4 beats · 2.5 s",
+    "arp": [],
+    "unmapped": [],
+    "tracks": [
+      {
+        "n": 1,
+        "label": "T1",
+        "kind": "chords",
+        "instrument": "synth",
+        "beats": 4,
+        "fmDepth": null,
+        "played": [
+          {
+            "kind": "chord",
+            "symbol": "Cm9",
+            "beats": 4,
+            "bars": null,
+            "seconds": 2.5
+          }
+        ]
+      }
+    ],
+    "synth": false,
+    "preset": null,
+    "presets": [
+      {
+        "n": 1,
+        "ref": "night-spark",
+        "found": true,
+        "name": "night-spark",
+        "preset": 5
+      }
+    ]
+  },
+  {
+    "name": "preset-slug-arp",
+    "text": "t1: arp Cm9 @synth(Night Spark) (2|)",
+    "bpm": null,
+    "clock": "legacy",
+    "seed": null,
+    "meter": "4/4",
+    "gather": [],
+    "played": [],
+    "hacks": [],
+    "words": [],
+    "notes": [],
+    "iread": "96 BPM · T1 arp Cm9 up 16ths (2|) @synth(Night Spark) preset 5 · night-spark · 8 beats · 5 s",
+    "arp": [],
+    "unmapped": [],
+    "tracks": [
+      {
+        "n": 1,
+        "label": "T1",
+        "kind": "arp",
+        "instrument": "synth",
+        "beats": 8,
+        "fmDepth": null,
+        "played": []
+      }
+    ],
+    "synth": false,
+    "preset": null,
+    "presets": [
+      {
+        "n": 1,
+        "ref": "Night Spark",
+        "found": true,
+        "name": "night-spark",
+        "preset": 5
+      }
+    ]
+  },
+  {
+    "name": "preset-synth-file",
+    "text": "@synth(44) Cm9(2|)",
+    "bpm": null,
+    "clock": "language",
+    "seed": null,
+    "meter": "4/4",
+    "gather": [],
+    "played": [
+      {
+        "kind": "chord",
+        "symbol": "Cm9",
+        "bass": null,
+        "beats": null,
+        "bars": 2,
+        "seconds": 5,
+        "recording": 0
+      }
+    ],
+    "hacks": [],
+    "words": [],
+    "notes": [],
+    "iread": "96 BPM · Cm9 2 bars · 8 beats · 5 s · @synth · preset 44 · velvet-comet",
+    "arp": [],
+    "unmapped": [],
+    "tracks": [],
+    "synth": true,
+    "preset": {
+      "ref": "44",
+      "found": true,
+      "n": 44,
+      "name": "velvet-comet"
+    },
+    "presets": []
+  },
+  {
+    "name": "preset-number-moved",
+    "text": "@synth(not-bright) Cm9(2|)",
+    "bpm": null,
+    "clock": "language",
+    "seed": null,
+    "meter": "4/4",
+    "gather": [],
+    "played": [
+      {
+        "kind": "chord",
+        "symbol": "Cm9",
+        "bass": null,
+        "beats": null,
+        "bars": 2,
+        "seconds": 5,
+        "recording": 0
+      }
+    ],
+    "hacks": [],
+    "words": [],
+    "notes": [],
+    "iread": "96 BPM · Cm9 2 bars · 8 beats · 5 s · @synth · preset 4 · not-bright. 1 is Example Bright, so this one is 4",
+    "arp": [],
+    "unmapped": [],
+    "tracks": [],
+    "synth": true,
+    "preset": {
+      "ref": "not-bright",
+      "found": true,
+      "n": 4,
+      "name": "not-bright"
+    },
+    "presets": []
   }
 ]

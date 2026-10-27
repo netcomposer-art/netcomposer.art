@@ -990,7 +990,7 @@ function fill(S) {
 function b64e(s) { return btoa(unescape(encodeURIComponent(s))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); }
 function b64d(s) { s = s.replace(/-/g, '+').replace(/_/g, '/'); while (s.length % 4) s += '='; return decodeURIComponent(escape(atob(s))); }
 // The work in progress lives in the page address (#c=…): written as you edit, read on load.
-// A visit with no #c= starts empty. The Composition is not stored. Share links, a refresh of a page that already has #c=, and any record link that uses that hash still fill the fields. The only localStorage key is nc_tester, for a hidden tester pass.
+// A visit with no #c= starts empty. The Composition is not stored. Share links, a refresh of a page that already has #c=, and any record link that uses that hash still fill the fields. The tester pass uses nc_tester. Imported synth presets use nc.synthPresets in this browser.
 function raw() { var S = {t: $('title').value, by: $('by').value, c: $('comp').value, p: $('perf').value}; if (SEED && SEED.c === S.c) S.sd = SEED.seed; return S; }
 var persistT = null;
 function persist() { clearTimeout(persistT); persistT = null; if (window.NC_RESETTING) return; history.replaceState(null, '', location.href.split('#')[0] + '#c=' + b64e(JSON.stringify(raw()))); }
@@ -1311,7 +1311,12 @@ window.NC = {timeline: timeline, toPlan: toPlan, toMd: toMd, parseMd: parseMd, s
   fromText: fromText, makeSurprise: makeSurprise, progression: progression, start: start, stop: stop, undo: undo, sched: function () { return SCHED.slice(); }, markChord: markChord,
   catalog: function () { return CAT; }, audition: function (ac, chords) { return window.MM.prepare(ac, chords, CAT, 'piano'); }, trackRecordings: trackRecordings, showSources: showSources, creditsFor: creditsFor, chordLabel: chordLabel, instrument: function () { return 'piano'; }, creditSentence: creditSentence,
   PREVIEW_TEMPO: PREVIEW_TEMPO, perform: PERFORM, showPerformance: showPerformance, performStatus: performStatus, pushUndo: pushUndo, persist: persist, commitNotes: commitNotes, growNotes: growNotes};
-fetch('chords.json').then(function (r) { return r.json(); }).then(function (c) {
+var presetsReady = (window.NCSynthPresets && NCSynthPresets.ready) ? NCSynthPresets.ready : Promise.resolve();
+Promise.all([
+  fetch('chords.json').then(function (r) { return r.json(); }),
+  presetsReady
+]).then(function (pair) {
+  var c = pair[0];
   CAT = c; Object.keys(c.chords).forEach(function (k) { QUALS[k.replace(/^[A-G](#|b)?/, '')] = 1; });
   if (!fromHash()) refresh();
   document.body.setAttribute('data-ready', '1');

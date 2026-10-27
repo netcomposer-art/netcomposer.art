@@ -1,0 +1,278 @@
+[
+  {
+    "id": "example-bright",
+    "number": 1,
+    "name": "Example Bright",
+    "version": 1,
+    "settings": {
+      "mode": "single",
+      "note": 0,
+      "octave": 3,
+      "chord": "Minor 7th",
+      "tempo": 96,
+      "interval": 4,
+      "gate": 100,
+      "arp": "off",
+      "arpOctaves": 1,
+      "octaveRange": 2,
+      "waveform": "saw",
+      "tuning": 0,
+      "oscillatorMode": "vco",
+      "oscillatorOctave": 0,
+      "detune": 0,
+      "pulseWidth": 0.5,
+      "wavetable": "basic",
+      "position": 0,
+      "warp": 0,
+      "unison": 1,
+      "spread": 0,
+      "subEnabled": true,
+      "subWaveform": "sine",
+      "subOctave": -1,
+      "subLevel": 0.12,
+      "filter": "lowpass",
+      "cutoff": 5200,
+      "resonance": 0.35,
+      "attack": 0.004,
+      "decay": 0.05,
+      "sustain": 24,
+      "release": 0.08,
+      "level": 86,
+      "master": 76,
+      "lfo1": 0.5,
+      "lfo2": 0.25,
+      "manual": 0,
+      "scale": "Dorian",
+      "collection": "Diatonic Major",
+      "situationSource": "",
+      "interpretation": "position",
+      "deadband": 0.02,
+      "stepThreshold": 0.1,
+      "maxStep": 4,
+      "chordDuration": 4,
+      "eventOutput": "note",
+      "minEventInterval": 1,
+      "vcoMods": [
+        {
+          "source": "none",
+          "destination": "pitch",
+          "amount": 0
+        },
+        {
+          "source": "none",
+          "destination": "pitch",
+          "amount": 0
+        }
+      ],
+      "vcfMods": [
+        {
+          "source": "none",
+          "destination": "cutoff",
+          "amount": 0
+        },
+        {
+          "source": "none",
+          "destination": "resonance",
+          "amount": 0
+        }
+      ],
+      "vcaMods": [
+        {
+          "source": "none",
+          "destination": "level",
+          "amount": 0
+        },
+        {
+          "source": "none",
+          "destination": "sustain",
+          "amount": 0
+        }
+      ],
+      "fmDepth": 0
+    }
+  },
+  {
+    "id": "example-dark",
+    "number": 2,
+    "name": "Example Dark",
+    "version": 1,
+    "settings": {
+      "mode": "single",
+      "note": 0,
+      "octave": 3,
+      "chord": "Minor 7th",
+      "tempo": 96,
+      "interval": 4,
+      "gate": 100,
+      "arp": "off",
+      "arpOctaves": 1,
+      "octaveRange": 2,
+      "waveform": "triangle",
+      "tuning": 0,
+      "oscillatorMode": "vco",
+      "oscillatorOctave": 0,
+      "detune": 0,
+      "pulseWidth": 0.5,
+      "wavetable": "basic",
+      "position": 0,
+      "warp": 0,
+      "unison": 1,
+      "spread": 0,
+      "subEnabled": true,
+      "subWaveform": "sine",
+      "subOctave": -2,
+      "subLevel": 0.72,
+      "filter": "lowpass",
+      "cutoff": 280,
+      "resonance": 1.6,
+      "attack": 0.14,
+      "decay": 0.72,
+      "sustain": 68,
+      "release": 1.25,
+      "level": 70,
+      "master": 76,
+      "lfo1": 0.5,
+      "lfo2": 0.25,
+      "manual": 0,
+      "scale": "Dorian",
+      "collection": "Diatonic Major",
+      "situationSource": "",
+      "interpretation": "position",
+      "deadband": 0.02,
+      "stepThreshold": 0.1,
+      "maxStep": 4,
+      "chordDuration": 4,
+      "eventOutput": "note",
+      "minEventInterval": 1,
+      "vcoMods": [
+        {
+          "source": "none",
+          "destination": "pitch",
+          "amount": 0
+        },
+        {
+          "source": "none",
+          "destination": "pitch",
+          "amount": 0
+        }
+      ],
+      "vcfMods": [
+        {
+          "source": "none",
+          "destination": "cutoff",
+          "amount": 0
+        },
+        {
+          "source": "none",
+          "destination": "resonance",
+          "amount": 0
+        }
+      ],
+      "vcaMods": [
+        {
+          "source": "none",
+          "destination": "level",
+          "amount": 0
+        },
+        {
+          "source": "none",
+          "destination": "sustain",
+          "amount": 0
+        }
+      ],
+      "fmDepth": 0
+    }
+  },
+  {
+    "id": "example-sine",
+    "number": 3,
+    "name": "Example Sine",
+    "version": 1,
+    "settings": {
+      "mode": "single",
+      "note": 0,
+      "octave": 3,
+      "chord": "Minor 7th",
+      "tempo": 96,
+      "interval": 4,
+      "gate": 100,
+      "arp": "off",
+      "arpOctaves": 1,
+      "octaveRange": 2,
+      "waveform": "sine",
+      "tuning": 0,
+      "oscillatorMode": "vco",
+      "oscillatorOctave": 0,
+      "detune": 0,
+      "pulseWidth": 0.5,
+      "wavetable": "basic",
+      "position": 0,
+      "warp": 0,
+      "unison": 1,
+      "spread": 0,
+      "subEnabled": false,
+      "subWaveform": "sine",
+      "subOctave": -1,
+      "subLevel": 0,
+      "filter": "lowpass",
+      "cutoff": 1800,
+      "resonance": 0.4,
+      "attack": 0.05,
+      "decay": 0.4,
+      "sustain": 80,
+      "release": 1.7,
+      "level": 68,
+      "master": 76,
+      "lfo1": 5.2,
+      "lfo2": 0.25,
+      "manual": 0,
+      "scale": "Dorian",
+      "collection": "Diatonic Major",
+      "situationSource": "",
+      "interpretation": "position",
+      "deadband": 0.02,
+      "stepThreshold": 0.1,
+      "maxStep": 4,
+      "chordDuration": 4,
+      "eventOutput": "note",
+      "minEventInterval": 1,
+      "vcoMods": [
+        {
+          "source": "lfo1",
+          "destination": "pitch",
+          "amount": 18
+        },
+        {
+          "source": "none",
+          "destination": "pitch",
+          "amount": 0
+        }
+      ],
+      "vcfMods": [
+        {
+          "source": "none",
+          "destination": "cutoff",
+          "amount": 0
+        },
+        {
+          "source": "none",
+          "destination": "resonance",
+          "amount": 0
+        }
+      ],
+      "vcaMods": [
+        {
+          "source": "none",
+          "destination": "level",
+          "amount": 0
+        },
+        {
+          "source": "none",
+          "destination": "sustain",
+          "amount": 0
+        }
+      ],
+      "fmDepth": 0
+    }
+  }
+]

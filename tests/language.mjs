@@ -23,8 +23,28 @@ const known = (q) => q in QUALS;
 function load(file, box) {
   vm.runInContext(readFileSync(join(root, file), 'utf8'), box);
 }
-const sb = {}; sb.globalThis = sb; sb.Map = Map; sb.Set = Set; vm.createContext(sb);
+const sb = {}; sb.globalThis = sb; sb.Map = Map; sb.Set = Set; sb.Promise = Promise; vm.createContext(sb);
 load('create/chord-library.js', sb);
+load('create/synth-presets.js', sb);
+sb.NCSynthPresets.loadBank(JSON.parse(readFileSync(join(root, 'create/synth-presets.json'), 'utf8')));
+// Hyphenated names the shipped bank does not carry. Night and clear keep
+// their own numbers. velvet-comet is the saved netcomposer.synth file,
+// number 44, not the next free slot. not-bright asks for 1, which Example
+// Bright keeps, so the import takes the next free number.
+sb.NCSynthPresets.importText(JSON.stringify([
+  { id: 'night-spark', number: 5, name: 'night-spark', version: 1, settings: { waveform: 'sine' } },
+  { id: 'clear-night-spark', number: 6, name: 'clear-night-spark', version: 1, settings: { waveform: 'triangle' } }
+]));
+sb.NCSynthPresets.importText(JSON.stringify({
+  format: 'netcomposer.synth',
+  version: 1,
+  number: 44,
+  name: 'velvet-comet',
+  settings: { waveform: 'square' }
+}), '44-velvet-comet.json');
+sb.NCSynthPresets.importText(JSON.stringify({
+  id: 'not-bright', number: 1, name: 'not-bright', version: 1, settings: { waveform: 'noise' }
+}));
 load('create/language.js', sb);
 const L = sb.NCLanguage;
 function project(text) {
@@ -63,8 +83,17 @@ function project(text) {
         return row;
       })
     })),
-    synth: !!p.synth
+    synth: !!p.synth,
+    preset: pubPreset(p.preset),
+    presets: (p.tracks || []).map((t) => {
+      const hit = pubPreset(t.preset);
+      return { n: t.n, ref: hit ? hit.ref : '', found: !!(hit && hit.found), name: hit && hit.found ? hit.name : '', preset: hit && hit.found ? hit.n : null };
+    })
   };
+}
+function pubPreset(p) {
+  if (!p) return null;
+  return { ref: p.ref, found: !!p.found, n: p.found ? p.n : null, name: p.found ? p.name : '' };
 }
 const rows = JSON.parse(readFileSync(join(root, 'tests/language-vectors.json'), 'utf8'));
 rows.forEach((row) => {
@@ -72,7 +101,7 @@ rows.forEach((row) => {
   ['bpm', 'clock', 'seed', 'meter', 'gather', 'played', 'hacks', 'words', 'notes', 'iread'].forEach((k) => {
     if (JSON.stringify(got[k]) !== JSON.stringify(row[k])) problems.push(row.name + ' ' + k + '\n  got ' + JSON.stringify(got[k]));
   });
-  ['arp', 'unmapped', 'tracks', 'synth'].forEach((k) => {
+  ['arp', 'unmapped', 'tracks', 'synth', 'preset', 'presets'].forEach((k) => {
     if (k in row && JSON.stringify(got[k]) !== JSON.stringify(row[k])) problems.push(row.name + ' ' + k + '\n  got ' + JSON.stringify(got[k]));
   });
   if (row.place) {
@@ -296,6 +325,27 @@ check(A.statedSeconds('tempo 90 C Am') === null, 'tempo alone is not a length');
 check(A.statedSeconds('"32 bars 90 BPM" C') === null, 'a quoted length is not a length');
 check(A.statedPulse('steady break beat') === true, 'steady is still a pulse word');
 check(A.statedPulse('# steady\nlet it breathe') === false, 'a comment is not a pulse');
+
+// A preset and a numbered arp order on one line. The order is the line's, the
+// sound is the preset's, glued or spaced, in either order.
+[
+  'arp Cm9 Arp(5) @synth(1) (2|)',
+  'arp Cm9 @synth(1) Arp(5) (2|)',
+  'Arp(5)@synth(1) Cm9 (2|)',
+  'Arp(5) Cm9@synth(Example Bright) (2|)',
+].forEach((text) => {
+  const p = L.parse(text, { known });
+  const a = p.arp[0] || {};
+  check(p.arp.length === 1 && a.order === 'random' && a.chord === 'Cm9' && a.instrument === 'synth', text + ' arp: ' + JSON.stringify(p.arp));
+  check(/random 16ths/.test(p.iread) && /preset 1 · Example Bright/.test(p.iread), text + ' iread: ' + p.iread);
+});
+{
+  const p = L.parse('Arp(17, 5, 8) Am7 @synth(2) (1|)', { known });
+  const a = p.arp[0] || {};
+  check(a.order === 'euclidean' && a.euclid && a.euclid.hits === 5 && a.euclid.steps === 8 && /Arp\(17, 5, 8, 0\)/.test(p.iread) && /preset 2 · Example Dark/.test(p.iread), 'Euclidean arp with a preset: ' + p.iread);
+  const t = L.parse('t1: arp Cm9 blossom-up @synth(3) (2|)', { known });
+  check(t.tracks.length === 1 && t.tracks[0].arp && t.tracks[0].arp.order === 'blossom-up' && /preset 3 · Example Sine/.test(t.iread), 'track arp with a short name and a preset: ' + t.iread);
+}
 
 function chromeBin() {
   for (const name of [process.env.CHROME, 'google-chrome', 'google-chrome-stable', 'chromium', 'chromium-browser']) {

@@ -7,7 +7,7 @@
 // the one way every part (Play, Gather, the take, Live and its hacks, undo)
 // is surely back to how it starts. Nothing is sent to the Performer: saved
 // Performances, Gathers on the server and the limits are untouched. The
-// tester pass in localStorage and the clip byte cache stay.
+// tester pass in localStorage, imported synth presets, and the clip byte cache stay.
 //
 // It asks first only when there is something to lose.
 (function () {
