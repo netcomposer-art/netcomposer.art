@@ -433,7 +433,7 @@
           var pitchLine = bits.length && bits.some(function (p) {
             return /^[A-Ga-g][#b]?(-1|[0-9])(?:\(\d+(?:\.\d+)?\|?\))?$/.test(p);
           }) && bits.every(function (p) {
-            return /^@[A-Za-z][\w-]*$/.test(p) || /^[A-Ga-g][#b]?(-1|[0-9])(?:\(\d+(?:\.\d+)?\|?\))?$/.test(p) || /^fm$/i.test(p) || /^fm\d+(?:\.\d+)?$/i.test(p) || /^\d+(?:\.\d+)?$/.test(p);
+            return /^@[A-Za-z][\w-]*$/.test(p) || /^[A-Ga-g][#b]?(-1|[0-9])(?:\(\d+(?:\.\d+)?\|?\))?$/.test(p) || /^fm$/i.test(p) || /^fm\d+(?:\.\d+)?$/i.test(p) || /^\d+(?:\.\d+)?$/.test(p) || /^loop$/i.test(p);
           });
           if (!pitchLine) return;
           body = bits.join(' ');

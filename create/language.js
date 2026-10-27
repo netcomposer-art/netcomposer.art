@@ -1140,6 +1140,7 @@
         var scan = tokens[j];
         if (scan.type === 'word' && isArpHead(scan.text)) break;
         if (scan.type === 'word') {
+          if (saw && /^loop$/i.test(scan.text)) break;
           var glued = splitAt(scan.text);
           var scanBody = glued ? glued.body : scan.text;
           var scanPitch = pitchParts(scanBody);
@@ -1169,6 +1170,9 @@
           else if (body && /^fm$/i.test(body) && tokens[j + 1] && tokens[j + 1].type === 'word' && inside(tokens[j + 1]) && /^\d+(?:\.\d+)?$/.test(tokens[j + 1].text)) {
             parts.push('fm ' + trimNum(+tokens[j + 1].text));
             j++;
+          } else if (body && /^loop$/i.test(body)) {
+            // Trailing bare `loop` is the Bitwig clip-loop mark; leave it for tryLoop.
+            break;
           } else if (body) parts.push(body);
           if (inst) parts.push(inst);
         }
@@ -1234,6 +1238,8 @@
           j += 2;
           continue;
         }
+        // Trailing bare `loop` is the Bitwig clip-loop mark; leave it for tryLoop.
+        if (pitches && /^loop$/i.test(tok.text)) break;
         return false;
       }
       if (!pitches) return false;
@@ -1656,6 +1662,16 @@
           var loopLine = trimNum(bpmUse) + ' BPM · ' + parts.join(' · ');
           if (pieceInstrument || piecePresetRef) loopLine = markLine(loopLine, pieceInstrument, presetOf(piecePresetRef));
           return { line: loopLine, music: true, loose: base.loose, open: base.open, total: base.total, untilEnd: true, cycleBeats: base.total };
+        }
+        // Notes-only line with bare loop (no chords): still say it loops until the end.
+        if (pieceUntilEnd && syntax.some(function (s) { return s.kind === 'notes' || s.kind === 'arp'; })) {
+          var noteLine = joinSyntax(syntax) + ' loops until the end';
+          if (pieceInstrument || piecePresetRef) noteLine = markLine(noteLine, pieceInstrument, presetOf(piecePresetRef));
+          var noteBeats = 0;
+          syntax.forEach(function (s) {
+            if (s.kind === 'notes') noteBeats += notesBeatsOf(s.text);
+          });
+          return { line: noteLine, music: true, loose: [], open: [], total: noteBeats, untilEnd: true, cycleBeats: noteBeats };
         }
         return base;
       }
