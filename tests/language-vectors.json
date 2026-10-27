@@ -2571,7 +2571,7 @@
     "tracks": [],
     "synth": false
   },
-{
+  {
     "name": "preset-number",
     "text": "@synth(1) Cm9(2|)",
     "bpm": null,
@@ -3350,5 +3350,278 @@
       "name": "not-bright"
     },
     "presets": []
+  },
+  {
+    "name": "bare-loop-track",
+    "text": "T1: @synth Cm9(4|) loop",
+    "bpm": null,
+    "clock": "language",
+    "seed": null,
+    "meter": "4/4",
+    "gather": [],
+    "played": [],
+    "hacks": [],
+    "words": [],
+    "notes": [],
+    "iread": "96 BPM · T1 Cm9 4 bars loops until the end @synth",
+    "arp": [],
+    "unmapped": [],
+    "tracks": [
+      {
+        "n": 1,
+        "label": "T1",
+        "kind": "chords",
+        "instrument": "synth",
+        "beats": 16,
+        "fmDepth": null,
+        "played": [
+          {
+            "kind": "chord",
+            "symbol": "Cm9",
+            "beats": null,
+            "bars": 4,
+            "seconds": 10
+          }
+        ],
+        "untilEnd": true
+      }
+    ],
+    "synth": false,
+    "preset": null,
+    "untilEnd": true,
+    "durationBeats": 16,
+    "presets": [
+      {
+        "n": 1,
+        "ref": "",
+        "found": false,
+        "name": "",
+        "preset": null
+      }
+    ]
+  },
+  {
+    "name": "bare-loop-group",
+    "text": "[Cm(4) Fm9(4)] loop",
+    "bpm": null,
+    "clock": "language",
+    "seed": null,
+    "meter": "4/4",
+    "gather": [
+      "Cm",
+      "Fm9"
+    ],
+    "played": [
+      {
+        "kind": "chord",
+        "symbol": "Cm",
+        "bass": null,
+        "beats": 4,
+        "bars": null,
+        "seconds": 2.5,
+        "recording": 0
+      },
+      {
+        "kind": "chord",
+        "symbol": "Fm9",
+        "bass": null,
+        "beats": 4,
+        "bars": null,
+        "seconds": 2.5,
+        "recording": 1
+      }
+    ],
+    "hacks": [],
+    "words": [],
+    "notes": [],
+    "iread": "96 BPM · [Cm 4 beats, Fm9 4 beats] loops until the end · synth",
+    "arp": [],
+    "unmapped": [],
+    "tracks": [],
+    "synth": false,
+    "preset": null,
+    "untilEnd": true,
+    "durationBeats": 8,
+    "presets": []
+  },
+  {
+    "name": "bare-loop-line",
+    "text": "Cm9(4|) loop",
+    "bpm": null,
+    "clock": "language",
+    "seed": null,
+    "meter": "4/4",
+    "gather": [
+      "Cm9"
+    ],
+    "played": [
+      {
+        "kind": "chord",
+        "symbol": "Cm9",
+        "bass": null,
+        "beats": null,
+        "bars": 4,
+        "seconds": 10,
+        "recording": 0
+      }
+    ],
+    "hacks": [],
+    "words": [],
+    "notes": [],
+    "iread": "96 BPM · Cm9 4 bars loops until the end · synth",
+    "arp": [],
+    "unmapped": [],
+    "tracks": [],
+    "synth": false,
+    "preset": null,
+    "untilEnd": true,
+    "durationBeats": 16,
+    "presets": []
+  },
+  {
+    "name": "bare-loop-mixed",
+    "text": "T1: @synth Cm9(4|) loop\nT2: @synth Am7(8|)",
+    "bpm": null,
+    "clock": "language",
+    "seed": null,
+    "meter": "4/4",
+    "gather": [],
+    "played": [],
+    "hacks": [],
+    "words": [],
+    "notes": [],
+    "iread": "96 BPM · T1 Cm9 4 bars loops until the end @synth · T2 Am7 8 bars @synth · 32 beats · 20 s",
+    "arp": [],
+    "unmapped": [],
+    "tracks": [
+      {
+        "n": 1,
+        "label": "T1",
+        "kind": "chords",
+        "instrument": "synth",
+        "beats": 16,
+        "fmDepth": null,
+        "played": [
+          {
+            "kind": "chord",
+            "symbol": "Cm9",
+            "beats": null,
+            "bars": 4,
+            "seconds": 10
+          }
+        ],
+        "untilEnd": true
+      },
+      {
+        "n": 2,
+        "label": "T2",
+        "kind": "chords",
+        "instrument": "synth",
+        "beats": 32,
+        "fmDepth": null,
+        "played": [
+          {
+            "kind": "chord",
+            "symbol": "Am7",
+            "beats": null,
+            "bars": 8,
+            "seconds": 20
+          }
+        ]
+      }
+    ],
+    "synth": false,
+    "preset": null,
+    "durationBeats": 32,
+    "presets": [
+      {
+        "n": 1,
+        "ref": "",
+        "found": false,
+        "name": "",
+        "preset": null
+      },
+      {
+        "n": 2,
+        "ref": "",
+        "found": false,
+        "name": "",
+        "preset": null
+      }
+    ]
+  },
+  {
+    "name": "bare-loop-both",
+    "text": "T1: @synth Cm9(4|) loop\nT2: @synth Am7(3|) loop",
+    "bpm": null,
+    "clock": "language",
+    "seed": null,
+    "meter": "4/4",
+    "gather": [],
+    "played": [],
+    "hacks": [],
+    "words": [],
+    "notes": [],
+    "iread": "96 BPM · T1 Cm9 4 bars loops until the end @synth · T2 Am7 3 bars loops until the end @synth",
+    "arp": [],
+    "unmapped": [],
+    "tracks": [
+      {
+        "n": 1,
+        "label": "T1",
+        "kind": "chords",
+        "instrument": "synth",
+        "beats": 16,
+        "fmDepth": null,
+        "played": [
+          {
+            "kind": "chord",
+            "symbol": "Cm9",
+            "beats": null,
+            "bars": 4,
+            "seconds": 10
+          }
+        ],
+        "untilEnd": true
+      },
+      {
+        "n": 2,
+        "label": "T2",
+        "kind": "chords",
+        "instrument": "synth",
+        "beats": 12,
+        "fmDepth": null,
+        "played": [
+          {
+            "kind": "chord",
+            "symbol": "Am7",
+            "beats": null,
+            "bars": 3,
+            "seconds": 7.5
+          }
+        ],
+        "untilEnd": true
+      }
+    ],
+    "synth": false,
+    "preset": null,
+    "untilEnd": true,
+    "durationBeats": 16,
+    "presets": [
+      {
+        "n": 1,
+        "ref": "",
+        "found": false,
+        "name": "",
+        "preset": null
+      },
+      {
+        "n": 2,
+        "ref": "",
+        "found": false,
+        "name": "",
+        "preset": null
+      }
+    ]
   }
 ]

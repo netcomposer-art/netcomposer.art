@@ -855,7 +855,11 @@ function playTracked(parsed) {
         if (my !== gen || !liveHandle) return;
         if (window.NCArrange && NCArrange.armPlay) NCArrange.armPlay(ctx, handle.when, 0, 1, handle.end);
       });
-      timers.push(setTimeout(function () { if (my === gen) { stop(); cur = 0; } }, (handle.end + 0.5) * 1000));
+      if (handle.openEnd || !isFinite(handle.end)) {
+        status((msgs.join(' ') ? msgs.join(' ') + ' ' : '') + 'Looping until Stop.');
+      } else {
+        timers.push(setTimeout(function () { if (my === gen) { stop(); cur = 0; } }, (handle.end + 0.5) * 1000));
+      }
     }).catch(function () {
       if (my !== gen) return;
       status('Could not start playback. Try again in a moment.', true);

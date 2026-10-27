@@ -23,6 +23,40 @@
   var current = null;
 
   function beatOf(bpm) { return 60 / (bpm > 0 ? bpm : 96); }
+  function cycleOf(events) {
+    var end = 0;
+    (events || []).forEach(function (ev) {
+      var at = (ev.written || 0) + (ev.writtenLength || 0);
+      if (at > end) end = at;
+    });
+    return end;
+  }
+  // Tile one pass of events across [0, until). Trim the last partial pass. No stretch.
+  function tileEvents(events, until) {
+    var cycle = cycleOf(events);
+    if (!(cycle > 0) || !(until > 0)) return (events || []).slice();
+    var out = [], k = 0;
+    while (k * cycle < until - 1e-9) {
+      var base = k * cycle;
+      (events || []).forEach(function (ev) {
+        var start = (ev.written || 0) + base;
+        if (start >= until - 1e-9) return;
+        var len = ev.writtenLength || 0;
+        var copy = {};
+        var key;
+        for (key in ev) if (Object.prototype.hasOwnProperty.call(ev, key)) copy[key] = ev[key];
+        copy.written = start;
+        if (start + len > until) {
+          copy.writtenLength = Math.max(0, until - start);
+          if (copy.length != null) copy.length = copy.writtenLength;
+          if (copy.keep != null) copy.keep = Math.min(copy.keep, copy.writtenLength + (copy.fade || 0));
+        }
+        out.push(copy);
+      });
+      k++;
+    }
+    return out;
+  }
   function samplerOn() {
     return !!(root.NCSampler && NCSampler.active && NCSampler.active());
   }
@@ -275,27 +309,28 @@
       seed: seed >>> 0,
       params: params,
       region: !!(extra && extra.region),
+      untilEnd: !!(extra && extra.untilEnd),
       writtenAt: 0,
       span: 0,
+      cycle: 0,
       clipId: (role === 'sampler' ? 'nc-sampler-' : 'nc-synth-') + id,
       events: events,
       skipped: (extra && extra.skipped) || [],
       messages: (extra && extra.messages) || []
     };
-    var end = 0;
-    events.forEach(function (ev) {
-      var at = (ev.written || 0) + (ev.writtenLength || 0);
-      if (at > end) end = at;
-    });
+    var end = cycleOf(events);
     track.span = end;
+    track.cycle = end;
     doc.tracks.push(track);
     return track;
   }
-  function pushChordPlay(doc, id, n, label, played, instrument, seedIndex, bpm, meter, beat, parsed) {
+  function pushChordPlay(doc, id, n, label, played, instrument, seedIndex, bpm, meter, beat, parsed, untilEnd) {
     var slug = librarySlug(instrument);
     var seed = ((parsed.seed == null ? 1 : parsed.seed) + seedIndex) >>> 0;
+    var loopExtra = untilEnd ? { untilEnd: true } : null;
     if (slug) {
       var extra = chordSamplerEvents(played, slug, bpm, meter, beat);
+      if (loopExtra) { extra.untilEnd = true; }
       pushVoice(doc, id, n, label, 'sampler', slug, seed, voiceParams(0), extra.events, extra);
       return;
     }
@@ -303,7 +338,7 @@
     var patch = presetPatch(parsed && parsed.preset, true);
     var notes = groupSlots(NCSynth.scheduleChordEvents(played, bpm, meter).map(copyNote), beat, patch && patch.fmDepth || 0);
     if (!notes.length) return;
-    pushVoice(doc, id, n, label, 'synth', '', seed, voiceParams(patch ? null : 0, patch), notes, null);
+    pushVoice(doc, id, n, label, 'synth', '', seed, voiceParams(patch ? null : 0, patch), notes, loopExtra);
   }
   function build(parsed, opts) {
     parsed = parsed || {};
@@ -316,9 +351,9 @@
     var chosen = samplerSlug();
     var chordLine = (parsed.played || []).some(function (e) { return e.kind === 'chord'; });
     if (play && chordLine) {
-      pushChordPlay(doc, 'chords', null, 'Chords', parsed.played, parsed.instrument, (parsed.tracks || []).length, bpm, meter, beat, parsed);
+      pushChordPlay(doc, 'chords', null, 'Chords', parsed.played, parsed.instrument, (parsed.tracks || []).length, bpm, meter, beat, parsed, !!parsed.pieceUntilEnd);
     } else if (!parsed.synth && chordLine) {
-      pushVoice(doc, 'chords', null, 'Chords', 'audio', '', (parsed.seed == null ? 1 : parsed.seed), voiceParams(0), audioEvents(parsed.played, beat, qpb * beat), null);
+      pushVoice(doc, 'chords', null, 'Chords', 'audio', '', (parsed.seed == null ? 1 : parsed.seed), voiceParams(0), audioEvents(parsed.played, beat, qpb * beat), parsed.pieceUntilEnd ? { untilEnd: true } : null);
     }
     var voices = (parsed.tracks || []).slice();
     if (play) {
@@ -336,11 +371,11 @@
       var role = play ? playRole(tr) : roleOf(tr);
       if (!role) return;
       if (role === 'audio') {
-        pushVoice(doc, tid, tr.n, tr.label || (tr.n >= 1 ? 'T' + tr.n : ''), 'audio', tr.instrument || '', (parsed.seed || 1) + i, voiceParams(0), audioEvents(tr.played, beat, qpb * beat), null);
+        pushVoice(doc, tid, tr.n, tr.label || (tr.n >= 1 ? 'T' + tr.n : ''), 'audio', tr.instrument || '', (parsed.seed || 1) + i, voiceParams(0), audioEvents(tr.played, beat, qpb * beat), tr.untilEnd ? { untilEnd: true } : null);
         return;
       }
       if (play && role === 'sampler' && tr.kind === 'chords') {
-        pushChordPlay(doc, tid, tr.n, tr.label || (tr.n >= 1 ? 'T' + tr.n : ''), tr.played, tr.instrument, i, bpm, meter, beat, parsed);
+        pushChordPlay(doc, tid, tr.n, tr.label || (tr.n >= 1 ? 'T' + tr.n : ''), tr.played, tr.instrument, i, bpm, meter, beat, parsed, !!tr.untilEnd);
         return;
       }
       var src = (play && role === 'synth') ? asSynth(tr) : bare(tr);
@@ -369,7 +404,7 @@
           return;
         }
       }
-      pushVoice(doc, tid, tr.n, tr.label || (tr.n >= 1 ? 'T' + tr.n : ''), role, slug, voice.seed, voiceParams(patch ? writtenFm : (role === 'synth' ? fm : 0), patch), notes, Object.assign({ region: tr.kind === 'arp' }, extra));
+      pushVoice(doc, tid, tr.n, tr.label || (tr.n >= 1 ? 'T' + tr.n : ''), role, slug, voice.seed, voiceParams(patch ? writtenFm : (role === 'synth' ? fm : 0), patch), notes, Object.assign({ region: tr.kind === 'arp', untilEnd: !!tr.untilEnd }, extra || {}));
     });
     if (!play && parsed.synth && root.NCSynth && NCSynth.chordVoice) {
       var cv = NCSynth.chordVoice(parsed, (parsed.tracks || []).length);
@@ -378,6 +413,35 @@
         pushVoice(doc, 'chords', null, 'Chords', 'synth', '', cv.seed, voiceParams(cv.fmDepth || 0), notesC, null);
       }
     }
+    // Bitwig-style clip loop: tile untilEnd tracks across the piece length.
+    // Piece length = longest non-looping track. All-looping: Play stays open until
+    // Stop; Gather/Perform use an explicit length or 120 seconds.
+    var fixedEnd = 0, anyFixed = false;
+    doc.tracks.forEach(function (tr) {
+      if (tr.untilEnd) return;
+      anyFixed = true;
+      if (tr.span > fixedEnd) fixedEnd = tr.span;
+    });
+    var openEnd = !anyFixed && doc.tracks.some(function (tr) { return tr.untilEnd; });
+    var endSec = fixedEnd;
+    if (openEnd) {
+      if (play) endSec = 0;
+      else endSec = (opts && opts.seconds > 0) ? opts.seconds : 120;
+    } else if (!(endSec > 0)) {
+      doc.tracks.forEach(function (tr) { if (tr.span > endSec) endSec = tr.span; });
+    }
+    doc.tracks.forEach(function (tr) {
+      if (!tr.untilEnd) return;
+      tr.cycle = tr.cycle || tr.span;
+      if (openEnd && play) return;
+      if (!(endSec > 0) || !(tr.cycle > 0)) return;
+      tr.events = tileEvents(tr.events, endSec);
+      tr.span = endSec;
+    });
+    doc.openEnd = !!(openEnd && play);
+    doc.end = endSec;
+    doc.untilEnd = !!(parsed.untilEnd || openEnd);
+
     return doc;
   }
   function follow(doc) {
@@ -459,7 +523,7 @@
     src.start(t, 0, dur);
     return { src: src, gain: g, end: ev.start + dur };
   }
-  function scheduleClip(ctx, dest, ev, origin, buffer) {
+  function scheduleClip(ctx, dest, ev, origin, buffer, seamless) {
     if (!buffer || !(ev.length > 0)) return null;
     var play = Math.min(ev.length, buffer.duration);
     if (!(play > 0)) return null;
@@ -467,8 +531,14 @@
     var g = ctx.createGain();
     var t = origin + ev.start;
     src.buffer = buffer;
-    g.gain.setValueAtTime(0.8, t);
-    g.gain.setTargetAtTime(0, t + Math.max(0.02, play - 0.04), 0.015);
+    // A Bitwig-style loop abuts the next pass. Skip the usual release fade so the
+    // wrap has no gap. Gather still trims or pads to the written length, never stretches.
+    if (seamless) {
+      g.gain.setValueAtTime(0.8, t);
+    } else {
+      g.gain.setValueAtTime(0.8, t);
+      g.gain.setTargetAtTime(0, t + Math.max(0.02, play - 0.04), 0.015);
+    }
     src.connect(g);
     g.connect(dest);
     src.start(t, 0, play);
@@ -571,17 +641,32 @@
       releases.splice(0).forEach(function (fn) { try { fn(); } catch (e) {} });
       if (current === doc) current = null;
     }
-    function due(tr, ev, i) {
-      var key = tr.id + ':' + i;
-      if (scheduled[key] || !(ev.length > 0)) {
-        if (!(ev.length > 0)) scheduled[key] = 1;
+    function dueAt(tr, ev, i, pass, start) {
+      var key = tr.id + ':' + pass + ':' + i;
+      if (scheduled[key] || !(ev.length > 0 || (ev.writtenLength > 0 && start != null))) {
+        if (!(ev.length > 0) && !(ev.writtenLength > 0)) scheduled[key] = 1;
         return false;
       }
-      var when = origin + ev.start;
+      var when = origin + start;
       if (when > ctx.currentTime + HORIZON) return false;
       if (when < ctx.currentTime - 0.03) { scheduled[key] = 1; return false; }
       scheduled[key] = 1;
       return true;
+    }
+    function due(tr, ev, i) {
+      return dueAt(tr, ev, i, 0, ev.start);
+    }
+    // Open-ended Bitwig-style loop: schedule the next passes inside the horizon.
+    function eachPass(tr, fn) {
+      if (!(tr.untilEnd && doc.openEnd && tr.cycle > 0)) {
+        fn(0, 0);
+        return;
+      }
+      var elapsed = Math.max(0, ctx.currentTime - origin);
+      var pass0 = Math.max(0, Math.floor((elapsed - 0.05) / tr.cycle));
+      var pass1 = Math.floor((elapsed + HORIZON + tr.cycle) / tr.cycle) + 1;
+      var p;
+      for (p = pass0; p <= pass1; p++) fn(p, p * tr.cycle);
     }
     function tick() {
       if (stopped || !live()) { stop(); return; }
@@ -591,29 +676,64 @@
           var row = null, k;
           for (k = 0; k < engines.length; k++) if (engines[k].id === tr.id) row = engines[k];
           if (!row) return;
-          var batch = [];
-          tr.events.forEach(function (ev, i) { if (due(tr, ev, i)) batch.push(ev); });
-          if (batch.length) prime(row.engine, batch, origin, tr.params && tr.params.fmDepth || 0);
+          eachPass(tr, function (pass, base) {
+            var batch = [];
+            tr.events.forEach(function (ev, i) {
+              var start = (doc.openEnd && tr.untilEnd) ? (ev.written || 0) + base : ev.start;
+              var playEv = ev;
+              if (doc.openEnd && tr.untilEnd) {
+                playEv = {};
+                var key;
+                for (key in ev) if (Object.prototype.hasOwnProperty.call(ev, key)) playEv[key] = ev[key];
+                playEv.start = start;
+                playEv.length = ev.writtenLength || ev.length;
+              }
+              if (dueAt(tr, playEv, i, pass, start)) batch.push(playEv);
+            });
+            if (batch.length) prime(row.engine, batch, origin, tr.params && tr.params.fmDepth || 0);
+          });
           return;
         }
         if (tr.voice === 'sampler') {
-          tr.events.forEach(function (ev, i) {
-            if (!due(tr, ev, i)) return;
-            var buffer = opts.buffers && opts.buffers[tr.instrument + ':' + ev.midi];
-            var node = scheduleSamplerNote(ctx, busFor(tr.id), ev, origin, buffer, output);
-            if (node) sources.push(node.src);
+          eachPass(tr, function (pass, base) {
+            tr.events.forEach(function (ev, i) {
+              var start = (doc.openEnd && tr.untilEnd) ? (ev.written || 0) + base : ev.start;
+              var playEv = ev;
+              if (doc.openEnd && tr.untilEnd) {
+                playEv = {};
+                var key;
+                for (key in ev) if (Object.prototype.hasOwnProperty.call(ev, key)) playEv[key] = ev[key];
+                playEv.start = start;
+                playEv.length = ev.writtenLength || ev.length;
+              }
+              if (!dueAt(tr, playEv, i, pass, start)) return;
+              var buffer = opts.buffers && opts.buffers[tr.instrument + ':' + ev.midi];
+              var node = scheduleSamplerNote(ctx, busFor(tr.id), playEv, origin, buffer, output);
+              if (node) sources.push(node.src);
+            });
           });
           return;
         }
         if (tr.voice === 'audio') {
-          tr.events.forEach(function (ev, i) {
-            if (!due(tr, ev, i)) return;
-            var buffer = opts.clips && opts.clips[tr.id + ':' + ev.slot];
-            if (!buffer && opts.missingClip) opts.missingClip(tr, ev, origin + ev.start, busFor(tr.id));
-            else {
-              var node = scheduleClip(ctx, busFor(tr.id), ev, origin, buffer);
-              if (node) sources.push(node.src);
-            }
+          eachPass(tr, function (pass, base) {
+            tr.events.forEach(function (ev, i) {
+              var start = (doc.openEnd && tr.untilEnd) ? (ev.written || 0) + base : ev.start;
+              var playEv = ev;
+              if (doc.openEnd && tr.untilEnd) {
+                playEv = {};
+                var key;
+                for (key in ev) if (Object.prototype.hasOwnProperty.call(ev, key)) playEv[key] = ev[key];
+                playEv.start = start;
+                playEv.length = ev.writtenLength || ev.length;
+              }
+              if (!dueAt(tr, playEv, i, pass, start)) return;
+              var buffer = opts.clips && opts.clips[tr.id + ':' + ev.slot];
+              if (!buffer && opts.missingClip) opts.missingClip(tr, playEv, origin + start, busFor(tr.id));
+              else {
+                var node = scheduleClip(ctx, busFor(tr.id), playEv, origin, buffer, !!(doc.openEnd && tr.untilEnd));
+                if (node) sources.push(node.src);
+              }
+            });
           });
         }
       });
@@ -632,7 +752,7 @@
         engines.push({ id: tr.id, engine: engine });
       }));
     });
-    var handle = { stop: stop, when: origin, end: 0, ready: null };
+    var handle = { stop: stop, when: origin, end: 0, openEnd: !!doc.openEnd, ready: null };
     var ready = opening.length ? Promise.all(opening) : Promise.resolve();
     handle.ready = ready.then(function () {
       if (stopped || !live()) return handle;
@@ -643,14 +763,19 @@
       return handle;
     });
     var end = lead;
-    doc.tracks.forEach(function (tr) {
-      var tail = tr.voice === 'synth' && tr.params ? (tr.params.release || 0.4) : 0.05;
-      tr.events.forEach(function (ev) {
-        var at = (ev.written || 0) + (ev.writtenLength || 0) + tail;
-        if (at > end) end = at;
+    if (doc.openEnd) {
+      handle.end = Infinity;
+    } else {
+      if (doc.end > 0) end = Math.max(end, doc.end);
+      doc.tracks.forEach(function (tr) {
+        var tail = tr.voice === 'synth' && tr.params ? (tr.params.release || 0.4) : 0.05;
+        tr.events.forEach(function (ev) {
+          var at = (ev.written || 0) + (ev.writtenLength || 0) + tail;
+          if (at > end) end = at;
+        });
       });
-    });
-    handle.end = end;
+      handle.end = end;
+    }
     return handle;
   }
 
