@@ -49,7 +49,7 @@ const chordTones = S.scheduleChordEvents([{ kind: 'chord', symbol: 'Cm', beats: 
 check(chordTones.length >= 3 && chordTones.every((t) => t.start === 0 && Math.abs(t.length - 2.5) < 0.001), '@synth holds a C minor voicing for 4 beats, got ' + JSON.stringify(chordTones));
 check(S.midiOf('C5') === 72 && S.chordRoot('Cm9', null) === 60 && S.chordRoot('Cm9', 5) === 72 && S.chordRoot('Cm9', 3) === 48 && S.chordRoot('Ebmaj7', 4) === 63 && S.chordRoot('F#m7', 3) === 54 && S.chordRoot('Bm', 0) === 23 && S.midiOf('C5') === S.chordRoot('C', 5), 'a chord octave uses the same MIDI number as the note');
 const m9 = (octave) => S.scheduleChordEvents([{ kind: 'chord', symbol: 'Cm9', beats: 4, octave: octave }], 96, '4/4').map((t) => t.midi);
-check(m9(null).join() === '60,62,63,67,70' && m9(5).join() === '72,74,75,79,82' && m9(3).join() === '48,50,51,55,58', 'Cm9, C5m9 and C3m9 sit on C4, C5 and C3, got ' + [m9(null), m9(5), m9(3)].join(' | '));
+check(m9(null).join() === '60,63,67,70,74' && m9(5).join() === '72,75,79,82,86' && m9(3).join() === '48,51,55,58,62', 'Cm9, C5m9 and C3m9 sit on C4, C5 and C3, got ' + [m9(null), m9(5), m9(3)].join(' | '));
 const slashOct = S.scheduleChordEvents([{ kind: 'chord', symbol: 'Cm9', octave: 5, bass: 10, beats: 4 }], 96, '4/4').map((t) => t.midi);
 check(slashOct.indexOf(72) >= 0 && slashOct.indexOf(70) >= 0 && Math.min.apply(null, slashOct) === 70, 'C5m9/Bb keeps the root on C5 and the bass below it, got ' + slashOct.join());
 const arpOct = S.scheduleLine(S.readLine('arp C5m9 (1|)'), null, 1).map((t) => t.midi);
@@ -116,7 +116,7 @@ const pendulum = S.readLine('90 BPM; arp Cm9 pendulum 16ths 2oct wide inv1 (4|)'
 check(pendulum && !pendulum.instrument && pendulum.bpm === 90 && pendulum.fmDepth == null && pendulum.arp.chord === 'Cm9' && pendulum.arp.chordId === 'minor-9', 'the pendulum line is an arp, got ' + JSON.stringify(pendulum && pendulum.arp));
 check(pendulum && pendulum.label.indexOf('pendulum') >= 0 && pendulum.label.indexOf('sixteenth notes') >= 0 && pendulum.label.indexOf('2 octaves') >= 0 && pendulum.label.indexOf('wide') >= 0 && pendulum.label.indexOf('inversion 1') >= 0 && pendulum.label.indexOf('4 bars') >= 0, 'the line says the arp in plain words, got ' + (pendulum && pendulum.label));
 const pendNotes = S.scheduleLine(pendulum, null, 4182);
-check(pendNotes.length === 64 && pendNotes[0].midi === 74 && pendNotes[1].midi === 75 && Math.abs(pendNotes[0].length - 60 / 90 / 4) < 1e-9 && Math.abs(pendNotes[63].start - 10.5) < 1e-9, 'pendulum sixteenths fill four bars at 90, got ' + JSON.stringify(pendNotes.slice(0, 4)) + ' n=' + pendNotes.length);
+check(pendNotes.length === 64 && pendNotes[0].midi === 75 && pendNotes[1].midi === 79 && Math.abs(pendNotes[0].length - 60 / 90 / 4) < 1e-9 && Math.abs(pendNotes[63].start - 10.5) < 1e-9, 'pendulum sixteenths fill four bars at 90, got ' + JSON.stringify(pendNotes.slice(0, 4)) + ' n=' + pendNotes.length);
 const follow = S.readLine('90 BPM; [Cm Fm9 Gm7 Bb]; arp up-down 16ths 2oct');
 const followNotes = S.scheduleLine(follow, null, 4182);
 check(follow && !follow.arp.chord && followNotes.length === 64 && Math.abs((followNotes[63].start + followNotes[63].length) - (16 * 60 / 90)) < 1e-6, 'a chord-line arp follows each chord for a bar, got ' + followNotes.length);
