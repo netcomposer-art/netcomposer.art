@@ -60,6 +60,33 @@ r = A.commit(mixed.entries, 1, 'move', 3.1, mixed.base, [2, 2.5]);
 check(r.writtenBlock !== true && r.entries[1].at_s === 3.1 && r.entries[1].len_s === 2.5, 'the sketch bar beside it still moves, got ' + ends(r.entries));
 check(typeof A.addLane === 'function', 'another lane can be registered');
 
+check(typeof A.tileUntil === 'function' && typeof A.pieceUntilOf === 'function', 'tile helpers export');
+const cycle = [
+  { at_s: 0, len_s: 0.625, cap: 0.625, written: 0.625, chord: 'C5' },
+  { at_s: 0.625, len_s: 0.625, cap: 0.625, written: 0.625, chord: 'C5' },
+  { at_s: 1.25, len_s: 0.625, cap: 0.625, written: 0.625, chord: 'C5' },
+  { at_s: 1.875, len_s: 0.625, cap: 0.625, written: 0.625, chord: 'C5' },
+  { at_s: 2.5, len_s: 0.313, cap: 0.313, written: 0.313, chord: 'F5' },
+  { at_s: 2.813, len_s: 0.313, cap: 0.313, written: 0.313, chord: 'F5' },
+  { at_s: 3.125, len_s: 0.313, cap: 0.313, written: 0.313, chord: 'G5' },
+  { at_s: 3.438, len_s: 0.313, cap: 0.313, written: 0.313, chord: 'G5' }
+];
+const tiled = A.tileUntil(cycle, 3.75, 7.5);
+check(tiled.entries.length === 16 && Math.abs(tiled.base - 7.5) < 1e-6 && tiled.entries[8].chord === 'C5' && Math.abs(tiled.entries[8].at_s - 3.75) < 1e-3, 'tileUntil doubles a 6-beat notes cycle, got ' + tiled.entries.length + ' base ' + tiled.base);
+const widths = cycle.map((e) => e.len_s);
+check(widths[0] > widths[4] * 1.5, 'quarter blocks are wider than eighths on the strip');
+const until = A.pieceUntilOf([
+  { base: 2.5, untilEnd: true },
+  { base: 3.75, untilEnd: true }
+], { bpm: 96 });
+check(Math.abs(until - 7.5) < 1e-3, 'all-loop piece end is LCM of cycles (12 beats), got ' + until);
+const fixed = A.pieceUntilOf([
+  { base: 2.5, untilEnd: true },
+  { base: 10, untilEnd: false }
+], { bpm: 96 });
+check(Math.abs(fixed - 10) < 1e-6, 'fixed track sets the piece end, got ' + fixed);
+
+
 const both = [{ id: 't1' }, { id: 't2' }];
 check(A.mixAudible(both, 't1') === true && A.mixAudible(both, 't2') === true, 'both tracks sound when nothing is set');
 check(A.mixAudible([{ id: 't1', mute: true }, { id: 't2' }], 't1') === false, 'mute silences that track');

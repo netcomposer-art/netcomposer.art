@@ -247,6 +247,33 @@
     try { return lang.parse(text || '', { known: function (q) { return !!(known && known(q)); } }); }
     catch (e) { return null; }
   }
+
+  function notesFromBody(rest, bar) {
+    var out = [], bits = String(rest || '').split(/\s+/), b, n, i, unit, lang = root.NCLanguage;
+    for (b = 0; b < bits.length; b++) {
+      var tok = bits[b];
+      if (!tok || /^@/i.test(tok) || /^fm$/i.test(tok) || /^fm\d/i.test(tok) || /^loop$/i.test(tok)) continue;
+      tok = tok.replace(/@.*$/, '');
+      if (lang && typeof lang.noteTokenParts === 'function') {
+        n = lang.noteTokenParts(tok);
+        if (!n || !n.ok) continue;
+        unit = n.bars ? n.unit * bar : n.unit;
+        if (!(unit > 0)) unit = 1;
+        for (i = 0; i < n.count; i++) out.push({ pitch: n.pitch, beats: unit });
+        continue;
+      }
+      var m = /^([A-Ga-g])(#|b)?(-?\d+)(?:\((\d+(?:\.\d+)?)(\|)?\))?$/.exec(tok);
+      if (!m) continue;
+      var beats = m[4] ? +m[4] : 1;
+      if (!(beats > 0)) beats = 1;
+      if (m[5]) beats *= bar;
+      var name = spell(m[1] + (m[2] || '') + m[3]);
+      if (midiOf(name) == null) continue;
+      out.push({ pitch: name, beats: beats });
+    }
+    return out;
+  }
+
   // Notes / n, and an arp statement. Pitches follow notes or n, with an
   // optional (beats) or (bars|). @name on that statement is a written
   // instrument, so the synth stays out. `fm <depth>` is FM, not a pitch.
@@ -276,15 +303,7 @@
       var km = /(?:^|\s)(?:notes|n)\s+(.+)$/i.exec(stmt);
       if (!km || covered(abs + km.index)) continue;
       var taken = fmDepthOf(km[1]);
-      var rest = taken.rest, re = /([A-Ga-g])(#|b)?(-?\d+)(?:\((\d+(?:\.\d+)?)(\|)?\))?/g, tok, notes = [];
-      while ((tok = re.exec(rest))) {
-        var beats = tok[4] ? +tok[4] : 1;
-        if (!(beats > 0)) beats = 1;
-        if (tok[5]) beats *= bar;
-        var name = spell(tok[1] + (tok[2] || '') + tok[3]);
-        if (midiOf(name) == null) continue;
-        notes.push({pitch: name, beats: beats});
-      }
+      var notes = notesFromBody(taken.rest, bar);
       if (!notes.length) continue;
       var inst = /@([A-Za-z][\w-]*)/.exec(stmt);
       var instName = inst ? inst[1].toLowerCase() : '';
@@ -430,10 +449,12 @@
         var body = km ? km[1] : '';
         if (!km) {
           var bits = String(stmt || '').trim().split(/\s+/).filter(Boolean);
-          var pitchLine = bits.length && bits.some(function (p) {
-            return /^[A-Ga-g][#b]?(-1|[0-9])(?:\(\d+(?:\.\d+)?\|?\))?$/.test(p);
-          }) && bits.every(function (p) {
-            return /^@[A-Za-z][\w-]*$/.test(p) || /^[A-Ga-g][#b]?(-1|[0-9])(?:\(\d+(?:\.\d+)?\|?\))?$/.test(p) || /^fm$/i.test(p) || /^fm\d+(?:\.\d+)?$/i.test(p) || /^\d+(?:\.\d+)?$/.test(p) || /^loop$/i.test(p);
+          var noteTokOk = function (p) {
+            if (root.NCLanguage && typeof root.NCLanguage.isNoteToken === 'function' && root.NCLanguage.isNoteToken(p)) return true;
+            return /^(?:\d+)?[!$*^]?[A-Ga-g][#b]?(-1|[0-9])(?:\(\d+(?:\.\d+)?\|?\))?$/.test(p);
+          };
+          var pitchLine = bits.length && bits.some(noteTokOk) && bits.every(function (p) {
+            return /^@[A-Za-z][\w-]*$/.test(p) || noteTokOk(p) || /^fm$/i.test(p) || /^fm\d+(?:\.\d+)?$/i.test(p) || /^\d+(?:\.\d+)?$/.test(p) || /^loop$/i.test(p);
           });
           if (!pitchLine) return;
           body = bits.join(' ');
@@ -442,15 +463,7 @@
         if (taken.fmDepth != null) got.fmDepth = taken.fmDepth;
         var inst = /@([A-Za-z][\w-]*)/.exec(stmt);
         if (inst) got.instrument = inst[1].toLowerCase();
-        var rest = taken.rest, re = /([A-Ga-g])(#|b)?(-?\d+)(?:\((\d+(?:\.\d+)?)(\|)?\))?/g, tok;
-        while ((tok = re.exec(rest))) {
-          var beats = tok[4] ? +tok[4] : 1;
-          if (!(beats > 0)) beats = 1;
-          if (tok[5]) beats *= bar;
-          var name = spell(tok[1] + (tok[2] || '') + tok[3]);
-          if (midiOf(name) == null) continue;
-          got.notes.push({ pitch: name, beats: beats });
-        }
+        notesFromBody(taken.rest, bar).forEach(function (n) { got.notes.push(n); });
       });
       if (got.instrument && got.instrument !== 'synth') return null;
       if (fm == null) fm = got.fmDepth;
