@@ -3623,5 +3623,153 @@
         "preset": null
       }
     ]
+  },
+  {
+    "name": "pitch-track-loop",
+    "text": "T1: @synth c5m loop\nT2: a5 c5 d5 loop",
+    "bpm": null,
+    "clock": "language",
+    "seed": null,
+    "meter": "4/4",
+    "gather": [],
+    "played": [],
+    "hacks": [],
+    "words": [],
+    "notes": [
+      "C5m has no length, so Play sketches it as 1 bar and Gather uses the whole recording. Write `C5m(4)` for 4 beats or `C5m(2|)` for 2 bars."
+    ],
+    "iread": "96 BPM · T1 C5m 1 bar* loops until the end @synth · T2 notes A5 C5 D5 loops until the end synth\nC5m has no length, so Play sketches it as 1 bar and Gather uses the whole recording. Write `C5m(4)` for 4 beats or `C5m(2|)` for 2 bars.",
+    "arp": [],
+    "unmapped": [],
+    "tracks": [
+      {
+        "n": 1,
+        "label": "T1",
+        "kind": "chords",
+        "instrument": "synth",
+        "beats": 4,
+        "fmDepth": null,
+        "played": [
+          {
+            "kind": "chord",
+            "symbol": "Cm",
+            "beats": null,
+            "bars": null,
+            "seconds": null,
+            "octave": 5
+          }
+        ],
+        "untilEnd": true
+      },
+      {
+        "n": 2,
+        "label": "T2",
+        "kind": "notes",
+        "instrument": "",
+        "beats": 3,
+        "fmDepth": null,
+        "played": [],
+        "untilEnd": true
+      }
+    ],
+    "synth": false,
+    "preset": null,
+    "presets": [
+      {
+        "n": 1,
+        "ref": "",
+        "found": false,
+        "name": "",
+        "preset": null
+      },
+      {
+        "n": 2,
+        "ref": "",
+        "found": false,
+        "name": "",
+        "preset": null
+      }
+    ],
+    "untilEnd": true,
+    "durationBeats": 4
+  },
+  {
+    "name": "notes-line-loop",
+    "text": "T2: notes a5 c5 d5 loop",
+    "bpm": null,
+    "clock": "language",
+    "seed": null,
+    "meter": "4/4",
+    "gather": [],
+    "played": [],
+    "hacks": [],
+    "words": [],
+    "notes": [],
+    "iread": "96 BPM · T2 notes A5 C5 D5 loops until the end synth",
+    "arp": [],
+    "unmapped": [],
+    "tracks": [
+      {
+        "n": 2,
+        "label": "T2",
+        "kind": "notes",
+        "instrument": "",
+        "beats": 3,
+        "fmDepth": null,
+        "played": [],
+        "untilEnd": true
+      }
+    ],
+    "synth": false,
+    "preset": null,
+    "presets": [
+      {
+        "n": 2,
+        "ref": "",
+        "found": false,
+        "name": "",
+        "preset": null
+      }
+    ],
+    "untilEnd": true,
+    "durationBeats": 3
+  },
+  {
+    "name": "pitch-track-plain",
+    "text": "T2: a5 c5 d5",
+    "bpm": null,
+    "clock": "legacy",
+    "seed": null,
+    "meter": "4/4",
+    "gather": [],
+    "played": [],
+    "hacks": [],
+    "words": [],
+    "notes": [],
+    "iread": "96 BPM · T2 notes A5 C5 D5 synth · 3 beats · ~1.9 s",
+    "arp": [],
+    "unmapped": [],
+    "tracks": [
+      {
+        "n": 2,
+        "label": "T2",
+        "kind": "notes",
+        "instrument": "",
+        "beats": 3,
+        "fmDepth": null,
+        "played": []
+      }
+    ],
+    "synth": false,
+    "preset": null,
+    "presets": [
+      {
+        "n": 2,
+        "ref": "",
+        "found": false,
+        "name": "",
+        "preset": null
+      }
+    ]
   }
 ]

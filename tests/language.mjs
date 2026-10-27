@@ -372,6 +372,15 @@ check(A.statedPulse('# steady\nlet it breathe') === false, 'a comment is not a p
   check(!lonely.untilEnd && /bare `loop` needs something/.test(lonely.iread || (lonely.notes[0] || '')), 'lonely loop errors: ' + lonely.iread);
   const placed = L.place(grp.played.map((e, i) => Object.assign({}, e, { recording: i, seconds: e.seconds })), [10, 10], { untilEnd: true, until: 20 });
   check(placed.total_s === 20 && placed.entries.length >= 4, 'place tiles a bare loop to the piece length: ' + JSON.stringify(placed));
+  // Track of bare pitches is an implicit notes line; trailing bare loop loops until the end.
+  const peter = L.parse('T1: @synth c5m loop\nT2: a5 c5 d5 loop', { known });
+  check(peter.tracks.length === 2 && peter.tracks[0].kind === 'chords' && peter.tracks[0].untilEnd && peter.tracks[1].kind === 'notes' && peter.tracks[1].untilEnd && peter.tracks[1].beats === 3 && /T2 notes A5 C5 D5 loops until the end/.test(peter.iread) && peter.words.length === 0 && !/pitch, not a chord/.test(peter.iread), 'Peter pitch-track loop: ' + peter.iread);
+  const pitchOnly = L.parse('T2: a5 c5 d5', { known });
+  check(pitchOnly.tracks.length === 1 && pitchOnly.tracks[0].kind === 'notes' && pitchOnly.tracks[0].syntax[0].implicit && pitchOnly.tracks[0].beats === 3 && !pitchOnly.tracks[0].untilEnd, 'bare pitches on a track are notes: ' + pitchOnly.iread);
+  const notesLoop = L.parse('T2: notes a5 c5 d5 loop', { known });
+  check(notesLoop.tracks.length === 1 && notesLoop.tracks[0].kind === 'notes' && notesLoop.tracks[0].untilEnd && notesLoop.tracks[0].syntax[0].text === 'notes A5 C5 D5' && /loops until the end/.test(notesLoop.iread), 'notes line bare loop: ' + notesLoop.iread);
+  const notesCounted = L.parse('T2: notes a5 c5 d5 loop(4)', { known });
+  check(notesCounted.tracks.length === 1 && !notesCounted.tracks[0].untilEnd && /loop\(4\)/.test(notesCounted.tracks[0].syntax[0].text), 'notes loop(4) stays in the notes text: ' + notesCounted.iread);
 }
 
 function chromeBin() {

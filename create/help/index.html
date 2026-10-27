@@ -194,7 +194,7 @@ footer.site{margin-top:5rem;padding-bottom:4rem}
 loop(4)</pre>
 <p class="hear">The same 40 beats, about 26.7 seconds, as the line above. loop(4) is the long way to write x4.</p>
 <p>A repeat needs a whole number, and it needs a group to wrap. Write <code>x4</code> or <code>loop(4)</code> just after the closing bracket. One pair of brackets is read. A group inside a group is not.</p>
-<p>A bare <code>loop</code> with no number is different. It is a Bitwig-style clip loop: that group, or the whole line when there are no brackets, keeps repeating until the piece ends. Tracks with different loop lengths run against each other, so a 3-bar loop and a 4-bar loop drift in phase. The longest track that does not loop sets how long the piece is. If every track loops, Play keeps going until you press Stop. Gather and Perform then use a length you wrote, or two minutes when you wrote none. Gathered recordings are trimmed or padded to the written length, never stretched. <code>loop(4)</code> and <code>x4</code> still mean “four times”.</p>
+<p>A bare <code>loop</code> with no number is different. It is a Bitwig-style clip loop: that group, the whole chord line when there are no brackets, or a notes / pitch line, keeps repeating until the piece ends. Tracks with different loop lengths run against each other, so a 3-bar loop and a 4-bar loop drift in phase. The longest track that does not loop sets how long the piece is. If every track loops, Play keeps going until you press Stop. Gather and Perform then use a length you wrote, or two minutes when you wrote none. Gathered recordings are trimmed or padded to the written length, never stretched. <code>loop(4)</code> and <code>x4</code> still mean “four times”.</p>
 <pre class="ex">T1: @synth Cm9(4|) loop</pre>
 <p class="hear">T1 plays C minor 9 for 4 bars, then that 4-bar clip again, until the piece ends. I-read says T1 loops until the end. On Play that is until Stop when nothing else sets a length.</p>
 <pre class="ex">T1: @synth Cm9(4|) loop
@@ -207,7 +207,11 @@ T2: @synth Am7(3|) loop</pre>
 
 <section id="notes">
 <h2>Notes</h2>
-<p>A letter plus one octave digit is always a note, including <code>C7</code>, <code>C6</code>, and <code>C5</code>. <code>C2 E2 G2</code> is those three pitches, and <code>@bass C2 E2 G2</code> plays them on the bass. Each pitch with no length lasts 1 beat. You can also start a melody with <code>n</code> or <code>notes</code>. A line that starts that way, with no track label, is listed and Play stays quiet. The line runs to the end of that line.</p>
+<p>A letter plus one octave digit is always a note, including <code>C7</code>, <code>C6</code>, and <code>C5</code>. <code>C2 E2 G2</code> is those three pitches, and <code>@bass C2 E2 G2</code> plays them on the bass. Each pitch with no length lasts 1 beat. On a track, a line of only pitches is the same as a notes line: <code>T2: a5 c5 d5</code> means the same as <code>T2: notes a5 c5 d5</code>. You can also start a melody with <code>n</code> or <code>notes</code>. A line that starts that way, with no track label, is listed and Play stays quiet. The line runs to the end of that line.</p>
+<p>A bare <code>loop</code> at the end of a notes line (or a pitch track) is the same Bitwig-style clip loop as on chords: those notes keep repeating until the piece ends, or until Stop when every track loops.</p>
+<pre class="ex">T1: @synth c5m loop
+T2: a5 c5 d5 loop</pre>
+<p class="hear">T1 holds C minor on C5 and loops. T2 plays A5, C5, D5, one beat each, and loops alongside it. Different lengths phase against each other, like two Bitwig clips.</p>
 <pre class="ex">C7 C6 C5</pre>
 <p class="hear">Play sounds the notes C7, C6, and C5, one beat each, on the built-in synth. 3 beats, about 1.9 seconds at 96 BPM.</p>
 <p>Glue a length to a pitch the same way as a chord. <code>(2)</code> is 2 beats. <code>(2|)</code> is 2 bars. A pitch with no length just follows.</p>
