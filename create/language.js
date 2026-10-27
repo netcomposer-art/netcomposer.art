@@ -276,16 +276,35 @@
     return /^arp$/i.test(text) || /^arp\([^)]*\)(?:@synth\([^)]*\)|@[A-Za-z][\w-]*)?$/i.test(text);
   }
 
+
+  // Vi-style note length sigils glued to a pitch (! $ * ^). Standalone ! or *
+  // in prose still skip; only keep them when a pitch follows.
+  function pitchStartsAt(src, i) {
+    return !!/^[A-Ga-g](?:[#b])?(?:-1|[0-9])/.exec(String(src || '').slice(i));
+  }
+  function isNoteSigilChar(c) {
+    return c === '!' || c === '$' || c === '*' || c === '^';
+  }
+
   function tokenize(text) {
     var src = String(text || ''), n = src.length, i = 0, out = [];
     function brk(c, start) {
-      if (c === ' ' || c === '\n' || c === '\t' || c === '\r' || c === ',' || c === ';' || c === '[' || c === ']' || c === '|' || c === '"' || c === '·' || c === '.' || c === '!' || c === ':' || c === '=' || c === '≈' || c === '–' || c === '—' || c === '→' || c === '←' || c === '×' || c === '{' || c === '}' || c === '~' || c === '*' || c === '•') return true;
+      // ! and * break unless glued to a following pitch (vi note lengths).
+      if (c === '!' || c === '*') {
+        // Lookahead needs the source index; brk alone cannot see it — see word loop.
+        return true;
+      }
+      if (c === ' ' || c === '\n' || c === '\t' || c === '\r' || c === ',' || c === ';' || c === '[' || c === ']' || c === '|' || c === '"' || c === '·' || c === '.' || c === ':' || c === '=' || c === '≈' || c === '–' || c === '—' || c === '→' || c === '←' || c === '×' || c === '{' || c === '}' || c === '~' || c === '•') return true;
       if (c === '#' && start) return true;
       return false;
     }
     while (i < n) {
       var c = src[i];
-      if (c === ' ' || c === '\n' || c === '\t' || c === '\r' || c === ',' || c === ';' || c === '·' || c === '.' || c === '!' || c === '=' || c === '≈' || c === '–' || c === '—' || c === '→' || c === '←' || c === '×' || c === '{' || c === '}' || c === '~' || c === '*' || c === '•') { i++; continue; }
+      if (c === '!' || c === '*') {
+        if (pitchStartsAt(src, i + 1)) {
+          // fall through to word builder so !c5 / *f5 stay one token
+        } else { i++; continue; }
+      } else if (c === ' ' || c === '\n' || c === '\t' || c === '\r' || c === ',' || c === ';' || c === '·' || c === '.' || c === '=' || c === '≈' || c === '–' || c === '—' || c === '→' || c === '←' || c === '×' || c === '{' || c === '}' || c === '~' || c === '•') { i++; continue; }
       if (c === '#' && brk(c, true)) { while (i < n && src[i] !== '\n') i++; continue; }
       if (c === '"') {
         var q0 = i + 1, q = '';
@@ -310,9 +329,17 @@
         continue;
       }
       var start = i, word = '';
-      while (i < n && !brk(src[i], false)) {
+      while (i < n) {
+        var ch = src[i];
+        // Vi note length: keep ! or * inside the word when a pitch follows
+        // (including after a count: 2*f5). Otherwise they stay punctuation.
+        if ((ch === '!' || ch === '*') && pitchStartsAt(src, i + 1)) {
+          word += src[i++];
+          continue;
+        }
+        if (brk(ch, false)) break;
         // (8|) is one duration. The bar stays inside the parentheses.
-        if (src[i] === '(') {
+        if (ch === '(') {
           word += src[i++];
           while (i < n && src[i] !== ')') word += src[i++];
           if (i < n && src[i] === ')') word += src[i++];
@@ -420,6 +447,59 @@
   function pitchEcho(text) {
     var p = pitchParts(text);
     return p && p.ok ? p.echo : '';
+  }
+  // Vi-style note lengths glued to a pitch: ! = 2 beats, $ = 1, * = 1/2, ^ = 1/4.
+  // An optional count in front repeats that note. Bare pitches stay 1 beat.
+  var NOTE_SIGIL_BEATS = { '!': 2, '$': 1, '*': 0.5, '^': 0.25 };
+  function noteTokenParts(text) {
+    var raw = String(text || '');
+    var sig = /^(?:(\d+))?([!$*^])([A-Ga-g])([#b])?(-1|[0-9])(?:\((\d+(?:\.\d+)?)(\|)?\))?$/.exec(raw);
+    if (sig) {
+      var count = sig[1] != null ? +sig[1] : 1;
+      if (!(count > 0) || Math.abs(count - Math.round(count)) > 1e-9) {
+        return { ok: false, badCount: true, echo: raw };
+      }
+      count = Math.round(count);
+      var pitchName = sig[3].toUpperCase() + (sig[4] || '') + sig[5];
+      var shaped = pitchParts(pitchName);
+      if (!shaped || !shaped.ok) return { ok: false, range: pitchName, echo: raw };
+      if (sig[6] != null) {
+        return {
+          ok: false, both: true, pitch: pitchName, sigil: sig[2], count: count,
+          echo: (count > 1 ? String(count) : '') + sig[2] + pitchName,
+          paren: '(' + trimNum(+sig[6]) + (sig[7] ? '|' : '') + ')'
+        };
+      }
+      var unit = NOTE_SIGIL_BEATS[sig[2]];
+      return {
+        ok: true, sigil: true, count: count, unit: unit, bars: false,
+        pitch: pitchName, midi: shaped.midi,
+        echo: (count > 1 ? String(count) : '') + sig[2] + pitchName,
+        total: count * unit
+      };
+    }
+    // Same octave shape as isOctaveNote (one digit or -1). C13 / C69 stay chords.
+    var pb = /^([A-Ga-g])(#|b)?(-1|[0-9])(?:\((\d+(?:\.\d+)?)(\|)?\))?$/.exec(raw);
+    if (!pb) return null;
+    var plain = pitchParts(pb[1] + (pb[2] || '') + pb[3]);
+    if (!plain) return null;
+    if (!plain.ok) return { ok: false, range: plain.name, echo: raw };
+    var unit = 1, bars = false;
+    if (pb[4] != null) {
+      unit = +pb[4];
+      if (!(unit > 0)) unit = 1;
+      bars = !!pb[5];
+    }
+    var echo = plain.name;
+    if (pb[4] != null) echo += '(' + trimNum(+pb[4]) + (pb[5] ? '|' : '') + ')';
+    return {
+      ok: true, sigil: false, count: 1, unit: unit, bars: bars,
+      pitch: plain.name, midi: plain.midi, echo: echo, total: unit
+    };
+  }
+  function isNoteToken(text) {
+    var n = noteTokenParts(text);
+    return !!(n && n.ok);
   }
   function rangeNote(name) {
     return '`' + name + '` is not a note. Write a pitch from `C-1` to `G9`.';
@@ -1143,8 +1223,9 @@
           if (saw && /^loop$/i.test(scan.text)) break;
           var glued = splitAt(scan.text);
           var scanBody = glued ? glued.body : scan.text;
+          var scanNote = noteTokenParts(scanBody);
           var scanPitch = pitchParts(scanBody);
-          if ((scanBody && pitchEcho(scanBody)) || (scanPitch && !scanPitch.ok)) saw = true;
+          if ((scanNote && (scanNote.ok || scanNote.both || scanNote.range)) || (scanBody && pitchEcho(scanBody)) || (scanPitch && !scanPitch.ok)) saw = true;
         }
         j++;
       }
@@ -1163,17 +1244,24 @@
             body = at.body;
             inst = at.preset ? '@synth(' + at.preset + ')' : '@' + at.name;
           }
-          var heard = pitchParts(body);
-          if (heard && heard.ok) parts.push(heard.echo);
-          else if (heard && !heard.ok) { err(rangeNote(heard.name)); if (body) parts.push(body); }
-          else if (body && /^fm(\d+(?:\.\d+)?)$/i.test(body)) parts.push('fm ' + trimNum(+body.slice(2)));
-          else if (body && /^fm$/i.test(body) && tokens[j + 1] && tokens[j + 1].type === 'word' && inside(tokens[j + 1]) && /^\d+(?:\.\d+)?$/.test(tokens[j + 1].text)) {
-            parts.push('fm ' + trimNum(+tokens[j + 1].text));
-            j++;
-          } else if (body && /^loop$/i.test(body)) {
-            // Trailing bare `loop` is the Bitwig clip-loop mark; leave it for tryLoop.
-            break;
-          } else if (body) parts.push(body);
+          var heardNote = noteTokenParts(body);
+          if (heardNote && heardNote.both) {
+            err('Pick one length: write `' + heardNote.echo + '` or `' + heardNote.pitch + heardNote.paren + '`, not both.');
+          } else if (heardNote && heardNote.ok) {
+            parts.push(heardNote.echo);
+          } else {
+            var heard = pitchParts(body);
+            if (heard && heard.ok) parts.push(heard.echo);
+            else if (heard && !heard.ok) { err(rangeNote(heard.name)); if (body) parts.push(body); }
+            else if (body && /^fm(\d+(?:\.\d+)?)$/i.test(body)) parts.push('fm ' + trimNum(+body.slice(2)));
+            else if (body && /^fm$/i.test(body) && tokens[j + 1] && tokens[j + 1].type === 'word' && inside(tokens[j + 1]) && /^\d+(?:\.\d+)?$/.test(tokens[j + 1].text)) {
+              parts.push('fm ' + trimNum(+tokens[j + 1].text));
+              j++;
+            } else if (body && /^loop$/i.test(body)) {
+              // Trailing bare `loop` is the Bitwig clip-loop mark; leave it for tryLoop.
+              break;
+            } else if (body) parts.push(body);
+          }
           if (inst) parts.push(inst);
         }
         j++;
@@ -1211,18 +1299,48 @@
         var tok = tokens[j];
         if (!tok || tok.type !== 'word') return false;
         var glued = /^(.*)@([A-Za-z][\w-]*)$/.exec(tok.text);
-        if (glued && glued[1] && isOctaveNote(glued[1])) {
-          var gluedEcho = pitchEcho(glued[1]);
-          if (!gluedEcho) return false;
-          parts.push(gluedEcho);
-          parts.push('@' + glued[2].toLowerCase());
-          inst = glued[2].toLowerCase();
+        if (glued && glued[1]) {
+          var gluedNote = noteTokenParts(glued[1]);
+          if (gluedNote && gluedNote.both) {
+            err('Pick one length: write `' + gluedNote.echo + '` or `' + gluedNote.pitch + gluedNote.paren + '`, not both.');
+            return false;
+          }
+          if (gluedNote && gluedNote.ok) {
+            parts.push(gluedNote.echo);
+            parts.push('@' + glued[2].toLowerCase());
+            inst = glued[2].toLowerCase();
+            pitches++;
+            j++;
+            continue;
+          }
+          if (isOctaveNote(glued[1])) {
+            var gluedEcho = pitchEcho(glued[1]);
+            if (!gluedEcho) return false;
+            parts.push(gluedEcho);
+            parts.push('@' + glued[2].toLowerCase());
+            inst = glued[2].toLowerCase();
+            pitches++;
+            j++;
+            continue;
+          }
+        }
+        var at = /^@([A-Za-z][\w-]*)$/.exec(tok.text);
+        if (at) { parts.push('@' + at[1].toLowerCase()); inst = at[1].toLowerCase(); j++; continue; }
+        var noteTok = noteTokenParts(tok.text);
+        if (noteTok && noteTok.both) {
+          err('Pick one length: write `' + noteTok.echo + '` or `' + noteTok.pitch + noteTok.paren + '`, not both.');
+          return false;
+        }
+        if (noteTok && noteTok.ok) {
+          parts.push(noteTok.echo);
           pitches++;
           j++;
           continue;
         }
-        var at = /^@([A-Za-z][\w-]*)$/.exec(tok.text);
-        if (at) { parts.push('@' + at[1].toLowerCase()); inst = at[1].toLowerCase(); j++; continue; }
+        if (noteTok && noteTok.range) {
+          err(rangeNote(noteTok.range));
+          return false;
+        }
         if (isOctaveNote(tok.text)) {
           var echo = pitchEcho(tok.text);
           if (!echo) return false;
@@ -1423,13 +1541,16 @@
     }
     scanUnmapped(arps, played);
     function notesBeatsOf(text) {
-      var total = 0, re = /([A-Ga-g])(#|b)?(-?\d+)(?:\((\d+(?:\.\d+)?)(\|)?\))?/g, tok;
-      while ((tok = re.exec(text || ''))) {
-        var nbeats = tok[4] ? +tok[4] : 1;
+      var total = 0;
+      var body = String(text || '').replace(/^(?:notes|n)\s+/i, '');
+      body.split(/\s+/).forEach(function (tok) {
+        if (!tok || /^@/i.test(tok) || /^fm$/i.test(tok) || /^fm\d/i.test(tok) || /^loop$/i.test(tok)) return;
+        var n = noteTokenParts(tok.replace(/@.*$/, ''));
+        if (!n || !n.ok) return;
+        var nbeats = n.bars ? (n.unit * qpb * n.count) : n.total;
         if (!(nbeats > 0)) nbeats = 1;
-        if (tok[5]) nbeats *= qpb;
         total += nbeats;
-      }
+      });
       return total;
     }
     function fmOfText(text) {
@@ -1823,6 +1944,8 @@
     beatsInBar: beatsInBar,
     chordName: chordName,
     setTempo: setTempo,
-    setMeter: setMeter
+    setMeter: setMeter,
+    noteTokenParts: noteTokenParts,
+    isNoteToken: isNoteToken
   };
 })(typeof globalThis !== 'undefined' ? globalThis : this);

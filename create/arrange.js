@@ -87,8 +87,66 @@
     return result;
   }
 
+
+  function gcdInt(a, b) {
+    a = Math.round(Math.abs(a)); b = Math.round(Math.abs(b));
+    while (b) { var t = a % b; a = b; b = t; }
+    return a || 1;
+  }
+  function lcmInt(a, b) {
+    if (!(a > 0) || !(b > 0)) return a > 0 ? a : (b > 0 ? b : 1);
+    return Math.round(a / gcdInt(a, b) * b);
+  }
+  // Tile one cycle of written blocks out to `until` seconds (clip loops).
+  function tileUntil(entries, cycle, until) {
+    entries = entries || [];
+    if (!(cycle > 0) || !(until > 0) || !(entries.length)) {
+      return { entries: entries.slice(), base: cycle > 0 ? secs(cycle) : 0.001 };
+    }
+    if (until <= cycle + 1e-4) {
+      return { entries: entries.map(function (e) {
+        return { at_s: e.at_s, len_s: e.len_s, cap: e.cap, written: e.written, chord: e.chord, path: e.path || '' };
+      }), base: secs(cycle) };
+    }
+    var out = [], t = 0, pass = 0, capPasses = Math.min(500, Math.ceil(until / cycle) + 2);
+    while (t + 1e-4 < until && pass < capPasses) {
+      entries.forEach(function (e) {
+        var at = secs(+e.at_s + t);
+        if (at + 1e-4 >= until) return;
+        var len = secs(Math.min(+e.len_s, until - at));
+        if (!(len > 0.02)) return;
+        out.push({ at_s: at, len_s: len, cap: e.cap, written: e.written, chord: e.chord, path: e.path || '' });
+      });
+      t = secs(t + cycle);
+      pass++;
+    }
+    return { entries: out, base: secs(Math.min(until, Math.max(cycle, t))) };
+  }
+  function pieceUntilOf(tracks, parsed) {
+    var fixed = 0, cycles = [], i, tr, beat, bpm, units, u, lcmU;
+    for (i = 0; i < tracks.length; i++) {
+      tr = tracks[i];
+      if (tr.untilEnd) cycles.push(tr.base > 0 ? tr.base : 0.001);
+      else if (tr.base > fixed) fixed = tr.base;
+    }
+    if (fixed > 0) return secs(fixed);
+    if (!cycles.length) return 0;
+    // All tracks loop: show one phase period (LCM of cycle lengths), capped.
+    bpm = parsed && parsed.bpm > 0 ? parsed.bpm : 96;
+    beat = 60 / bpm;
+    units = cycles.map(function (c) { return Math.max(1, Math.round(c / beat * 4)); }); // sixteenths
+    lcmU = units[0];
+    for (i = 1; i < units.length; i++) lcmU = lcmInt(lcmU, units[i]);
+    u = lcmU * beat / 4;
+    if (!(u > 0)) u = Math.max.apply(null, cycles);
+    // Cap the strip so an open-ended Play does not paint minutes of marks.
+    if (u > 32 * beat) u = 32 * beat;
+    if (u < Math.max.apply(null, cycles)) u = Math.max.apply(null, cycles);
+    return secs(u);
+  }
+
   if (typeof document === 'undefined') {
-    root.NCArrange = { layoutChords: layoutChords, commit: commit, addLane: function () {}, mixAudible: mixAudible, trackSlot: trackSlot };
+    root.NCArrange = { layoutChords: layoutChords, commit: commit, addLane: function () {}, mixAudible: mixAudible, trackSlot: trackSlot, tileUntil: tileUntil, pieceUntilOf: pieceUntilOf };
     return;
   }
 
@@ -166,51 +224,72 @@
   function laneFor(tr, parsed) {
     if (!tr) return null;
     var id = 't' + tr.n, bpm = parsed && parsed.bpm > 0 ? parsed.bpm : 96, beat = 60 / bpm;
+    var untilEnd = !!tr.untilEnd;
     if (tr.kind === 'chords') {
       var chords = chordLane(tr, parsed);
       if (!chords.length) return null;
       var laid = layoutChords(chords);
-      return { id: id, label: tr.label, entries: laid.entries, base: laid.base };
+      return { id: id, label: tr.label, entries: laid.entries, base: laid.base, untilEnd: untilEnd, kind: 'chords' };
     }
     if (tr.kind === 'notes' && root.NCSynth && NCSynth.voiceOf) {
       var voice = NCSynth.voiceOf(tr, parsed, 0);
       if (!voice || !voice.events || !voice.events.length) return null;
       var entries = [], base = 0;
       voice.events.forEach(function (n) {
-        var len = secs(Math.max(0.05, n.length));
+        // Keep the true written length so short sixteenths stay short on the strip.
+        var len = secs(Math.max(0.02, n.length));
         var at = secs(n.start);
         entries.push({ at_s: at, len_s: len, cap: len, written: len, chord: n.pitch || 'note' });
         if (at + len > base) base = at + len;
       });
-      return { id: id, label: tr.label, entries: entries, base: base > 0 ? secs(base) : 0.001 };
+      return { id: id, label: tr.label, entries: entries, base: base > 0 ? secs(base) : 0.001, untilEnd: untilEnd, kind: 'notes' };
     }
     if (tr.kind === 'arp') {
       var len = secs(Math.max(0.05, (tr.beats > 0 ? tr.beats : 4) * beat));
       var name = tr.arp && tr.arp.chord ? tr.arp.chord : 'arp';
-      return { id: id, label: tr.label, entries: [{ at_s: 0, len_s: len, cap: len, written: len, chord: name }], base: len };
+      return { id: id, label: tr.label, entries: [{ at_s: 0, len_s: len, cap: len, written: len, chord: name }], base: len, untilEnd: untilEnd, kind: 'arp' };
     }
     return null;
   }
   function noteLane(parsed) {
-    if (!root.NCSynth || !NCSynth.readLine) return null;
+    if (!root.NCSynth) return null;
+    if (parsed && parsed.tracks && parsed.tracks.length) return null;
     var text = $('comp') ? $('comp').value : '';
-    var line = NCSynth.readLine(text || '');
-    if (!line || !line.notes || !line.notes.length || line.instrument) return null;
+    var line = NCSynth.readLine ? NCSynth.readLine(text || '') : null;
+    var notes = line && line.notes && line.notes.length && !line.instrument ? line.notes : null;
+    var bpm = (line && line.bpm > 0) ? line.bpm : (parsed && parsed.bpm > 0 ? parsed.bpm : 96);
+    if (!notes && parsed && NCSynth.voiceOf) {
+      var syn = (parsed.syntax || []).filter(function (s) { return s.kind === 'notes'; });
+      if (syn.length) {
+        var voice = NCSynth.voiceOf({ kind: 'notes', source: syn.map(function (s) { return s.text; }).join('\n'), label: '', n: 0 }, parsed, 0);
+        if (voice && voice.events && voice.events.length) {
+          var entries = [], base = 0;
+          voice.events.forEach(function (n) {
+            var len = secs(Math.max(0.02, n.length));
+            var at = secs(n.start);
+            entries.push({ at_s: at, len_s: len, cap: len, written: len, chord: n.pitch || 'note' });
+            if (at + len > base) base = at + len;
+          });
+          var sampler = !!(root.NCSampler && NCSampler.active && NCSampler.active());
+          return { id: sampler ? 'sampler' : 'synth', label: sampler ? 'Sampler' : 'Synth', entries: entries, base: base > 0 ? secs(base) : 0.001, kind: 'notes' };
+        }
+      }
+    }
+    if (!notes) return null;
     var sampler = !!(root.NCSampler && NCSampler.active && NCSampler.active());
-    var bpm = line.bpm > 0 ? line.bpm : (parsed && parsed.bpm > 0 ? parsed.bpm : 96);
     var beat = 60 / bpm, t = 0, entries = [];
-    line.notes.forEach(function (n) {
-      var len = secs(Math.max(0.05, (n.beats > 0 ? n.beats : 1) * beat));
+    notes.forEach(function (n) {
+      var len = secs(Math.max(0.02, (n.beats > 0 ? n.beats : 1) * beat));
       entries.push({ at_s: t, len_s: len, cap: len, written: len, chord: n.pitch || 'note' });
       t = secs(t + len);
     });
-    return { id: sampler ? 'sampler' : 'synth', label: sampler ? 'Sampler' : 'Synth', entries: entries, base: t > 0 ? t : 0.001 };
+    return { id: sampler ? 'sampler' : 'synth', label: sampler ? 'Sampler' : 'Synth', entries: entries, base: t > 0 ? t : 0.001, kind: 'notes' };
   }
   function build(tl, parsed) {
     var tracks = [], chords = tl && tl.chords ? tl.chords : [];
     if (chords.length) {
       var laid = layoutChords(chords);
-      tracks.push({ id: 'chords', label: 'Chords', entries: laid.entries, base: laid.base });
+      tracks.push({ id: 'chords', label: 'Chords', entries: laid.entries, base: laid.base, untilEnd: !!(parsed && parsed.untilEnd && !(parsed.tracks && parsed.tracks.length)), kind: 'chords' });
     }
     var notes = noteLane(parsed);
     if (notes) tracks.push(notes);
@@ -225,6 +304,14 @@
       try { extra = fn(tl, parsed); } catch (e) { extra = null; }
       if (extra && extra.id && extra.entries && extra.entries.length) tracks.push(extra);
     });
+    var until = pieceUntilOf(tracks, parsed);
+    if (until > 0) {
+      tracks.forEach(function (tr, i) {
+        if (!tr.untilEnd) return;
+        var tiled = tileUntil(tr.entries, tr.base, until);
+        tracks[i] = { id: tr.id, label: tr.label, entries: tiled.entries, base: tiled.base, untilEnd: true, kind: tr.kind || '' };
+      });
+    }
     return tracks;
   }
   function applyEdits(tracks, prev) {
@@ -676,7 +763,9 @@
     trackSlot: trackSlot,
     audible: audible,
     hold: hold,
-    clearMix: clearMix
+    clearMix: clearMix,
+    tileUntil: tileUntil,
+    pieceUntilOf: pieceUntilOf
   };
   var takeBox = $('src-time');
   if (takeBox && window.MutationObserver) {

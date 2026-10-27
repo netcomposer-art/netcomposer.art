@@ -3771,5 +3771,203 @@
         "preset": null
       }
     ]
+  },
+  {
+    "name": "vi-sigil-phrase",
+    "text": "4$c5 2*f5 2*g5",
+    "bpm": null,
+    "clock": "legacy",
+    "seed": null,
+    "meter": "4/4",
+    "gather": [],
+    "played": [],
+    "hacks": [],
+    "words": [],
+    "notes": [],
+    "iread": "notes 4$C5 2*F5 2*G5",
+    "arp": [],
+    "unmapped": [],
+    "tracks": [],
+    "synth": false,
+    "preset": null,
+    "presets": []
+  },
+  {
+    "name": "vi-sigil-track-loop",
+    "text": "T1: @synth c5m loop\nT2: 4$c5 2*f5 2*g5 loop",
+    "bpm": null,
+    "clock": "language",
+    "seed": null,
+    "meter": "4/4",
+    "gather": [],
+    "played": [],
+    "hacks": [],
+    "words": [],
+    "notes": [
+      "C5m has no length, so Play sketches it as 1 bar and Gather uses the whole recording. Write `C5m(4)` for 4 beats or `C5m(2|)` for 2 bars."
+    ],
+    "iread": "96 BPM · T1 C5m 1 bar* loops until the end @synth · T2 notes 4$C5 2*F5 2*G5 loops until the end synth\nC5m has no length, so Play sketches it as 1 bar and Gather uses the whole recording. Write `C5m(4)` for 4 beats or `C5m(2|)` for 2 bars.",
+    "arp": [],
+    "unmapped": [],
+    "tracks": [
+      {
+        "n": 1,
+        "label": "T1",
+        "kind": "chords",
+        "instrument": "synth",
+        "beats": 4,
+        "fmDepth": null,
+        "played": [
+          {
+            "kind": "chord",
+            "symbol": "Cm",
+            "beats": null,
+            "bars": null,
+            "seconds": null,
+            "octave": 5
+          }
+        ],
+        "untilEnd": true
+      },
+      {
+        "n": 2,
+        "label": "T2",
+        "kind": "notes",
+        "instrument": "",
+        "beats": 6,
+        "fmDepth": null,
+        "played": [],
+        "untilEnd": true
+      }
+    ],
+    "synth": false,
+    "preset": null,
+    "presets": [
+      {
+        "n": 1,
+        "ref": "",
+        "found": false,
+        "name": "",
+        "preset": null
+      },
+      {
+        "n": 2,
+        "ref": "",
+        "found": false,
+        "name": "",
+        "preset": null
+      }
+    ],
+    "untilEnd": true,
+    "durationBeats": 6
+  },
+  {
+    "name": "vi-sigil-half-sixteenth",
+    "text": "!c5 4^e5 $g5",
+    "bpm": null,
+    "clock": "legacy",
+    "seed": null,
+    "meter": "4/4",
+    "gather": [],
+    "played": [],
+    "hacks": [],
+    "words": [],
+    "notes": [],
+    "iread": "notes !C5 4^E5 $G5",
+    "arp": [],
+    "unmapped": [],
+    "tracks": [],
+    "synth": false,
+    "preset": null,
+    "presets": []
+  },
+  {
+    "name": "vi-sigil-notes-keyword",
+    "text": "notes 4$c5 2*f5",
+    "bpm": null,
+    "clock": "legacy",
+    "seed": null,
+    "meter": "4/4",
+    "gather": [],
+    "played": [],
+    "hacks": [],
+    "words": [],
+    "notes": [],
+    "iread": "notes 4$C5 2*F5",
+    "arp": [],
+    "unmapped": [],
+    "tracks": [],
+    "synth": false,
+    "preset": null,
+    "presets": []
+  },
+  {
+    "name": "vi-sigil-mixed-bare",
+    "text": "a5 $c5",
+    "bpm": null,
+    "clock": "legacy",
+    "seed": null,
+    "meter": "4/4",
+    "gather": [],
+    "played": [],
+    "hacks": [],
+    "words": [],
+    "notes": [],
+    "iread": "notes A5 $C5",
+    "arp": [],
+    "unmapped": [],
+    "tracks": [],
+    "synth": false,
+    "preset": null,
+    "presets": []
+  },
+  {
+    "name": "vi-sigil-both-lengths",
+    "text": "$c5(2)",
+    "bpm": null,
+    "clock": "legacy",
+    "seed": null,
+    "meter": "4/4",
+    "gather": [],
+    "played": [],
+    "hacks": [],
+    "words": [
+      "$c5(2)"
+    ],
+    "notes": [
+      "Pick one length: write `$C5` or `C5(2)`, not both.",
+      "Words are left for the AI. Quote them `\"like this\"` to keep them words."
+    ],
+    "iread": "$c5(2)\nPick one length: write `$C5` or `C5(2)`, not both.\nWords are left for the AI. Quote them `\"like this\"` to keep them words.",
+    "arp": [],
+    "unmapped": [],
+    "tracks": [],
+    "synth": false,
+    "preset": null,
+    "presets": []
+  },
+  {
+    "name": "vi-sigil-prose-bang",
+    "text": "wow!",
+    "bpm": null,
+    "clock": "legacy",
+    "seed": null,
+    "meter": "4/4",
+    "gather": [],
+    "played": [],
+    "hacks": [],
+    "words": [
+      "wow"
+    ],
+    "notes": [
+      "Words are left for the AI. Quote them `\"like this\"` to keep them words."
+    ],
+    "iread": "wow\nWords are left for the AI. Quote them `\"like this\"` to keep them words.",
+    "arp": [],
+    "unmapped": [],
+    "tracks": [],
+    "synth": false,
+    "preset": null,
+    "presets": []
   }
 ]

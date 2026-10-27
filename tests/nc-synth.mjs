@@ -55,6 +55,14 @@ check(slashOct.indexOf(72) >= 0 && slashOct.indexOf(70) >= 0 && Math.min.apply(n
 const arpOct = S.scheduleLine(S.readLine('arp C5m9 (1|)'), null, 1).map((t) => t.midi);
 check(arpOct.length > 0 && arpOct.indexOf(72) >= 0 && Math.min.apply(null, arpOct) >= 72, 'an arp on C5m9 starts at that root, got ' + arpOct.join());
 check(S.readLine('Cm Fm9 Gm7') === null, 'a chord line is not a notes line');
+const sigilLine = S.readLine('notes 4$c5 2*f5 2*g5');
+check(sigilLine && sigilLine.notes.length === 8 && sigilLine.notes.filter((n) => n.pitch === 'C5').length === 4 && Math.abs(sigilLine.notes[0].beats - 1) < 1e-9 && Math.abs(sigilLine.notes[4].beats - 0.5) < 1e-9, 'sigil notes expand count×unit: ' + JSON.stringify(sigilLine && sigilLine.notes));
+const halfLine = S.readLine('notes !c5 4^e5 $g5');
+check(halfLine && halfLine.notes.length === 6 && Math.abs(halfLine.notes[0].beats - 2) < 1e-9 && Math.abs(halfLine.notes[1].beats - 0.25) < 1e-9 && Math.abs(halfLine.notes[5].beats - 1) < 1e-9, 'half and sixteenth sigils: ' + JSON.stringify(halfLine && halfLine.notes));
+const sigTrack = L.parse('T2: 4$c5 2*f5 2*g5');
+const sigVoice = S.voiceOf(sigTrack.tracks[0], sigTrack, 0);
+check(sigVoice && sigVoice.events.length === 8 && Math.abs(sigVoice.events.reduce((a, e) => a + e.length, 0) - 3.75) < 1e-3, 'voiceOf schedules sigil lengths: ' + (sigVoice && sigVoice.events.length));
+
 const bad = S.mergeSettings({ cutoff: 999999, waveform: 'nope', subLevel: 2, attack: -4 });
 check(bad.waveform === 'saw' && bad.subLevel === 1, 'mergeSettings rejects a bad wave and clamps sub level, got ' + JSON.stringify(bad && { waveform: bad.waveform, subLevel: bad.subLevel }));
 check(bad.cutoff === 999999 && bad.attack === -4, 'cutoff and attack pass through; the voice path clamps them');

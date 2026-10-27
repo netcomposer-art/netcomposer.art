@@ -214,7 +214,13 @@ T2: a5 c5 d5 loop</pre>
 <p class="hear">T1 holds C minor on C5 and loops. T2 plays A5, C5, D5, one beat each, and loops alongside it. Different lengths phase against each other, like two Bitwig clips.</p>
 <pre class="ex">C7 C6 C5</pre>
 <p class="hear">Play sounds the notes C7, C6, and C5, one beat each, on the built-in synth. 3 beats, about 1.9 seconds at 96 BPM.</p>
-<p>Glue a length to a pitch the same way as a chord. <code>(2)</code> is 2 beats. <code>(2|)</code> is 2 bars. A pitch with no length just follows.</p>
+<p>Glue a length to a pitch the same way as a chord. <code>(2)</code> is 2 beats. <code>(2|)</code> is 2 bars. A pitch with no length lasts 1 beat, including next to length-marked pitches.</p>
+<p>You can also write a length the short way, glued in front of the pitch: <code>!</code> is a half note (2 beats), <code>$</code> is a quarter (1 beat), <code>*</code> is an eighth (half a beat), and <code>^</code> is a sixteenth (a quarter of a beat). A number in front repeats that note: <code>4$c5</code> is four quarter-note C5s. Pick one length style per pitch — write <code>$c5</code> or <code>c5(1)</code>, not both. On the arrangement under Play, each note is a block as wide as its length, and a bare <code>loop</code> tiles those blocks until the piece ends.</p>
+<pre class="ex">T1: @synth c5m loop
+T2: 4$c5 2*f5 2*g5 loop</pre>
+<p class="hear">T1 holds C minor on C5 and loops. T2 plays four quarter C5s, then two eighth F5s, then two eighth G5s (6 beats), and loops. The arrangement shows the short and long blocks in time.</p>
+<pre class="ex">!c5 4^e5 $g5</pre>
+<p class="hear">A half-note C5, four sixteenth E5s, then a quarter G5. 4 beats in total at 96 BPM.</p>
 <pre class="ex">n C5(2) Eb5 G5 Bb4</pre>
 <p class="hear">Play lists the line and stays quiet. Gather renders C5, E flat 5, G5, and B flat 4 on the built-in synth. C5 lasts 2 beats. Perform plays that melody.</p>
 <pre class="ex">notes C4 Eb4 G4(2)</pre>

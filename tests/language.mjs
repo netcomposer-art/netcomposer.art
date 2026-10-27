@@ -381,6 +381,20 @@ check(A.statedPulse('# steady\nlet it breathe') === false, 'a comment is not a p
   check(notesLoop.tracks.length === 1 && notesLoop.tracks[0].kind === 'notes' && notesLoop.tracks[0].untilEnd && notesLoop.tracks[0].syntax[0].text === 'notes A5 C5 D5' && /loops until the end/.test(notesLoop.iread), 'notes line bare loop: ' + notesLoop.iread);
   const notesCounted = L.parse('T2: notes a5 c5 d5 loop(4)', { known });
   check(notesCounted.tracks.length === 1 && !notesCounted.tracks[0].untilEnd && /loop\(4\)/.test(notesCounted.tracks[0].syntax[0].text), 'notes loop(4) stays in the notes text: ' + notesCounted.iread);
+  // Vi-style note length sigils: ! $ * ^ with optional count.
+  const sigils = L.parse('T1: @synth c5m loop\nT2: 4$c5 2*f5 2*g5 loop', { known });
+  check(sigils.tracks.length === 2 && sigils.tracks[1].kind === 'notes' && sigils.tracks[1].beats === 6 && sigils.tracks[1].untilEnd && /4\$C5 2\*F5 2\*G5/.test(sigils.iread), 'vi sigil track loop: ' + sigils.iread);
+  const half = L.parse('!c5 4^e5 $g5', { known });
+  check(half.iread === 'notes !C5 4^E5 $G5' && half.tracks.length === 0, 'vi half/sixteenth phrase: ' + half.iread);
+  const bothLen = L.parse('$c5(2)', { known });
+  check(bothLen.notes.some((n) => /Pick one length/.test(n)) && bothLen.iread.indexOf('notes') < 0, 'sigil+paren pick one: ' + bothLen.iread);
+  const mixedBare = L.parse('a5 $c5', { known });
+  check(mixedBare.iread === 'notes A5 $C5', 'bare pitch next to sigil keeps 1-beat default: ' + mixedBare.iread);
+  const bang = L.parse('wow!', { known });
+  check(bang.words.join(' ') === 'wow' && bang.iread.indexOf('notes') < 0, 'standalone ! in prose still skipped: ' + bang.iread);
+  const quoted = L.parse('"wow!"', { known });
+  check(quoted.words[0] === '"wow!"', 'quoted bang stays a word');
+  check(L.noteTokenParts('4$c5').total === 4 && L.noteTokenParts('2*f5').total === 1 && L.noteTokenParts('!c5').unit === 2 && L.noteTokenParts('^e5').unit === 0.25, 'noteTokenParts units');
 }
 
 function chromeBin() {
