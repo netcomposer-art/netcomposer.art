@@ -49,7 +49,7 @@ load('create/language.js', sb);
 const L = sb.NCLanguage;
 function project(text) {
   const p = L.parse(text, { known });
-  return {
+  const out = {
     bpm: p.bpm, clock: p.clock, seed: p.seed, meter: p.meter,
     gather: p.gather,
     played: p.played.map((e) => {
@@ -72,17 +72,21 @@ function project(text) {
       return row;
     }),
     unmapped: p.unmapped || [],
-    tracks: (p.tracks || []).map((t) => ({
-      n: t.n, label: t.label, kind: t.kind, instrument: t.instrument || '',
-      beats: t.beats, fmDepth: t.fmDepth == null ? null : t.fmDepth,
-      played: (t.played || []).map((e) => {
-        const row = {
-          kind: e.kind, symbol: e.symbol || null, beats: e.beats, bars: e.bars, seconds: e.seconds
-        };
-        if (e.octave != null) row.octave = e.octave;
-        return row;
-      })
-    })),
+    tracks: (p.tracks || []).map((t) => {
+      const row = {
+        n: t.n, label: t.label, kind: t.kind, instrument: t.instrument || '',
+        beats: t.beats, fmDepth: t.fmDepth == null ? null : t.fmDepth,
+        played: (t.played || []).map((e) => {
+          const ev = {
+            kind: e.kind, symbol: e.symbol || null, beats: e.beats, bars: e.bars, seconds: e.seconds
+          };
+          if (e.octave != null) ev.octave = e.octave;
+          return ev;
+        })
+      };
+      if (t.untilEnd) row.untilEnd = true;
+      return row;
+    }),
     synth: !!p.synth,
     preset: pubPreset(p.preset),
     presets: (p.tracks || []).map((t) => {
@@ -90,6 +94,9 @@ function project(text) {
       return { n: t.n, ref: hit ? hit.ref : '', found: !!(hit && hit.found), name: hit && hit.found ? hit.name : '', preset: hit && hit.found ? hit.n : null };
     })
   };
+  if (p.untilEnd) out.untilEnd = true;
+  if (p.untilEnd || (p.tracks || []).some((t) => t.untilEnd)) out.durationBeats = p.durationBeats == null ? null : p.durationBeats;
+  return out;
 }
 function pubPreset(p) {
   if (!p) return null;
@@ -101,7 +108,7 @@ rows.forEach((row) => {
   ['bpm', 'clock', 'seed', 'meter', 'gather', 'played', 'hacks', 'words', 'notes', 'iread'].forEach((k) => {
     if (JSON.stringify(got[k]) !== JSON.stringify(row[k])) problems.push(row.name + ' ' + k + '\n  got ' + JSON.stringify(got[k]));
   });
-  ['arp', 'unmapped', 'tracks', 'synth', 'preset', 'presets'].forEach((k) => {
+  ['arp', 'unmapped', 'tracks', 'synth', 'preset', 'presets', 'untilEnd', 'durationBeats'].forEach((k) => {
     if (k in row && JSON.stringify(got[k]) !== JSON.stringify(row[k])) problems.push(row.name + ' ' + k + '\n  got ' + JSON.stringify(got[k]));
   });
   if (row.place) {
@@ -345,6 +352,26 @@ check(A.statedPulse('# steady\nlet it breathe') === false, 'a comment is not a p
   check(a.order === 'euclidean' && a.euclid && a.euclid.hits === 5 && a.euclid.steps === 8 && /Arp\(17, 5, 8, 0\)/.test(p.iread) && /preset 2 · Example Dark/.test(p.iread), 'Euclidean arp with a preset: ' + p.iread);
   const t = L.parse('t1: arp Cm9 blossom-up @synth(3) (2|)', { known });
   check(t.tracks.length === 1 && t.tracks[0].arp && t.tracks[0].arp.order === 'blossom-up' && /preset 3 · Example Sine/.test(t.iread), 'track arp with a short name and a preset: ' + t.iread);
+}
+
+// Bare `loop` is a Bitwig-style clip loop until the piece ends. loop(n) and xN stay counts.
+{
+  const bare = L.parse('T1: @synth Cm9(4|) loop', { known });
+  check(bare.tracks.length === 1 && bare.tracks[0].untilEnd && bare.untilEnd && /loops until the end/.test(bare.iread) && bare.words.length === 0, 'bare loop on a track: ' + bare.iread);
+  const grp = L.parse('[Cm(4) Fm9(4)] loop', { known });
+  check(grp.untilEnd && grp.played.length === 2 && /loops until the end/.test(grp.iread) && !/×/.test(grp.iread.split('\n')[0]), 'bare loop on a group: ' + grp.iread);
+  const counted = L.parse('[Cm(4) Fm9(4)]x4', { known });
+  check(!counted.untilEnd && counted.played.length === 8 && /×4/.test(counted.iread), 'x4 still a count: ' + counted.iread);
+  const loopN = L.parse('[Cm(4)] loop(4)', { known });
+  check(!loopN.untilEnd && loopN.played.length === 4 && /×4/.test(loopN.iread), 'loop(4) still a count: ' + loopN.iread);
+  const mixed = L.parse('T1: @synth Cm9(4|) loop\nT2: @synth Am7(8|)', { known });
+  check(!mixed.untilEnd && mixed.tracks[0].untilEnd && !mixed.tracks[1].untilEnd && mixed.durationBeats === 32 && /loops until the end/.test(mixed.iread) && /32 beats/.test(mixed.iread), 'looping track against a fixed track: ' + mixed.iread);
+  const both = L.parse('T1: @synth Cm9(4|) loop\nT2: @synth Am7(3|) loop', { known });
+  check(both.untilEnd && both.tracks.every((t) => t.untilEnd) && /T1.*loops until the end/.test(both.iread) && /T2.*loops until the end/.test(both.iread), 'two looping tracks: ' + both.iread);
+  const lonely = L.parse('loop', { known });
+  check(!lonely.untilEnd && /bare `loop` needs something/.test(lonely.iread || (lonely.notes[0] || '')), 'lonely loop errors: ' + lonely.iread);
+  const placed = L.place(grp.played.map((e, i) => Object.assign({}, e, { recording: i, seconds: e.seconds })), [10, 10], { untilEnd: true, until: 20 });
+  check(placed.total_s === 20 && placed.entries.length >= 4, 'place tiles a bare loop to the piece length: ' + JSON.stringify(placed));
 }
 
 function chromeBin() {

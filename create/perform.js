@@ -1962,10 +1962,14 @@
         var hit = soundFor(c.recording);
         return hit && hit.s.duration_s > 0 ? hit.s.duration_s : 0;
       });
-      var placed = NCLanguage.place(tr.played, caps);
-      var ci = 0, end = plan.total_s || 0;
-      placed.entries.forEach(function (p) {
-        var c = chords[ci++], hit = c ? soundFor(c.recording) : null;
+      var until = plan.total_s > 0 ? plan.total_s : (tr.untilEnd ? 120 : 0);
+      var placed = NCLanguage.place(tr.played, caps, tr.untilEnd ? { untilEnd: true, until: until } : null);
+      var end = plan.total_s || 0;
+      placed.entries.forEach(function (p, idx) {
+        var c = null, i;
+        for (i = 0; i < chords.length; i++) if (chords[i].recording === p.recording) { c = chords[i]; break; }
+        if (!c) c = chords[idx % chords.length];
+        var hit = c ? soundFor(c.recording) : null;
         if (!c || !hit) return;
         plan.entries.push({
           pos: plan.entries.length, chord: c.symbol || '', clip_id: hit.s.clip_id,
@@ -2072,16 +2076,26 @@
       var si = mode === 'each' ? i : (c.recording || 0);
       return capOf(si >= 0 && si < n ? si : 0);
     });
-    var placed = NCLanguage.place(parsed.played, caps);
+    var loopUntil = !!(parsed.untilEnd || parsed.pieceUntilEnd);
+    var untilSec = null;
+    if (loopUntil) {
+      var asm = window.NCAssembly;
+      untilSec = asm && asm.statedSeconds ? asm.statedSeconds(pieceWords()) : null;
+      if (!(untilSec > 0)) untilSec = 120;
+    }
+    var placed = NCLanguage.place(parsed.played, caps, loopUntil ? { untilEnd: true, until: untilSec } : null);
     var fixed = chords.length > 0 && chords.every(function (c) { return c.seconds > 0; });
     planStartsFixed = fixed;
-    var ci = 0;
-    var entries = placed.entries.map(function (p) {
-      var c = chords[ci++], si = mode === 'each' ? ci - 1 : (c.recording || 0);
+    var cycleN = chords.length;
+    var entries = placed.entries.map(function (p, idx) {
+      var c = null, i;
+      for (i = 0; i < chords.length; i++) if (chords[i].recording === p.recording) { c = chords[i]; break; }
+      if (!c) c = chords[cycleN ? idx % cycleN : 0];
+      var si = mode === 'each' ? (idx % Math.max(1, n)) : (c.recording || 0);
       if (!(si >= 0 && si < n)) si = 0;
       var row = rows[si] || {}, s = row.s || {}, real = row.i != null ? row.i : 0;
       return {
-        pos: ci - 1, chord: c.symbol || s.symbol || '', clip_id: s.clip_id || ('c' + real),
+        pos: idx, chord: c.symbol || s.symbol || '', clip_id: s.clip_id || ('c' + real),
         at_s: p.at_s, len_s: p.len_s, gain_db: gainFor(s), fade_in_ms: 12, fade_out_ms: 12,
         sound: real, slot_s: c.seconds
       };

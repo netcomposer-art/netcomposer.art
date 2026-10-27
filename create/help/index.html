@@ -194,6 +194,12 @@ footer.site{margin-top:5rem;padding-bottom:4rem}
 loop(4)</pre>
 <p class="hear">The same 40 beats, about 26.7 seconds, as the line above. loop(4) is the long way to write x4.</p>
 <p>A repeat needs a whole number, and it needs a group to wrap. Write <code>x4</code> or <code>loop(4)</code> just after the closing bracket. One pair of brackets is read. A group inside a group is not.</p>
+<p>A bare <code>loop</code> with no number is different. It is a Bitwig-style clip loop: that group, or the whole line when there are no brackets, keeps repeating until the piece ends. Tracks with different loop lengths run against each other, so a 3-bar loop and a 4-bar loop drift in phase. The longest track that does not loop sets how long the piece is. If every track loops, Play keeps going until you press Stop. Gather and Perform then use a length you wrote, or two minutes when you wrote none. Gathered recordings are trimmed or padded to the written length, never stretched. <code>loop(4)</code> and <code>x4</code> still mean “four times”.</p>
+<pre class="ex">T1: @synth Cm9(4|) loop</pre>
+<p class="hear">T1 plays C minor 9 for 4 bars, then that 4-bar clip again, until the piece ends. I-read says T1 loops until the end. On Play that is until Stop when nothing else sets a length.</p>
+<pre class="ex">T1: @synth Cm9(4|) loop
+T2: @synth Am7(3|) loop</pre>
+<p class="hear">Two looping clips, 4 bars against 3 bars, like two Bitwig clips of different lengths. They stay locked to the tempo and phase across each other.</p>
 <p>A bar line, the <code>|</code> character, splits a group into bars. The beats before each bar line must add up to one bar. In 4/4 that is 4 beats. Every chord before the line needs its own length.</p>
 <pre class="ex">90 BPM [Cm(2) Fm(2) | Gm(4)]</pre>
 <p class="hear">C minor and F minor share the first bar, 2 beats each. G minor takes the next bar. About 5.3 seconds at 90 BPM.</p>
