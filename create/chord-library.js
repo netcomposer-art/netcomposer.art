@@ -5,6 +5,7 @@
  * replit-changes (the Expanded Chord Library), together with the voicing
  * rule in that repo's chord-performance brief. IDs, aliases, intervals,
  * fitVoicing, chordVoicing, arpeggioPool, and arpeggioSequence are copied
+ * (arpeggioSequence, arpIndex, Walk, and Euclidean from ASTRID main 288e9c2)
  * so Create and the synth play the same notes. A slash bass is the only
  * step that brief does not define: the library voicing is built on the
  * written root, then the bass pitch class is placed an octave under the
@@ -180,15 +181,289 @@
       var middle = Math.floor((n - 1) / 2);
       return bounce.slice(middle).concat(bounce.slice(0, middle));
     }
+    if (order === 'blossom-up' || order === 'blossom-down') {
+      // From the centre (lower middle for an even count), spiral out: +1, -1, +2, -2 (Down: -1, +1).
+      var centre = Math.floor((n - 1) / 2), sign = order === 'blossom-up' ? 1 : -1, grown = [notes[centre]];
+      for (var d = 1; grown.length < n; d++) {
+        [centre + sign * d, centre - sign * d].forEach(function (k) { if (k >= 0 && k < n) grown.push(notes[k]); });
+      }
+      return grown;
+    }
+    if (order === 'low-and-up' || order === 'low-and-down' || order === 'hi-and-up' || order === 'hi-and-down') {
+      // A pedal note (lowest or highest) alternating with the others, pedal first.
+      var lowPedal = order.indexOf('low') === 0, pedal = lowPedal ? notes[0] : notes[n - 1];
+      var others = lowPedal ? notes.slice(1) : notes.slice(0, -1);
+      if (/down$/.test(order)) others.reverse();
+      var out = [];
+      others.forEach(function (note) { out.push(pedal, note); });
+      return out;
+    }
+    // Walk and Euclidean step through the Up order; arpIndex picks the step.
     return notes;
   }
-  var ARP_ORDERS = [
-    { value: 'off', label: 'Off — chord' }, { value: 'up', label: 'Up' }, { value: 'down', label: 'Down' },
-    { value: 'up-down', label: 'Up/Down' }, { value: 'up-down-repeat', label: 'Up/Down Repeat' },
-    { value: 'random', label: 'Random' }, { value: 'as-played', label: 'As Played' },
-    { value: 'outside-in', label: 'Outside-In' }, { value: 'inside-out', label: 'Inside-Out' },
-    { value: 'pendulum', label: 'Pendulum' }, { value: 'down-up', label: 'Down/Up (legacy)' }
-  ];
+  // The arp pattern list is ASTRID's lib/synth-audio/arp-patterns.json, copied
+  // to create/arp-patterns.json. Each pattern has a permanent number, so a line
+  // can say Arp(5). tests/arp-patterns.mjs pins the numbers and checks this
+  // block against that file.
+  // BEGIN arp-patterns.json (tools/sync-arp-patterns.mjs writes this block; do not edit it by hand)
+  var ARP_REGISTRY = {
+    "format": "netcomposer.arp-patterns",
+    "version": 1,
+    "note": "Stable IDs and numbers (num, Off = 0; Arp(5) in NC): never renamed, renumbered or reused. New patterns are only added, with the next free number. Legacy IDs stay valid.",
+    "patterns": [
+      {
+        "id": "off",
+        "num": 0,
+        "name": "Off — chord",
+        "description": "No arp: the chord plays together"
+      },
+      {
+        "id": "up",
+        "num": 1,
+        "name": "Up",
+        "description": "Low to high, then again"
+      },
+      {
+        "id": "down",
+        "num": 2,
+        "name": "Down",
+        "description": "High to low, then again"
+      },
+      {
+        "id": "up-down",
+        "num": 3,
+        "name": "Up/Down",
+        "description": "Up then down, ends not repeated"
+      },
+      {
+        "id": "up-down-repeat",
+        "num": 4,
+        "name": "Up/Down Repeat",
+        "description": "Up then down, ends repeated"
+      },
+      {
+        "id": "random",
+        "num": 5,
+        "name": "Random",
+        "description": "Any note each step"
+      },
+      {
+        "id": "as-played",
+        "num": 6,
+        "name": "As Played",
+        "description": "The order the keys were pressed"
+      },
+      {
+        "id": "outside-in",
+        "num": 7,
+        "name": "Outside-In",
+        "description": "Lowest, highest, then inward"
+      },
+      {
+        "id": "inside-out",
+        "num": 8,
+        "name": "Inside-Out",
+        "description": "From the middle outward, lower first"
+      },
+      {
+        "id": "pendulum",
+        "num": 9,
+        "name": "Pendulum",
+        "description": "From the lower middle, swing between the ends"
+      },
+      {
+        "id": "blossom-up",
+        "num": 10,
+        "name": "Blossom Up",
+        "description": "From center, spiral up"
+      },
+      {
+        "id": "blossom-down",
+        "num": 11,
+        "name": "Blossom Down",
+        "description": "From center, spiral down"
+      },
+      {
+        "id": "low-and-up",
+        "num": 12,
+        "name": "Low&Up",
+        "description": "Low pedal, others ascending"
+      },
+      {
+        "id": "low-and-down",
+        "num": 13,
+        "name": "Low&Down",
+        "description": "Low pedal, others descending"
+      },
+      {
+        "id": "hi-and-up",
+        "num": 14,
+        "name": "Hi&Up",
+        "description": "High pedal, others ascending"
+      },
+      {
+        "id": "hi-and-down",
+        "num": 15,
+        "name": "Hi&Down",
+        "description": "High pedal, others descending"
+      },
+      {
+        "id": "walk",
+        "num": 16,
+        "name": "Walk",
+        "description": "Next 50%, repeat 25%, back 25%"
+      },
+      {
+        "id": "euclidean",
+        "num": 17,
+        "name": "Euclidean",
+        "description": "Hits spread evenly over Steps, rests between"
+      },
+      {
+        "id": "down-up",
+        "num": 18,
+        "name": "Down/Up (legacy)",
+        "description": "Down then up, ends not repeated",
+        "legacy": true
+      }
+    ],
+    "aliases": {
+      "none": "off",
+      "chord": "off",
+      "updown": "up-down",
+      "up-and-down": "up-down",
+      "downup": "down-up",
+      "down-and-up": "down-up",
+      "down-up-legacy": "down-up",
+      "off-chord": "off",
+      "rand": "random",
+      "played": "as-played",
+      "order": "as-played",
+      "converge": "outside-in",
+      "diverge": "inside-out",
+      "thumb-up": "low-and-up",
+      "thumb-down": "low-and-down",
+      "pinky-up": "hi-and-up",
+      "pinky-down": "hi-and-down",
+      "high-and-up": "hi-and-up",
+      "high-and-down": "hi-and-down",
+      "euclid": "euclidean",
+      "drunk": "walk"
+    },
+    "euclidean": {
+      "hits": "arpHits",
+      "steps": "arpSteps",
+      "rotate": "arpRotate"
+    },
+    "euclideanDefaults": {
+      "hits": 5,
+      "steps": 8,
+      "rotate": 0
+    },
+    "euclideanMaxSteps": 16
+  };
+  // END arp-patterns.json
+  var ARP_PATTERNS = ARP_REGISTRY.patterns;
+  var ARP_ALIASES = ARP_REGISTRY.aliases;
+  var ARP_IDS = new Set(ARP_PATTERNS.map(function (p) { return p.id; }));
+  var ARP_BY_NUM = new Map(ARP_PATTERNS.map(function (p) { return [p.num, p.id]; }));
+  var ARP_ORDERS = ARP_PATTERNS.map(function (p) { return { value: p.id, label: p.name }; });
+  function arpNum(id) {
+    var found = ARP_PATTERNS.filter(function (p) { return p.id === id; })[0];
+    return found ? found.num : 0;
+  }
+  function arpKey(raw) {
+    return raw.trim().toLowerCase().replace(/\(legacy\)/g, '').replace(/&/g, '-and-').replace(/[\s_/]+/g, '-')
+      .replace(/[^a-z0-9-]/g, '').replace(/-+/g, '-').replace(/^-|-$/g, '');
+  }
+  // Same order as ASTRID's resolveArpId: a number, an id, a loose spelling of
+  // an id, an alias, then a display name. null when none match.
+  function resolveArpId(raw) {
+    if (typeof raw === 'number') return Number.isInteger(raw) && ARP_BY_NUM.has(raw) ? ARP_BY_NUM.get(raw) : null;
+    if (typeof raw !== 'string') return null;
+    if (/^\s*\d+\s*$/.test(raw)) { var num = Number(raw); return ARP_BY_NUM.has(num) ? ARP_BY_NUM.get(num) : null; }
+    if (ARP_IDS.has(raw)) return raw;
+    var key = arpKey(raw);
+    if (ARP_IDS.has(key)) return key;
+    if (Object.prototype.hasOwnProperty.call(ARP_ALIASES, key)) return ARP_ALIASES[key];
+    var want = raw.trim().toLowerCase();
+    var byName = ARP_PATTERNS.filter(function (p) { return p.name.toLowerCase().replace(/\s*\(legacy\)/, '') === want; })[0];
+    return byName ? byName.id : null;
+  }
+  // A bare word on an arp line is a pattern only when it spells an id
+  // (blossom-up, Blossom_Up, Low&Up). Aliases such as chord or order stay
+  // words there; Arp(...) takes them.
+  function arpIdOfWord(word) {
+    if (typeof word !== 'string' || /^\s*\d+\s*$/.test(word)) return null;
+    var key = arpKey(word);
+    return ARP_IDS.has(key) && key !== 'off' ? key : null;
+  }
+
+  // Euclidean: Hits spread as evenly as possible over Steps, turned by Rotate.
+  var EUCLID_MAX_STEPS = ARP_REGISTRY.euclideanMaxSteps;
+  var DEFAULT_EUCLID = ARP_REGISTRY.euclideanDefaults;
+  function euclidOf(raw) {
+    function whole(v, d) { return typeof v === 'number' && isFinite(v) ? Math.round(v) : d; }
+    raw = raw || {};
+    var steps = Math.max(1, Math.min(EUCLID_MAX_STEPS, whole(raw.steps, DEFAULT_EUCLID.steps)));
+    return {
+      hits: Math.max(0, Math.min(steps, whole(raw.hits, DEFAULT_EUCLID.hits))),
+      steps: steps,
+      rotate: ((whole(raw.rotate, DEFAULT_EUCLID.rotate) % steps) + steps) % steps
+    };
+  }
+  // Step j hits when (j * hits) mod steps < hits. 5 of 8 is x.x.xx.x
+  function euclidHit(e, step) {
+    var j = ((Math.floor(step) + e.rotate) % e.steps + e.steps) % e.steps;
+    return (j * e.hits) % e.steps < e.hits;
+  }
+  function euclidPattern(e) {
+    var s = '', k;
+    for (k = 0; k < e.steps; k++) s += euclidHit(e, k) ? 'x' : '.';
+    return s;
+  }
+  function hitsBefore(e, step) {
+    var count = Math.floor(step / e.steps) * e.hits, k;
+    for (k = step - (step % e.steps); k < step; k++) if (euclidHit(e, k)) count++;
+    return count;
+  }
+  // Walk: a fixed-seed coin per step, the same coin as ASTRID, so a line
+  // walks the same way every time: next 50%, repeat 25%, back 25%, wrapping.
+  var WALK_SEED = 0x5eed2026;
+  function walkCoin(step) {
+    var h = (Math.imul(step ^ WALK_SEED, 0x9e3779b1) ^ 0x85ebca6b) >>> 0;
+    h = Math.imul(h ^ (h >>> 16), 0x7feb352d);
+    h = Math.imul(h ^ (h >>> 15), 0x846ca68b);
+    return ((h ^ (h >>> 16)) >>> 0) / 4294967296;
+  }
+  var walkMemo = new Map();
+  function walkIndex(n, step) {
+    if (n < 2) return 0;
+    var target = Math.max(0, Math.floor(step));
+    var memo = walkMemo.get(n);
+    if (!memo || memo.step > target) memo = { step: 0, pos: 0 };
+    var k = memo.step, pos = memo.pos;
+    for (; k < target; k++) {
+      var r = walkCoin(k + 1);
+      pos = (pos + (r < 0.5 ? 1 : r < 0.75 ? 0 : n - 1)) % n;
+    }
+    walkMemo.set(n, { step: k, pos: pos });
+    return pos;
+  }
+  // Which entry of an arpeggioSequence plays at step. null is a rest
+  // (a Euclidean off-step). random is a function that returns 0..1.
+  function arpIndex(order, n, step, euclid, random) {
+    if (n < 1) return null;
+    function wrap(k) { return ((Math.floor(k) % n) + n) % n; }
+    if (order === 'random') return Math.min(n - 1, Math.max(0, Math.floor((random || Math.random)() * n)));
+    if (order === 'walk') return walkIndex(n, step);
+    if (order === 'euclidean') {
+      var e = euclidOf(euclid);
+      var k = Math.max(0, Math.floor(step));
+      return euclidHit(e, k) ? wrap(hitsBefore(e, k)) : null;
+    }
+    return wrap(step);
+  }
 
   // Composition quality (after the language aliases) → library id.
   // null is a real Composition chord with no library definition.
@@ -252,6 +527,19 @@
     CHORD_CATEGORIES: CHORD_CATEGORIES,
     CHORD_LIBRARY: CHORD_LIBRARY,
     ARP_ORDERS: ARP_ORDERS,
+    ARP_PATTERNS: ARP_PATTERNS,
+    ARP_ALIASES: ARP_ALIASES,
+    ARP_REGISTRY: ARP_REGISTRY,
+    EUCLID_MAX_STEPS: EUCLID_MAX_STEPS,
+    DEFAULT_EUCLID: DEFAULT_EUCLID,
+    resolveArpId: resolveArpId,
+    arpIdOfWord: arpIdOfWord,
+    arpNum: arpNum,
+    euclidOf: euclidOf,
+    euclidHit: euclidHit,
+    euclidPattern: euclidPattern,
+    walkIndex: walkIndex,
+    arpIndex: arpIndex,
     UNMAPPED_QUALITIES: UNMAPPED_QUALITIES,
     resolveChordId: resolveChordId,
     getChord: getChord,

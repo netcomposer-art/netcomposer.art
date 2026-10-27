@@ -216,7 +216,7 @@ function helpFor(part) {
   if (/is not a chord|is a word, not|Did you mean/.test(part)) return 'chords';
   if (/repeat needs|Nested groups|before `\|`|add up to/.test(part)) return 'groups';
   if (/Hacks are for|was written twice|outside the brackets/.test(part)) return 'hacks';
-  if (/synth library|arp line/.test(part)) return 'arp';
+  if (/synth library|arp line|arp pattern|Euclidean|`Arp\(17/.test(part)) return 'arp';
   if (/Another seed|later `sd /.test(part)) return 'also';
   if (/tempo/.test(part)) return 'tempo';
   if (/no length|whole recording/.test(part)) return 'durations';

@@ -227,6 +227,11 @@
     return text.slice(0, last.start) + meter + text.slice(last.end);
   }
 
+  // `arp` starts an arp statement, and so does `Arp(5)` on its own.
+  function isArpHead(text) {
+    return /^arp$/i.test(text) || /^arp\([\s\S]*\)(?:@[A-Za-z][\w-]*)?$/i.test(text);
+  }
+
   function tokenize(text) {
     var src = String(text || ''), n = src.length, i = 0, out = [];
     function brk(c, start) {
@@ -782,8 +787,8 @@
     // switch the clock. `@name` is an instrument, same as the notes line.
     function tryArp() {
       var t = tokens[i];
-      if (!t || t.type !== 'word' || !/^arp$/i.test(t.text)) return false;
-      i++;
+      if (!t || t.type !== 'word' || !isArpHead(t.text)) return false;
+      if (/^arp$/i.test(t.text)) i++;
       var arpEnd = statementEnd(t.end);
       var trailing = [];
       var spec = {
@@ -816,6 +821,36 @@
         return '16ths';
       }
       var spreads = { compact: 'compact', wide: 'wide', wider: 'wider', max: 'maximum', maximum: 'maximum' };
+      // Arp(5), Arp(blossom-up), Arp(17, 5, 8, 0). The number is the pattern's
+      // permanent number from create/arp-patterns.json. Only Euclidean (17)
+      // takes more: hits, steps, rotate. An unknown pattern plays the chord.
+      function takeArpCall(text) {
+        var m = /^arp\(([\s\S]*)\)$/i.exec(text);
+        if (!m) return false;
+        if (!claim('order')) return 'twice';
+        var lib = root.NCChords;
+        var args = m[1].split(',').map(function (x) { return x.trim(); });
+        var id = lib && lib.resolveArpId ? lib.resolveArpId(args[0]) : null;
+        if (!id) {
+          note('`' + text + '` is not an arp pattern, so the chord plays together, the same as `Arp(0)`. `Arp(1)` is up. The numbers are on the help page.');
+          id = 'off';
+        }
+        spec.order = id;
+        var extra = args.slice(1);
+        if (id === 'euclidean') {
+          var keys = ['hits', 'steps', 'rotate'], raw = {};
+          extra.forEach(function (x, k) {
+            if (k > 2) return;
+            if (/^-?\d+$/.test(x)) raw[keys[k]] = +x;
+            else note('`' + x + '` in `' + text + '` is not a whole number, so Euclidean uses its usual ' + keys[k] + '.');
+          });
+          if (extra.length > 3) note('`' + text + '` has more than hits, steps, and rotate. The rest is not read.');
+          spec.euclid = lib.euclidOf(raw);
+        } else if (extra.length && extra.join('') !== '') {
+          note('Only `Arp(17, hits, steps, rotate)` takes more numbers. The rest of `' + text + '` is not read.');
+        }
+        return true;
+      }
       function claim(kind) {
         if (set[kind]) return false;
         set[kind] = 1;
@@ -863,9 +898,14 @@
           low = text.toLowerCase();
           if (!text) { i++; continue; }
         }
-        if (orders[low]) {
+        var called = takeArpCall(text);
+        if (called === 'twice') break;
+        if (called) { i++; continue; }
+        var wordId = orders[low] || (root.NCChords && root.NCChords.arpIdOfWord ? root.NCChords.arpIdOfWord(text) : null);
+        if (wordId) {
           if (!claim('order')) break;
-          spec.order = orders[low];
+          spec.order = wordId;
+          if (wordId === 'euclidean') spec.euclid = root.NCChords.euclidOf(null);
           i++;
           continue;
         }
@@ -980,7 +1020,11 @@
       function arpSyntax(a) {
         var parts = ['arp'];
         if (a.chord) parts.push(a.chord);
-        parts.push(a.order || 'up');
+        if (a.order === 'euclidean') {
+          var e = a.euclid || root.NCChords.euclidOf(null);
+          parts.push('Arp(17, ' + e.hits + ', ' + e.steps + ', ' + e.rotate + ')');
+        } else if (a.order === 'off') parts.push('Arp(0)');
+        else parts.push(a.order || 'up');
         parts.push(a.rate || '16ths');
         if (a.octaves && a.octaves !== 1) parts.push(a.octaves + 'oct');
         if (a.spread && a.spread !== 'compact') parts.push(a.spread);
@@ -1008,7 +1052,7 @@
       var j = i + 1, saw = false;
       while (j < tokens.length && inside(tokens[j]) && !blocked(tokens[j]) && !blockedTrack(j)) {
         var scan = tokens[j];
-        if (scan.type === 'word' && /^arp$/i.test(scan.text)) break;
+        if (scan.type === 'word' && isArpHead(scan.text)) break;
         if (scan.type === 'word') {
           var glued = /^(.*)@([A-Za-z][\w-]*)$/.exec(scan.text);
           var scanBody = glued ? glued[1] : scan.text;
@@ -1022,7 +1066,7 @@
       j = i + 1;
       while (j < tokens.length && inside(tokens[j]) && !blocked(tokens[j]) && !blockedTrack(j)) {
         var tok = tokens[j];
-        if (tok.type === 'word' && /^arp$/i.test(tok.text)) break;
+        if (tok.type === 'word' && isArpHead(tok.text)) break;
         if (tok.type === 'quote') parts.push('"' + tok.text + '"');
         else if (tok.type === 'word') {
           var at = /^(.*)@([A-Za-z][\w-]*)$/.exec(tok.text);
