@@ -56,7 +56,7 @@ check(C.idForQuality('nope') == null && C.idForQuality('7#11') == null && C.idFo
 check(JSON.stringify(C.UNMAPPED_QUALITIES) === JSON.stringify(['7#11', '7b13']), 'unmapped composition qualities');
 check(C.idForQuality('maj7#5') === 'augmented-major-7', 'maj7#5 maps to augmented-major-7');
 check(same(C.getChord('augmented-major-7').intervals, [0, 4, 8, 11]), 'augmented major 7 intervals');
-check(C.idForQuality('7#5') === '7-sharp5' && C.idForQuality('5') === 'power' && C.idForQuality('quartal-3') === 'quartal-3', 'library symbols that the composition set does not gather');
+check(C.idForQuality('7#5') === '7-sharp5' && C.idForQuality('5') === 'power' && C.idForQuality('pow') === 'power' && C.idForQuality('quartal-3') === 'quartal-3', 'library symbols that the composition set does not gather');
 check(C.idForSymbol('Fm9') === 'minor-9' && C.idForSymbol('Bb') === 'major', 'symbols split into root and quality');
 
 const slash = C.voicedChord(60, 'minor', 0, 'compact', 7);

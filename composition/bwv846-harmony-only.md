@@ -24,18 +24,18 @@ Keep the harmony clear and the space modest: a room, not a cathedral.
 
 | Bar | Chord | Bar | Chord | Bar | Chord |
 |---|---|---|---|---|---|
-| 1 | C | 2 | Dm7/C | 3 | G7/B |
-| 4 | C | 5 | Am/C | 6 | D7/C |
+| 1 | C | 2 | Dm7/C | 3 | Gdom7/B |
+| 4 | C | 5 | Am/C | 6 | Ddom7/C |
 | 7 | G/B | 8 | Cmaj7/B | 9 | Am7 |
-| 10 | D7 | 11 | G | 12 | C#dim7/G |
+| 10 | Ddom7 | 11 | G | 12 | C#dim7/G |
 | 13 | Dm/F | 14 | Bdim7/F | 15 | C/E |
-| 16 | Fmaj7/E | 17 | Dm7 | 18 | G7 |
-| 19 | C | 20 | C7 | 21 | Fmaj7 |
-| 22 | F#dim7 | 23 | Bdim7/Ab | 24 | G7 (G pedal begins) |
-| 25 | C/G | 26 | G7sus4 (to G7) | 27 | G7 |
-| 28 | F#dim7/G | 29 | C/G | 30 | G7sus4 (to G7) |
-| 31 | G7 | 32 | C7 (C pedal) | 33 | Dm7/C |
-| 34 | G7/C | 35 | C (held, ringing) |  |  |
+| 16 | Fmaj7/E | 17 | Dm7 | 18 | Gdom7 |
+| 19 | C | 20 | Cdom7 | 21 | Fmaj7 |
+| 22 | F#dim7 | 23 | Bdim7/Ab | 24 | Gdom7 (G pedal begins) |
+| 25 | C/G | 26 | G7sus4 (to Gdom7) | 27 | Gdom7 |
+| 28 | F#dim7/G | 29 | C/G | 30 | G7sus4 (to Gdom7) |
+| 31 | Gdom7 | 32 | Cdom7 (C pedal) | 33 | Dm7/C |
+| 34 | Gdom7/C | 35 | C (held, ringing) |  |  |
 
 Slash chords name the bass. Bars 24–31 sit on a G pedal and bars 32–35 on a C pedal. A Performer that can't
 match a bass note may let it go, but it should keep the chord. Bars 26, 28, 30 and 34 follow the score's
@@ -43,7 +43,7 @@ actual notes and bass rather than the analysis.
 
 ## Composition
 
-*Structure:* `4/4 · 69 BPM · [1 bar C][1 bar Dm7/C][1 bar G7/B][1 bar C][1 bar Am/C][1 bar D7/C][1 bar G/B][1 bar Cmaj7/B][1 bar Am7][1 bar D7][1 bar G][1 bar C#dim7/G][1 bar Dm/F][1 bar Bdim7/F][1 bar C/E][1 bar Fmaj7/E][1 bar Dm7][1 bar G7][1 bar C][1 bar C7][1 bar Fmaj7][1 bar F#dim7][1 bar Bdim7/Ab][1 bar G7][1 bar C/G][1 bar G7sus4][1 bar G7][1 bar F#dim7/G][1 bar C/G][1 bar G7sus4][1 bar G7][1 bar C7][1 bar Dm7/C][1 bar G7/C][1 bar C]`
+*Structure:* `4/4 · 69 BPM · [1 bar C][1 bar Dm7/C][1 bar Gdom7/B][1 bar C][1 bar Am/C][1 bar Ddom7/C][1 bar G/B][1 bar Cmaj7/B][1 bar Am7][1 bar Ddom7][1 bar G][1 bar C#dim7/G][1 bar Dm/F][1 bar Bdim7/F][1 bar C/E][1 bar Fmaj7/E][1 bar Dm7][1 bar Gdom7][1 bar C][1 bar Cdom7][1 bar Fmaj7][1 bar F#dim7][1 bar Bdim7/Ab][1 bar Gdom7][1 bar C/G][1 bar G7sus4][1 bar Gdom7][1 bar F#dim7/G][1 bar C/G][1 bar G7sus4][1 bar Gdom7][1 bar Cdom7][1 bar Dm7/C][1 bar Gdom7/C][1 bar C]`
 
 ## Credits
 

@@ -61,7 +61,7 @@ pre{margin:.8rem 0}
 <p>The record names the Composition file the Performer read and pins it by sha256, so a changed text cannot pass as the same input. Later copies of that file have a different checksum. The pinned text is kept, and netcomposer.json lists it under <code>prior</code> next to the current sha256.</p>
 <pre>"composition_ref": {
  &quot;composition_id&quot;: &quot;compositions/bach_bwv846_prelude_progression.md&quot;,
- &quot;sha256&quot;: &quot;f63acadc04937a289a2f51c96386a0ae92de8f7fba00c69a16a038632b9b43d5&quot;,
+ &quot;sha256&quot;: &quot;d81274dc70ac2643ba1280efb3719fe83b13ae8979794fb22c04f9b7e2d7cd8a&quot;,
  &quot;composer&quot;: {
   &quot;display_name&quot;: &quot;Peter&quot;
  },
@@ -288,7 +288,7 @@ pre{margin:.8rem 0}
 <pre>"record_hash": {
  &quot;algorithm&quot;: &quot;sha256&quot;,
  &quot;over&quot;: &quot;canonical JSON (sorted keys, no whitespace) of the record without record_hash and signature&quot;,
- &quot;value&quot;: &quot;ede74c6751c4da03c64f62df2067d7b564971a3cb68eca48188bd670a4d57bfb&quot;
+ &quot;value&quot;: &quot;a386199949fa83ff447eeb194bdf2c4e9dbe1c90536addd34a7cf5493694a6e8&quot;
 },
 "signature": {
  &quot;status&quot;: &quot;UNSIGNED&quot;,
@@ -304,6 +304,12 @@ pre{margin:.8rem 0}
   &quot;what&quot;: &quot;Contributor display name changed from &#x27;Petrus&#x27; to &#x27;Peter&#x27; (Peter Semmelhack) for netcomposer.art, at his request. No audio, input, setting or other field changed.&quot;,
   &quot;previous_record_hash&quot;: &quot;4ae478e5aadd378528565518aa3ed5c25c53685f474481e2edac08a65dd14a99&quot;,
   &quot;original_record&quot;: &quot;unchanged in the NetComposer working files&quot;
+ },
+ {
+  &quot;at&quot;: &quot;2026-10-25T13:27:17-07:00&quot;,
+  &quot;what&quot;: &quot;Chord spellings rewritten to the current Create language, at Peter&#x27;s request: a letter plus one octave digit is always a note, so dominant 7 chords are written dom7 (G7 to Gdom7, C7 to Cdom7, D7 to Ddom7). The Composition pin now points at the same text with those spellings (composition/prior/bwv846-harmony-only.md, sha256 f63acadc04937a28… to d81274dc70ac2643…). No audio, input, setting or other field changed.&quot;,
+  &quot;previous_record_hash&quot;: &quot;ede74c6751c4da03c64f62df2067d7b564971a3cb68eca48188bd670a4d57bfb&quot;,
+  &quot;original_record&quot;: &quot;previous version in the netcomposer.art git history (main at c5d62f1)&quot;
  }
 ]</pre>
 <p>To check: <code>python3 -c "import json,hashlib;r=json.load(open('bwv846-walk.json'));[r.pop(k) for k in ('record_hash','signature')];print(hashlib.sha256(json.dumps(r,sort_keys=True,separators=(',',':'),ensure_ascii=False).encode()).hexdigest())"</code></p>

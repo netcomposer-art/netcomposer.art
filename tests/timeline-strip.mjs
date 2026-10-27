@@ -41,6 +41,8 @@ function wav(seconds) {
 // Petrus's take (2026-10-21): ten chords, the first three 4 s note stacks
 // already at their whole length, short bars stepping down.
 const TEN = { syms: ['Dm9', 'G13', 'Cadd9', 'G13', 'Am9', 'Fmaj7', 'E7', 'Bm7b5', 'C6', 'A7'], lens: [4, 4, 4, 7.5, 8, 6, 6, 6, 6, 6] };
+// The catalog names E7 and C6; the field spells them Edom7 and Cmaj6, since E7 and C6 are notes.
+const written = (s) => s.replace(/^([A-G][#b]?)(7|9)$/, '$1dom$2').replace(/^([A-G][#b]?)6$/, '$1maj6');
 let cur = { syms: SYMS, lens: LENS };
 const soundsFor = (c) => c.syms.map((s, i) => ({
   id: 'c' + i, clip_id: 'c' + i, pos: i, chord: i, symbol: s, title: s + ' test clip', supplier: i < 2 ? 'the University of Iowa' : 'Musicmatter',
@@ -123,7 +125,7 @@ async function run(clock, spec, view) {
     return false;
   };
   await until("!!(document.body && window.NC && document.getElementById('comp'))");
-  await ev(`(() => { var c = document.getElementById('comp'); c.value = ${JSON.stringify(cur.syms.join(' '))}; c.dispatchEvent(new Event('input', {bubbles: true})); })()`);
+  await ev(`(() => { var c = document.getElementById('comp'); c.value = ${JSON.stringify(cur.syms.map(written).join(' '))}; c.dispatchEvent(new Event('input', {bubbles: true})); })()`);
   await until("(() => { var b = document.getElementById('gatherBtn'); return b && !b.hidden && !b.disabled; })()");
   await ev("document.getElementById('gatherBtn').click()");
   await until("(() => { var b = document.getElementById('performBtn'); return b && !b.hidden && !b.disabled && document.querySelectorAll('#gather-list li').length >= ${cur.syms.length}; })()");

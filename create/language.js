@@ -21,13 +21,17 @@
 // owns the tokens after it until the next label or the end of the statement.
 // The same number again appends. `T1` and `t1` are one track. A gap in the
 // numbers stays a gap. A line with no label is read exactly as before.
-// Play sounds the built-in synth. `@piano`, `@guitar`, `@cello`, and `@bass`
-// play the sampler, including a chord's voicing. Any other `@name` only labels
-// the line. `@synth` is the synth and is not gathered. Gather still fetches a
-// recording for every other chord, and it skips a chord track that says `@bass`.
+// Play sounds the built-in synth. `@piano`, `@guitar`, `@cello`, `@bass`, and
+// `@vibes` play the sampler, including a chord's voicing. Any other `@name`
+// only labels the line. `@synth` is the synth and is not gathered. Gather
+// still fetches a recording for every other chord, and it skips a chord track
+// that says `@bass` or `@vibes`.
 // An octave after the root, as in `C5m9`, puts that chord's root on the same
 // pitch as `notes C5`. `Cm9` with no octave is unchanged. Gather uses the
 // chord name and leaves the recording where it is.
+// A letter plus one octave digit is always a pitch: `C2`, `C5`, `C6`, `C7`,
+// `C9`, `F#3`, `Bb1`. Dominant 7 is `Cdom7`, dominant 9 is `Cdom9`, major 6
+// is `Cmaj6`, and a power chord is `Cpow`. `C11`, `C13`, and `C69` stay.
 //
 // `@synth(1)` loads the preset whose number is 1. `@synth(44)` loads preset
 // 44. The number belongs to the preset. `@synth(Example Bright)` and
@@ -47,10 +51,11 @@
     'ø7': 'm7b5', 'ø': 'm7b5', '°7': 'dim7', 'o7': 'dim7', '°': 'dim', 'o': 'dim', '+': 'aug', '#5': 'aug',
     'mMaj7': 'm-maj7', 'mmaj7': 'm-maj7', 'm(maj7)': 'm-maj7', 'madd9': 'm-add9', 'm(add9)': 'm-add9',
     '6/9': '6-9', '69': '6-9', 'm6/9': 'm6-9', 'm69': 'm6-9', 'sus': 'sus4', '7sus': '7sus4', '9sus': '9sus4',
-    'add2': 'add9', '2': 'sus2', '7+5': 'maj7#5'
+    'add2': 'add9', '7+5': 'maj7#5',
+    'dom7': '7', 'dom9': '9', 'maj6': '6'
   };
-  var PRETTY = { '6-9': '6/9', 'm6-9': 'm6/9', 'm-add9': 'madd9' };
-  var QCHAR = /^(?:maj|min|mi|m|M|dim|aug|sus|add|alt|ø|°|Δ|o|\+|-|[0-9]|#|b|\(|\)|\/(?=9))/;
+  var PRETTY = { '6-9': '6/9', 'm6-9': 'm6/9', 'm-add9': 'madd9', '7': 'dom7', '9': 'dom9', '6': 'maj6' };
+  var QCHAR = /^(?:dom|pow|maj|min|mi|m|M|dim|aug|sus|add|alt|ø|°|Δ|o|\+|-|[0-9]|#|b|\(|\)|\/(?=9))/;
   var HACK = {
     lowpass: 'lp', lp: 'lp', highpass: 'hp', hp: 'hp', bandpass: 'bp', bp: 'bp', eq: 'eq',
     delay: 'dl', dl: 'dl', reverb: 'rv', rv: 'rv', drive: 'dr', dr: 'dr', comp: 'cp', cp: 'cp', width: 'wd', wd: 'wd'
@@ -59,7 +64,7 @@
   var HACK_WORD = /^(?:lowpass|highpass|bandpass|reverb|delay|drive|width|comp|eq|lp|hp|bp|dl|rv|dr|cp|wd)$/i;
   var CHANGE = /\b(?:at|from)\s+bar\s+\d+\b[^.\n]{0,40}?\d+(?:\.\d+)?\s*BPM\b|\bbar\s+\d+\s*:\s*\d+(?:\.\d+)?\s*BPM\b/gi;
   var SKETCH_BPM = 96;
-  var HINT_Q = ['', 'm', '6', '7', 'maj7', 'm7', '9', 'maj9', 'm9', '11', 'm11', '13', 'maj13', 'm13', 'dim', 'dim7', 'aug', 'sus2', 'sus4', 'add9', 'm6', 'm7b5', '7b9', '7#9', '7b5', '7sus4', '9sus4', 'maj7#11', 'maj7#5', '6-9', 'm6-9', 'm-add9', 'm-maj7', '7alt', '7#11', '7b13', 'min', 'mi', 'maj', 'M7', 'sus', '9sus', '7sus', '2'];
+  var HINT_Q = ['', 'm', 'dom7', '7', 'maj7', 'm7', 'dom9', '9', 'maj9', 'm9', 'maj6', '6', 'pow', '11', 'm11', '13', 'maj13', 'm13', 'dim', 'dim7', 'aug', 'sus2', 'sus4', 'add9', 'm6', 'm7b5', '7b9', '7#9', '7b5', '7sus4', '9sus4', 'maj7#11', 'maj7#5', '6-9', 'm6-9', 'm-add9', 'm-maj7', '7alt', '7#11', '7b13', 'min', 'mi', 'maj', 'M7', 'sus', '9sus', '7sus'];
 
   function uncomment(text) {
     return String(text || '').replace(/"(?:[^"\\]|\\.)*"/g, ' ').replace(/(?:^|\n|\s)#[^\n]*/g, ' ');
@@ -263,6 +268,12 @@
     return line + sep + phrase;
   }
 
+  // `arp` starts an arp statement, and so does `Arp(5)` on its own,
+  // also when a mark is glued on: `Arp(5)@piano`, `Arp(5)@synth(1)`.
+  function isArpHead(text) {
+    return /^arp$/i.test(text) || /^arp\([^)]*\)(?:@synth\([^)]*\)|@[A-Za-z][\w-]*)?$/i.test(text);
+  }
+
   function tokenize(text) {
     var src = String(text || ''), n = src.length, i = 0, out = [];
     function brk(c, start) {
@@ -315,9 +326,9 @@
   function chordOf(token, inGroup, known) {
     var direct = readChord(token, inGroup, known);
     if (direct && !direct.unknown && !direct.guard) return direct;
-    // Octave right after the root, then a quality: C5m9, Eb4maj7, F#3m7.
-    // A bare C5, and C9 where 9 is the quality, stay as they are.
-    var split = /^([A-Ga-g])([#b]?)(-?\d+)([^\d(\s][\s\S]*)$/.exec(token);
+    // Octave right after the root, then a quality: C5m9, C4dom7, C3pow.
+    // A slash is a bass note, not the start of that quality, so C7/E is not C/E.
+    var split = /^([A-Ga-g])([#b]?)(-?\d+)([^\d(\s/][\s\S]*)$/.exec(token);
     if (!split) return direct;
     var oct = +split[3];
     var again = readChord(split[1] + (split[2] || '') + split[4], inGroup, known);
@@ -328,6 +339,7 @@
     return again;
   }
   function readChord(token, inGroup, known) {
+    if (isOctaveNote(token)) return null;
     var m = /^([A-Ga-g])([#b]?)([\s\S]*)$/.exec(token);
     if (!m) return null;
     var rest = m[3], q = '', k = 0;
@@ -365,9 +377,12 @@
     var letter = m[1];
     var bareLower = letter === letter.toLowerCase() && letter !== letter.toUpperCase() && !q && !dur && !open && !bass;
     if (bareLower && !inGroup) return { guard: letter };
+    // One digit on its own is an octave, including with a slash bass.
+    // C7, C7/E, C6, C5, and C2 are not chords. C7b9, C6/9, and C13 still are.
+    if (/^(?:2|5|6|7|9)$/.test(q)) return { unknown: (letter.toUpperCase() + (m[2] || '')) + q + (bass ? '/' + bass : '') };
     var qual = q;
     if (!known(qual) && (qual in ALIAS)) qual = ALIAS[qual];
-    if (!known(qual)) return { unknown: (letter.toUpperCase() + (m[2] || '')) + q + (bass ? '/' + bass : '') };
+    if (!known(qual) && qual !== 'pow') return { unknown: (letter.toUpperCase() + (m[2] || '')) + q + (bass ? '/' + bass : '') };
     var root = letter.toUpperCase() + (m[2] || '');
     return {
       kind: 'chord',
@@ -383,7 +398,14 @@
   }
 
   // A pitch is a note name plus an octave, optional (beats) or (bars|).
-  // C5 is a note. Cm is not. The pitches run from C-1 to G9.
+  // One octave digit is always that pitch: C2, C5, C6, C7, C9. Cm is not.
+  // The pitches run from C-1 to G9.
+  function isOctaveNote(text) {
+    var m = /^([A-Ga-g])([#b])?(-1|[0-9])(?:\((\d+(?:\.\d+)?)(\|)?\))?$/.exec(text || '');
+    if (!m) return false;
+    var shaped = pitchParts(text);
+    return !!(shaped && shaped.ok);
+  }
   function pitchParts(text) {
     var m = /^([A-Ga-g])(#|b)?(-?\d+)(?:\((\d+(?:\.\d+)?)(\|)?\))?$/.exec(text || '');
     if (!m) return null;
@@ -450,6 +472,7 @@
     return prev[b.length];
   }
   function knownQual(q, known) {
+    if (q === 'pow') return 'pow';
     if (known(q)) return q;
     if (Object.prototype.hasOwnProperty.call(ALIAS, q) && known(ALIAS[q])) return ALIAS[q];
     return null;
@@ -574,6 +597,11 @@
       var text = t.text, gluedName = '', gluedPreset = '';
       var glued = splitAt(text);
       if (glued && glued.body) { text = glued.body; gluedName = glued.name; gluedPreset = glued.preset; }
+      if (isOctaveNote(text)) {
+        var shown = pitchEcho(text);
+        if (shown) err('`' + shown.replace(/\(.*/, '') + '` is a pitch, not a chord. Write `notes ' + shown + '` on its own line.');
+        return null;
+      }
       var c = chordOf(text, inGroup, known);
       if (!c) return null;
       if (c.guard) {
@@ -797,7 +825,7 @@
       if (!sym || unmapped.indexOf(sym) >= 0) return;
       unmapped.push(sym);
       var near = suggestSymbol(sym, known);
-      var fix = near && near.symbol ? near.symbol : 'C7';
+      var fix = near && near.symbol ? near.symbol : 'Cdom7';
       note('`' + sym + '` is not in the synth library, so an arp cannot play it. Write `' + fix + '` in its place on the arp line.');
     }
     function arpKnown(q) {
@@ -816,8 +844,8 @@
     // switch the clock. `@name` is an instrument, same as the notes line.
     function tryArp() {
       var t = tokens[i];
-      if (!t || t.type !== 'word' || !/^arp$/i.test(t.text)) return false;
-      i++;
+      if (!t || t.type !== 'word' || !isArpHead(t.text)) return false;
+      if (/^arp$/i.test(t.text)) i++;
       var arpEnd = statementEnd(t.end);
       var trailing = [];
       var spec = {
@@ -850,6 +878,36 @@
         return '16ths';
       }
       var spreads = { compact: 'compact', wide: 'wide', wider: 'wider', max: 'maximum', maximum: 'maximum' };
+      // Arp(5), Arp(blossom-up), Arp(17, 5, 8, 0). The number is the pattern's
+      // permanent number from create/arp-patterns.json. Only Euclidean (17)
+      // takes more: hits, steps, rotate. An unknown pattern plays the chord.
+      function takeArpCall(text) {
+        var m = /^arp\(([\s\S]*)\)$/i.exec(text);
+        if (!m) return false;
+        if (!claim('order')) return 'twice';
+        var lib = root.NCChords;
+        var args = m[1].split(',').map(function (x) { return x.trim(); });
+        var id = lib && lib.resolveArpId ? lib.resolveArpId(args[0]) : null;
+        if (!id) {
+          note('`' + text + '` is not an arp pattern, so the chord plays together, the same as `Arp(0)`. `Arp(1)` is up. The numbers are on the help page.');
+          id = 'off';
+        }
+        spec.order = id;
+        var extra = args.slice(1);
+        if (id === 'euclidean') {
+          var keys = ['hits', 'steps', 'rotate'], raw = {};
+          extra.forEach(function (x, k) {
+            if (k > 2) return;
+            if (/^-?\d+$/.test(x)) raw[keys[k]] = +x;
+            else note('`' + x + '` in `' + text + '` is not a whole number, so Euclidean uses its usual ' + keys[k] + '.');
+          });
+          if (extra.length > 3) note('`' + text + '` has more than hits, steps, and rotate. The rest is not read.');
+          spec.euclid = lib.euclidOf(raw);
+        } else if (extra.length && extra.join('') !== '') {
+          note('Only `Arp(17, hits, steps, rotate)` takes more numbers. The rest of `' + text + '` is not read.');
+        }
+        return true;
+      }
       function claim(kind) {
         if (set[kind]) return false;
         set[kind] = 1;
@@ -900,9 +958,14 @@
           low = text.toLowerCase();
           if (!text) { i++; continue; }
         }
-        if (orders[low]) {
+        var called = takeArpCall(text);
+        if (called === 'twice') break;
+        if (called) { i++; continue; }
+        var wordId = orders[low] || (root.NCChords && root.NCChords.arpIdOfWord ? root.NCChords.arpIdOfWord(text) : null);
+        if (wordId) {
           if (!claim('order')) break;
-          spec.order = orders[low];
+          spec.order = wordId;
+          if (wordId === 'euclidean') spec.euclid = root.NCChords.euclidOf(null);
           i++;
           continue;
         }
@@ -1018,7 +1081,11 @@
       function arpSyntax(a) {
         var parts = ['arp'];
         if (a.chord) parts.push(a.chord);
-        parts.push(a.order || 'up');
+        if (a.order === 'euclidean') {
+          var e = a.euclid || root.NCChords.euclidOf(null);
+          parts.push('Arp(17, ' + e.hits + ', ' + e.steps + ', ' + e.rotate + ')');
+        } else if (a.order === 'off') parts.push('Arp(0)');
+        else parts.push(a.order || 'up');
         parts.push(a.rate || '16ths');
         if (a.octaves && a.octaves !== 1) parts.push(a.octaves + 'oct');
         if (a.spread && a.spread !== 'compact') parts.push(a.spread);
@@ -1047,7 +1114,7 @@
       var j = i + 1, saw = false;
       while (j < tokens.length && inside(tokens[j]) && !blocked(tokens[j]) && !blockedTrack(j)) {
         var scan = tokens[j];
-        if (scan.type === 'word' && /^arp$/i.test(scan.text)) break;
+        if (scan.type === 'word' && isArpHead(scan.text)) break;
         if (scan.type === 'word') {
           var glued = splitAt(scan.text);
           var scanBody = glued ? glued.body : scan.text;
@@ -1061,7 +1128,7 @@
       j = i + 1;
       while (j < tokens.length && inside(tokens[j]) && !blocked(tokens[j]) && !blockedTrack(j)) {
         var tok = tokens[j];
-        if (tok.type === 'word' && /^arp$/i.test(tok.text)) break;
+        if (tok.type === 'word' && isArpHead(tok.text)) break;
         if (tok.type === 'quote') parts.push('"' + tok.text + '"');
         else if (tok.type === 'word') {
           var at = splitAt(tok.text);
@@ -1106,7 +1173,53 @@
       i += 2;
       return true;
     }
+    // `C2 E2 G2`, `C7 C6 C5`, and `@bass C2 E2 G2` are those pitches.
+    // A line that starts with `notes` is left to tryNotes.
+    function tryPitchLine() {
+      if (!tokens[i]) return false;
+      var limit = statementEnd(tokenPos(tokens[i]));
+      var j = i, pitches = 0, parts = [], inst = '';
+      while (j < tokens.length && tokenPos(tokens[j]) < limit && !blockedTrack(j)) {
+        var tok = tokens[j];
+        if (!tok || tok.type !== 'word') return false;
+        var glued = /^(.*)@([A-Za-z][\w-]*)$/.exec(tok.text);
+        if (glued && glued[1] && isOctaveNote(glued[1])) {
+          var gluedEcho = pitchEcho(glued[1]);
+          if (!gluedEcho) return false;
+          parts.push(gluedEcho);
+          parts.push('@' + glued[2].toLowerCase());
+          inst = glued[2].toLowerCase();
+          pitches++;
+          j++;
+          continue;
+        }
+        var at = /^@([A-Za-z][\w-]*)$/.exec(tok.text);
+        if (at) { parts.push('@' + at[1].toLowerCase()); inst = at[1].toLowerCase(); j++; continue; }
+        if (isOctaveNote(tok.text)) {
+          var echo = pitchEcho(tok.text);
+          if (!echo) return false;
+          parts.push(echo);
+          pitches++;
+          j++;
+          continue;
+        }
+        var fmGlued = /^fm(\d+(?:\.\d+)?)$/i.exec(tok.text);
+        if (fmGlued) { parts.push('fm ' + trimNum(+fmGlued[1])); j++; continue; }
+        if (/^fm$/i.test(tok.text) && tokens[j + 1] && tokens[j + 1].type === 'word' && tokenPos(tokens[j + 1]) < limit && /^\d+(?:\.\d+)?$/.test(tokens[j + 1].text)) {
+          parts.push('fm ' + trimNum(+tokens[j + 1].text));
+          j += 2;
+          continue;
+        }
+        return false;
+      }
+      if (!pitches) return false;
+      i = j;
+      if (inst) setInstrument(inst);
+      musSyntax().push({ kind: 'notes', implicit: true, text: 'notes ' + parts.join(' ') });
+      return true;
+    }
     function atStatement() {
+      if (tryPitchLine()) return true;
       if (tryAt()) return true;
       if (tryHack()) return true;
       if (tryTempo()) return true;
@@ -1334,10 +1447,13 @@
     });
     if (words.length) say(aiNotes, 'Words are left for the AI. Quote them `"like this"` to keep them words.');
 
+    function hasRecording(c) {
+      return c && c.kind === 'chord' && !/^[A-G](?:#|b)?pow$/.test(c.symbol || '');
+    }
     var gather = [], gathered = {};
     if (pieceInstrument !== 'synth') {
       chords.forEach(function (c) {
-        if (gathered[c.recording]) return;
+        if (!hasRecording(c) || gathered[c.recording]) return;
         gathered[c.recording] = 1;
         gather.push(c.symbol);
       });
@@ -1347,7 +1463,7 @@
       if (root.NCInstruments && NCInstruments.playsChords && NCInstruments.playsChords(tr.instrument)) return;
       var seen = {};
       tr.played.forEach(function (c) {
-        if (c.kind !== 'chord' || c.recording == null || seen[c.recording]) return;
+        if (!hasRecording(c) || c.recording == null || seen[c.recording]) return;
         seen[c.recording] = 1;
         gather.push(c.symbol);
       });
@@ -1522,9 +1638,11 @@
     function samplerToken(name) {
       var key = String(name || '').toLowerCase();
       if (key === 'piano') return '@piano';
+      if (key === 'strings') return '@strings';
       if (key === 'guitar') return '@guitar';
       if (key === 'cello' || key === 'cello-pizzicato') return '@cello';
       if (key === 'bass') return '@bass';
+      if (key === 'vibes') return '@vibes';
       return '';
     }
     function markPhrase(phrase, name, preset) {

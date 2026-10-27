@@ -28,7 +28,10 @@
  *   the modulator only: gain into the carrier frequency is fmDepth * 100 Hz
  *   per full-scale sample. The clip is not pitch-shifted and is not mixed
  *   into the synth output. An `arp` statement uses chord-library.js, a port
- *   of chords.ts from psemmelhack/NetComposer-Synth branch replit-changes.
+ *   of chords.ts from psemmelhack/NetComposer-Synth branch replit-changes,
+ *   with the arp orders, Walk, and Euclidean from that repo's main (288e9c2).
+ *   The step counter starts again at each chord, so Walk and Euclidean
+ *   start their pattern again on each chord too.
  *   An optional envelope follower (absolute value,
  *   then a 30 Hz low-pass) can add to cutoff and loudness; the page leaves
  *   that off.
@@ -190,8 +193,19 @@
     up: 'up', down: 'down', 'up-down': 'up and down', 'down-up': 'down and up',
     'up-down-repeat': 'up and down, repeating the ends',
     'outside-in': 'outside in', 'inside-out': 'inside out',
-    pendulum: 'pendulum', random: 'random', 'as-played': 'as played'
+    pendulum: 'pendulum', random: 'random', 'as-played': 'as played',
+    off: 'the chord together', 'blossom-up': 'blossom up', 'blossom-down': 'blossom down',
+    'low-and-up': 'low pedal, others up', 'low-and-down': 'low pedal, others down',
+    'hi-and-up': 'high pedal, others up', 'hi-and-down': 'high pedal, others down',
+    walk: 'walk'
   };
+  function orderWords(arp) {
+    if (arp.order === 'euclidean') {
+      var e = arp.euclid || (root.NCChords && NCChords.euclidOf ? NCChords.euclidOf(null) : { hits: 5, steps: 8, rotate: 0 });
+      return 'euclidean ' + e.hits + ' of ' + e.steps + (e.rotate ? ', turned ' + e.rotate : '');
+    }
+    return ORDER_WORDS[arp.order] || arp.order || 'up';
+  }
   var RATE_WORDS = {
     '4ths': 'quarter notes', '8ths': 'eighth notes', '16ths': 'sixteenth notes', '32nds': 'thirty-second notes',
     '4t': 'quarter-note triplets', '8t': 'eighth-note triplets', '16t': 'sixteenth-note triplets', '32t': 'thirty-second-note triplets'
@@ -205,7 +219,7 @@
     var oct = arp.octaves || 1;
     var bits = [
       arp.chord || 'the chord line',
-      ORDER_WORDS[arp.order] || arp.order || 'up',
+      orderWords(arp),
       RATE_WORDS[arp.rate] || arp.rate || 'sixteenth notes',
       oct === 1 ? '1 octave' : oct + ' octaves',
       arp.spread || 'compact'
@@ -314,6 +328,7 @@
     var step = arp.step > 0 ? arp.step : 0.25;
     var qpb = barBeats(line.meter);
     var rng = arp.order === 'random' ? mulberry32(seed == null ? 1 : seed) : null;
+    var euclid = arp.order === 'euclidean' && lib.euclidOf ? lib.euclidOf(arp.euclid) : null;
     function windowBeats(beats, bars) {
       if (beats != null) return beats;
       if (bars != null) return bars * qpb;
@@ -325,15 +340,29 @@
       try { pool = lib.arpeggioPool(lib.voicedChord(rootMidi, id, arp.inversion, arp.spread, bass), arp.octaves); }
       catch (e) { return; }
       if (!pool.length) return;
-      var seq = arp.order === 'random' ? null : lib.arpeggioSequence(pool, arp.order);
+      // Off is the chord itself (no octave span) on every step, as in ASTRID.
+      var chord = null;
+      if (arp.order === 'off') {
+        try { chord = lib.voicedChord(rootMidi, id, arp.inversion, arp.spread, bass); }
+        catch (e) { return; }
+      }
+      var seq = arp.order === 'random' || chord ? null : lib.arpeggioSequence(pool, arp.order);
       if (seq && !seq.length) return;
       var left = total, at = startBeat, i = 0;
       while (left > 1e-8 && i < 20000) {
         var take = Math.min(step, left);
-        var midi = seq ? seq[i % seq.length] : pool[Math.floor(rng() * pool.length)];
-        out.push({
-          pitch: spellMidi(midi), midi: midi, velocity: 0.82,
-          start: at * beat, length: Math.max(0.02, take * beat)
+        var picked = [];
+        if (chord) picked = chord;
+        else if (!seq) picked = [pool[Math.floor(rng() * pool.length)]];
+        else if (lib.arpIndex && (arp.order === 'walk' || euclid)) {
+          var k = lib.arpIndex(arp.order, seq.length, i, euclid);
+          if (k != null) picked = [seq[k]];
+        } else picked = [seq[i % seq.length]];
+        picked.forEach(function (midi) {
+          out.push({
+            pitch: spellMidi(midi), midi: midi, velocity: 0.82,
+            start: at * beat, length: Math.max(0.02, take * beat)
+          });
         });
         at += take;
         left -= take;
@@ -398,8 +427,18 @@
       var got = { notes: [], fmDepth: null, instrument: '' };
       String(track.source || '').split(/[\n;]+/).forEach(function (stmt) {
         var km = /(?:^|\s)(?:notes|n)\s+(.+)$/i.exec(stmt);
-        if (!km) return;
-        var taken = fmDepthOf(km[1]);
+        var body = km ? km[1] : '';
+        if (!km) {
+          var bits = String(stmt || '').trim().split(/\s+/).filter(Boolean);
+          var pitchLine = bits.length && bits.some(function (p) {
+            return /^[A-Ga-g][#b]?(-1|[0-9])(?:\(\d+(?:\.\d+)?\|?\))?$/.test(p);
+          }) && bits.every(function (p) {
+            return /^@[A-Za-z][\w-]*$/.test(p) || /^[A-Ga-g][#b]?(-1|[0-9])(?:\(\d+(?:\.\d+)?\|?\))?$/.test(p) || /^fm$/i.test(p) || /^fm\d+(?:\.\d+)?$/i.test(p) || /^\d+(?:\.\d+)?$/.test(p);
+          });
+          if (!pitchLine) return;
+          body = bits.join(' ');
+        }
+        var taken = fmDepthOf(body);
         if (taken.fmDepth != null) got.fmDepth = taken.fmDepth;
         var inst = /@([A-Za-z][\w-]*)/.exec(stmt);
         if (inst) got.instrument = inst[1].toLowerCase();

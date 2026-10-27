@@ -294,7 +294,7 @@
   },
   {
     "name": "quote-and-mix",
-    "text": "q60; [Dm7 G7 Cmaj7(8|)] a slow melody \"Cm\"",
+    "text": "q60; [Dm7 Gdom7 Cmaj7(8|)] a slow melody \"Cm\"",
     "bpm": 60,
     "clock": "language",
     "seed": null,
@@ -345,7 +345,7 @@
       "A chord inside quotes stays words. Delete the quotes around `Cm` to play it.",
       "Words are left for the AI. Quote them `\"like this\"` to keep them words."
     ],
-    "iread": "60 BPM · [Dm7 1 bar*, G7 1 bar*, Cmaj7 8 bars] · 40 beats · 40 s · synth\na slow melody \"Cm\"\n`a` is a word, not A major. Write `A` in its place for the chord.\nA chord inside quotes stays words. Delete the quotes around `Cm` to play it.\nWords are left for the AI. Quote them `\"like this\"` to keep them words."
+    "iread": "60 BPM · [Dm7 1 bar*, Gdom7 1 bar*, Cmaj7 8 bars] · 40 beats · 40 s · synth\na slow melody \"Cm\"\n`a` is a word, not A major. Write `A` in its place for the chord.\nA chord inside quotes stays words. Delete the quotes around `Cm` to play it.\nWords are left for the AI. Quote them `\"like this\"` to keep them words."
   },
   {
     "name": "rest-beats",
@@ -1014,9 +1014,9 @@
     "hacks": [],
     "words": [],
     "notes": [
-      "`C7#11` is not in the synth library, so an arp cannot play it. Write `C7` in its place on the arp line."
+      "`C7#11` is not in the synth library, so an arp cannot play it. Write `Cdom7` in its place on the arp line."
     ],
-    "iread": "arp C7#11 up 16ths (1|)\n`C7#11` is not in the synth library, so an arp cannot play it. Write `C7` in its place on the arp line.",
+    "iread": "arp C7#11 up 16ths (1|)\n`C7#11` is not in the synth library, so an arp cannot play it. Write `Cdom7` in its place on the arp line.",
     "arp": [
       {
         "chord": "C7#11",
@@ -1672,12 +1672,27 @@
     "clock": "language",
     "seed": null,
     "meter": "4/4",
-    "gather": ["Cm"],
+    "gather": [
+      "Cm"
+    ],
     "played": [
-      {"kind": "chord", "symbol": "Cm", "bass": null, "beats": 4, "bars": null, "seconds": 2.667, "recording": 0}
+      {
+        "kind": "chord",
+        "symbol": "Cm",
+        "bass": null,
+        "beats": 4,
+        "bars": null,
+        "seconds": 2.667,
+        "recording": 0
+      }
     ],
     "hacks": [
-      {"abbr": "cp", "type": "compressor", "value": -18, "ramp": null}
+      {
+        "abbr": "cp",
+        "type": "compressor",
+        "value": -18,
+        "ramp": null
+      }
     ],
     "words": [],
     "notes": [],
@@ -2173,14 +2188,9 @@
     "gather": [],
     "played": [],
     "hacks": [],
-    "words": [
-      "C5"
-    ],
-    "notes": [
-      "`C5` is a pitch, not a chord. Write `notes C5` on its own line.",
-      "Words are left for the AI. Quote them `\"like this\"` to keep them words."
-    ],
-    "iread": "C5\n`C5` is a pitch, not a chord. Write `notes C5` on its own line.\nWords are left for the AI. Quote them `\"like this\"` to keep them words.",
+    "words": [],
+    "notes": [],
+    "iread": "notes C5",
     "arp": [],
     "unmapped": [],
     "tracks": [],
@@ -2188,7 +2198,7 @@
   },
   {
     "name": "chord-octave-quality",
-    "text": "C9(2|)",
+    "text": "Cdom9(2|)",
     "bpm": null,
     "clock": "language",
     "seed": null,
@@ -2210,7 +2220,352 @@
     "hacks": [],
     "words": [],
     "notes": [],
-    "iread": "96 BPM · C9 2 bars · 8 beats · 5 s · synth",
+    "iread": "96 BPM · Cdom9 2 bars · 8 beats · 5 s · synth",
+    "arp": [],
+    "unmapped": [],
+    "tracks": [],
+    "synth": false
+  },
+  {
+    "name": "octave-note-c2-e2-g2",
+    "text": "C2 E2 G2",
+    "bpm": null,
+    "clock": "legacy",
+    "seed": null,
+    "meter": "4/4",
+    "gather": [],
+    "played": [],
+    "hacks": [],
+    "words": [],
+    "notes": [],
+    "iread": "notes C2 E2 G2",
+    "arp": [],
+    "unmapped": [],
+    "tracks": [],
+    "synth": false
+  },
+  {
+    "name": "octave-note-bass",
+    "text": "@bass C2 E2 G2",
+    "bpm": null,
+    "clock": "legacy",
+    "seed": null,
+    "meter": "4/4",
+    "gather": [],
+    "played": [],
+    "hacks": [],
+    "words": [],
+    "notes": [],
+    "iread": "notes @bass C2 E2 G2",
+    "arp": [],
+    "unmapped": [],
+    "tracks": [],
+    "synth": false
+  },
+  {
+    "name": "octave-note-csus2",
+    "text": "Csus2",
+    "bpm": null,
+    "clock": "legacy",
+    "seed": null,
+    "meter": "4/4",
+    "gather": [
+      "Csus2"
+    ],
+    "played": [
+      {
+        "kind": "chord",
+        "symbol": "Csus2",
+        "bass": null,
+        "beats": null,
+        "bars": null,
+        "seconds": null,
+        "recording": 0
+      }
+    ],
+    "hacks": [],
+    "words": [],
+    "notes": [
+      "Csus2 has no length, so Play sketches it as 1 bar and Gather uses the whole recording. Write `Csus2(4)` for 4 beats or `Csus2(2|)` for 2 bars."
+    ],
+    "iread": "96 BPM · Csus2 1 bar* · 4 beats · 2.5 s · synth\nCsus2 has no length, so Play sketches it as 1 bar and Gather uses the whole recording. Write `Csus2(4)` for 4 beats or `Csus2(2|)` for 2 bars.",
+    "arp": [],
+    "unmapped": [],
+    "tracks": [],
+    "synth": false
+  },
+  {
+    "name": "octave-note-c5m9",
+    "text": "C5m9",
+    "bpm": null,
+    "clock": "legacy",
+    "seed": null,
+    "meter": "4/4",
+    "gather": [
+      "Cm9"
+    ],
+    "played": [
+      {
+        "kind": "chord",
+        "symbol": "Cm9",
+        "bass": null,
+        "beats": null,
+        "bars": null,
+        "seconds": null,
+        "recording": 0,
+        "octave": 5
+      }
+    ],
+    "hacks": [],
+    "words": [],
+    "notes": [
+      "C5m9 has no length, so Play sketches it as 1 bar and Gather uses the whole recording. Write `C5m9(4)` for 4 beats or `C5m9(2|)` for 2 bars."
+    ],
+    "iread": "96 BPM · C5m9 1 bar* · 4 beats · 2.5 s · synth\nC5m9 has no length, so Play sketches it as 1 bar and Gather uses the whole recording. Write `C5m9(4)` for 4 beats or `C5m9(2|)` for 2 bars.",
+    "arp": [],
+    "unmapped": [],
+    "tracks": [],
+    "synth": false
+  },
+  {
+    "name": "spelling-dom7",
+    "text": "Cdom7(1|)",
+    "bpm": null,
+    "clock": "language",
+    "seed": null,
+    "meter": "4/4",
+    "gather": [
+      "C7"
+    ],
+    "played": [
+      {
+        "kind": "chord",
+        "symbol": "C7",
+        "bass": null,
+        "beats": null,
+        "bars": 1,
+        "seconds": 2.5,
+        "recording": 0
+      }
+    ],
+    "hacks": [],
+    "words": [],
+    "notes": [],
+    "iread": "96 BPM · Cdom7 1 bar · 4 beats · 2.5 s · synth",
+    "arp": [],
+    "unmapped": [],
+    "tracks": [],
+    "synth": false
+  },
+  {
+    "name": "spelling-maj6",
+    "text": "Cmaj6(1|)",
+    "bpm": null,
+    "clock": "language",
+    "seed": null,
+    "meter": "4/4",
+    "gather": [
+      "C6"
+    ],
+    "played": [
+      {
+        "kind": "chord",
+        "symbol": "C6",
+        "bass": null,
+        "beats": null,
+        "bars": 1,
+        "seconds": 2.5,
+        "recording": 0
+      }
+    ],
+    "hacks": [],
+    "words": [],
+    "notes": [],
+    "iread": "96 BPM · Cmaj6 1 bar · 4 beats · 2.5 s · synth",
+    "arp": [],
+    "unmapped": [],
+    "tracks": [],
+    "synth": false
+  },
+  {
+    "name": "spelling-pow",
+    "text": "Cpow(1|)",
+    "bpm": null,
+    "clock": "language",
+    "seed": null,
+    "meter": "4/4",
+    "gather": [],
+    "played": [
+      {
+        "kind": "chord",
+        "symbol": "Cpow",
+        "bass": null,
+        "beats": null,
+        "bars": 1,
+        "seconds": 2.5,
+        "recording": 0
+      }
+    ],
+    "hacks": [],
+    "words": [],
+    "notes": [],
+    "iread": "96 BPM · Cpow 1 bar · 4 beats · 2.5 s · synth",
+    "arp": [],
+    "unmapped": [],
+    "tracks": [],
+    "synth": false
+  },
+  {
+    "name": "spelling-octave-slash",
+    "text": "C4dom7/E(1|)",
+    "bpm": null,
+    "clock": "language",
+    "seed": null,
+    "meter": "4/4",
+    "gather": [
+      "C7"
+    ],
+    "played": [
+      {
+        "kind": "chord",
+        "symbol": "C7",
+        "bass": 4,
+        "beats": null,
+        "bars": 1,
+        "seconds": 2.5,
+        "recording": 0,
+        "octave": 4
+      }
+    ],
+    "hacks": [],
+    "words": [],
+    "notes": [],
+    "iread": "96 BPM · C4dom7/E 1 bar · 4 beats · 2.5 s · synth",
+    "arp": [],
+    "unmapped": [],
+    "tracks": [],
+    "synth": false
+  },
+  {
+    "name": "spelling-pow-octave",
+    "text": "C3pow(1|)",
+    "bpm": null,
+    "clock": "language",
+    "seed": null,
+    "meter": "4/4",
+    "gather": [],
+    "played": [
+      {
+        "kind": "chord",
+        "symbol": "Cpow",
+        "bass": null,
+        "beats": null,
+        "bars": 1,
+        "seconds": 2.5,
+        "recording": 0,
+        "octave": 3
+      }
+    ],
+    "hacks": [],
+    "words": [],
+    "notes": [],
+    "iread": "96 BPM · C3pow 1 bar · 4 beats · 2.5 s · synth",
+    "arp": [],
+    "unmapped": [],
+    "tracks": [],
+    "synth": false
+  },
+  {
+    "name": "spelling-notes",
+    "text": "C7 C6 C5",
+    "bpm": null,
+    "clock": "legacy",
+    "seed": null,
+    "meter": "4/4",
+    "gather": [],
+    "played": [],
+    "hacks": [],
+    "words": [],
+    "notes": [],
+    "iread": "notes C7 C6 C5",
+    "arp": [],
+    "unmapped": [],
+    "tracks": [],
+    "synth": false
+  },
+  {
+    "name": "spelling-track-arp",
+    "text": "t1: arp Cdom7/E (1|)",
+    "bpm": null,
+    "clock": "legacy",
+    "seed": null,
+    "meter": "4/4",
+    "gather": [],
+    "played": [],
+    "hacks": [],
+    "words": [],
+    "notes": [],
+    "iread": "96 BPM · T1 arp Cdom7/E up 16ths (1|) synth · 4 beats · 2.5 s",
+    "arp": [],
+    "unmapped": [],
+    "tracks": [
+      {
+        "n": 1,
+        "label": "T1",
+        "kind": "arp",
+        "instrument": "",
+        "beats": 4,
+        "fmDepth": null,
+        "played": []
+      }
+    ],
+    "synth": false
+  },
+  {
+    "name": "spelling-kept",
+    "text": "C13(1|) C69(1|) C6/9(1|)",
+    "bpm": null,
+    "clock": "language",
+    "seed": null,
+    "meter": "4/4",
+    "gather": [
+      "C13",
+      "C6-9",
+      "C6-9"
+    ],
+    "played": [
+      {
+        "kind": "chord",
+        "symbol": "C13",
+        "bass": null,
+        "beats": null,
+        "bars": 1,
+        "seconds": 2.5,
+        "recording": 0
+      },
+      {
+        "kind": "chord",
+        "symbol": "C6-9",
+        "bass": null,
+        "beats": null,
+        "bars": 1,
+        "seconds": 2.5,
+        "recording": 1
+      },
+      {
+        "kind": "chord",
+        "symbol": "C6-9",
+        "bass": null,
+        "beats": null,
+        "bars": 1,
+        "seconds": 2.5,
+        "recording": 2
+      }
+    ],
+    "hacks": [],
+    "words": [],
+    "notes": [],
+    "iread": "96 BPM · C13 1 bar · C6/9 1 bar · C6/9 1 bar · 12 beats · 7.5 s · synth",
     "arp": [],
     "unmapped": [],
     "tracks": [],

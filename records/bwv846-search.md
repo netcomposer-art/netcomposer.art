@@ -1,7 +1,7 @@
 # Performance record: The C major Prelude, harmony only (after Bach, BWV 846): search-driven take
 
 **Performance** `perf_bwv846-search` · performed 2026-10-17 18:41:42-07:00 (PDT, UTC−7) · 125.9 s · Algorithmic Performer · seed 846  
-**Status:** preview only · record **UNSIGNED** (open decision #33) · record hash `bf1e0e63fc871706…`
+**Status:** preview only · record **UNSIGNED** (open decision #33) · record hash `96cf0a594377fab6…`
 
 ## What was fixed, what was found
 
@@ -32,14 +32,14 @@
 |---|---|---|---|---|
 | 1 | C | FX_HAMMOND_M100_FLUTE_C.wav (Olichite) | 1_cello_C3.wav (flcellogrl) | 12 (cabled_mess) |
 | 2 | Dm7/C | 90s style Pad Chord 5 - Dmin7 (voxlab) | 1_cello_C3.wav (flcellogrl) | 12 (cabled_mess) |
-| 3 | G7/B | Organ Stab Spiryt 2 (ovvcuxs) | 8_cello_G2_openstring.wav (flcellogrl) | 12 (cabled_mess) |
+| 3 | Gdom7/B | Organ Stab Spiryt 2 (ovvcuxs) | 8_cello_G2_openstring.wav (flcellogrl) | 12 (cabled_mess) |
 | 4 | C | FX_HAMMOND_M100_FLUTE_C.wav (Olichite) | 1_cello_C3.wav (flcellogrl) | 12 (cabled_mess) |
 | 5 | Am/C | Ukulele Old _ Chord _ Am Slow strum-though NT5 L_12Fret R_Soundhole (Sadiquecat) | 1_cello_C3.wav (flcellogrl) | 12 (cabled_mess) |
-| 6 | D7/C | Harmonium-D4 (cabled_mess) | 1_cello_C3.wav (flcellogrl) | 12 (Thisisnotmyname12354, cabled_mess) |
+| 6 | Ddom7/C | Harmonium-D4 (cabled_mess) | 1_cello_C3.wav (flcellogrl) | 12 (Thisisnotmyname12354, cabled_mess) |
 | 7 | G/B | Organ Stab Spiryt 2 (ovvcuxs) | 8_cello_G2_openstring.wav (flcellogrl) | 12 (cabled_mess) |
 | 8 | Cmaj7/B | C Major Seventh (paulnorthyorks) | 1_cello_C3.wav (flcellogrl) | 12 (cabled_mess) |
 | 9 | Am7 | Ukulele Old _ Chord _ Am Slow strum-though NT5 L_12Fret R_Soundhole (Sadiquecat) | 10_cello_A2.wav (flcellogrl) | 12 (cabled_mess) |
-| 10 | D7 | Harmonium-D4 (cabled_mess) | — | 12 (Thisisnotmyname12354, cabled_mess) |
+| 10 | Ddom7 | Harmonium-D4 (cabled_mess) | — | 12 (Thisisnotmyname12354, cabled_mess) |
 | 11 | G | Organ Stab Spiryt 2 (ovvcuxs) | 8_cello_G2_openstring.wav (flcellogrl) | 12 (cabled_mess) |
 | 12 | C#dim7/G | PPG 008 Dissonant Space Organ C6.wav (Jovica) | 8_cello_G2_openstring.wav (flcellogrl) | 12 (cabled_mess) |
 | 13 | Dm/F | Dm - Piano Chord (blakengouda) | — | 12 (cabled_mess) |
@@ -47,23 +47,23 @@
 | 15 | C/E | FX_HAMMOND_M100_FLUTE_C.wav (Olichite) | 1_cello_C3.wav (flcellogrl) | 16 (cabled_mess) |
 | 16 | Fmaj7/E | Bass.wav (jesuswaffle) | — | 16 (cabled_mess) |
 | 17 | Dm7 | Bass.wav (jesuswaffle) | — | 16 (cabled_mess) |
-| 18 | G7 | Organ Stab Spiryt 2 (ovvcuxs) | 8_cello_G2_openstring.wav (flcellogrl) | 16 (cabled_mess) |
+| 18 | Gdom7 | Organ Stab Spiryt 2 (ovvcuxs) | 8_cello_G2_openstring.wav (flcellogrl) | 16 (cabled_mess) |
 | 19 | C | FX_HAMMOND_M100_FLUTE_C.wav (Olichite) | 1_cello_C3.wav (flcellogrl) | 16 (cabled_mess) |
-| 20 | C7 | FX_HAMMOND_M100_FLUTE_C.wav (Olichite) | 1_cello_C3.wav (flcellogrl) | 8 (cabled_mess) |
+| 20 | Cdom7 | FX_HAMMOND_M100_FLUTE_C.wav (Olichite) | 1_cello_C3.wav (flcellogrl) | 8 (cabled_mess) |
 | 21 | Fmaj7 | Bass.wav (jesuswaffle) | — | 8 (cabled_mess) |
 | 22 | F#dim7 | yamaha Adim.wav (NoiseCollector) | — | 8 (Miles_Thompson, Thisisnotmyname12354, cabled_mess) |
 | 23 | Bdim7/Ab | — | — | 8 (cabled_mess) |
-| 24 | G7 | Organ Stab Spiryt 2 (ovvcuxs) | 8_cello_G2_openstring.wav (flcellogrl) | 16 (cabled_mess) |
+| 24 | Gdom7 | Organ Stab Spiryt 2 (ovvcuxs) | 8_cello_G2_openstring.wav (flcellogrl) | 16 (cabled_mess) |
 | 25 | C/G | FX_HAMMOND_M100_FLUTE_C.wav (Olichite) | 8_cello_G2_openstring.wav (flcellogrl) | 16 (cabled_mess) |
 | 26 | G7sus4 | Bass.wav (jesuswaffle) | 8_cello_G2_openstring.wav (flcellogrl) | 16 (cabled_mess) |
-| 27 | G7 | Organ Stab Spiryt 2 (ovvcuxs) | 8_cello_G2_openstring.wav (flcellogrl) | 16 (cabled_mess) |
+| 27 | Gdom7 | Organ Stab Spiryt 2 (ovvcuxs) | 8_cello_G2_openstring.wav (flcellogrl) | 16 (cabled_mess) |
 | 28 | F#dim7/G | yamaha Adim.wav (NoiseCollector) | 8_cello_G2_openstring.wav (flcellogrl) | 16 (Miles_Thompson, Thisisnotmyname12354, cabled_mess) |
 | 29 | C/G | FX_HAMMOND_M100_FLUTE_C.wav (Olichite) | 8_cello_G2_openstring.wav (flcellogrl) | 16 (cabled_mess) |
 | 30 | G7sus4 | Bass.wav (jesuswaffle) | 8_cello_G2_openstring.wav (flcellogrl) | 16 (cabled_mess) |
-| 31 | G7 | Organ Stab Spiryt 2 (ovvcuxs) | 8_cello_G2_openstring.wav (flcellogrl) | 16 (cabled_mess) |
-| 32 | C7 | AcousticGuitar-C-Chord.wav (spitefuloctopus) | 1_cello_C3.wav (flcellogrl) | 16 (cabled_mess) |
+| 31 | Gdom7 | Organ Stab Spiryt 2 (ovvcuxs) | 8_cello_G2_openstring.wav (flcellogrl) | 16 (cabled_mess) |
+| 32 | Cdom7 | AcousticGuitar-C-Chord.wav (spitefuloctopus) | 1_cello_C3.wav (flcellogrl) | 16 (cabled_mess) |
 | 33 | Dm7/C | 90s style Pad Chord 5 - Dmin7 (voxlab) | 1_cello_C3.wav (flcellogrl) | 16 (cabled_mess) |
-| 34 | G7/C | Organ Stab Spiryt 2 (ovvcuxs) | 1_cello_C3.wav (flcellogrl) | 16 (cabled_mess) |
+| 34 | Gdom7/C | Organ Stab Spiryt 2 (ovvcuxs) | 1_cello_C3.wav (flcellogrl) | 16 (cabled_mess) |
 | 35 | C | FX_HAMMOND_M100_FLUTE_C.wav (Olichite) | 1_cello_C3.wav (flcellogrl) | 8 (cabled_mess) |
 
 ## Sounds used
@@ -139,6 +139,8 @@ Ready to paste:
 
 Files: `bach_bwv846_search.wav` sha256 `de78c2d413b78e18…` · `.mp3` sha256 `32c3f406c22c2995…`
 
-## Amendment
+## Amendments
 
 2026-10-17T19:29:52-07:00: contributor display name changed from Petrus to Peter (Peter Semmelhack) for netcomposer.art, at his request. Nothing else changed. Previous record hash `c8d51fe5c92c1ce5…`, new `bf1e0e63fc871706…`.
+
+2026-10-25T13:27:17-07:00: chord spellings rewritten at Peter's request. A letter plus one octave digit is always a note, so the dominant 7 chords are written dom7 (G7 to Gdom7, C7 to Cdom7, D7 to Ddom7). The Composition pin moved with the rewritten text, `f63acadc04937a28…` to `d81274dc70ac2643…`. Nothing else changed. Previous record hash `bf1e0e63fc871706…`, new `96cf0a594377fab6…`.

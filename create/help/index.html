@@ -65,25 +65,54 @@ footer.site{margin-top:5rem;padding-bottom:4rem}
 <p class="hear">C minor with G in the bass. The note after the slash is the bottom note. Play sketches one bar.</p>
 <pre class="ex">C5m9(4|)</pre>
 <p class="hear">C minor 9 with its root on C5, held for 4 bars at 96 BPM. Cm9 with no octave stays in its usual place. Gather still finds Cm9.</p>
-<p>Write the octave right after the root, the same way a note does: <code>Eb4maj7</code>, <code>F#3m7</code>, <code>C5m9/Bb</code>. The bass note sits below that root. A bare <code>C5</code> stays a note. A pitch runs from <code>C-1</code> to <code>G9</code>.</p>
-<p>A few short forms mean the same chord. <code>Cmin</code> and <code>C-</code> are Cm. <code>CM7</code> is Cmaj7. <code>Csus</code> is Csus4. <code>C6/9</code> is the 6/9 chord. <code>C2</code> is Csus2. <code>C+</code> is Caug.</p>
+<p>Write the octave right after the root, the same way a note does: <code>Eb4maj7</code>, <code>F#3m7</code>, <code>C5m9/Bb</code>. The bass note sits below that root. A pitch runs from <code>C-1</code> to <code>G9</code>.</p>
+<p>A letter plus one octave digit is always a note, on a plain line, a <code>tN:</code> track, an <code>@instrument</code> line, and an arp. <code>C2</code>, <code>C5</code>, <code>C6</code>, <code>C7</code>, <code>C9</code>, <code>F#3</code>, and <code>Bb1</code> are pitches. There is no exception. <code>C13</code> stays dominant 13 and <code>C69</code> stays the six-nine chord, the same as <code>C6/9</code>. <code>C11</code> stays written <code>C11</code>. Two digits are not an octave. <code>C5m9</code> is still C minor 9 with its root on C5.</p>
+<p>Write a dominant 7 as <code>Cdom7</code>, a dominant 9 as <code>Cdom9</code>, a major 6 as <code>Cmaj6</code>, and a power chord as <code>Cpow</code>. Each one takes an octave (<code>C4dom7</code>, <code>C3pow</code>), a slash bass (<code>Cdom7/E</code>), an arp, and a <code>tN:</code> track.</p>
+<ul class="chords">
+<li><code>Cdom7</code> dominant 7</li>
+<li><code>Cdom9</code> dominant 9</li>
+<li><code>Cmaj6</code> major 6</li>
+<li><code>Cpow</code> power chord, the root and the fifth</li>
+</ul>
+<pre class="ex">Cdom7(1|)</pre>
+<p class="hear">C dominant 7 for 1 bar at 96 BPM, on the built-in synth. 4 beats, 2.5 seconds. Gather finds the dominant 7 recording.</p>
+<pre class="ex">Cdom9(1|)</pre>
+<p class="hear">C dominant 9 for 1 bar at 96 BPM, on the built-in synth. 4 beats, 2.5 seconds. Gather finds the dominant 9 recording.</p>
+<pre class="ex">Cmaj6(1|)</pre>
+<p class="hear">C major 6 for 1 bar at 96 BPM, on the built-in synth. 4 beats, 2.5 seconds. Gather finds the major 6 recording.</p>
+<pre class="ex">Cpow(1|)</pre>
+<p class="hear">C power chord, the root and the fifth, for 1 bar at 96 BPM, on the built-in synth. 4 beats, 2.5 seconds. Gather does not fetch a recording.</p>
+<pre class="ex">C4dom7(1|)</pre>
+<p class="hear">C dominant 7 with its root on C4, for 1 bar at 96 BPM. Gather still finds the dominant 7 recording.</p>
+<pre class="ex">C3pow(1|)</pre>
+<p class="hear">C power chord with its root on C3, for 1 bar at 96 BPM, on the built-in synth. 4 beats, 2.5 seconds.</p>
+<pre class="ex">Cdom7/E(1|)</pre>
+<p class="hear">C dominant 7 with E in the bass, for 1 bar at 96 BPM. 4 beats, 2.5 seconds.</p>
+<pre class="ex">arp Cdom7</pre>
+<p class="hear">C dominant 7 as an upward arpeggio. Play lists it and stays quiet. There is no track label. Gather renders it on the synth.</p>
+<pre class="ex">t1: Cmaj6(1|)</pre>
+<p class="hear">Play sounds C major 6 for 1 bar on the built-in synth. 4 beats, 2.5 seconds at 96 BPM. Gather finds the major 6 recording.</p>
+<pre class="ex">@bass C2 E2 G2</pre>
+<p class="hear">Play sounds the notes C2, E2, and G2 on the bass, one beat each. 3 beats, about 1.9 seconds at 96 BPM. The bass notes need a connection once.</p>
+<pre class="ex">Csus2</pre>
+<p class="hear">C suspended 2, one sketched bar at 96 BPM, on the built-in synth. Gather finds Csus2.</p>
+<p>A few short forms mean the same chord. <code>Cmin</code> and <code>C-</code> are Cm. <code>CM7</code> is Cmaj7. <code>Csus</code> is Csus4. <code>C6/9</code> is the 6/9 chord. <code>C+</code> is Caug.</p>
 <pre class="ex">CM7</pre>
 <p class="hear">C major 7, read from the short form CM7. Play sketches one bar at 96 BPM.</p>
 <p>These are the qualities you can write after a root. The examples use C. Any root from the list above works the same way.</p>
 <ul class="chords">
 <li><code>C</code> major</li>
 <li><code>Cm</code> minor</li>
-<li><code>C6</code> major 6</li>
 <li><code>C6-9</code> or <code>C6/9</code> six-nine</li>
-<li><code>C7</code> dominant 7</li>
+<li><code>Cdom7</code> dominant 7. <code>C7</code> is the note C7.</li>
 <li><code>C7#9</code> dominant 7, sharp 9</li>
-<li><code>C7#11</code> dominant 7, sharp 11. An arpeggio cannot play this one. On an arp line, write <code>C7</code> in its place.</li>
+<li><code>C7#11</code> dominant 7, sharp 11. An arpeggio cannot play this one. On an arp line, write <code>Cdom7</code> in its place.</li>
 <li><code>C7alt</code> altered dominant</li>
 <li><code>C7b5</code> dominant 7, flat 5</li>
 <li><code>C7b9</code> dominant 7, flat 9</li>
-<li><code>C7b13</code> dominant 7, flat 13. An arpeggio cannot play this one either. Write <code>C7</code> on the arp line.</li>
+<li><code>C7b13</code> dominant 7, flat 13. An arpeggio cannot play this one either. Write <code>Cdom7</code> on the arp line.</li>
 <li><code>C7sus4</code> or <code>C7sus</code> suspended 7</li>
-<li><code>C9</code> dominant 9</li>
+<li><code>Cdom9</code> dominant 9. <code>C9</code> is the note C9.</li>
 <li><code>C9sus4</code> or <code>C9sus</code> suspended 9</li>
 <li><code>Cadd9</code> or <code>Cadd2</code> add 9</li>
 <li><code>Caug</code> or <code>C+</code> augmented</li>
@@ -103,7 +132,9 @@ footer.site{margin-top:5rem;padding-bottom:4rem}
 <li><code>Cmaj7#11</code> major 7, sharp 11</li>
 <li><code>Cmaj9</code> major 9</li>
 <li><code>Cmaj13</code> major 13</li>
-<li><code>Csus2</code> or <code>C2</code> suspended 2</li>
+<li><code>Cmaj6</code> major 6. <code>C6</code> is the note C6.</li>
+<li><code>Cpow</code> power chord, the root and the fifth. <code>C5</code> is the note C5.</li>
+<li><code>Csus2</code> suspended 2. <code>C2</code> is the note C2.</li>
 <li><code>Csus4</code> or <code>Csus</code> suspended 4</li>
 </ul>
 <p>A near miss is named in the line under the field. <code>Cmaj13b</code> is not a chord. The line asks if you meant <code>Cmaj13</code>.</p>
@@ -170,7 +201,9 @@ loop(4)</pre>
 
 <section id="notes">
 <h2>Notes</h2>
-<p>A notes line is a melody, written as pitches. A pitch is a letter plus an octave number, such as <code>C5</code>. <code>C5</code> on its own is not a chord. Start the line with <code>n</code> or <code>notes</code>, and give it at least one pitch. The line runs to the end of that line.</p>
+<p>A letter plus one octave digit is always a note, including <code>C7</code>, <code>C6</code>, and <code>C5</code>. <code>C2 E2 G2</code> is those three pitches, and <code>@bass C2 E2 G2</code> plays them on the bass. Each pitch with no length lasts 1 beat. You can also start a melody with <code>n</code> or <code>notes</code>. A line that starts that way, with no track label, is listed and Play stays quiet. The line runs to the end of that line.</p>
+<pre class="ex">C7 C6 C5</pre>
+<p class="hear">Play sounds the notes C7, C6, and C5, one beat each, on the built-in synth. 3 beats, about 1.9 seconds at 96 BPM.</p>
 <p>Glue a length to a pitch the same way as a chord. <code>(2)</code> is 2 beats. <code>(2|)</code> is 2 bars. A pitch with no length just follows.</p>
 <pre class="ex">n C5(2) Eb5 G5 Bb4</pre>
 <p class="hear">Play lists the line and stays quiet. Gather renders C5, E flat 5, G5, and B flat 4 on the built-in synth. C5 lasts 2 beats. Perform plays that melody.</p>
@@ -219,6 +252,38 @@ loop(4)</pre>
 <p class="hear">The notes in the order the chord is written, not sorted low to high.</p>
 <pre class="ex">arp Cm9 down-up</pre>
 <p class="hear">The reverse of up-down. down/up is the same name.</p>
+<p id="arp-numbers">Every order also has a number that never changes, so <code>Arp(5)</code> is always random. Write <code>Arp(number)</code> or <code>Arp(short name)</code> on an arp line, or start the line with it. A number or name that is not on this list plays the chord together, the same as <code>Arp(0)</code>. The short name also works on its own, as in <code>arp Cm9 blossom-up</code>.</p>
+<table>
+<tr><th>#</th><th>Name</th><th>Short name</th></tr>
+<tr><td>0</td><td>Off — chord</td><td><code>off</code></td></tr>
+<tr><td>1</td><td>Up</td><td><code>up</code></td></tr>
+<tr><td>2</td><td>Down</td><td><code>down</code></td></tr>
+<tr><td>3</td><td>Up/Down</td><td><code>up-down</code></td></tr>
+<tr><td>4</td><td>Up/Down Repeat</td><td><code>up-down-repeat</code></td></tr>
+<tr><td>5</td><td>Random</td><td><code>random</code></td></tr>
+<tr><td>6</td><td>As Played</td><td><code>as-played</code></td></tr>
+<tr><td>7</td><td>Outside-In</td><td><code>outside-in</code></td></tr>
+<tr><td>8</td><td>Inside-Out</td><td><code>inside-out</code></td></tr>
+<tr><td>9</td><td>Pendulum</td><td><code>pendulum</code></td></tr>
+<tr><td>10</td><td>Blossom Up</td><td><code>blossom-up</code></td></tr>
+<tr><td>11</td><td>Blossom Down</td><td><code>blossom-down</code></td></tr>
+<tr><td>12</td><td>Low&amp;Up</td><td><code>low-and-up</code></td></tr>
+<tr><td>13</td><td>Low&amp;Down</td><td><code>low-and-down</code></td></tr>
+<tr><td>14</td><td>Hi&amp;Up</td><td><code>hi-and-up</code></td></tr>
+<tr><td>15</td><td>Hi&amp;Down</td><td><code>hi-and-down</code></td></tr>
+<tr><td>16</td><td>Walk</td><td><code>walk</code></td></tr>
+<tr><td>17</td><td>Euclidean</td><td><code>euclidean</code></td></tr>
+<tr><td>18</td><td>Down/Up (legacy)</td><td><code>down-up</code></td></tr>
+</table>
+<p>Blossom starts in the middle of the chord and grows outward. Low&amp;Up and the other pedal orders keep coming back to one note, the lowest or the highest, between the others. Walk steps up, stays, or steps back, the same way every time you play it. Euclidean (17) spreads some hits evenly over a count of steps and rests in the gaps. Write <code>Arp(17, hits, steps, rotate)</code>. Steps go up to 16. Rotate turns the pattern so it starts later. With no numbers it is 5 hits in 8 steps.</p>
+<pre class="ex">Arp(10) Cm9</pre>
+<p class="hear">C minor 9 from the middle note outward, spiralling up. It is the same as arp Cm9 blossom-up.</p>
+<pre class="ex">arp Am7 Arp(12) 8ths</pre>
+<p class="hear">A minor 7 in eighth notes: the low A, then the next note up, then the low A again, climbing.</p>
+<pre class="ex">Arp(17, 5, 8) Am7</pre>
+<p class="hear">A minor 7 going up, but only 5 of every 8 steps play, spread out evenly: note, rest, note, rest, note, note, rest, note.</p>
+<pre class="ex">Arp(17, 3, 8, 2) Cm9</pre>
+<p class="hear">3 notes in every 8 steps, turned 2 steps so the first note comes later.</p>
 <p>Rate is how fast the notes go. <code>4ths</code> or <code>quarter</code> is one note per beat. <code>8ths</code> or <code>eighth</code> is two. <code>16ths</code> is four, and it is the usual rate. <code>32nds</code> is eight. A triplet squeezes three notes into the time of two of that value. <code>8t</code> is three notes in one beat. <code>4t</code>, <code>16t</code>, and <code>32t</code> are the slower and faster triplets.</p>
 <pre class="ex">arp Cm9 4ths</pre>
 <p class="hear">One note per beat, going up.</p>
@@ -278,10 +343,11 @@ arp</pre>
 
 <section id="instrument">
 <h2>An instrument</h2>
-<p>Play sounds the built-in synth. <code>@piano</code>, <code>@guitar</code>, <code>@cello</code>, and <code>@bass</code> play the sampler instead, on a notes line, an arp, or a chord line. On a chord line the sampler plays that chord's voicing. <code>@bass</code> is B1–A#4. A pitch the instrument does not have is left out. Any other name, such as <code>@flute</code>, only labels the line, and Play uses the synth. Gather still finds a recording. It skips a line that says <code>@synth</code>, and a chord track that says <code>@bass</code>. A notes line or an arp with no track label is listed, and Play stays quiet.</p>
+<p>Play sounds the built-in synth. <code>@piano</code>, <code>@guitar</code>, <code>@cello</code>, <code>@bass</code>, and <code>@vibes</code> play the sampler instead, on a notes line, an arp, or a chord line. On a chord line the sampler plays that chord's voicing. <code>@bass</code> is B1–A#4. <code>@vibes</code> is C2–G#6. These vibes pitches are left out: D#2, F#2, C4, C#4, C5, D#5, C#6, D#6, F6, and G6. A pitch the instrument does not have is left out. Any other name, such as <code>@flute</code>, only labels the line, and Play uses the synth. Gather still finds a recording. It skips a line that says <code>@synth</code>, and a chord track that says <code>@bass</code> or <code>@vibes</code>. A line that starts with <code>notes</code> or <code>arp</code>, and has no track label, is listed, and Play stays quiet. A line of pitches such as <code>@bass C2 E2 G2</code> plays.</p>
 <p><code>@synth(1)</code> loads the preset whose number is 1. <code>@synth(44)</code> loads preset 44. The number belongs to the preset, not to its place in a list. <code>@synth(Example Bright)</code> and <code>@synth(velvet-comet)</code> load a preset by name. Capitals do not matter, and spaces stay inside the brackets. A hyphen and a space are the same, so <code>velvet-comet</code> and <code>Velvet Comet</code> are one name, and so are <code>clear-night-spark</code> and <code>Clear Night Spark</code>. A hyphen stays part of the name. The same mark works on a track and on an arp. A preset sets that line's synth patch: waveform, oscillators, filter, loudness, envelopes, mods, and FM. The notes, the chord, the tempo, and the hacks you wrote still win. Play uses the preset. Gather and Perform keep the usual patch. A missing preset still plays that usual patch, and I-read says it was not found. Presets 1, 2, and 3 are examples: 1 · Example Bright, 2 · Example Dark, and 3 · Example Sine. Import, next to the help mark, reads an NC Synth file and keeps it in this browser. A saved configuration is named <code>44-velvet-comet.json</code> and contains <code>format</code> <code>netcomposer.synth</code>, <code>version</code> 1, <code>number</code>, <code>name</code>, and <code>settings</code>. A performance preset contains <code>id</code>, <code>number</code>, <code>name</code>, <code>version</code> 1, and <code>settings</code>. <code>number</code> is a positive integer. An older file with no number and no name takes both from the filename, such as 44 and velvet-comet. A file that still has no number takes the next free one. If that number is already a built-in preset or another import, that one keeps it and the import takes the next free number. I-read says so, as in <code>1 is Example Bright, so this one is 4</code>. Import and I-read show the number and the name, as in <code>44 · velvet-comet</code>. A name uses an import before a built-in preset of the same name.</p>
 <pre class="ex">Cm11</pre>
 <p class="hear">Play sounds C minor 11 on the built-in synth, one sketched bar at 96 BPM, from the catalog voicing. Gather still finds a recording.</p>
+<p><code>@strings</code> plays the sampler on a notes line, an arp, or a chord line. On a chord line the sampler plays that chord's voicing. <code>@strings</code> is G3–C#7. These strings pitches are left out: A#3, F#4, C#5, F#5, and B6. Gather skips a chord track that says <code>@strings</code>.</p>
 <pre class="ex">Cm11 @piano</pre>
 <p class="hear">Play sounds that same C minor 11 voicing on the piano sampler. The built-in synth stays out. The piano notes need a connection once. Gather still finds a recording.</p>
 <pre class="ex">n C5@piano Eb5</pre>
@@ -302,8 +368,9 @@ arp</pre>
 <h2>Tracks</h2>
 <p>Arrangement, under Play, puts <code>S</code> and <code>M</code> on each lane. S solos that lane. M mutes it. Reset clears them. Play, Live, and Keep follow them. If any lane is soloed, only the soloed lanes play. A soloed lane still plays when it is also muted. A muted lane is silent when nothing is soloed.</p>
 <p>A track label is <code>t1:</code>, <code>t2:</code>, and so on. Write it at the start of a line, or several on one line. Everything after a label, up to the next label or the end of that line, belongs to that track. The same label again adds to that track. <code>T1</code> and <code>t1</code> are the same track. A line with no label is read the way it always was.</p>
-<p>Tracks start together. They share the tempo and the time signature. Each one can be a chord progression, a notes line, or an arp, with its own lengths and its own FM depth. Each synth track is its own voice. On Play, a chord track sounds the built-in synth. <code>@piano</code>, <code>@guitar</code>, <code>@cello</code>, and <code>@bass</code> play the sampler, and on a chord track the sampler plays that chord's voicing. <code>@bass</code> is B1–A#4. A pitch the bass does not have is left out. A plain name, such as <code>@flute</code>, only labels the track, and Play uses the synth. <code>@synth</code> is the same synth. Gather skips a chord track that says <code>@synth</code> or <code>@bass</code>.</p>
+<p>Tracks start together. They share the tempo and the time signature. Each one can be a chord progression, a notes line, or an arp, with its own lengths and its own FM depth. Each synth track is its own voice. On Play, a chord track sounds the built-in synth. <code>@piano</code>, <code>@guitar</code>, <code>@cello</code>, <code>@bass</code>, and <code>@vibes</code> play the sampler, and on a chord track the sampler plays that chord's voicing. <code>@bass</code> is B1–A#4. <code>@vibes</code> is C2–G#6. A pitch the instrument does not have is left out. A plain name, such as <code>@flute</code>, only labels the track, and Play uses the synth. <code>@synth</code> is the same synth. Gather skips a chord track that says <code>@synth</code>, <code>@bass</code>, or <code>@vibes</code>.</p>
 <p>Play sounds a synth track, and a sampler track, from its notes as soon as you press Play. There is no render wait. A piece that is only the built-in synth plays with no connection. The sampler needs a connection once. Gather still finds a recording for every other chord.</p>
+<p><code>@strings</code> is G3–C#7. It plays the sampler, including a chord's voicing. A pitch the strings do not have is left out. Gather skips a chord track that says <code>@strings</code>.</p>
 <pre class="ex">t1: Cm(4|) Fm(4|) @synth
 t2: notes C5(4|) G5(4|) fm 2</pre>
 <p class="hear">Play sounds both from their notes as soon as you press it, with no render wait. T1 is C minor for 4 bars, then F minor for 4 bars, on the synth. T2 is C5 for 4 bars, then G5 for 4 bars, with FM depth 2 written on the line. They start together. 32 beats, 20 seconds at 96 BPM. Gather does not fetch a recording. This piece plays with no connection.</p>
@@ -313,11 +380,15 @@ t2: notes C5(4|) G5(4|) fm 2</pre>
 <p class="hear">Play sounds C4 for 4 bars on the piano, from the note, with no render wait. The built-in synth stays out. 16 beats, 10 seconds at 96 BPM. The piano notes need a connection once.</p>
 <pre class="ex">t1: Cm(2|) @bass</pre>
 <p class="hear">Play sounds the bass notes of Cm for 2 bars. Bass is B1–A#4. A pitch the bass does not have is left out. The built-in synth stays out. 8 beats, 5 seconds at 96 BPM. The bass notes need a connection once.</p>
+<pre class="ex">t1: Cm(2|) @vibes</pre>
+<p class="hear">Play sounds the vibes notes of Cm for 2 bars. Vibes are C2–G#6. A pitch the vibes do not have is left out. The built-in synth stays out. 8 beats, 5 seconds at 96 BPM. The vibes notes need a connection once.</p>
 <pre class="ex">t1: notes C4(4|) @flute</pre>
 <p class="hear">T1 keeps C4 for 4 bars. The name flute only labels it. Play sounds C4 on the built-in synth. 16 beats, 10 seconds at 96 BPM. This piece plays with no connection.</p>
 <pre class="ex">t1: Cm11(4)
 t2: notes G3(4) @cello</pre>
 <p class="hear">Play sounds T1, C minor 11 for 4 beats, on the built-in synth, and T2, G3 for 4 beats, on the cello sampler. They start together. 4 beats, 2.5 seconds at 96 BPM. The cello notes need a connection once. Gather still finds a recording for C minor 11.</p>
+<pre class="ex">t1: Cm(2|) @strings</pre>
+<p class="hear">Play sounds the strings notes of Cm for 2 bars. Strings are G3–C#7. A pitch the strings do not have is left out. The built-in synth stays out. 8 beats, 5 seconds at 96 BPM. The strings notes need a connection once.</p>
 </section>
 
 <section id="hacks">
@@ -338,8 +409,9 @@ t2: notes G3(4) @cello</pre>
 
 <section id="iread">
 <h2>The I-read line</h2>
-<p>Under the Composition field, a line begins “I read”. It is the page saying what it understood. The first line is the music, and it names what Play will sound: synth, or <code>@piano</code>, <code>@guitar</code>, <code>@cello</code>, or <code>@bass</code>. When the line names a synth preset, I-read shows its number and name, as in 1 · Example Bright. When an import had to take a different number, I-read says which preset kept the old one. When that preset is missing, it says so. Then any words left for the AI. Then a note, only when you may want to change something. A note always includes the exact text to type, in a grey box, and says where it goes. A How link on that note opens the part of this page that matches.</p>
+<p>Under the Composition field, a line begins “I read”. It is the page saying what it understood. The first line is the music, and it names what Play will sound: synth, or <code>@piano</code>, <code>@guitar</code>, <code>@cello</code>, <code>@bass</code>, or <code>@vibes</code>. When the line names a synth preset, I-read shows its number and name, as in 1 · Example Bright. When an import had to take a different number, I-read says which preset kept the old one. When that preset is missing, it says so. Then any words left for the AI. Then a note, only when you may want to change something. A note always includes the exact text to type, in a grey box, and says where it goes. A How link on that note opens the part of this page that matches.</p>
 <p>A star on a length, written <code>1 bar*</code>, means you did not write that length. Play sketches one bar. Gather uses the whole recording.</p>
+<p>I read also names <code>@strings</code>. <code>@strings</code> is G3–C#7.</p>
 <pre class="ex">Cm</pre>
 <p class="hear">I-read says: 96 BPM, Cm as 1 bar*, 4 beats, 2.5 seconds, and synth. Then it asks you to write Cm(4) for 4 beats or Cm(2|) for 2 bars. The 96 is already in the tempo box, so it does not ask you to add a tempo. You hear one sketched bar on the synth.</p>
 <pre class="ex">90 BPM [Cm(2) Fm9(2|)]x4</pre>
@@ -349,8 +421,9 @@ t2: notes G3(4) @cello</pre>
 
 <section id="play">
 <h2>Play, Gather, and Perform</h2>
-<p>Play sounds the chords you wrote on the built-in synth, once each, at the speed you wrote. A group repeat is shown once, with a times mark, and Play still goes around it that many times. Play does not fill the piece out to two minutes. A notes line or an arp with no track label is listed, and Play stays quiet. Play does not sound a hack. <code>@piano</code>, <code>@guitar</code>, <code>@cello</code>, and <code>@bass</code> play the sampler, including the voicing of a chord line. <code>@bass</code> is B1–A#4. Any other <code>@name</code> only labels the line, and Play uses the synth. <code>@synth(1)</code> and <code>@synth(Example Bright)</code> are Play only. Gather and Perform keep the usual synth patch. A synth track or a sampler track plays live from its notes, with no render wait. Gather still finds the recordings. It skips a chord line that says <code>@synth</code>, and a chord track that says <code>@bass</code>. Play does not play those recordings.</p>
+<p>Play sounds the chords you wrote on the built-in synth, once each, at the speed you wrote. A group repeat is shown once, with a times mark, and Play still goes around it that many times. Play does not fill the piece out to two minutes. A line that starts with <code>notes</code> or <code>arp</code>, and has no track label, is listed, and Play stays quiet. A line of pitches such as <code>@bass C2 E2 G2</code> plays. Play does not sound a hack. <code>@piano</code>, <code>@guitar</code>, <code>@cello</code>, <code>@bass</code>, and <code>@vibes</code> play the sampler, including the voicing of a chord line. <code>@bass</code> is B1–A#4. <code>@vibes</code> is C2–G#6. Any other <code>@name</code> only labels the line, and Play uses the synth. <code>@synth(1)</code> and <code>@synth(Example Bright)</code> are Play only. Gather and Perform keep the usual synth patch. A synth track or a sampler track plays live from its notes, with no render wait. Gather still finds the recordings. It skips a chord line that says <code>@synth</code>, and a chord track that says <code>@bass</code> or <code>@vibes</code>. Play does not play those recordings.</p>
 <p>Gather finds one recording per chord. A written length uses that much of the recording. No length uses the whole recording. A repeat reuses the same recording. A notes line or an arp with no <code>@instrument</code> is rendered here on the built-in synth, and listed with the recordings.</p>
+<p><code>@strings</code> is G3–C#7. It plays the sampler, including a chord's voicing. A pitch the strings do not have is left out. Gather skips a chord track that says <code>@strings</code>.</p>
 <p>Perform puts what Gather found into the piece, with the synth and sampler tracks. Keep writes one fixed file of what you heard. Live parks each hack at the number you wrote, and moves a filter arrow across the whole piece. A low-pass written <code>lp500-&gt;200</code> goes from 500 Hz to 200 Hz.</p>
 <p>A piece that is only the built-in synth plays with no connection. The sampler, and the recordings, need a connection once.</p>
 <pre class="ex">90 BPM

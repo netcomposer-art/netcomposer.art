@@ -97,8 +97,9 @@
   }
   // Keep and Perform. Notes and arp tracks can play the sampler. @synth stays
   // the synth. A name in NCInstruments is the sampler even when the hidden
-  // sampler switch is off. @bass does that on a chord track too. Bass is
-  // B1–A#4. @piano, @guitar, and @cello on a chord track stay recordings.
+  // sampler switch is off. @bass and @vibes do that on a chord track too.
+  // Bass is B1–A#4. Vibes are C2–G#6. @piano, @guitar, and @cello on a
+  // chord track stay recordings.
   // Any other @name keeps the synth out.
   function roleOf(tr) {
     if (!tr) return '';
@@ -117,7 +118,7 @@
   }
   // Play. The line decides. No @name, and any name that is not a sampler,
   // sounds the synth, including a chord's catalog voicing. @piano, @guitar,
-  // @cello, and @bass play the sampler, including a chord's voicing. This
+  // @cello, @bass, and @vibes play the sampler, including a chord's voicing. This
   // does not read the instrument select.
   function playRole(tr) {
     if (!tr) return '';
@@ -319,15 +320,27 @@
     } else if (!parsed.synth && chordLine) {
       pushVoice(doc, 'chords', null, 'Chords', 'audio', '', (parsed.seed == null ? 1 : parsed.seed), voiceParams(0), audioEvents(parsed.played, beat, qpb * beat), null);
     }
-    (parsed.tracks || []).forEach(function (tr, i) {
+    var voices = (parsed.tracks || []).slice();
+    if (play) {
+      var loose = (parsed.syntax || []).filter(function (s) { return s.kind === 'notes' && s.implicit; });
+      if (loose.length) {
+        voices.push({
+          n: null, label: '', kind: 'notes', instrument: parsed.instrument || '',
+          played: [], source: loose.map(function (s) { return s.text; }).join('\n'),
+          fmDepth: null, arp: null, harmony: parsed.played || []
+        });
+      }
+    }
+    voices.forEach(function (tr, i) {
+      var tid = tr.n >= 1 ? 't' + tr.n : 'notes';
       var role = play ? playRole(tr) : roleOf(tr);
       if (!role) return;
       if (role === 'audio') {
-        pushVoice(doc, 't' + tr.n, tr.n, tr.label || ('T' + tr.n), 'audio', tr.instrument || '', (parsed.seed || 1) + i, voiceParams(0), audioEvents(tr.played, beat, qpb * beat), null);
+        pushVoice(doc, tid, tr.n, tr.label || (tr.n >= 1 ? 'T' + tr.n : ''), 'audio', tr.instrument || '', (parsed.seed || 1) + i, voiceParams(0), audioEvents(tr.played, beat, qpb * beat), null);
         return;
       }
       if (play && role === 'sampler' && tr.kind === 'chords') {
-        pushChordPlay(doc, 't' + tr.n, tr.n, tr.label || ('T' + tr.n), tr.played, tr.instrument, i, bpm, meter, beat, parsed);
+        pushChordPlay(doc, tid, tr.n, tr.label || (tr.n >= 1 ? 'T' + tr.n : ''), tr.played, tr.instrument, i, bpm, meter, beat, parsed);
         return;
       }
       var src = (play && role === 'synth') ? asSynth(tr) : bare(tr);
@@ -338,7 +351,7 @@
       var voice = root.NCSynth && NCSynth.voiceOf ? NCSynth.voiceOf(src, parsed, i) : null;
       if (!voice || !voice.events || !voice.events.length) {
         if (play && role === 'sampler') {
-          pushVoice(doc, 't' + tr.n, tr.n, tr.label || ('T' + tr.n), 'sampler', librarySlug(tr.instrument) || chosen, (parsed.seed || 1) + i, voiceParams(0), [], null);
+          pushVoice(doc, tid, tr.n, tr.label || (tr.n >= 1 ? 'T' + tr.n : ''), 'sampler', librarySlug(tr.instrument) || chosen, (parsed.seed || 1) + i, voiceParams(0), [], null);
         }
         return;
       }
@@ -352,11 +365,11 @@
         extra = samplerEvents(notes, slug, beat);
         notes = extra.events;
         if (!notes.length) {
-          pushVoice(doc, 't' + tr.n, tr.n, tr.label || ('T' + tr.n), 'sampler', slug, voice.seed, voiceParams(0), [], extra);
+          pushVoice(doc, tid, tr.n, tr.label || (tr.n >= 1 ? 'T' + tr.n : ''), 'sampler', slug, voice.seed, voiceParams(0), [], extra);
           return;
         }
       }
-      pushVoice(doc, 't' + tr.n, tr.n, tr.label || ('T' + tr.n), role, slug, voice.seed, voiceParams(patch ? writtenFm : (role === 'synth' ? fm : 0), patch), notes, Object.assign({ region: tr.kind === 'arp' }, extra));
+      pushVoice(doc, tid, tr.n, tr.label || (tr.n >= 1 ? 'T' + tr.n : ''), role, slug, voice.seed, voiceParams(patch ? writtenFm : (role === 'synth' ? fm : 0), patch), notes, Object.assign({ region: tr.kind === 'arp' }, extra));
     });
     if (!play && parsed.synth && root.NCSynth && NCSynth.chordVoice) {
       var cv = NCSynth.chordVoice(parsed, (parsed.tracks || []).length);
