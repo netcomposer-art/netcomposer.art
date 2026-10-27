@@ -1,8 +1,10 @@
 /* Chord library, voicing, and arpeggio order for /create/.
  * Copyright (c) 2026 Peter Semmelhack
  *
- * Port of chords.ts from psemmelhack/NetComposer-Synth, branch
- * replit-changes (the Expanded Chord Library), together with the voicing
+ * Port of chords.ts from psemmelhack/NetComposer-Synth (ASTRID), Expanded
+ * Chord Library plus stacked-thirds Extended/Altered voicings (PR #33,
+ * cursor/stack-chord-extensions @ b27920a): 9/11/13 sit above the octave,
+ * maj13/13 omit natural 11, m13 keeps it. Together with the voicing
  * rule in that repo's chord-performance brief. IDs, aliases, intervals,
  * fitVoicing, chordVoicing, arpeggioPool, and arpeggioSequence are copied
  * (arpeggioSequence, arpIndex, Walk, and Euclidean from ASTRID main 288e9c2)
@@ -43,7 +45,8 @@
       return { id: row[0], name: row[1], intervals: row[2], category: category, symbol: row[3] };
     });
   }
-  // Intervals are literal offsets. Shared intervals keep distinct ids.
+  // Intervals are literal offsets. Shared intervals keep distinct ids
+  // (e.g. Augmented 7 / 7#5). 6/9 no longer aliases Major-Second Stack / Major Pentatonic.
   var CHORD_LIBRARY = [].concat(
     group('Essential', [
       ['major', 'Major', [0, 4, 7], ''], ['minor', 'Minor', [0, 3, 7], 'm'],
@@ -59,20 +62,23 @@
       ['7sus4', '7sus4', [0, 5, 7, 10], '7sus4']
     ]),
     group('Extended', [
-      ['add9', 'Add9', [0, 2, 4, 7], 'add9'], ['minor-add9', 'Minor Add9', [0, 2, 3, 7], 'm(add9)'],
-      ['major-9', 'Major 9', [0, 2, 4, 7, 11], 'maj9'], ['minor-9', 'Minor 9', [0, 2, 3, 7, 10], 'm9'],
-      ['dominant-9', 'Dominant 9', [0, 2, 4, 7, 10], '9'], ['6-9', '6/9', [0, 2, 4, 7, 9], '6/9'],
-      ['minor-6-9', 'Minor 6/9', [0, 2, 3, 7, 9], 'm6/9'], ['major-7-sharp11', 'Major 7#11', [0, 4, 6, 7, 11], 'maj7#11'],
-      ['minor-11', 'Minor 11', [0, 2, 3, 5, 7, 10], 'm11'], ['dominant-11', 'Dominant 11', [0, 2, 4, 5, 7, 10], '11'],
-      ['9sus4', '9sus4', [0, 2, 5, 7, 10], '9sus4'], ['major-13', 'Major 13', [0, 2, 4, 7, 9, 11], 'maj13'],
-      ['minor-13', 'Minor 13', [0, 2, 3, 5, 7, 9, 10], 'm13'], ['dominant-13', 'Dominant 13', [0, 2, 4, 7, 9, 10], '13']
+      // 9/11/13 sit above the octave (stacked thirds). Natural 11 omitted from maj13/13
+      // (clashes with the major 3rd); kept in m13. #11 = 18, b9 = 13, #9 = 15, b13 = 20.
+      // Keep in sync with ASTRID lib/synth-audio/src/chords.ts (tools/sync-chord-intervals.mjs).
+      ['add9', 'Add9', [0, 4, 7, 14], 'add9'], ['minor-add9', 'Minor Add9', [0, 3, 7, 14], 'm(add9)'],
+      ['major-9', 'Major 9', [0, 4, 7, 11, 14], 'maj9'], ['minor-9', 'Minor 9', [0, 3, 7, 10, 14], 'm9'],
+      ['dominant-9', 'Dominant 9', [0, 4, 7, 10, 14], '9'], ['6-9', '6/9', [0, 4, 7, 9, 14], '6/9'],
+      ['minor-6-9', 'Minor 6/9', [0, 3, 7, 9, 14], 'm6/9'], ['major-7-sharp11', 'Major 7#11', [0, 4, 7, 11, 18], 'maj7#11'],
+      ['minor-11', 'Minor 11', [0, 3, 7, 10, 14, 17], 'm11'], ['dominant-11', 'Dominant 11', [0, 4, 7, 10, 14, 17], '11'],
+      ['9sus4', '9sus4', [0, 5, 7, 10, 14], '9sus4'], ['major-13', 'Major 13', [0, 4, 7, 11, 14, 21], 'maj13'],
+      ['minor-13', 'Minor 13', [0, 3, 7, 10, 14, 17, 21], 'm13'], ['dominant-13', 'Dominant 13', [0, 4, 7, 10, 14, 21], '13']
     ]),
     group('Altered', [
-      ['7b9', '7b9', [0, 1, 4, 7, 10], '7b9'], ['7-sharp9', '7#9', [0, 3, 4, 7, 10], '7#9'],
+      ['7b9', '7b9', [0, 4, 7, 10, 13], '7b9'], ['7-sharp9', '7#9', [0, 4, 7, 10, 15], '7#9'],
       ['7b5', '7b5', [0, 4, 6, 10], '7b5'], ['7-sharp5', '7#5', [0, 4, 8, 10], '7#5'],
-      ['7b9-sharp5', '7b9#5', [0, 1, 4, 8, 10], '7b9#5'], ['7-sharp9-b5', '7#9b5', [0, 3, 4, 6, 10], '7#9b5'],
-      ['7alt', '7alt', [0, 1, 3, 4, 6, 8, 10], '7alt'], ['major-7b5', 'Major 7b5', [0, 4, 6, 11], 'maj7b5'],
-      ['minor-7b9', 'Minor 7b9', [0, 1, 3, 7, 10], 'm7b9']
+      ['7b9-sharp5', '7b9#5', [0, 4, 8, 10, 13], '7b9#5'], ['7-sharp9-b5', '7#9b5', [0, 4, 6, 10, 15], '7#9b5'],
+      ['7alt', '7alt', [0, 4, 10, 13, 15, 18, 20], '7alt'], ['major-7b5', 'Major 7b5', [0, 4, 6, 11], 'maj7b5'],
+      ['minor-7b9', 'Minor 7b9', [0, 3, 7, 10, 13], 'm7b9']
     ]),
     group('Experimental', [
       ['quartal-3', 'Quartal 3', [0, 5, 10], ' Quartal 3'], ['quartal-4', 'Quartal 4', [0, 5, 10, 15], ' Quartal 4'],

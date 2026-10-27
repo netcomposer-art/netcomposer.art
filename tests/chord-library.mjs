@@ -1,5 +1,5 @@
 // The arp chord library is a port of chords.ts from
-// psemmelhack/NetComposer-Synth branch replit-changes. These checks lock
+// psemmelhack/NetComposer-Synth (ASTRID stacked-thirds Extended/Altered). These checks lock
 // the voicing, the pool, and the note orders to that file.
 import { readFileSync } from 'fs';
 import vm from 'vm';
@@ -21,10 +21,15 @@ C.CHORD_LIBRARY.forEach((c) => { counts[c.category] = (counts[c.category] || 0) 
 check(counts.Essential === 9 && counts.Seventh === 9 && counts.Extended === 14 && counts.Altered === 9 && counts.Experimental === 14, 'category counts ' + JSON.stringify(counts));
 
 const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
-check(same(C.chordVoicing(60, 'major-9', 0, 'compact'), [60, 62, 64, 67, 71]), 'C4 major 9 compact');
-check(same(C.chordVoicing(60, 'major-9', 0, 'wide'), [60, 62, 64, 67, 83]), 'C4 major 9 wide');
-check(same(C.chordVoicing(60, 'major-9', 0, 'wider'), [60, 62, 76, 79, 95]), 'C4 major 9 wider');
-check(same(C.chordVoicing(60, 'major-9', 0, 'maximum'), [60, 74, 88, 103, 119]), 'C4 major 9 maximum');
+check(same(C.chordVoicing(60, 'major-9', 0, 'compact'), [60, 64, 67, 71, 74]), 'C4 major 9 compact');
+check(same(C.getChord('minor-11').intervals, [0, 3, 7, 10, 14, 17]), 'm11 stacked thirds');
+check(same(C.getChord('major-13').intervals, [0, 4, 7, 11, 14, 21]), 'maj13 omits natural 11');
+check(same(C.getChord('minor-13').intervals, [0, 3, 7, 10, 14, 17, 21]), 'm13 keeps 11');
+check(same(C.getChord('dominant-13').intervals, [0, 4, 7, 10, 14, 21]), '13 omits natural 11');
+check(same(C.getChord('7alt').intervals, [0, 4, 10, 13, 15, 18, 20]), '7alt stacked alterations');
+check(same(C.chordVoicing(60, 'major-9', 0, 'wide'), [60, 64, 67, 71, 86]), 'C4 major 9 wide');
+check(same(C.chordVoicing(60, 'major-9', 0, 'wider'), [60, 64, 79, 83, 98]), 'C4 major 9 wider');
+check(same(C.chordVoicing(60, 'major-9', 0, 'maximum'), [60, 76, 91, 107, 122]), 'C4 major 9 maximum');
 check(same(C.chordVoicing(60, 'major', 1, 'compact'), [64, 67, 72]), 'C major first inversion');
 check(same(C.chordVoicing(60, 'major', 2, 'compact'), [67, 72, 76]), 'C major second inversion');
 check(same(C.chordVoicing(60, 'major', 5, 'compact'), C.chordVoicing(60, 'major', 2, 'compact')), 'inversion clamps to N-1');
