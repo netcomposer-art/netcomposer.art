@@ -112,22 +112,13 @@
     if (wait && phase === 'gather') wait.hidden = true;
     gpaint();
   }
-  // Gather progress. When the service reports it (progress, 0-100, per
-  // finished unit: suppliers, chords, downloads, copies, stores), that number
-  // is used. Otherwise: chords found out of the chords asked for. Either way
-  // it never goes back, holds at 99 until done, and is 100 only at done.
-  // Unknown total and no service number: no number at all.
-  var gatherTotal = 0, gatherPct = -1, gatherFine = false;
-  function gprogress(done, j) {
+  // Gather progress: chords found out of the chords asked for. It never goes
+  // back, holds at 99 while the recordings are copied, and is 100 only at
+  // done. Unknown total: no number at all.
+  var gatherTotal = 0, gatherPct = -1;
+  function gprogress(done) {
     if (done) { gatherPct = 100; gsync(); return; }
-    if (j && typeof j.progress === 'number' && isFinite(j.progress)) {
-      gatherFine = true;
-      var fine = Math.max(0, Math.min(99, Math.floor(j.progress)));
-      if (fine > gatherPct) gatherPct = fine;
-      gsync();
-      return;
-    }
-    if (gatherFine || !gatherTotal) return;
+    if (!gatherTotal) return;
     var found = 0;
     for (var i = 0; i < gatherLive.length && i < gatherTotal; i++) if (gatherLive[i]) found++;
     var p = Math.min(99, Math.floor(100 * found / gatherTotal));
@@ -2884,7 +2875,6 @@
     gatherLive = gatherNames.map(function () { return null; });
     gatherTotal = gatherNames.length;
     gatherPct = -1;
-    gatherFine = false;
     paintLive();
   }
   function paintLive() {
@@ -3097,7 +3087,7 @@
     if (j.state === 'failed' || j.state === 'rejected') { stopWatch(); gatherFail(limitMessage(j) || gatherNote('[job failed]', j)); return; }
     if (j.state === 'cancelled' || j.state === 'canceled' || j.state === 'stopped') { stopWatch(); stopped(); return; }
     mergeFound(j);
-    gprogress(false, j);
+    gprogress();
     gstatus('Gathering…');
     $('perform-bar').hidden = true;
     showStop();
