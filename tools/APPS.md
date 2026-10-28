@@ -8,7 +8,7 @@ netcomposer.art serves ASTRID at `/synth/`, PETRA Rhythm at `/rhythm/` and OLIVE
 | `/rhythm/` | psemmelhack/ASTRID-Rhythm | `node scripts/build-site.mjs` | none |
 | `/bass/` | psemmelhack/ASTRID-Bass | `node scripts/build-site.mjs` | `/bass/sw.js`, scope `/bass/`, caches `olive-bass-*` only |
 
-The ASTRID API stays on Replit at `https://synth.netcomposer.art/api`. `/synth/` calls it cross-origin. The API answers with `Access-Control-Allow-Origin: *`, and there are no cookies or credentials. synth.netcomposer.art redirects every other path to `https://netcomposer.art/synth/`.
+The ASTRID API stays on Replit at `https://synth.netcomposer.art/api`. `/synth/` calls it cross-origin. The API answers with `Access-Control-Allow-Origin: *`, and there are no cookies or credentials. Once the Replit redirect (NetComposer-Synth PR #49) is published, synth.netcomposer.art redirects every other path to `https://netcomposer.art/synth/`; until then it still serves the old app.
 
 ## How a build gets here
 Builds are committed to this repo. GitHub Pages deploys `main` as it is, with no build step and no secrets.

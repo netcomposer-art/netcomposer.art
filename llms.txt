@@ -25,7 +25,7 @@ https://netcomposer.art/create/ : four steps: Write a Composition, hear a sketch
 
 Three browser instruments, NetComposer elements, on the same origin as Create, so NC Sync (same-origin BroadcastChannel) can reach all of them.
 
-- [ASTRID](https://netcomposer.art/synth/): a browser-native polyphonic synthesizer. Its API stays at https://synth.netcomposer.art/api; synth.netcomposer.art redirects every other path here.
+- [ASTRID](https://netcomposer.art/synth/): a browser-native polyphonic synthesizer. Its API stays at https://synth.netcomposer.art/api. ASTRID's old address, synth.netcomposer.art, still serves the app for now and will redirect here once that change is published.
 - [PETRA Rhythm](https://netcomposer.art/rhythm/): a browser drum machine. Only its main page is public.
 - [OLIVE Bass](https://netcomposer.art/bass/): a 303-lineage acid bass.
 
