@@ -3,12 +3,16 @@
 // Rules: every cache Bass creates is named "olive-bass-*", activate deletes only stale
 // "olive-bass-*" caches (never another app's), and fetch only handles same-origin GETs
 // inside the scope.
-// Shell: precached on install. HTML: network-first. Hashed assets: cache-first.
+// Shell: precached on install. Hashed build output (assets/, a content hash in every name):
+// cache-first. Everything else in scope (the page, manifest.webmanifest, icons/): network-first,
+// with the cached copy only when offline. Those URLs never change name, so serving them cache-first
+// pinned returning visitors to old icons and theme colours (olive-bass-v2) until a cache bump.
 // Only a good same-origin response (ok and type "basic") is ever cached. A 404/500 or an opaque
 // response passes through to the page uncached and never replaces the good copy already cached.
 const PREFIX = "olive-bass-";
-const CACHE = `${PREFIX}v2`;
+const CACHE = `${PREFIX}v3`;
 const SCOPE = new URL("./", self.location.href).pathname;
+const HASHED = `${SCOPE}assets/`;
 
 /** Caches to delete on activate: ours (by prefix) but not the current one. */
 function staleCaches(keys) {
@@ -37,21 +41,30 @@ self.addEventListener("activate", (e) => {
   );
   self.clients.claim();
 });
+/** Network-first: a good response refreshes the cache; an error passes through; offline, the cache. */
+function networkFirst(e, req, key) {
+  return fetch(req).then(
+    (r) => {
+      if (cacheable(r)) {
+        const copy = r.clone();
+        e.waitUntil(caches.open(CACHE).then((c) => c.put(key, copy)));
+      }
+      return r;
+    },
+    () => caches.match(key, { cacheName: CACHE }),
+  );
+}
+
 self.addEventListener("fetch", (e) => {
   const req = e.request;
-  if (req.method !== "GET" || !inScope(new URL(req.url))) return;
+  const url = new URL(req.url);
+  if (req.method !== "GET" || !inScope(url)) return;
   if (req.mode === "navigate") {
-    e.respondWith(
-      fetch(req)
-        .then((r) => {
-          if (cacheable(r)) {
-            const copy = r.clone();
-            e.waitUntil(caches.open(CACHE).then((c) => c.put("./", copy)));
-          }
-          return r;
-        })
-        .catch(() => caches.match("./", { cacheName: CACHE })),
-    );
+    e.respondWith(networkFirst(e, req, "./"));
+    return;
+  }
+  if (!url.pathname.startsWith(HASHED)) {
+    e.respondWith(networkFirst(e, req, req));
     return;
   }
   e.respondWith(
