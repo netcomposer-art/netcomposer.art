@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Not found · NetComposer</title>
+<script>
+// GitHub Pages serves this one file, with status 404, for every path on netcomposer.art that has no file.
+// A page route inside an app that has its own router (ASTRID at /synth/) loads that app's shell in place:
+// same URL, no redirect, no new history entry, and the app shows its own Not found page.
+// Anything that looks like a file stays a plain 404 and never gets an app: a dot in any segment
+// (.js .css .wasm .json .png .webmanifest sw.js ...), or an assets/ or icons/ segment, or a bare
+// sw / manifest / favicon / icon name. Rhythm and Bass have no router yet, so their unknown paths
+// get the plain page below with a link to the app.
+(function () {
+  var APPS = {
+    synth: { name: "ASTRID", shell: true },
+    rhythm: { name: "PETRA Rhythm", shell: false },
+    bass: { name: "OLIVE Bass", shell: false },
+  };
+  var m = /^\/(synth|rhythm|bass)\/(.*)$/.exec(location.pathname);
+  var app = m && APPS[m[1]];
+  window.__nc404 = { app: m ? m[1] : null, shell: false };
+  if (!app) return;
+  var segs = m[2].split("/");
+  var fileLike = segs.some(function (s) {
+    return s.indexOf(".") >= 0 || s === "assets" || s === "icons" ||
+      /^(sw|manifest|favicon|apple-touch-icon|icon)([-_].*)?$/i.test(s);
+  });
+  window.__nc404.fileLike = fileLike;
+  if (!app.shell || fileLike) return;
+  var base = "/" + m[1] + "/";
+  document.documentElement.className = "routing";
+  fetch(base, { cache: "no-cache", credentials: "same-origin" })
+    .then(function (r) {
+      var type = r.headers.get("content-type") || "";
+      if (!r.ok || type.indexOf("text/html") < 0) throw new Error("no shell");
+      return r.text();
+    })
+    .then(function (html) {
+      // Only a real build of this app (its scripts live under /<app>/assets/), never this page again.
+      if (html.indexOf(base + "assets/") < 0 || html.indexOf("__nc404") >= 0) throw new Error("not the app shell");
+      window.__nc404.shell = true;
+      document.open();
+      document.write(html);
+      document.close();
+    })
+    .catch(function () { document.documentElement.className = ""; });
+})();
+</script>
+<style>
+/* Values from the nc-ui tokens (vendor/nc-ui dist/tokens.css: paper, ink, sub-0, div-0, accent). */
+:root{--nc-ui-color-paper:#F5F5F5;--nc-ui-color-ink:#242424;--nc-ui-color-sub-0:#595959;--nc-ui-color-div-0:#DDDDDD;--nc-ui-color-accent:#003153}
+html{background:var(--nc-ui-color-paper);color-scheme:light}
+html.routing body{visibility:hidden}
+body{margin:0;color:var(--nc-ui-color-ink);font:16px/1.65 Inter,system-ui,sans-serif}
+main{max-width:58rem;margin:0 auto;padding:30vh 1.5rem 6rem}
+h1{font-size:11px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:var(--nc-ui-color-sub-0);margin:0 0 1.2rem}
+p{margin:0}
+a{color:var(--nc-ui-color-ink);text-underline-offset:3px}
+a:hover{color:var(--nc-ui-color-accent)}
+a:focus-visible{outline:1px solid var(--nc-ui-color-accent);outline-offset:3px}
+</style>
+</head>
+<body>
+<main>
+<h1>Not found</h1>
+<p id="what">Nothing here. <a id="home" href="/">netcomposer.art</a></p>
+</main>
+<script>
+(function () {
+  var n = window.__nc404 || {};
+  var names = { synth: ["ASTRID", "/synth/"], rhythm: ["PETRA Rhythm", "/rhythm/"], bass: ["OLIVE Bass", "/bass/"] };
+  if (n.app && !n.shell) {
+    var a = document.getElementById("home");
+    a.textContent = "Open " + names[n.app][0];
+    a.href = names[n.app][1];
+  }
+})();
+</script>
+</body>
+</html>
