@@ -1,4 +1,4 @@
-/* NC Synth 3b25033625f6
+/* NC Synth 437692355437
    Generated at build time. The cache name matches this build.
    A newer worker precaches itself in the background and activates on the
    next launch. It does not call skipWaiting or clients.claim, and the page
@@ -6,9 +6,9 @@
    The app shell is stale-while-revalidate. Requests that leave the app
    (live APIs, gathering sounds, sampler notes, sharing, map tiles) are
    network-only and are never written into the cache. */
-const VERSION = "3b25033625f6";
+const VERSION = "437692355437";
 const CACHE = 'nc-synth-' + VERSION;
-const SHELL = ["./apple-touch-icon.png","./assets/hacks-worklet-source-DY-dC-4G.js","./assets/ibm-plex-mono-latin-400-Dm_PoFIZ.woff2","./assets/ibm-plex-mono-latin-500-C_OblDzq.woff2","./assets/index-Ckaf4BjQ.js","./assets/index-Db2Bc_Wd.css","./assets/inter-latin-300-BVlfKGgI.woff2","./assets/inter-latin-400-C38fXH4l.woff2","./assets/inter-latin-500-Cerq10X2.woff2","./assets/inter-latin-600-LgqL8muc.woff2","./assets/inter-latin-700-Drs_5D37.woff2","./assets/situation-drawer-CIGW-MKW.css","./assets/situation-drawer-DAN6C0GF.js","./favicon.svg","./icon-192.png","./icon-512.png","./icon-maskable-192.png","./icon-maskable-512.png","./index.html","./manifest.webmanifest","./robots.txt"];
+const SHELL = ["./apple-touch-icon.png","./assets/deferred-OSXn3ONv.css","./assets/hacks-worklet-source-DY-dC-4G.js","./assets/ibm-plex-mono-latin-400-Dm_PoFIZ.woff2","./assets/ibm-plex-mono-latin-500-C_OblDzq.woff2","./assets/index-Cw5Q2ZOw.js","./assets/index-IfY5GbVp.css","./assets/inter-latin-300-BVlfKGgI.woff2","./assets/inter-latin-400-C38fXH4l.woff2","./assets/inter-latin-500-Cerq10X2.woff2","./assets/inter-latin-600-LgqL8muc.woff2","./assets/inter-latin-700-Drs_5D37.woff2","./assets/origin-migration-browser-B91wnbYU.js","./assets/situation-drawer-CIGW-MKW.css","./assets/situation-drawer-DTRZSEzT.js","./favicon.svg","./icon-192.png","./icon-512.png","./icon-maskable-192.png","./icon-maskable-512.png","./index.html","./manifest.webmanifest","./robots.txt"];
 
 function offlineText(url) {
   const host = url.hostname;
