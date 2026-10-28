@@ -115,7 +115,7 @@ body{margin:0;background:#F5F5F2}
 .nc-seg{display:flex;border-bottom:1px solid #D9DEDA}
 .nc-seg button{flex:1;padding:6px 0;font-size:12px;color:#7C8580;background:transparent;border:0;position:relative}
 .nc-seg button[aria-pressed="true"]{color:#202523}
-.nc-seg button[aria-pressed="true"]::after{content:'';position:absolute;left:0;right:0;bottom:-1px;height:2px;background:#426C61}
+.nc-seg button[aria-pressed="true"]::after{content:'';position:absolute;left:0;right:0;bottom:-1px;height:2px;background:#003153}
 </style></head><body>
 <div class="nc" id="synth">
 <section class="nc-module" data-module="01"><p class="nc-label"><span class="nc-mono">01</span>Osc</p>
@@ -311,7 +311,7 @@ if (!chrome || typeof WebSocket === 'undefined') {
       check(guitar && guitar.modules === 5, 'five shaded modules, got ' + (guitar && guitar.modules));
       check(guitar && !guitar.labels.some((t) => /pitch|speed|stretch|rate|license/i.test(t)), 'no pitch, speed, or license heading, got ' + JSON.stringify(guitar && guitar.labels));
       check(guitar && guitar.color === 'rgb(124, 133, 128)' && guitar.bgs && guitar.bgs.join() === shades.join(), 'label ink and module shades, got ' + JSON.stringify(guitar && { color: guitar.color, bgs: guitar.bgs }));
-      check(guitar && guitar.accent === '#426C61', 'accent, got ' + (guitar && guitar.accent));
+      check(guitar && guitar.accent === '#003153', 'accent, got ' + (guitar && guitar.accent));
       check(guitar && /ibm plex mono/i.test(guitar.font) && /ibm plex mono/i.test(guitar.ringFont) && guitar.transform === 'uppercase', 'mono index and ring readout, got ' + JSON.stringify(guitar && { font: guitar.font, ringFont: guitar.ringFont, transform: guitar.transform }));
       check(guitar && guitar.ring === '8 s' && guitar.fade === '120 ms' && guitar.ringOff && guitar.fadeOff, 'ring cap and fade are fixed, got ' + JSON.stringify(guitar && { ring: guitar.ring, fade: guitar.fade }));
       check(guitar && guitar.strum === '18 ms', 'guitar strum default, got ' + (guitar && guitar.strum));
