@@ -1,7 +1,7 @@
 name: Instruments on one origin
 
 # The /synth/, /rhythm/ and /bass/ builds: file checks (tests/apps.test.mjs) and the
-# one-origin browser check (tests/one-origin.e2e.mjs). Read-only; no secrets.
+# one-origin browser check (tests/one-origin.e2e.mjs) and 404.html (tests/404.e2e.mjs). Read-only; no secrets.
 on:
   pull_request:
   push:
@@ -26,5 +26,9 @@ jobs:
           "$RUNNER_TEMP/pw/node_modules/.bin/playwright" install --with-deps chromium
       - name: one-origin e2e
         run: node tests/one-origin.e2e.mjs
+        env:
+          PLAYWRIGHT_MODULE: ${{ runner.temp }}/pw/node_modules/playwright/index.mjs
+      - name: 404 e2e
+        run: node tests/404.e2e.mjs
         env:
           PLAYWRIGHT_MODULE: ${{ runner.temp }}/pw/node_modules/playwright/index.mjs

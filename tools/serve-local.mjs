@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 // Serves this repo on one origin, like GitHub Pages: /, /create/, /synth/, /rhythm/, /bass/.
 //   node tools/serve-local.mjs [port]     (default 5720)
+// A missing path gets /404.html with status 404, as Pages does.
 // No COOP/COEP headers (Pages can't send them), so the apps run as they will in production.
 import { createReadStream, existsSync, statSync } from "node:fs";
 import { createServer } from "node:http";
@@ -39,7 +40,14 @@ createServer((req, res) => {
     file = join(file, "index.html");
   }
   if (!existsSync(file)) {
-    res.writeHead(404, { "Content-Type": "text/plain" }).end("404");
+    // Like Pages: any path with no file gets the root 404.html, with status 404 (whatever the extension).
+    const notFound = join(root, "404.html");
+    if (!existsSync(notFound)) {
+      res.writeHead(404, { "Content-Type": "text/plain" }).end("404");
+      return;
+    }
+    res.writeHead(404, { "Content-Type": types[".html"] });
+    createReadStream(notFound).pipe(res);
     return;
   }
   res.writeHead(200, { "Content-Type": types[extname(file)] ?? "application/octet-stream" });
