@@ -132,14 +132,27 @@ ${[1,2,3,4].map(t).join(`
   color: ${s("text")};
   white-space: nowrap;
 }
-/* The slider gives up width, not the label: TEMPO, SWING and DECAY are never cut to "TE…". */
-/* One label column (the lane-name width), so the sliders in a module start together, as in ASTRID. */
-.nc-field .nc-label { flex: none; min-width: ${s("rhythm.name-width")}; }
+/* One label column (the lane-name width), so the sliders in a module start together, as in ASTRID. A label is never
+   cut below that column (TEMPO, SWING and DECAY stay whole), but longer text gives way on one line with an ellipsis
+   instead of widening the page; the full text stays in the DOM, so the accessible name is never cut. */
+.nc-field .nc-label { flex: 0 1 auto; min-width: min(${s("rhythm.name-width")}, 100%); }
+/* A value never gives way to its label: it keeps its width (flex: none), so a long label is cut first and 0.3 stays
+   0.3. Only a value that is itself longer than the row beside a name-width label is cut, with an ellipsis. The control
+   beside it (range, knob, canvas, select) keeps its size. */
+.nc-field .nc-readout {
+  flex: none;
+  min-width: 0;
+  max-width: calc(100% - ${s("rhythm.name-width")} - ${s("rhythm.module-gap")});
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 .nc-field .nc-range, .nc-field .nc-canvas { flex: 1 1 0; min-width: 0; }
+/* A display beside a label keeps the width it has next to a column-wide label: a long label is cut, not the display. */
+.nc-field > .nc-label + .nc-canvas { min-width: calc(100% - ${s("rhythm.name-width")} - ${s("rhythm.module-gap")}); }
 /* ASTRID slider rows: label and value on one baseline, the slider full width under them. */
 .nc-field[data-nc-slider] {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: minmax(min(${s("rhythm.name-width")}, 100%), 1fr) auto;
   grid-template-areas: "label value" "range range";
   align-items: baseline;
   column-gap: ${s("rhythm.module-gap")};
@@ -147,11 +160,12 @@ ${[1,2,3,4].map(t).join(`
   padding-bottom: ${s("rhythm.module-gap")};
 }
 .nc-field[data-nc-slider] .nc-label { grid-area: label; min-width: 0; }
-.nc-field[data-nc-slider] .nc-readout { grid-area: value; text-align: right; }
+/* In the slider grid the value column is auto (sized to the value), so the flex-row cap does not apply. */
+.nc-field[data-nc-slider] .nc-readout { grid-area: value; max-width: none; text-align: right; }
 .nc-field[data-nc-slider] .nc-range { grid-area: range; width: 100%; margin: 0; }
 /* Tap tempo: a small outlined button on the label line, between the label and the value. */
 .nc-field[data-nc-slider]:has(> .nc-tap) {
-  grid-template-columns: minmax(0, 1fr) auto auto;
+  grid-template-columns: minmax(min(${s("rhythm.name-width")}, 100%), 1fr) auto auto;
   grid-template-areas: "label tap value" "range range range";
 }
 .nc-tap {
@@ -244,6 +258,10 @@ ${_s} { transition: none; }
 .nc-range:focus-visible { outline: ${s("focus-width")} solid ${s("focus-ring")}; outline-offset: ${s("rhythm.control-gap")}; }
 .nc-btn {
   width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   border: ${s("hairline")} solid ${s("text")};
   background: transparent;
   color: ${s("text")};
@@ -278,6 +296,10 @@ ${_s} { transition: none; }
   text-transform: uppercase;
   padding: ${s("rhythm.control-gap")} 0;
   cursor: pointer;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
   transition-property: color, border-color;
   transition-duration: ${s("transition-feedback")};
@@ -779,6 +801,9 @@ button.nc-pads-label[aria-pressed="true"] { color: ${s("accent")}; }
   margin: 0 0 ${s("rhythm.module-gap")} 0;
   font-size: ${s("body-size")};
   font-weight: ${s("rhythm.hack-weight")};
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
 }
 /* A panel (Rhythm's Parameters, under the grid): a page-coloured area, full bleed to the module's sides and
@@ -869,17 +894,21 @@ button.nc-pads-label[aria-pressed="true"] { color: ${s("accent")}; }
   outline: ${s("focus-width")} solid ${s("focus-ring")};
   outline-offset: ${s("hairline")};
 }
-/* Tabs wrap to a second line rather than cut a name ("Kick", "Snare"...) to "Ki…" in a narrow column. */
+/* Tabs stay on one line (no height jump); a tab that does not fit gives way with an ellipsis, and its full text stays
+   its accessible name. */
 .nc-choice-row {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   align-items: center;
   gap: ${s("rhythm.control-gap")} ${s("rhythm.header-gap")};
   min-width: 0;
 }
 .nc-choice {
-  flex: 0 0 auto;
+  flex: 0 1 auto;
   min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
   border: 0;
   border-bottom: ${s("hairline")} solid transparent;
@@ -890,6 +919,13 @@ button.nc-pads-label[aria-pressed="true"] { color: ${s("accent")}; }
   padding: ${s("rhythm.control-gap")} 0;
   cursor: pointer;
   transition: none;
+}
+/* On touch a tab cut to an ellipsis is still a full target: never narrower or shorter than target-min. */
+@media (pointer: coarse) {
+  .nc-choice { min-width: ${s("target-min")}; min-height: ${s("target-min")}; }
+  /* Tabs that cannot shrink below target-min scroll within their row (no visible scrollbar), never the page. */
+  .nc-choice-row { overflow-x: auto; scrollbar-width: none; }
+  .nc-choice-row::-webkit-scrollbar { display: none; }
 }
 .nc-choice[aria-selected="true"] {
   color: ${s("text")};
