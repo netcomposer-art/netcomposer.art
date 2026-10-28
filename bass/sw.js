@@ -4,6 +4,8 @@
 // "olive-bass-*" caches (never another app's), and fetch only handles same-origin GETs
 // inside the scope.
 // Shell: precached on install. HTML: network-first. Hashed assets: cache-first.
+// Only a good same-origin response (ok and type "basic") is ever cached. A 404/500 or an opaque
+// response passes through to the page uncached and never replaces the good copy already cached.
 const PREFIX = "olive-bass-";
 const CACHE = `${PREFIX}v2`;
 const SCOPE = new URL("./", self.location.href).pathname;
@@ -11,6 +13,10 @@ const SCOPE = new URL("./", self.location.href).pathname;
 /** Caches to delete on activate: ours (by prefix) but not the current one. */
 function staleCaches(keys) {
   return keys.filter((k) => k.startsWith(PREFIX) && k !== CACHE);
+}
+
+function cacheable(r) {
+  return !!r && r.ok === true && r.type === "basic";
 }
 
 function inScope(url) {
@@ -38,8 +44,10 @@ self.addEventListener("fetch", (e) => {
     e.respondWith(
       fetch(req)
         .then((r) => {
-          const copy = r.clone();
-          caches.open(CACHE).then((c) => c.put("./", copy));
+          if (cacheable(r)) {
+            const copy = r.clone();
+            e.waitUntil(caches.open(CACHE).then((c) => c.put("./", copy)));
+          }
           return r;
         })
         .catch(() => caches.match("./", { cacheName: CACHE })),
@@ -51,9 +59,9 @@ self.addEventListener("fetch", (e) => {
       (hit) =>
         hit ||
         fetch(req).then((r) => {
-          if (r.ok) {
+          if (cacheable(r)) {
             const copy = r.clone();
-            caches.open(CACHE).then((c) => c.put(req, copy));
+            e.waitUntil(caches.open(CACHE).then((c) => c.put(req, copy)));
           }
           return r;
         }),
