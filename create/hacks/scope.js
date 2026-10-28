@@ -3,8 +3,8 @@
 // Faint bar along the top: how hard the limiter is pulling down right now (0 to 12 dB).
 (function () {
   'use strict';
-  // Trace in the instrument accent; ceiling guides and the gain-reduction bar stay in the panel greys.
-  var INK = '#426C61', FAINT = '#7C8580', GUIDE = '#D9DEDA';
+  // Trace in the site accent (nc.css --nc-acc, read once); ceiling guides and the gain-reduction bar stay in the panel greys.
+  var INK = '', FAINT = '#7C8580', GUIDE = '#D9DEDA';
   var src = null, buf = null, raf = 0, running = false, gr = 1, grShown = 0;
 
   function canvas() { return document.getElementById('hack-scope'); }
@@ -31,6 +31,7 @@
       g.fillStyle = FAINT;
       g.fillRect(0, 0, Math.round(w * Math.min(1, grShown / 12)), Math.max(1, Math.round(2 * dpr)));
     }
+    if (!INK) INK = getComputedStyle(c).getPropertyValue('--nc-acc').trim() || '#003153';
     g.fillStyle = INK;
     if (!data) { g.fillRect(0, Math.round(mid - 0.5 * dpr), w, Math.max(1, Math.round(1.5 * dpr))); return; }
     // Start on a rising zero crossing so a steady tone holds still, then draw half the buffer.
