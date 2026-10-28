@@ -47,3 +47,15 @@ test("the site root and /create/ don't claim the instruments' paths", () => {
   assert.equal(existsSync(join(site, "sw.js")), false, "no root service worker");
   for (const key of Object.keys(APPS)) assert.equal(existsSync(join(site, `${key}.html`)), false);
 });
+
+test("sitemap.xml and llms.txt list every instrument path", () => {
+  const sitemap = readFileSync(join(site, "sitemap.xml"), "utf8");
+  const llms = readFileSync(join(site, "llms.txt"), "utf8");
+  // Every <url> is closed, so the sitemap stays valid XML.
+  assert.equal(sitemap.match(/<url>/g).length, sitemap.match(/<\/url>/g).length, "unclosed <url>");
+  for (const key of Object.keys(APPS)) {
+    const url = `https://netcomposer.art/${key}/`;
+    assert.match(sitemap, new RegExp(`<url><loc>${url}</loc></url>`), `sitemap lacks ${url}`);
+    assert.ok(llms.includes(`](${url})`), `llms.txt lacks ${url}`);
+  }
+});

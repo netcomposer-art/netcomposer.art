@@ -26,6 +26,9 @@ Builds are committed to this repo. GitHub Pages deploys `main` as it is, with no
 
 `<app>/BUILD.txt` always says which repo and commit is live.
 
+### Later: deploy builds as an Actions artifact (follow-up, not set up)
+Each full set of builds adds about 2.2 MB to this repo's history, which is fine for v1 (decided 2026-10-27). A later step is to switch Pages to "GitHub Actions" as its source and deploy an artifact built by a workflow (`actions/upload-pages-artifact` then `actions/deploy-pages`), so built files stop landing in the repo. That means changing the Pages source setting, which only Peter does, plus the read-only token described above. Neither exists yet.
+
 ### Automating it later (not set up)
 A workflow could build on a schedule or on dispatch. The app repos are private, so it would need a repository secret:
 - a fine-grained personal access token with **read-only Contents** access to the three app repos and nothing else;
