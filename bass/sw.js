@@ -3,7 +3,8 @@
 // Rules: every cache Bass creates is named "olive-bass-*", activate deletes only stale
 // "olive-bass-*" caches (never another app's), and fetch only handles same-origin GETs
 // inside the scope.
-// Shell: precached on install. Hashed build output (assets/, a content hash in every name):
+// Shell and the lazy UI chunks (slot menu, step sheet): precached on install, so a first open
+// works offline. Hashed build output (assets/, a content hash in every name):
 // cache-first. Everything else in scope (the page, manifest.webmanifest, icons/): network-first,
 // with the cached copy only when offline. Those URLs never change name, so serving them cache-first
 // pinned returning visitors to old icons and theme colours (olive-bass-v2) until a cache bump.
@@ -13,6 +14,8 @@ const PREFIX = "olive-bass-";
 const CACHE = `${PREFIX}v3`;
 const SCOPE = new URL("./", self.location.href).pathname;
 const HASHED = `${SCOPE}assets/`;
+// Filled in by the build (vite.config.ts, swPrecache) with the hashed lazy UI chunks.
+const LAZY_UI = ["./assets/slot-menu-BG20F2vr.js","./assets/step-sheet-HkCTm5Em.js"];
 
 /** Caches to delete on activate: ours (by prefix) but not the current one. */
 function staleCaches(keys) {
@@ -31,7 +34,7 @@ self.addEventListener("install", (e) => {
   e.waitUntil(
     caches
       .open(CACHE)
-      .then((c) => c.addAll(["./", "./manifest.webmanifest", "./icons/icon-192.png"])),
+      .then((c) => c.addAll(["./", "./manifest.webmanifest", "./icons/icon-192.png", ...LAZY_UI])),
   );
   self.skipWaiting();
 });
