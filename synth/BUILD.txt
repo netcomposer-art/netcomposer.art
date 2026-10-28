@@ -1,7 +1,7 @@
 app: ASTRID (NetComposer Synth)
 repo: psemmelhack/NetComposer-Synth
-commit: e0206d76d287788bc4ead8cb52b25a85dfa605d4
-built: 2026-10-28T15:37:22.623Z
+commit: b20e0867ee866eaacd1335802f24498bc4d3bfe6
+built: 2026-10-28T17:35:09.189Z
 base: /synth/
 api: https://synth.netcomposer.art
 migrate-from: https://synth.netcomposer.art
