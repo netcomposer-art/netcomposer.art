@@ -10,6 +10,7 @@ import { spawn } from "node:child_process";
 import { existsSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { APPS } from "../tools/apps.mjs";
 
 const site = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const { chromium } = await import(process.env.PLAYWRIGHT_MODULE ?? "playwright");
@@ -18,7 +19,9 @@ const origin = `http://127.0.0.1:${port}`;
 const server = spawn(process.execPath, [join(site, "tools/serve-local.mjs"), String(port)], {
   stdio: "ignore",
 });
-const apps = ["synth", "rhythm", "bass"].filter((a) => existsSync(join(site, a, "index.html")));
+const apps = ["synth", "rhythm", "bass", "studio"].filter((a) => existsSync(join(site, a, "index.html")));
+// The Studio loads the instruments in iframes from their own paths (tools/apps.mjs alsoLoads).
+const allowed = (app) => [`/${app}/`, ...(APPS[app].alsoLoads ?? [])];
 const ok = (m) => console.log(`ok - ${m}`);
 let browser;
 try {
@@ -52,19 +55,20 @@ try {
     page.on("pageerror", (e) => errors.push(e.message));
     page.on("request", (r) => {
       const u = new URL(r.url());
-      if (u.origin === origin && !u.pathname.startsWith(`/${app}/`)) outside.push(u.pathname);
+      if (u.origin === origin && !allowed(app).some((p) => u.pathname.startsWith(p))) outside.push(u.pathname);
     });
     await page.goto(`${origin}/${app}/`);
     await page.waitForLoadState("load");
     await page.waitForTimeout(2500); // live streams never go idle; give the app time to settle
     assert.deepEqual(errors, [], `${app}: page errors`);
-    assert.deepEqual(outside, [], `${app}: requests outside /${app}/`);
+    assert.deepEqual(outside, [], `${app}: requests outside ${allowed(app).join(", ")}`);
     pages[app] = page;
-    ok(`/${app}/ loads, every request under /${app}/, no errors`);
+    ok(`/${app}/ loads, every request under ${allowed(app).join(", ")}, no errors`);
   }
   if (apps.includes("synth")) {
-    assert.ok(external.some((p) => p.startsWith("/api/")), "synth calls its API on synth.netcomposer.art");
-    ok(`synth API goes to synth.netcomposer.art (${external.length} requests, stubbed offline here)`);
+    // ASTRID no longer has Situation or the Meaning filter (NetComposer-Synth #64): it calls no API.
+    assert.deepEqual(external.filter((p) => p.startsWith("/api/")), [], "synth calls no API");
+    ok(`synth calls no API (${external.length} other requests to synth.netcomposer.art: the one-time sound copy)`);
   }
   const regs = await seed.evaluate(async () =>
     (await navigator.serviceWorker.getRegistrations()).map((r) => new URL(r.scope).pathname).sort(),
