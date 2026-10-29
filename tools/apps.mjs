@@ -1,6 +1,6 @@
-// The three instruments netcomposer.art serves next to /create/ (one origin, so NC Sync's
-// BroadcastChannel reaches all of them). Shared by tools/pull-app.mjs, tools/serve-local.mjs
-// and tests/apps.test.mjs.
+// The three instruments netcomposer.art serves next to /create/, and the Studio that plays them on one page (one
+// origin, so NC Sync's BroadcastChannel reaches all of them and the Studio can load them in same-origin iframes).
+// Shared by tools/pull-app.mjs, tools/serve-local.mjs and tests/apps.test.mjs.
 export const APPS = {
   synth: {
     name: "ASTRID",
@@ -19,6 +19,14 @@ export const APPS = {
     repo: "psemmelhack/ASTRID-Bass",
     build: ["node", "scripts/build-site.mjs"],
     out: "apps/bass/dist",
+  },
+  studio: {
+    name: "NetComposer Studio",
+    repo: "netcomposer-art/nc-studio",
+    build: ["node", "scripts/build-site.mjs"],
+    out: "dist",
+    // The Studio loads the instruments in iframes from their own paths.
+    alsoLoads: ["/rhythm/", "/bass/", "/synth/"],
   },
 };
 
