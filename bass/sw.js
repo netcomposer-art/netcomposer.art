@@ -15,7 +15,7 @@ const CACHE = `${PREFIX}v3`;
 const SCOPE = new URL("./", self.location.href).pathname;
 const HASHED = `${SCOPE}assets/`;
 // Filled in by the build (vite.config.ts, swPrecache) with the hashed lazy UI chunks.
-const LAZY_UI = ["./assets/slot-menu-BG20F2vr.js","./assets/step-sheet-HkCTm5Em.js"];
+const LAZY_UI = ["./assets/slot-menu-Dd8fw9BH.js","./assets/step-sheet-HkCTm5Em.js"];
 
 /** Caches to delete on activate: ours (by prefix) but not the current one. */
 function staleCaches(keys) {

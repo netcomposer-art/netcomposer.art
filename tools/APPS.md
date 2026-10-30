@@ -11,6 +11,10 @@ netcomposer.art serves ASTRID at `/synth/`, PETRA Rhythm at `/rhythm/`, OLIVE Ba
 
 ASTRID calls no API since Situation and the Meaning filter were taken out (NetComposer-Synth #64; the code is on its `situation-archive` branch). The API server on Replit at `https://synth.netcomposer.art/api` is no longer used by `/synth/`. Once the Replit redirect (NetComposer-Synth PR #49) is published, synth.netcomposer.art redirects every other path to `https://netcomposer.art/synth/`; until then it still serves the old app.
 
+## The one live nc-ui at /nc-ui/
+
+`/nc-ui/` is the NetComposer design language (netcomposer-art/nc-ui): tokens and the module kit. Every instrument links `/nc-ui/nc-ui.css` (the Studio and ASTRID link `/nc-ui/tokens.css`), so a change published here reaches every module on its next load, with no app rebuild. Each app carries a fallback that loads only if `/nc-ui/` fails. Publish with `node tools/pull-ui.mjs --from <nc-ui clone at the commit to ship>`; `nc-ui/BUILD.txt` names the commit.
+
 ## How a build gets here
 Builds are committed to this repo. GitHub Pages deploys `main` as it is, with no build step and no secrets.
 
