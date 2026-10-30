@@ -1,6 +1,6 @@
 repo: netcomposer-art/nc-ui
-commit: acfe0bd22d3e65f18a32beee81fb032139a0405a
+commit: 3bcc4a07f1b825e085bc9fdbab2f0912ce325cde
 branch: main
 version: 0.2.0
-date: 2026-10-30T19:20:24.997Z
+date: 2026-10-30T20:04:09.922Z
 base: /nc-ui/
