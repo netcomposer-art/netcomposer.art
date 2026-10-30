@@ -26,7 +26,13 @@ export const APPS = {
     build: ["node", "scripts/build-site.mjs"],
     out: "dist",
     // The Studio loads the instruments in iframes from their own paths.
-    alsoLoads: ["/rhythm/", "/bass/", "/synth/"],
+    alsoLoads: ["/rhythm/", "/bass/", "/synth/", "/lucy/"],
+  },
+  lucy: {
+    name: "LUCY Audio",
+    repo: "netcomposer-art/lucy",
+    build: ["node", "scripts/build-site.mjs"],
+    out: "dist",
   },
 };
 
