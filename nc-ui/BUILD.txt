@@ -1,6 +1,6 @@
 repo: netcomposer-art/nc-ui
-commit: 2b144de38216f1aeb299c3feac8d224b8a755a3a
-branch: tokens/lucy
+commit: dc1d3c7a6569c7b6060c90cea5f5141c197b9237
+branch: main
 version: 0.2.0
-date: 2026-10-30T16:31:34.287Z
+date: 2026-10-30T16:41:01.485Z
 base: /nc-ui/
