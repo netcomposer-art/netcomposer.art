@@ -10,7 +10,7 @@ import { spawn } from "node:child_process";
 import { existsSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { APPS } from "../tools/apps.mjs";
+import { APPS, UI_BASE } from "../tools/apps.mjs";
 
 const site = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const { chromium } = await import(process.env.PLAYWRIGHT_MODULE ?? "playwright");
@@ -21,7 +21,8 @@ const server = spawn(process.execPath, [join(site, "tools/serve-local.mjs"), Str
 });
 const apps = ["synth", "rhythm", "bass", "studio"].filter((a) => existsSync(join(site, a, "index.html")));
 // The Studio loads the instruments in iframes from their own paths (tools/apps.mjs alsoLoads).
-const allowed = (app) => [`/${app}/`, ...(APPS[app].alsoLoads ?? [])];
+// Every app may also read the one live nc-ui at /nc-ui/ (tools/pull-ui.mjs).
+const allowed = (app) => [`/${app}/`, UI_BASE, ...(APPS[app].alsoLoads ?? [])];
 const ok = (m) => console.log(`ok - ${m}`);
 let browser;
 try {
