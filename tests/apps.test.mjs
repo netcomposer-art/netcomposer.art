@@ -6,7 +6,7 @@ import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { dirname, join, relative, resolve } from "node:path";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
-import { APPS, checkAppFolder } from "../tools/apps.mjs";
+import { APPS, UI_FILES, checkAppFolder } from "../tools/apps.mjs";
 
 const site = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const walk = (dir, top = dir) =>
@@ -40,6 +40,26 @@ test("checkAppFolder catches wrong base, source maps, dirty builds and missing f
   for (const p of ["outside /bass/", "source map", "uncommitted", "base is not /bass/"])
     assert.match(problems, new RegExp(p));
   assert.deepEqual(checkAppFolder([], "synth", read({})), ["no index.html", "no BUILD.txt"]);
+});
+
+test("an app may link the one live nc-ui at /nc-ui/ and nothing else outside its path", () => {
+  const files = {
+    "index.html": '<link rel="stylesheet" href="/nc-ui/nc-ui.css" data-nc-ui-live><link href="/nc-ui/other.css">',
+    "BUILD.txt": `commit: ${"a".repeat(40)}\nbase: /bass/\n`,
+  };
+  assert.deepEqual(checkAppFolder(Object.keys(files), "bass", (f) => files[f]), ["index.html points outside /bass/: /nc-ui/other.css"]);
+});
+
+test("nc-ui/ is published with every file the apps link, and says which commit", (t) => {
+  const dir = join(site, "nc-ui");
+  if (!existsSync(dir)) return t.skip("nc-ui/ not added yet");
+  for (const f of UI_FILES) assert.ok(existsSync(join(dir, f)), `nc-ui/${f}`);
+  const build = readFileSync(join(dir, "BUILD.txt"), "utf8");
+  assert.match(build, /^commit: [0-9a-f]{40}$/m);
+  assert.match(build, /^base: \/nc-ui\/$/m);
+  const css = readFileSync(join(dir, "nc-ui.css"), "utf8");
+  assert.match(css, /--nc-ui-accent:/);
+  assert.doesNotMatch(css, /@layer/, "the live sheet stays unlayered so it beats every app's bundled fallback");
 });
 
 test("the site root and /create/ don't claim the instruments' paths", () => {

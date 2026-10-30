@@ -30,6 +30,10 @@ export const APPS = {
   },
 };
 
+/** nc-ui, served once at /nc-ui/ and linked by every app (tools/pull-ui.mjs). */
+export const UI_BASE = "/nc-ui/";
+export const UI_FILES = ["nc-ui.css", "nc-ui.min.css", "tokens.css", "confirm.css", "tokens.resolved.json"];
+
 /** Problems with a built app folder (empty list when it is fine to publish at /<key>/). */
 export function checkAppFolder(files, key, readText) {
   const base = `/${key}/`;
@@ -52,6 +56,8 @@ export function checkAppFolder(files, key, readText) {
     for (const m of html.matchAll(/\b(?:src|href)="([^"]+)"/g)) {
       const url = m[1];
       if (/^(?:[a-z]+:|\/\/|#|data:)/i.test(url)) continue;
+      // The one shared stylesheet every app links (the live nc-ui) is the only allowed exception.
+      if (url.startsWith(UI_BASE) && UI_FILES.includes(url.slice(UI_BASE.length))) continue;
       if (url.startsWith("/") && !url.startsWith(base))
         problems.push(`index.html points outside ${base}: ${url}`);
     }
