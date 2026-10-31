@@ -29,7 +29,8 @@ Four browser instruments, NetComposer elements, on the same origin as Create, so
 - [PETRA Rhythm](https://netcomposer.art/rhythm/): a browser drum machine. Only its main page is public.
 - [OLIVE Bass](https://netcomposer.art/bass/): a 303-lineage acid bass.
 - [LUCY Audio](https://netcomposer.art/lucy/): a looper on the NetComposer clock that records a mic or audio interface; takes stay in the browser.
-- [NetComposer Studio](https://netcomposer.art/studio/): the instruments (PETRA Rhythm, OLIVE Bass, ASTRID, LUCY) on one page, one audio clock and one mixer, with a master you can record.
+- [NYX Sampler](https://netcomposer.art/nyx/): an eight-pad sampler on the NetComposer clock: load, trim, slice and sequence samples (or LUCY's takes); samples stay in the browser.
+- [NetComposer Studio](https://netcomposer.art/studio/): the instruments (PETRA Rhythm, OLIVE Bass, ASTRID, LUCY, NYX) on one page, one audio clock and one mixer, with a master you can record.
 
 ## Now: one composition, two performances
 
