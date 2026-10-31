@@ -1325,6 +1325,8 @@ button.nc-pads-label[aria-pressed="true"] { color: var(--nc-ui-accent); }
 .nc-row-dice { flex: none; margin-inline: 0; }
 .nc-pads-dice svg { width: calc(var(--nc-ui-target-min) / 3); height: calc(var(--nc-ui-target-min) / 3); display: block; margin: auto; }
 .nc-fill { padding-inline: var(--nc-ui-module-gap); touch-action: none; user-select: none; -webkit-user-select: none; }
+/* Clear is a tap, not a hold: phones still scroll over it. */
+.nc-clear { touch-action: manipulation; }
 .nc-fill[aria-pressed="true"] { background: var(--nc-ui-text); border-color: var(--nc-ui-text); color: var(--nc-ui-surface-page); }
 .nc-pads-step, .nc-pads-play, .nc-fill {
   flex: none;
@@ -1845,6 +1847,11 @@ button.nc-pads-label[aria-pressed="true"] { color: var(--nc-ui-accent); }
 }
 .nc-ui-toast[data-placement="bottom"] { bottom: calc(var(--nc-ui-toast-offset) + env(safe-area-inset-bottom)); }
 .nc-ui-toast[data-placement="top"] { top: calc(var(--nc-ui-toast-offset) + env(safe-area-inset-top)); }
+/* In the Studio (html[data-nc-hosted]) the frame is as tall as its page: toasts and sheets keep to the part you can
+   see, which the Studio writes as --nc-host-top / --nc-host-bottom. */
+html[data-nc-hosted] .nc-ui-toast[data-placement="bottom"] { bottom: calc(var(--nc-host-bottom, 0px) + var(--nc-ui-toast-offset)); }
+html[data-nc-hosted] .nc-ui-toast[data-placement="top"] { top: calc(var(--nc-host-top, 0px) + var(--nc-ui-toast-offset)); }
+html[data-nc-hosted] .nc-step-editor[data-placement="sheet"] { bottom: var(--nc-host-bottom, 0px); }
 .nc-ui-toast[data-placement="anchor"] { position: absolute; transform: none; }
 .nc-ui-toast[data-state="open"] { opacity: 1; }
 .nc-ui-toast[data-state="closing"] {
@@ -2516,6 +2523,12 @@ html[data-nc-hosted] .nc-page-body { padding-top: var(--nc-ui-module-gap); }
   opacity: 0;
   touch-action: none;
   transition: opacity var(--nc-ui-motion-fade, .2s) var(--nc-ui-motion-fade-easing, ease);
+}
+/* In the Studio the instrument's frame is as tall as its page: the layer covers the part you can see (the Studio
+   writes it as --nc-host-top / --nc-host-bottom), so the question sits on screen, not mid-page. */
+html[data-nc-hosted] .nc-ui-confirm-layer {
+  top: var(--nc-host-top, 0px);
+  bottom: var(--nc-host-bottom, 0px);
 }
 .nc-ui-confirm-layer[data-state="open"] {
   opacity: 1;
