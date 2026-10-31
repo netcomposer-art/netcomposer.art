@@ -1187,7 +1187,7 @@ function ncRender(chain, inL, inR, outL, outR) {
       if (outR && outR !== outL) outR[i] = tmp[1];
     }
   }
-function asIsMod(type) { return type === 'flanger' || type === 'chorus' || type === 'phaser'; }
+function asIsMod(type) { return type === 'flanger' || type === 'chorus' || type === 'phaser' || type === 'juno'; }
 function asClamp(v, d, lo, hi) {
     var x = v == null ? d : +v;
     if (x !== x) x = d;
@@ -1319,10 +1319,66 @@ function asPhaserStep(st, io, out) {
     out[0] = dg * xL + wg * yL;
     out[1] = dg * xR + wg * yR;
   }
+function asJunoMode(mode) {
+    if (mode === 3) return { hz: 9.0, centre: 3.3, swing: 0.25, sine: true };
+    return { hz: mode === 2 ? 0.83 : 0.5, centre: 3.5, swing: 1.85, sine: false };
+  }
+function asJunoCreate(sr) {
+    var st = asModBase('juno', sr, 0.012, 0.5, 1, 0, 0.5);
+    st.mode = 1; st.cfg = asJunoMode(1); st.hissS = 0.2; st.hissT = 0.2;
+    st.lpL = 0; st.lpR = 0; st.lpK = 1 - Math.exp(-TWOPI * 7500 / sr);
+    st.env = 0; st.envK = ncCoef(0.05, sr);
+    // The wet keeps off the bass (a one-pole high-pass near 250 Hz), so the dry low end never combs away.
+    st.hpL = 0; st.hpR = 0; st.hpK = 1 - Math.exp(-TWOPI * 250 / sr);
+    st.seed = 22222;
+    return st;
+  }
+function asJunoApply(st, p, snap) {
+    var m = p.mode == null ? st.mode : Math.round(+p.mode);
+    st.mode = m === 2 || m === 3 ? m : 1;
+    st.cfg = asJunoMode(st.mode);
+    st.rateT = st.cfg.hz;
+    st.mixT = asClamp(p.mix, st.mixT, 0, 1);
+    st.hissT = asClamp(p.hiss, st.hissT, 0, 1);
+    if (snap) { st.rateS = st.rateT; st.mixS = st.mixT; st.hissS = st.hissT; }
+  }
+function asJunoNoise(st) {
+    st.seed = (st.seed * 1103515245 + 12345) & 0x7fffffff;
+    return st.seed / 0x3fffffff - 1;
+  }
+function asJunoStep(st, io, out) {
+    var xL = io[0], xR = io[1];
+    var k = st.immediate ? 1 : st.kFast;
+    asSmooth(st, k);
+    st.hissS += (st.hissT - st.hissS) * k;
+    var cfg = st.cfg, ms = st.sr / 1000, x = 0.5 * (xL + xR);
+    st.bufL[st.w] = ncFlush(x);
+    var w = st.w + 1 >= st.n ? 0 : st.w + 1;
+    var l, r;
+    if (cfg.sine) { l = Math.sin(TWOPI * st.ph); r = -l; }
+    else { l = 1 - 4 * Math.abs(st.ph - 0.5); r = -l; }
+    var wL = asTap(st.bufL, w, st.n, (cfg.centre + cfg.swing * l) * ms);
+    var wR = asTap(st.bufL, w, st.n, (cfg.centre + cfg.swing * r) * ms);
+    // The hiss rides under the sound (as a BBD's noise is masked by it) and goes when the sound does.
+    var ax = x < 0 ? -x : x;
+    st.env = ncFlush(st.env + st.envK * (ax - st.env));
+    var hiss = st.hissS * 0.0015 * (st.env * 20 < 1 ? st.env * 20 : 1) * asJunoNoise(st);
+    st.lpL = ncFlush(st.lpL + st.lpK * (wL + hiss - st.lpL));
+    st.lpR = ncFlush(st.lpR + st.lpK * (wR + hiss - st.lpR));
+    st.hpL = ncFlush(st.hpL + st.hpK * (st.lpL - st.hpL));
+    st.hpR = ncFlush(st.hpR + st.hpK * (st.lpR - st.hpR));
+    st.w = w;
+    asAdvance(st);
+    // Dry and wet side by side (the Juno adds them); Mix 50% is the classic even blend, kept at unity loudness.
+    var dg = Math.cos(st.mixS * HALFPI), wg = Math.sin(st.mixS * HALFPI);
+    out[0] = dg * xL + wg * (st.lpL - st.hpL);
+    out[1] = dg * xR + wg * (st.lpR - st.hpR);
+  }
 function ncWidgetCreate(type, sr) {
     if (type === 'flanger') return asFlangerCreate(sr);
     if (type === 'chorus') return asChorusCreate(sr);
     if (type === 'phaser') return asPhaserCreate(sr);
+    if (type === 'juno') return asJunoCreate(sr);
     return ncVendorWidgetCreate(type, sr);
   }
 function ncWidgetApply(st, p, snap, bypass, auto) {
@@ -1330,12 +1386,14 @@ function ncWidgetApply(st, p, snap, bypass, auto) {
     if (st.type === 'flanger') asModApply(st, p, snap, -0.9);
     else if (st.type === 'chorus') asChorusApply(st, p, snap);
     else if (st.type === 'phaser') asPhaserApply(st, p, snap);
+    else if (st.type === 'juno') asJunoApply(st, p, snap);
     ncVendorWidgetApply(st, p, snap, bypass, auto);
   }
 function ncClearState(st) {
     if (st && asIsMod(st.type)) {
       if (st.bufL) { st.bufL.fill(0); st.bufR.fill(0); st.w = 0; }
       if (st.zL) { st.zL.fill(0); st.zR.fill(0); st.yL = 0; st.yR = 0; }
+      if (st.type === 'juno') { st.lpL = 0; st.lpR = 0; st.hpL = 0; st.hpR = 0; st.env = 0; }
       return;
     }
     ncVendorClearState(st);
@@ -1347,6 +1405,7 @@ function ncWidgetStep(st, io, out) {
     st.bypass += (st.bypassT - st.bypass) * k;
     if (st.type === 'flanger') (NC_IO[0] = xL, NC_IO[1] = xR, asFlangerStep(st, NC_IO, out));
     else if (st.type === 'chorus') (NC_IO[0] = xL, NC_IO[1] = xR, asChorusStep(st, NC_IO, out));
+    else if (st.type === 'juno') (NC_IO[0] = xL, NC_IO[1] = xR, asJunoStep(st, NC_IO, out));
     else (NC_IO[0] = xL, NC_IO[1] = xR, asPhaserStep(st, NC_IO, out));
     var b = st.bypass;
     if (b >= 0.999) return;
