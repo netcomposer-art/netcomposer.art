@@ -1375,11 +1375,16 @@ function asJunoStep(st, io, out) {
     out[1] = dg * xR + wg * (st.lpR - st.hpR);
   }
 function ncWidgetCreate(type, sr) {
-    if (type === 'flanger') return asFlangerCreate(sr);
-    if (type === 'chorus') return asChorusCreate(sr);
-    if (type === 'phaser') return asPhaserCreate(sr);
-    if (type === 'juno') return asJunoCreate(sr);
-    return ncVendorWidgetCreate(type, sr);
+    var st;
+    if (type === 'flanger') st = asFlangerCreate(sr);
+    else if (type === 'chorus') st = asChorusCreate(sr);
+    else if (type === 'phaser') st = asPhaserCreate(sr);
+    else if (type === 'juno') st = asJunoCreate(sr);
+    else st = ncVendorWidgetCreate(type, sr);
+    // Level taps (the Hacks cards' meters): mt 1 while the page meters this hack; pi / po its input and output
+    // sample peaks since the processor last read them. Set here, so every state has them from the start.
+    if (st) { st.mt = 0; st.pi = 0; st.po = 0; }
+    return st;
   }
 function ncWidgetApply(st, p, snap, bypass, auto) {
     p = p || {};
@@ -1400,20 +1405,34 @@ function ncClearState(st) {
   }
 function ncWidgetStep(st, io, out) {
     var xL = io[0], xR = io[1];
-    if (!asIsMod(st.type)) { (NC_IO[0] = xL, NC_IO[1] = xR, ncVendorWidgetStep(st, NC_IO, out)); return; }
-    var k = st.immediate ? 1 : st.kFast;
-    st.bypass += (st.bypassT - st.bypass) * k;
-    if (st.type === 'flanger') (NC_IO[0] = xL, NC_IO[1] = xR, asFlangerStep(st, NC_IO, out));
-    else if (st.type === 'chorus') (NC_IO[0] = xL, NC_IO[1] = xR, asChorusStep(st, NC_IO, out));
-    else if (st.type === 'juno') (NC_IO[0] = xL, NC_IO[1] = xR, asJunoStep(st, NC_IO, out));
-    else (NC_IO[0] = xL, NC_IO[1] = xR, asPhaserStep(st, NC_IO, out));
-    var b = st.bypass;
-    if (b >= 0.999) return;
-    if (b <= 0.001) { out[0] = xL; out[1] = xR; return; }
-    var dryG = Math.cos(b * HALFPI);
-    var wetG = Math.sin(b * HALFPI);
-    out[0] = dryG * xL + wetG * out[0];
-    out[1] = dryG * xR + wetG * out[1];
+    if (!asIsMod(st.type)) (NC_IO[0] = xL, NC_IO[1] = xR, ncVendorWidgetStep(st, NC_IO, out));
+    else {
+      var k = st.immediate ? 1 : st.kFast;
+      st.bypass += (st.bypassT - st.bypass) * k;
+      if (st.type === 'flanger') (NC_IO[0] = xL, NC_IO[1] = xR, asFlangerStep(st, NC_IO, out));
+      else if (st.type === 'chorus') (NC_IO[0] = xL, NC_IO[1] = xR, asChorusStep(st, NC_IO, out));
+      else if (st.type === 'juno') (NC_IO[0] = xL, NC_IO[1] = xR, asJunoStep(st, NC_IO, out));
+      else (NC_IO[0] = xL, NC_IO[1] = xR, asPhaserStep(st, NC_IO, out));
+      var b = st.bypass;
+      if (b < 0.999) {
+        if (b <= 0.001) { out[0] = xL; out[1] = xR; }
+        else {
+          var dryG = Math.cos(b * HALFPI);
+          var wetG = Math.sin(b * HALFPI);
+          out[0] = dryG * xL + wetG * out[0];
+          out[1] = dryG * xR + wetG * out[1];
+        }
+      }
+    }
+    // Level taps: only while the page meters this hack (mt 1); no output sample changes.
+    if (st.mt === 1) {
+      var a = xL < 0 ? -xL : xL, c = xR < 0 ? -xR : xR;
+      if (c > a) a = c;
+      if (a > st.pi) st.pi = a;
+      a = out[0] < 0 ? -out[0] : out[0]; c = out[1] < 0 ? -out[1] : out[1];
+      if (c > a) a = c;
+      if (a > st.po) st.po = a;
+    }
   }
 // One AudioWorklet for the whole hack stack. DSP functions are prepended by engine.js.
 function ncNow() {
@@ -1443,6 +1462,12 @@ class NCHackProcessor extends AudioWorkletProcessor {
     this.grOn = false;
     this.grMin = 1;
     this.grN = 0;
+    this.mOn = false;
+    this.mN = 0;
+    this.mEvery = Math.max(128, Math.round(sampleRate / 30));
+    this.mBuf = new Float32Array(20);
+    this.mMsg = { lv: this.mBuf, ids: NC_NONE, n: 0 };
+    this.mQuiet = false;
     var self = this;
     this.port.onmessage = function (e) { self.onMsg(e.data || {}); };
     this.port.postMessage({ ready: 1, sr: sampleRate, clock: this.clock });
@@ -1476,8 +1501,24 @@ class NCHackProcessor extends AudioWorkletProcessor {
     else if (msg.op === 'patch') ncChainPatch(chain, msg.id, msg.params, msg.bypass, !!msg.immediate, msg.auto);
     else if (msg.op === 'clear') ncChainClear(chain);
     else if (msg.op === 'cpu') { this.cpuOn = !!msg.on; this.cpuSum = 0; this.cpuMax = 0; this.cpuN = 0; this.warm = 8; }
+    else if (msg.op === 'meter') { this.mOn = msg.on === true; this.mN = 0; this.mQuiet = false; for (var mk in this.chain.box) this.chain.box[mk].mt = this.mOn ? 1 : 0; }
     else if (msg.op === 'scope') { this.grOn = !!msg.on; this.grMin = 1; this.grN = 0; }
     if (msg.ack) this.port.postMessage({ ack: msg.ack });
+  }
+  meterReport() {
+    this.mN = 0;
+    var order = this.chain.order, buf = this.mBuf, n = order.length < 10 ? order.length : 10, loud = false, m, st;
+    for (m = 0; m < n; m++) {
+      st = this.chain.box[order[m]];
+      if (!st) { buf[2 * m] = 0; buf[2 * m + 1] = 0; continue; }
+      if (st.mt !== 1) st.mt = 1;
+      buf[2 * m] = st.pi; buf[2 * m + 1] = st.po;
+      if (st.pi > 1e-5 || st.po > 1e-5) loud = true;
+      st.pi = 0; st.po = 0;
+    }
+    this.mMsg.ids = order; this.mMsg.n = n;
+    if (loud || !this.mQuiet) this.port.postMessage(this.mMsg);
+    this.mQuiet = !loud;
   }
   process(inputs, outputs) {
     var t0 = this.cpuOn ? ncNow() : 0;
@@ -1499,6 +1540,7 @@ class NCHackProcessor extends AudioWorkletProcessor {
       }
     }
     ncMixRender(this.tracks, this.chain, inputs, outL, outR);
+    if (this.mOn && (this.mN += outL.length) >= this.mEvery) this.meterReport();
     if (this.grOn) {
       var lim = this.chain.lim;
       if (lim.lo < this.grMin) this.grMin = lim.lo;
