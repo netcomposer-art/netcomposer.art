@@ -1,0 +1,21 @@
+{
+  "$schema": "https://raw.githubusercontent.com/netcomposer-art/nc-fx/main/schema/plugin-registry.schema.json",
+  "v": 1,
+  "plugins": [
+    {
+      "id": "netcomposer.tremolo",
+      "name": "Tremolo",
+      "version": "1.0.0",
+      "author": "Peter Semmelhack",
+      "licence": "MIT",
+      "description": "The level goes up and down. Rate, depth and shape.",
+      "manifest": "tremolo/plugin.json",
+      "integrity": {
+        "manifest": "sha256-DVeqtR2rDj2Qymh9jBVNvZgOGCVARH7H1qHuxUsXVLA=",
+        "dsp": "sha256-68W0pQ3R7xtSXRiizjIxB8t/25x1HSLIe5hdz1c6ZGk="
+      },
+      "checked": "2026-11-01, nc-fx-check 17/17 PASS at nc-fx ca2d4f2",
+      "source": "https://github.com/netcomposer-art/nc-plugin-template"
+    }
+  ]
+}

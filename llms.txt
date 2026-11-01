@@ -32,6 +32,31 @@ Four browser instruments, NetComposer elements, on the same origin as Create, so
 - [NYX Sampler](https://netcomposer.art/nyx/): an eight-pad sampler on the NetComposer clock: load, trim, slice and sequence samples (or LUCY's takes); samples stay in the browser.
 - [NetComposer Studio](https://netcomposer.art/studio/): the instruments (PETRA Rhythm, OLIVE Bass, ASTRID, LUCY, NYX) on one page, one audio clock and one mixer, with a master you can record.
 
+## Plugins (for agents building effects)
+
+Insert plugins add effects to the Studio's Mix: a plugin.json (name, version, author, licence, dials) and one DSP script that runs in the browser's AudioWorklet. The Studio draws the card. Build one from the template, run the checker until every line says PASS, load it in the Studio with Add › Load plugin from URL…, and open a pull request here to get it listed.
+
+- [Plugin guide](https://github.com/netcomposer-art/nc-fx/blob/main/docs/plugins.md): the contract (manifest, DSP rules), the checker, trying it in the Studio, listing it. Written for agents.
+- [Plugin template](https://github.com/netcomposer-art/nc-plugin-template): a working tremolo, npm run check, npm run serve, CI.
+- [Manifest schema](https://raw.githubusercontent.com/netcomposer-art/nc-fx/main/schema/plugin-manifest.schema.json): plugin.json as JSON Schema.
+- [Listed plugins](https://netcomposer.art/plugins/registry.json): the registry the Studio offers in Add › Plugins, with sha256 per file ([schema](https://raw.githubusercontent.com/netcomposer-art/nc-fx/main/schema/plugin-registry.schema.json)).
+- [Tremolo](https://netcomposer.art/plugins/tremolo/plugin.json): the listed example.
+- Checker: npx -p github:netcomposer-art/nc-fx nc-fx-check <folder or plugin.json URL> (--json for agents).
+
+## AGENTS.md files
+
+Each repository says what it is, how to build and test it, and its rules:
+
+- [nc-fx](https://github.com/netcomposer-art/nc-fx/blob/main/AGENTS.md): effects, the catalog, plugins and the checker
+- [nc-ui](https://github.com/netcomposer-art/nc-ui/blob/main/AGENTS.md): the design language and module kit
+- [nc-studio](https://github.com/netcomposer-art/nc-studio/blob/main/AGENTS.md): the Studio (private)
+- [nc-clock](https://github.com/netcomposer-art/nc-clock/blob/main/AGENTS.md): the beat clock and NC Sync
+- [lucy](https://github.com/netcomposer-art/lucy/blob/main/AGENTS.md): LUCY Audio
+- [nyx](https://github.com/netcomposer-art/nyx/blob/main/AGENTS.md): NYX Sampler
+- [nc-plugin-template](https://github.com/netcomposer-art/nc-plugin-template/blob/main/AGENTS.md): start a plugin here
+- [netcomposer.art](https://github.com/netcomposer-art/netcomposer.art/blob/main/AGENTS.md): this site
+- ASTRID (psemmelhack/NetComposer-Synth), PETRA Rhythm (psemmelhack/ASTRID-Rhythm) and OLIVE Bass (psemmelhack/ASTRID-Bass) have one too; those repositories are private.
+
 ## Now: one composition, two performances
 
 Composition by Peter Semmelhack, verbatim: “2 mins - half Cm, Cm7, Cm9. Second half Cm7, Am, F.”
