@@ -4,12 +4,20 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>PETRA Rhythm</title>
+    <!-- Inside NetComposer Studio: take the Studio's theme (data-nc-theme) before first paint. On its own the page
+         follows the system setting (nc-ui's dark tokens under prefers-color-scheme). -->
+    <script>
+      try {
+        var t = window.frameElement && window.frameElement.ownerDocument.documentElement.getAttribute("data-nc-theme");
+        if (t === "light" || t === "dark") document.documentElement.setAttribute("data-nc-theme", t);
+      } catch (e) {}
+    </script>
     <meta name="description" content="PETRA / RHYTHM / 01. A NetComposer element." />
     <meta name="application-name" content="PETRA Rhythm" />
     <meta name="apple-mobile-web-app-title" content="PETRA Rhythm" />
     <link rel="manifest" href="/rhythm/manifest.webmanifest" />
-    <script type="module" crossorigin src="/rhythm/assets/main-Zm68QJmW.js"></script>
-    <link rel="stylesheet" crossorigin href="/rhythm/assets/main-Cl3z2Euz.css">
+    <script type="module" crossorigin src="/rhythm/assets/main-Dp2ITQin.js"></script>
+    <link rel="stylesheet" crossorigin href="/rhythm/assets/main-DPXkRrhV.css">
     <link rel="stylesheet" href="/nc-ui/nc-ui.css" data-nc-ui-live="" onerror="this.onerror=null;var l=document.createElement(&#39;link&#39;);l.rel=&#39;stylesheet&#39;;l.href=&#39;/rhythm/nc-ui-fallback.css&#39;;l.dataset.ncUiFallback=&#39;&#39;;document.head.appendChild(l)">
   </head>
   <body>

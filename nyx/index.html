@@ -4,8 +4,16 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>NYX Sampler</title>
+    <!-- Inside NetComposer Studio: take the Studio's theme (data-nc-theme) before first paint. On its own the page
+         follows the system setting (nc-ui's dark tokens under prefers-color-scheme). -->
+    <script>
+      try {
+        var t = window.frameElement && window.frameElement.ownerDocument.documentElement.getAttribute("data-nc-theme");
+        if (t === "light" || t === "dark") document.documentElement.setAttribute("data-nc-theme", t);
+      } catch (e) {}
+    </script>
     <meta name="description" content="NYX: an eight-pad sampler on the NetComposer clock. Load, trim, slice and sequence samples." />
-    <script type="module" crossorigin src="/nyx/assets/index-CsAKtEFZ.js"></script>
+    <script type="module" crossorigin src="/nyx/assets/index-BqyJzi95.js"></script>
     <link rel="stylesheet" crossorigin href="/nyx/assets/index-fRFcvXa4.css">
     <link rel="stylesheet" href="/nc-ui/nc-ui.css" data-nc-ui-live="" onerror="this.onerror=null;var l=document.createElement(&#39;link&#39;);l.rel=&#39;stylesheet&#39;;l.href=&#39;/nyx/nc-ui-fallback.css&#39;;l.dataset.ncUiFallback=&#39;&#39;;document.head.appendChild(l)">
   </head>
