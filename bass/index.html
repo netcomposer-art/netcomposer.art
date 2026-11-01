@@ -4,14 +4,23 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <title>OLIVE Bass</title>
+    <!-- Inside NetComposer Studio: take the Studio's theme (data-nc-theme) before first paint. On its own the page
+         follows the system setting (nc-ui's dark tokens under prefers-color-scheme). -->
+    <script>
+      try {
+        var t = window.frameElement && window.frameElement.ownerDocument.documentElement.getAttribute("data-nc-theme");
+        if (t === "light" || t === "dark") document.documentElement.setAttribute("data-nc-theme", t);
+      } catch (e) {}
+    </script>
     <meta name="description" content="OLIVE Bass: a 303-lineage acid bass for NetComposer." />
-    <meta name="theme-color" content="#F5F5F5" />
+    <meta name="theme-color" content="#F5F5F5" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#1E1D1C" media="(prefers-color-scheme: dark)" />
     <link rel="manifest" href="/bass/manifest.webmanifest" />
     <link rel="icon" href="/bass/icons/icon-192.png" />
     <link rel="apple-touch-icon" href="/bass/icons/icon-180.png" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-title" content="Bass" />
-    <script type="module" crossorigin src="/bass/assets/index-DY2Da6au.js"></script>
+    <script type="module" crossorigin src="/bass/assets/index-DEIgayAy.js"></script>
     <link rel="modulepreload" crossorigin href="/bass/assets/telemetry-5Y95n_K8.js">
     <link rel="stylesheet" crossorigin href="/bass/assets/index-xOTS4h0c.css">
     <link rel="stylesheet" href="/nc-ui/nc-ui.css" data-nc-ui-live="" onerror="this.onerror=null;var l=document.createElement(&#39;link&#39;);l.rel=&#39;stylesheet&#39;;l.href=&#39;/bass/nc-ui-fallback.css&#39;;l.dataset.ncUiFallback=&#39;&#39;;document.head.appendChild(l)">
