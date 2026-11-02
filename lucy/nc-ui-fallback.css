@@ -499,26 +499,26 @@
   --nc-ui-color-ink: #E8E7E6;
   --nc-ui-color-ink-label: #242424;
   --nc-ui-color-ivory: #CFCECD;
-  --nc-ui-color-surf: #2C2B2A;
-  --nc-ui-color-accent: #69A7D3;
+  --nc-ui-color-surf: #4C4B4A;
+  --nc-ui-color-accent: #77B5E2;
   --nc-ui-color-lucy-purple: #B566FF;
   --nc-ui-color-paper-bright: #1A1918;
   --nc-ui-color-accent-pad: #4B91C3;
   --nc-ui-color-accent-velocity-min: #5A8FB5;
-  --nc-ui-color-shade-1: #201F1E;
-  --nc-ui-color-shade-2: #252423;
-  --nc-ui-color-shade-3: #2A2928;
-  --nc-ui-color-shade-4: #2F2E2D;
+  --nc-ui-color-shade-1: #272625;
+  --nc-ui-color-shade-2: #302F2E;
+  --nc-ui-color-shade-3: #393837;
+  --nc-ui-color-shade-4: #424140;
   --nc-ui-color-shade-5: #191817;
   --nc-ui-color-shade-6: #262524;
   --nc-ui-color-shade-7: #333231;
   --nc-ui-color-shade-8: #403F3E;
-  --nc-ui-color-sub-0: #9F9E9D;
-  --nc-ui-color-sub-1: #8D8C8B;
+  --nc-ui-color-sub-0: #AFAEAD;
+  --nc-ui-color-sub-1: #AFAEAD;
   --nc-ui-color-sub-2: #939291;
   --nc-ui-color-sub-3: #A1A09F;
   --nc-ui-color-sub-4: #B1B0AF;
-  --nc-ui-color-div-0: #353433;
+  --nc-ui-color-div-0: #4F4E4D;
   --nc-ui-color-div-1: #242322;
   --nc-ui-color-div-2: #31302F;
   --nc-ui-color-div-3: #3E3D3C;
@@ -553,13 +553,14 @@
   --nc-ui-color-tw-red-400: #CC3D33;
   --nc-ui-legacy-background: 30 3.4% 11.4%;
   --nc-ui-legacy-foreground: 30 4.2% 90.6%;
-  --nc-ui-legacy-border: 30 1.9% 20.4%;
-  --nc-ui-legacy-card: 30 2.3% 16.9%;
-  --nc-ui-legacy-primary: 204.9 54.6% 62%;
-  --nc-ui-legacy-muted-foreground: 30 1% 62%;
+  --nc-ui-legacy-border: 30 1.3% 30.6%;
+  --nc-ui-legacy-card: 30 1.3% 28.8%;
+  --nc-ui-legacy-primary: 204.9 64.3% 67.6%;
+  --nc-ui-legacy-muted-foreground: 30 1% 68.2%;
   --nc-ui-legacy-destructive: 8.1 62% 64.9%;
   --nc-ui-legacy-chart-3: 0 0% 30%;
   --nc-ui-legacy-shadow-color: hsl(0 0% 0% / 0);
+  --nc-ui-meter-fill: var(--nc-ui-color-accent);
   --nc-ui-eq-curve: var(--nc-ui-color-eq-blue-gray);
   --nc-ui-eq-fill: var(--nc-ui-color-eq-blue-gray);
   --nc-ui-toast-bg: var(--nc-ui-color-shade-8);
@@ -576,26 +577,26 @@
     --nc-ui-color-ink: #E8E7E6;
     --nc-ui-color-ink-label: #242424;
     --nc-ui-color-ivory: #CFCECD;
-    --nc-ui-color-surf: #2C2B2A;
-    --nc-ui-color-accent: #69A7D3;
+    --nc-ui-color-surf: #4C4B4A;
+    --nc-ui-color-accent: #77B5E2;
     --nc-ui-color-lucy-purple: #B566FF;
     --nc-ui-color-paper-bright: #1A1918;
     --nc-ui-color-accent-pad: #4B91C3;
     --nc-ui-color-accent-velocity-min: #5A8FB5;
-    --nc-ui-color-shade-1: #201F1E;
-    --nc-ui-color-shade-2: #252423;
-    --nc-ui-color-shade-3: #2A2928;
-    --nc-ui-color-shade-4: #2F2E2D;
+    --nc-ui-color-shade-1: #272625;
+    --nc-ui-color-shade-2: #302F2E;
+    --nc-ui-color-shade-3: #393837;
+    --nc-ui-color-shade-4: #424140;
     --nc-ui-color-shade-5: #191817;
     --nc-ui-color-shade-6: #262524;
     --nc-ui-color-shade-7: #333231;
     --nc-ui-color-shade-8: #403F3E;
-    --nc-ui-color-sub-0: #9F9E9D;
-    --nc-ui-color-sub-1: #8D8C8B;
+    --nc-ui-color-sub-0: #AFAEAD;
+    --nc-ui-color-sub-1: #AFAEAD;
     --nc-ui-color-sub-2: #939291;
     --nc-ui-color-sub-3: #A1A09F;
     --nc-ui-color-sub-4: #B1B0AF;
-    --nc-ui-color-div-0: #353433;
+    --nc-ui-color-div-0: #4F4E4D;
     --nc-ui-color-div-1: #242322;
     --nc-ui-color-div-2: #31302F;
     --nc-ui-color-div-3: #3E3D3C;
@@ -630,13 +631,14 @@
     --nc-ui-color-tw-red-400: #CC3D33;
     --nc-ui-legacy-background: 30 3.4% 11.4%;
     --nc-ui-legacy-foreground: 30 4.2% 90.6%;
-    --nc-ui-legacy-border: 30 1.9% 20.4%;
-    --nc-ui-legacy-card: 30 2.3% 16.9%;
-    --nc-ui-legacy-primary: 204.9 54.6% 62%;
-    --nc-ui-legacy-muted-foreground: 30 1% 62%;
+    --nc-ui-legacy-border: 30 1.3% 30.6%;
+    --nc-ui-legacy-card: 30 1.3% 28.8%;
+    --nc-ui-legacy-primary: 204.9 64.3% 67.6%;
+    --nc-ui-legacy-muted-foreground: 30 1% 68.2%;
     --nc-ui-legacy-destructive: 8.1 62% 64.9%;
     --nc-ui-legacy-chart-3: 0 0% 30%;
     --nc-ui-legacy-shadow-color: hsl(0 0% 0% / 0);
+    --nc-ui-meter-fill: var(--nc-ui-color-accent);
     --nc-ui-eq-curve: var(--nc-ui-color-eq-blue-gray);
     --nc-ui-eq-fill: var(--nc-ui-color-eq-blue-gray);
     --nc-ui-toast-bg: var(--nc-ui-color-shade-8);
@@ -657,6 +659,12 @@ html, body {
   font-size: var(--nc-ui-body-size);
   font-weight: var(--nc-ui-title-weight);
   line-height: var(--nc-ui-label-leading);
+}
+/* Phones: a page never pans sideways. A guard only: whatever is wider than the screen is the bug, fixed where it is
+   (an iPhone sizes a Studio frame to its content, so one wide element pans the whole Studio: Peter, 2026-11-01).
+   clip, not hidden: no scroll container, so position: sticky still sticks. */
+@media (max-width: 768px) {
+  html, body { overflow-x: clip; }
 }
 button, input, select { font: inherit; color: inherit; }
 .nc [hidden] { display: none !important; }
@@ -1023,7 +1031,8 @@ button, input, select { font: inherit; color: inherit; }
 .nc-tap:active { background: var(--nc-ui-text); border-color: var(--nc-ui-text); color: var(--nc-ui-surface-page); }
 .nc-tap:focus-visible { outline: var(--nc-ui-focus-width) solid var(--nc-ui-focus-ring); outline-offset: var(--nc-ui-hairline); }
 /* ASTRID row spacing: a 48 px row every 72 px (measured on ASTRID's VCA at 1280 and 390). */
-.nc-section:has(> .nc-field[data-nc-slider]) { row-gap: var(--nc-ui-module-pad); }
+/* A flat phone-only group's sliders count as the section's own (group.js, collapse: "phone"). */
+.nc-section:is(:has(> .nc-field[data-nc-slider]), :has(> .nc-group[data-nc-collapse="phone"] > .nc-group-body > .nc-field[data-nc-slider])) { row-gap: var(--nc-ui-module-pad); }
 .nc-section[data-nc-inset="true"] {
   margin-inline: calc(var(--nc-ui-module-pad) * -1);
   margin-bottom: calc(var(--nc-ui-module-pad) * -1);
@@ -2010,6 +2019,11 @@ button.nc-pads-label[aria-pressed="true"] { color: var(--nc-ui-accent); }
 .nc-group-summary:empty, .nc-group[data-nc-open="true"] .nc-group-summary { display: none; }
 .nc-group-body { display: flex; flex-direction: column; gap: var(--nc-ui-module-pad); min-width: 0; }
 .nc-group-body[hidden] { display: none; }
+/* A phone-only group (collapse: "phone"): flat on tablets and desktops (no header; group and body are display:
+   contents, so its controls are the section's own flex items, as before it was grouped); a group on phones, below,
+   where data-nc-open (not the hidden attribute, which group.js leaves off it) hides its body while closed. */
+.nc-group[data-nc-collapse="phone"], .nc-group[data-nc-collapse="phone"] > .nc-group-body { display: contents; }
+.nc-group[data-nc-collapse="phone"] > .nc-group-toggle { display: none; }
 /* On/off (ASTRID's ghost On / Off, Peter 2026-10): role="switch", the word alone, no track. Off is text-sub; on is
    text with an accent hairline under it; hover takes the word and the line to text. Both words share one grid cell,
    so the control never changes width when it flips. */
@@ -2117,6 +2131,7 @@ button.nc-pads-label[aria-pressed="true"] { color: var(--nc-ui-accent); }
   overflow: hidden;
   text-overflow: ellipsis;
 }
+.nc-note[data-nc-tone="danger"] { color: var(--nc-ui-danger); }
 .nc-knob {
   width: var(--nc-ui-knob-size);
   height: var(--nc-ui-knob-size);
@@ -2615,6 +2630,88 @@ html[data-nc-hosted] .nc-step-editor[data-placement="sheet"] { bottom: var(--nc-
     width: calc(var(--nc-ui-fx-card-width) * 3);
   }
 }
+/* Pages (define-module.js, a section's pageSize; Peter, 2026-11-01: "don't push to a second row, create a second
+   'page' ... Needs to be obvious though"). From 769 px a paged fx area shows one page of cards in its row, never a
+   second row, under a slim bar: ‹ at its left end, "1 / 3" in the middle, › at its right end. The cards of the other
+   pages stay laid out but unseen, at their own width and taking no room (a negative margin as wide as the card), so
+   the row is as tall as the tallest card of any page and turning a page never changes the Mix's height. Phones (up
+   to 768 px) stack every card as before: no bar. */
+.nc-fx-pager { display: none; }
+@media (min-width: 769px) {
+  .nc-module-body[data-nc-layout="console"] > [data-nc-area="fx"][data-nc-paged] {
+    position: relative;
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    padding-top: var(--nc-ui-target-min);
+  }
+  /* No card folded on this page: three cards' width, a part-filled last page too, so the strips never shift. */
+  .nc-module-body[data-nc-layout="console"] > [data-nc-area="fx"][data-nc-paged]:not(:has(> .nc-ui-fx[data-nc-folded]:not([data-nc-off-page]))) {
+    min-width: calc(var(--nc-ui-fx-card-width) * 3);
+  }
+  .nc-module-body[data-nc-layout="console"] > [data-nc-area="fx"][data-nc-paged] > .nc-ui-fx { flex: none; width: var(--nc-ui-fx-card-width); }
+  .nc-module-body[data-nc-layout="console"] > [data-nc-area="fx"][data-nc-paged] > .nc-ui-fx[data-nc-off-page][data-nc-off-page][data-nc-off-page] {
+    order: -1;
+    flex: none;
+    width: var(--nc-ui-fx-card-width);
+    margin-inline-end: calc(var(--nc-ui-fx-card-width) * -1);
+    visibility: hidden;
+    pointer-events: none;
+  }
+  .nc-module-body[data-nc-layout="console"] > [data-nc-area="fx"][data-nc-paged] > .nc-ui-fx[data-nc-off-page][data-nc-off-page][data-nc-off-page][data-nc-folded] {
+    width: var(--nc-ui-fx-fold-width);
+    margin-inline-end: calc(var(--nc-ui-fx-fold-width) * -1);
+    padding-inline: 0;
+  }
+  /* A maximized card takes its page (its page-mates as fold columns beside it): the other pages stay out of it. */
+  .nc-module-body[data-nc-layout="console"] > [data-nc-area="fx"][data-nc-paged]:has(> .nc-ui-fx[data-nc-max="row"]) > .nc-ui-fx[data-nc-off-page] { display: none; }
+  .nc-module-body[data-nc-layout="console"] > [data-nc-area="fx"][data-nc-paged] > .nc-fx-pager {
+    position: absolute;
+    inset: 0 0 auto 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--nc-ui-module-gap);
+    height: var(--nc-ui-target-min);
+  }
+}
+/* A chevron button: a full target, a square outline like Moves' buttons, the chevron in ink so it reads at a glance.
+   At an end it stays focusable (aria-disabled) and dims by colour. */
+.nc-fx-page-btn {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: var(--nc-ui-target-min);
+  height: var(--nc-ui-target-min);
+  margin: 0;
+  padding: 0;
+  border: var(--nc-ui-hairline) solid var(--nc-ui-text-sub);
+  border-radius: var(--nc-ui-slot-radius);
+  background: transparent;
+  color: var(--nc-ui-text);
+  cursor: pointer;
+}
+.nc-fx-page-btn:hover:not([aria-disabled="true"]) { border-color: var(--nc-ui-text); }
+.nc-fx-page-btn:focus-visible { outline: var(--nc-ui-focus-width) solid var(--nc-ui-focus-ring); outline-offset: var(--nc-ui-hairline); }
+.nc-fx-page-btn[aria-disabled="true"] { color: var(--nc-ui-divider); border-color: var(--nc-ui-divider); cursor: default; }
+.nc-fx-page-icon {
+  display: block;
+  width: calc(var(--nc-ui-control-gap) * 2.5);
+  height: calc(var(--nc-ui-control-gap) * 2.5);
+  border-style: solid;
+  border-color: currentColor;
+  border-width: calc(var(--nc-ui-hairline) * 2) calc(var(--nc-ui-hairline) * 2) 0 0;
+  transform: translateX(calc(var(--nc-ui-control-gap) * -0.5)) rotate(45deg);
+}
+.nc-fx-page-btn[data-nc-fx-page="prev"] .nc-fx-page-icon { transform: translateX(calc(var(--nc-ui-control-gap) * 0.5)) rotate(-135deg); }
+.nc-fx-page-count {
+  font-size: var(--nc-ui-label-size);
+  font-weight: var(--nc-ui-label-weight);
+  letter-spacing: var(--nc-ui-label-tracking);
+  font-variant-numeric: tabular-nums;
+  color: var(--nc-ui-text);
+  white-space: nowrap;
+}
 /* One channel strip: name, M and S, sends, then the fader with its scale and meter, then the readout. Every strip
    (the master too, with empty M/S and send rows) keeps the same row heights, so faders and ticks line up. */
 .nc-strip {
@@ -3051,6 +3148,16 @@ html[data-nc-hosted] .nc-step-editor[data-placement="sheet"] { bottom: var(--nc-
     width: auto;
     min-width: 0;
   }
+  /* Paged: a third each, so a part-filled last page keeps the columns; with a card folded on the page the open
+     ones share the rest. */
+  .nc-module-body[data-nc-layout="console"] > [data-nc-area="fx"][data-nc-paged][data-nc-paged] > .nc-ui-fx:not([data-nc-folded], [data-nc-off-page]) {
+    flex: 0 0 calc(100% / 3);
+    width: auto;
+    min-width: 0;
+  }
+  .nc-module-body[data-nc-layout="console"] > [data-nc-area="fx"][data-nc-paged][data-nc-paged]:has(> .nc-ui-fx[data-nc-folded]:not([data-nc-off-page])) > .nc-ui-fx:not([data-nc-folded], [data-nc-off-page]) {
+    flex: 1 1 0;
+  }
 }
 @media (max-width: 768px) {
   .nc-module-body[data-nc-layout="console"] > [data-nc-area="fx"] { grid-template-columns: minmax(0, 1fr); }
@@ -3317,6 +3424,25 @@ html[data-nc-hosted] .nc-page-body { padding-top: var(--nc-ui-module-gap); }
   /* Two rows tall as well, so the modules after it fill the column beside it before a new row starts. */
   html[data-nc-landscape] .nc-stack[data-nc-layout="adjacent"] > .nc-module[data-nc-lead]:not([data-nc-slim]) { grid-column: span 2; grid-row: span 2; }
 }
+/* Phone-only groups fold on phones: portrait, a landscape phone, and a Studio frame on a landscape phone. */
+@media (max-width: 768px) {
+  .nc-group[data-nc-collapse="phone"] { display: flex; }
+  .nc-group[data-nc-collapse="phone"] > .nc-group-toggle { display: grid; }
+  .nc-group[data-nc-collapse="phone"] > .nc-group-body { display: flex; }
+  .nc-group[data-nc-collapse="phone"][data-nc-open="false"] > .nc-group-body { display: none; }
+}
+@media (orientation: landscape) and (max-height: 500px) and (max-width: 1023px) {
+  .nc-group[data-nc-collapse="phone"] { display: flex; }
+  .nc-group[data-nc-collapse="phone"] > .nc-group-toggle { display: grid; }
+  .nc-group[data-nc-collapse="phone"] > .nc-group-body { display: flex; }
+  .nc-group[data-nc-collapse="phone"][data-nc-open="false"] > .nc-group-body { display: none; }
+}
+@media (max-width: 1023px) {
+  html[data-nc-landscape] .nc-group[data-nc-collapse="phone"] { display: flex; }
+  html[data-nc-landscape] .nc-group[data-nc-collapse="phone"] > .nc-group-toggle { display: grid; }
+  html[data-nc-landscape] .nc-group[data-nc-collapse="phone"] > .nc-group-body { display: flex; }
+  html[data-nc-landscape] .nc-group[data-nc-collapse="phone"][data-nc-open="false"] > .nc-group-body { display: none; }
+}
 @media (prefers-reduced-motion: reduce) {
   .nc-btn, .nc-btn:active, .nc-toggle, .nc-seg > button, .nc-sparkle, .nc-sparkle-btn, .nc-sparkle-btn:active,
   .nc-ui-toast, .nc-ui-toast[data-state="closing"], .nc-ui-switch, .nc-select,
@@ -3397,6 +3523,41 @@ html[data-nc-hosted] .nc-ui-confirm-layer {
   margin: 0;
   font-size: var(--nc-ui-body-size, 13px);
   color: var(--nc-ui-text-sub, #595959);
+}
+.nc-ui-confirm-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nc-ui-dialog-button-gap, 8px);
+}
+.nc-ui-confirm-label {
+  font-size: var(--nc-ui-readout-size, 12px);
+  letter-spacing: var(--nc-ui-label-tracking, .14em);
+  text-transform: uppercase;
+  color: var(--nc-ui-text-sub, #595959);
+}
+input.nc-ui-confirm-input {
+  min-width: 0;
+  min-height: var(--nc-ui-target-min, 44px);
+  padding: 0 var(--nc-ui-dialog-button-gap, 8px);
+  border: var(--nc-ui-hairline, 1px) solid var(--nc-ui-divider, #DDDDDD);
+  border-radius: 0;
+  background: var(--nc-ui-surface-raised, #EAEAEA);
+  color: var(--nc-ui-text, #242424);
+  font: inherit;
+}
+input.nc-ui-confirm-input:focus {
+  outline: var(--nc-ui-focus-width-strong, 2px) solid var(--nc-ui-focus-ring, #003153);
+  outline-offset: 0;
+}
+button.nc-ui-confirm-btn:disabled {
+  cursor: default;
+  color: var(--nc-ui-text-sub, #595959);
+  border-color: var(--nc-ui-divider, #DDDDDD);
+}
+button.nc-ui-confirm-btn[data-danger="true"]:disabled {
+  background: transparent;
+  color: var(--nc-ui-text-sub, #595959);
+  border-color: var(--nc-ui-divider, #DDDDDD);
 }
 .nc-ui-confirm-actions {
   display: flex;
