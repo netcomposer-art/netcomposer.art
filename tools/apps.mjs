@@ -26,7 +26,7 @@ export const APPS = {
     build: ["node", "scripts/build-site.mjs"],
     out: "dist",
     // The Studio loads the instruments in iframes from their own paths.
-    alsoLoads: ["/rhythm/", "/bass/", "/synth/", "/lucy/", "/nyx/"],
+    alsoLoads: ["/rhythm/", "/bass/", "/synth/", "/lucy/", "/nyx/", "/calliope/"],
   },
   lucy: {
     name: "LUCY Audio",
@@ -37,6 +37,13 @@ export const APPS = {
   nyx: {
     name: "NYX Sampler",
     repo: "netcomposer-art/nyx",
+    build: ["node", "scripts/build-site.mjs"],
+    out: "dist",
+  },
+  // The Studio's note generator (no sound of its own): it plays the instruments over the Studio's notes bus.
+  calliope: {
+    name: "CALLIOPE Generator",
+    repo: "netcomposer-art/calliope",
     build: ["node", "scripts/build-site.mjs"],
     out: "dist",
   },

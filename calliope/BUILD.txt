@@ -1,0 +1,5 @@
+app: CALLIOPE Generator
+repo: netcomposer-art/calliope
+commit: 1ae6c5376b65130d342d4bc1c6b09a40d0f2628e
+built: 2026-11-05T08:55:19.956Z
+base: /calliope/
