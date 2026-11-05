@@ -1,4 +1,4 @@
-/* NC Synth c533ec4420dd
+/* NC Synth 92b5a5c1d886
    Generated at build time. The cache name matches this build.
    A newer worker precaches itself in the background and activates on the
    next launch. It does not call skipWaiting or clients.claim, and the page
@@ -6,9 +6,9 @@
    The app shell is stale-while-revalidate. Requests that leave the app
    (live APIs, gathering sounds, sampler notes, sharing, map tiles) are
    network-only and are never written into the cache. */
-const VERSION = "c533ec4420dd";
+const VERSION = "92b5a5c1d886";
 const CACHE = 'nc-synth-' + VERSION;
-const SHELL = ["./apple-touch-icon.png","./assets/createLucideIcon-H4JrZpeS.js","./assets/deferred-CmN_Hhso.css","./assets/hacks-worklet-source-BW0ywDUV.js","./assets/ibm-plex-mono-latin-400-Dm_PoFIZ.woff2","./assets/ibm-plex-mono-latin-500-C_OblDzq.woff2","./assets/index-C6OhqGNo.js","./assets/index-DFFt2rls.css","./assets/inter-latin-300-BVlfKGgI.woff2","./assets/inter-latin-400-C38fXH4l.woff2","./assets/inter-latin-500-Cerq10X2.woff2","./assets/inter-latin-600-LgqL8muc.woff2","./assets/inter-latin-700-Drs_5D37.woff2","./assets/not-found-D6ErsUIb.js","./assets/origin-migration-browser-BB-J3Vm7.js","./assets/save-dialog-DwCYhTxQ.js","./favicon.svg","./icon-192.png","./icon-512.png","./icon-maskable-192.png","./icon-maskable-512.png","./index.html","./manifest.webmanifest","./robots.txt"];
+const SHELL = ["./apple-touch-icon.png","./assets/createLucideIcon-BJAypSfI.js","./assets/deferred-CmN_Hhso.css","./assets/hacks-worklet-source-BW0ywDUV.js","./assets/ibm-plex-mono-latin-400-Dm_PoFIZ.woff2","./assets/ibm-plex-mono-latin-500-C_OblDzq.woff2","./assets/index-D4JWYG5c.js","./assets/index-DFFt2rls.css","./assets/inter-latin-300-BVlfKGgI.woff2","./assets/inter-latin-400-C38fXH4l.woff2","./assets/inter-latin-500-Cerq10X2.woff2","./assets/inter-latin-600-LgqL8muc.woff2","./assets/inter-latin-700-Drs_5D37.woff2","./assets/not-found-DhYRMiOX.js","./assets/origin-migration-browser-BpulIDk1.js","./assets/save-dialog-D6irURHY.js","./favicon.svg","./icon-192.png","./icon-512.png","./icon-maskable-192.png","./icon-maskable-512.png","./index.html","./manifest.webmanifest","./robots.txt"];
 
 function offlineText(url) {
   const host = url.hostname;
