@@ -1,5 +1,5 @@
 app: OLIVE Bass
 repo: psemmelhack/ASTRID-Bass
-commit: 19a2a2aabe6858ce78ac6a403ed16025d699d69c
-built: 2026-11-04T17:11:21.052Z
+commit: 88d15eb322bfcc75a90da1f707428c4439e3854f
+built: 2026-11-05T20:16:11.213Z
 base: /bass/
