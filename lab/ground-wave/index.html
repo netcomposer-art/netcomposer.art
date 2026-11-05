@@ -341,7 +341,7 @@ const REC_B64 = "MDAwMDAwTSBBTk1PIDAwQkhaSVUH2gA6Bh4AAADDAaMAFAABACAAAgAAAAAAQAA
 
   // ------------------------------------------------------------------ stream buffer
   const buf = { data: new Float64Array(0), t0: 0, rate: 0, id: "", ph: 0, lastPacket: 0, live: false };
-  function resetBuffer() { buf.data = new Float64Array(0); buf.t0 = 0; buf.rate = 0; buf.ph = 0; buf.id = ""; buf.lastPacket = 0; }
+  function resetBuffer() { buf.caught = false; buf.live = false; buf.data = new Float64Array(0); buf.t0 = 0; buf.rate = 0; buf.ph = 0; buf.id = ""; buf.lastPacket = 0; }
   function endMs() { return buf.rate ? buf.t0 + (buf.data.length / buf.rate) * 1000 : 0; }
   function append(rec) {
     if (!rec.rate || !rec.samples.length) return;
@@ -409,7 +409,7 @@ const REC_B64 = "MDAwMDAwTSBBTk1PIDAwQkhaSVUH2gA6Bh4AAADDAaMAFAABACAAAgAAAAAAQAA
         const rec = Mseed.parseRecord(new DataView(ev.data, 8));
         append(rec);
         buf.lastPacket = performance.now();
-        if (!buf.live) { buf.live = true; buf.ph = Math.max(0, buf.data.length - Math.round(buf.rate * 25)); }
+        buf.live = true;
         setState("live", "Live");
       } catch (e) { setMsg(`A data packet could not be read: ${e.message}`); }
     };
@@ -550,6 +550,9 @@ const REC_B64 = "MDAwMDAwTSBBTk1PIDAwQkhaSVUH2gA6Bh4AAADDAaMAFAABACAAAgAAAAAAQAA
     if (buf.data.length > S.span) {
       const end = buf.data.length;
       if (S.speed > 0) buf.ph += dt * buf.rate * S.speed;
+      // Live 1× means live: stay about 25 s behind the newest sample (packets arrive in bursts), including
+      // while the 10-minute history streams in and after coming back from 10× or 100×.
+      if (source === "live" && S.speed === 1 && end - buf.ph > buf.rate * 60) buf.ph = end - buf.rate * 25;
       if (S.speed > 1 || source === "rec") { if (buf.ph >= end) buf.ph = Math.min(S.span, end - 1); }
       else if (buf.ph > end) buf.ph = end; // live: never run past the newest sample
       if (buf.ph < S.span) buf.ph = S.span;
@@ -628,7 +631,13 @@ const REC_B64 = "MDAwMDAwTSBBTk1PIDAwQkhaSVUH2gA6Bh4AAADDAaMAFAABACAAAgAAAAAAQAA
     $("speedVal").textContent = S.speed === 0 ? "held" : S.speed === 1 ? "real time" : `${S.speed}× faster`;
     $("octVal").textContent = `C${3 + S.octave}`;
   }
-  const fmtDur = (s) => (s < 60 ? `${s < 10 ? s.toFixed(1) : Math.round(s)} s` : s < 3600 ? `${Math.floor(s / 60)} min ${String(Math.round(s % 60)).padStart(2, "0")} s` : `${(s / 3600).toFixed(1)} h`);
+  const fmtDur = (s) => {
+    if (s < 10) return `${s.toFixed(1)} s`;
+    const r = Math.round(s);
+    if (r < 60) return `${r} s`;
+    if (r < 3600) return `${Math.floor(r / 60)} min ${String(r % 60).padStart(2, "0")} s`;
+    return `${(s / 3600).toFixed(1)} h`;
+  };
 
   // ------------------------------------------------------------------ UI
   function setState(kind, text) { $("dot").className = `dot ${kind}`; $("state").textContent = text; }
