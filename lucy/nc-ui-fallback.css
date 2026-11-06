@@ -15,14 +15,21 @@
   --nc-ui-color-accent: #003153;
   --nc-ui-color-accent-wash: color-mix(in srgb, var(--nc-ui-color-accent) 7%, transparent);
   --nc-ui-color-astrid-orange: #EB512E;
-  --nc-ui-color-petra-blue: #5AC4F7;
-  --nc-ui-color-olive-green: #9CA536;
+  --nc-ui-color-petra-blue: #0A94D6;
+  --nc-ui-color-olive-green: #8A9230;
   --nc-ui-color-hacks-grey: #8C8C8C;
   --nc-ui-color-lucy-purple: #9B30FF;
-  --nc-ui-color-nyx-amber: #FEAA02;
+  --nc-ui-color-calliope-pink: #FC409F;
+  --nc-ui-color-nyx-amber: #BF8001;
   --nc-ui-color-paper-bright: #FCFCFC;
   --nc-ui-color-accent-pad: #1A6193;
   --nc-ui-color-accent-velocity-min: #477399;
+  --nc-ui-color-strip-3: #E9E9E9;
+  --nc-ui-color-strip-4: #E4E4E4;
+  --nc-ui-color-strip-5: #DFDFDF;
+  --nc-ui-color-strip-6: #DADADA;
+  --nc-ui-color-strip-7: #D5D5D5;
+  --nc-ui-color-strip-8: #D0D0D0;
   --nc-ui-color-shade-1: #F3F3F3;
   --nc-ui-color-shade-2: #EEEEEE;
   --nc-ui-color-shade-3: #E9E9E9;
@@ -330,6 +337,15 @@
   --nc-ui-fader-cap-master: var(--nc-ui-color-accent);
   --nc-ui-strip-bg: var(--nc-ui-color-shade-1);
   --nc-ui-strip-alt-bg: var(--nc-ui-color-shade-2);
+  --nc-ui-strip-shade-1: var(--nc-ui-color-shade-1);
+  --nc-ui-strip-shade-2: var(--nc-ui-color-shade-2);
+  --nc-ui-strip-shade-3: var(--nc-ui-color-strip-3);
+  --nc-ui-strip-shade-4: var(--nc-ui-color-strip-4);
+  --nc-ui-strip-shade-5: var(--nc-ui-color-strip-5);
+  --nc-ui-strip-shade-6: var(--nc-ui-color-strip-6);
+  --nc-ui-strip-shade-7: var(--nc-ui-color-strip-7);
+  --nc-ui-strip-shade-8: var(--nc-ui-color-strip-8);
+  --nc-ui-strip-divider: var(--nc-ui-color-div-0);
   --nc-ui-strip-hacks-text: var(--nc-ui-color-hacks-grey);
   --nc-ui-fader-track: color-mix(in srgb, var(--nc-ui-color-ink) 25%, transparent);
   --nc-ui-strip-width: 88px;
@@ -349,6 +365,7 @@
   --nc-ui-eq-band-3: var(--nc-ui-color-petra-blue);
   --nc-ui-eq-panel-layer: 10;
   --nc-ui-fx-fold-width: 120px;
+  --nc-ui-fx-fold-width-slim: 60px;
   --nc-ui-head-margin-compact: var(--nc-ui-space-12);
   --nc-ui-scale-size: var(--nc-ui-font-size-3xs);
   --nc-ui-focus-width: var(--nc-ui-border-hairline);
@@ -412,6 +429,7 @@
   --nc-ui-instrument-olive: var(--nc-ui-color-olive-green);
   --nc-ui-instrument-lucy: var(--nc-ui-color-lucy-purple);
   --nc-ui-instrument-nyx: var(--nc-ui-color-nyx-amber);
+  --nc-ui-instrument-calliope: var(--nc-ui-color-calliope-pink);
   --nc-ui-page-title-size: var(--nc-ui-font-size-xl);
   --nc-ui-page-title-tracking: var(--nc-ui-tracking-8);
   --nc-ui-page-sub-size: var(--nc-ui-font-size-lg);
@@ -501,10 +519,20 @@
   --nc-ui-color-ivory: #CFCECD;
   --nc-ui-color-surf: #4C4B4A;
   --nc-ui-color-accent: #77B5E2;
+  --nc-ui-color-petra-blue: #5AC4F7;
+  --nc-ui-color-olive-green: #9CA536;
   --nc-ui-color-lucy-purple: #B566FF;
+  --nc-ui-color-calliope-pink: #FD7CBD;
+  --nc-ui-color-nyx-amber: #FEAA02;
   --nc-ui-color-paper-bright: #1A1918;
   --nc-ui-color-accent-pad: #4B91C3;
   --nc-ui-color-accent-velocity-min: #5A8FB5;
+  --nc-ui-color-strip-3: #343332;
+  --nc-ui-color-strip-4: #373635;
+  --nc-ui-color-strip-5: #3A3938;
+  --nc-ui-color-strip-6: #3D3C3B;
+  --nc-ui-color-strip-7: #403F3E;
+  --nc-ui-color-strip-8: #434241;
   --nc-ui-color-shade-1: #272625;
   --nc-ui-color-shade-2: #302F2E;
   --nc-ui-color-shade-3: #393837;
@@ -579,10 +607,20 @@
     --nc-ui-color-ivory: #CFCECD;
     --nc-ui-color-surf: #4C4B4A;
     --nc-ui-color-accent: #77B5E2;
+    --nc-ui-color-petra-blue: #5AC4F7;
+    --nc-ui-color-olive-green: #9CA536;
     --nc-ui-color-lucy-purple: #B566FF;
+    --nc-ui-color-calliope-pink: #FD7CBD;
+    --nc-ui-color-nyx-amber: #FEAA02;
     --nc-ui-color-paper-bright: #1A1918;
     --nc-ui-color-accent-pad: #4B91C3;
     --nc-ui-color-accent-velocity-min: #5A8FB5;
+    --nc-ui-color-strip-3: #343332;
+    --nc-ui-color-strip-4: #373635;
+    --nc-ui-color-strip-5: #3A3938;
+    --nc-ui-color-strip-6: #3D3C3B;
+    --nc-ui-color-strip-7: #403F3E;
+    --nc-ui-color-strip-8: #434241;
     --nc-ui-color-shade-1: #272625;
     --nc-ui-color-shade-2: #302F2E;
     --nc-ui-color-shade-3: #393837;
@@ -1786,6 +1824,10 @@ button.nc-pads-label[aria-pressed="true"] { color: var(--nc-ui-accent); }
 .nc-ui-fx-fold > .nc-fold-tri { flex: none; color: var(--nc-ui-text-sub); }
 .nc-ui-fx-fold:hover > .nc-fold-tri { color: var(--nc-ui-text); }
 .nc-ui-fx-fold { display: none; }
+/* A folded card's column width: fx-fold-width, or fx-fold-width-slim for a card with foldSlim (the Studio's send
+   returns; Peter, 2026-11-01: "make send effect minimized state 50% thinner"). */
+.nc-ui-fx { --nc-fx-fold-w: var(--nc-ui-fx-fold-width); }
+.nc-ui-fx[data-nc-fold-slim] { --nc-fx-fold-w: var(--nc-ui-fx-fold-width-slim); }
 .nc-ui-fx[data-nc-folded] > :not(.nc-ui-fx-hd, .nc-token-probe) { display: none; }
 .nc-ui-fx[data-nc-folded] > .nc-ui-fx-hd { margin-bottom: 0; }
 .nc-ui-fx-fold {
@@ -1827,6 +1869,8 @@ button.nc-pads-label[aria-pressed="true"] { color: var(--nc-ui-accent); }
   white-space: nowrap;
 }
 .nc-ui-fx-fold:hover .nc-ui-fx-fold-state { color: var(--nc-ui-text); }
+/* The slim column (fx-fold-width-slim): the same parts, the on/off word a step smaller so OFF fits with room. */
+.nc-ui-fx[data-nc-fold-slim] .nc-ui-fx-fold-state { font-size: var(--nc-ui-scale-size); letter-spacing: 0; }
 .nc-ui-fx-visual { display: block; width: 100%; height: var(--nc-ui-display-height); }
 /* EQ graph (eq-graph.js): a display at the top of an EQ card. A plot a touch off the card's shade, a hairline frame,
    the spectrum and curve canvases filling it, and one dot per band (its own colour) over them, each a 44 px target. */
@@ -1922,6 +1966,40 @@ button.nc-pads-label[aria-pressed="true"] { color: var(--nc-ui-accent); }
 .nc-fx-max:hover, .nc-fx-close:hover { color: var(--nc-ui-text); }
 .nc-fx-max:focus-visible, .nc-fx-close:focus-visible { outline: var(--nc-ui-focus-width) solid var(--nc-ui-focus-ring); outline-offset: var(--nc-ui-hairline); }
 .nc-fx-close { font-size: var(--nc-ui-title-size); padding-inline: var(--nc-ui-control-gap); }
+/* Remove (onRemove): a quiet × at the header's end, after maximize, sized like the header's other marks; text-sub,
+   ink on hover (the strip's × turns danger: here Undo follows, so it stays calm). Its hit area reaches past the glyph
+   to the right and a little up and down, never left over maximize. Not on a folded card (as a minimized strip),
+   nor beside the wide panel's own ×. */
+.nc-fx-remove {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  margin: 0;
+  padding: 0 var(--nc-ui-hairline);
+  border: 0;
+  background: transparent;
+  color: var(--nc-ui-text-sub);
+  font-family: var(--nc-ui-font-readout);
+  font-size: var(--nc-ui-body-size);
+  line-height: 1;
+  cursor: pointer;
+}
+.nc-fx-remove::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: calc(var(--nc-ui-control-gap) * -1);
+  right: calc(var(--nc-ui-control-gap) * -1);
+  height: max(100%, calc(var(--nc-ui-control-gap) * 5));
+  transform: translateY(-50%);
+}
+.nc-fx-remove:hover { color: var(--nc-ui-text); }
+.nc-fx-remove:focus-visible { outline: var(--nc-ui-focus-width) solid var(--nc-ui-focus-ring); outline-offset: var(--nc-ui-hairline); }
+.nc-fx-remove[hidden],
+.nc-ui-fx[data-nc-folded] > .nc-ui-fx-hd > .nc-fx-remove,
+.nc-ui-fx[data-nc-max="over"] > .nc-ui-fx-hd > .nc-fx-remove { display: none; }
 .nc-fx-max-icon { position: relative; display: block; width: calc(var(--nc-ui-control-gap) * 2.5); height: calc(var(--nc-ui-control-gap) * 2.5); }
 .nc-fx-max-icon > i {
   position: absolute;
@@ -2262,6 +2340,7 @@ button.nc-pads-label[aria-pressed="true"] { color: var(--nc-ui-accent); }
 }
 .nc-padgrid-pad[data-empty="true"] .nc-padgrid-pad-name { font-weight: inherit; font-size: var(--nc-ui-body-size); }
 .nc-padgrid-pad[data-empty="true"] .nc-padgrid-pad-hint { display: block; }
+.nc-padgrid-pad[data-hint="true"] .nc-padgrid-pad-hint { display: block; justify-self: start; max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .nc-padgrid-pad[data-empty="true"] :is(.nc-padgrid-pad-bar, .nc-padgrid-pad-wave) { display: none; }
 .nc-padgrid-pad:hover { border-color: var(--nc-ui-text); }
 .nc-padgrid-pad[data-selected="true"] { border-color: var(--nc-ui-accent); box-shadow: inset 0 0 0 var(--nc-ui-hairline) var(--nc-ui-accent); }
@@ -2322,6 +2401,8 @@ button.nc-pads-label[aria-pressed="true"] { color: var(--nc-ui-accent); }
 @media (pointer: coarse) {
   .nc-ms-wrap { flex-basis: var(--nc-ui-target-min); height: var(--nc-ui-target-min); }
   .nc-ms-wrap + .nc-ms-wrap { margin-inline-start: calc(var(--nc-ui-module-gap) * -1); }
+  /* The ×'s touch target: target-min tall, out to the card's padding on the right; never over maximize. */
+  .nc-fx-remove::before { height: max(100%, var(--nc-ui-target-min)); right: calc(var(--nc-ui-control-gap) * -3); }
   .nc-fold-toggle::before {
     content: "";
     position: absolute;
@@ -2331,8 +2412,6 @@ button.nc-pads-label[aria-pressed="true"] { color: var(--nc-ui-accent); }
     height: max(100%, var(--nc-ui-target-min));
     transform: translate(-50%, -50%);
   }
-  .nc-strip[data-nc-folded] > .nc-strip-ms { gap: 0; }
-  .nc-strip[data-nc-folded] .nc-ms-wrap + .nc-ms-wrap { margin-inline-start: 0; margin-top: calc(var(--nc-ui-module-gap) * -1); }
   .nc-ms {
     inset: calc((var(--nc-ui-target-min) - var(--nc-ui-slider-pitch)) / 2);
     width: auto;
@@ -2545,10 +2624,14 @@ html[data-nc-hosted] .nc-step-editor[data-placement="sheet"] { bottom: var(--nc-
   --nc-ui-divider: var(--nc-ui-module-div-stack-1);
   --nc-ui-slider-track: var(--nc-ui-module-div-stack-1);
 }
+/* The fx area is as wide as the cards it shows (Peter, 2026-11-01: "Weird empty slot next to Master slider"): one
+   column per shown card, none held empty, so the master sits right after the last card and the strips area (the
+   flexible column) takes the rest. A paged area keeps three cards' width (below). */
 .nc-module-body[data-nc-layout="console"] > [data-nc-area="fx"] {
   grid-area: fx;
   display: grid;
-  grid-template-columns: repeat(3, var(--nc-ui-fx-card-width));
+  grid-auto-flow: column;
+  grid-auto-columns: var(--nc-ui-fx-card-width);
   align-items: stretch;
   padding-top: 0;
 }
@@ -2580,9 +2663,9 @@ html[data-nc-hosted] .nc-step-editor[data-placement="sheet"] { bottom: var(--nc-
   --nc-ui-divider: inherit;
   --nc-ui-slider-track: inherit;
 }
-.nc-module-body[data-nc-layout="console"] .nc-ui-fx[data-nc-depth="1"] { background: var(--nc-ui-module-bg-adjacent-2); }
-.nc-module-body[data-nc-layout="console"] .nc-ui-fx[data-nc-depth="2"] { background: var(--nc-ui-module-bg-adjacent-3); }
-.nc-module-body[data-nc-layout="console"] .nc-ui-fx[data-nc-depth="3"] { background: var(--nc-ui-module-bg-adjacent-4); }
+.nc-module-body[data-nc-layout="console"] .nc-ui-fx[data-nc-depth="1"] { --nc-fx-card-bg: var(--nc-ui-module-bg-adjacent-2); background: var(--nc-fx-card-bg); }
+.nc-module-body[data-nc-layout="console"] .nc-ui-fx[data-nc-depth="2"] { --nc-fx-card-bg: var(--nc-ui-module-bg-adjacent-3); background: var(--nc-fx-card-bg); }
+.nc-module-body[data-nc-layout="console"] .nc-ui-fx[data-nc-depth="3"] { --nc-fx-card-bg: var(--nc-ui-module-bg-adjacent-4); background: var(--nc-fx-card-bg); }
 /* In the console a card is a column: a select row gets the same space under it as a slider row. */
 .nc-module-body[data-nc-layout="console"] .nc-ui-fx { display: flex; flex-direction: column; gap: var(--nc-ui-module-gap); }
 .nc-module-body[data-nc-layout="console"] .nc-ui-fx > .nc-field:not([data-nc-slider]) { padding-bottom: var(--nc-ui-module-gap); }
@@ -2597,7 +2680,7 @@ html[data-nc-hosted] .nc-step-editor[data-placement="sheet"] { bottom: var(--nc-
   .nc-module-body[data-nc-layout="console"] > [data-nc-area="fx"]:has(> .nc-ui-fx[data-nc-folded]) > .nc-ui-fx { flex: none; width: var(--nc-ui-fx-card-width); }
   /* :has() counts its argument, so the folded card repeats it to win over the open cards' width. */
   .nc-module-body[data-nc-layout="console"] > [data-nc-area="fx"]:has(> .nc-ui-fx[data-nc-folded]) > .nc-ui-fx[data-nc-folded] {
-    width: var(--nc-ui-fx-fold-width);
+    width: var(--nc-fx-fold-w);
     padding-inline: 0;
   }
   .nc-module-body[data-nc-layout="console"] .nc-ui-fx[data-nc-folded] > .nc-ui-fx-hd { display: none; }
@@ -2615,7 +2698,7 @@ html[data-nc-hosted] .nc-step-editor[data-placement="sheet"] { bottom: var(--nc-
   }
   .nc-module-body[data-nc-layout="console"] > [data-nc-area="fx"]:has(> .nc-ui-fx[data-nc-max="row"]) > .nc-ui-fx:not([data-nc-max]):has(> .nc-ui-fx-fold) {
     flex: none;
-    width: var(--nc-ui-fx-fold-width);
+    width: var(--nc-fx-fold-w);
     padding-inline: 0;
   }
   .nc-module-body[data-nc-layout="console"] > [data-nc-area="fx"]:has(> .nc-ui-fx[data-nc-max="row"]) > .nc-ui-fx:not([data-nc-max]):has(> .nc-ui-fx-fold) > :not(.nc-ui-fx-fold, .nc-token-probe) { display: none; }
@@ -2628,6 +2711,59 @@ html[data-nc-hosted] .nc-step-editor[data-placement="sheet"] { bottom: var(--nc-
   .nc-module-body[data-nc-layout="console"] > [data-nc-area="fx"] > .nc-ui-fx[data-nc-max="row"] { grid-column: span 3; }
   .nc-module-body[data-nc-layout="console"] > [data-nc-area="fx"]:has(> .nc-ui-fx[data-nc-folded]) > .nc-ui-fx[data-nc-max="row"][data-nc-max="row"] {
     width: calc(var(--nc-ui-fx-card-width) * 3);
+  }
+}
+/* An FX card never makes the console taller (Peter, 2026-11-01: "don't make the vertical version higher. Pin the
+   graphic at the top and scroll the freq controls behind it"). From 1024 px, where the fx area shares the strips'
+   row, the area takes the row's height (the strips, the master and the meters set it) and adds none of its own; a
+   card taller than that keeps its header (and an EQ graph under it) pinned at its top while the rest of its controls
+   scroll under them, with a soft shade at the foot while there is more below. Focus scrolls a control clear of the
+   pinned part (--nc-fx-pin-h, controls.js). A maximized card's row is unchanged (it has its one-line dial row);
+   tablets and phones, where the fx cards have their own row, are unchanged. */
+@media (min-width: 1024px) {
+  .nc-module-body[data-nc-layout="console"] > [data-nc-area="fx"]:not(:has(> .nc-ui-fx[data-nc-max="row"])) {
+    height: 0;
+    min-height: 100%;
+    grid-auto-rows: minmax(0, 1fr);
+  }
+  .nc-module-body[data-nc-layout="console"] > [data-nc-area="fx"]:not(:has(> .nc-ui-fx[data-nc-max="row"])) > .nc-ui-fx:not([data-nc-folded]) {
+    min-height: 0;
+    /* The pinned header carries the top padding: a sticky box sticks inside the scroller's padding. */
+    padding-top: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior-y: contain;
+    scrollbar-width: thin;
+    scroll-padding-top: var(--nc-fx-pin-h, var(--nc-ui-module-gap));
+    /* The foot shade (scroll) shows while there is more below; the card's own colour at the end of its content (local)
+       covers it once scrolled to the end, or when nothing overflows. */
+    background-image:
+      linear-gradient(transparent, var(--nc-fx-card-bg) 70%),
+      linear-gradient(transparent, var(--nc-ui-divider));
+    background-position: bottom, bottom;
+    background-size: 100% calc(var(--nc-ui-module-gap) * 3), 100% var(--nc-ui-module-gap);
+    background-repeat: no-repeat;
+    background-attachment: local, scroll;
+  }
+  /* The pinned header (or bare name) holds the card's top padding, so nothing scrolls by above it; its fold triangle
+     keeps its corner (the header is its containing block now, edge to edge). */
+  .nc-module-body[data-nc-layout="console"] > [data-nc-area="fx"]:not(:has(> .nc-ui-fx[data-nc-max="row"])) > .nc-ui-fx:not([data-nc-folded]) > :is(.nc-ui-fx-hd, .nc-ui-fx-name) {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    margin: 0 calc(var(--nc-ui-module-pad) * -1) calc(var(--nc-ui-module-gap) * -1);
+    padding: var(--nc-ui-stack-card-pad-y) var(--nc-ui-module-pad) calc(var(--nc-ui-module-gap) * 2);
+    background-color: var(--nc-fx-card-bg);
+  }
+  .nc-module-body[data-nc-layout="console"] > [data-nc-area="fx"]:not(:has(> .nc-ui-fx[data-nc-max="row"])) > .nc-ui-fx:not([data-nc-folded]) > .nc-eq {
+    position: sticky;
+    top: var(--nc-fx-hd-h, 0);
+    z-index: 1;
+    margin-bottom: 0;
+    padding-bottom: var(--nc-ui-control-gap);
+    background-color: var(--nc-fx-card-bg);
+    /* The card's colour out to its edges beside the graph (no spread: nothing below it is covered). */
+    box-shadow: calc(var(--nc-ui-module-pad) * -1) 0 0 var(--nc-fx-card-bg), var(--nc-ui-module-pad) 0 0 var(--nc-fx-card-bg);
   }
 }
 /* Pages (define-module.js, a section's pageSize; Peter, 2026-11-01: "don't push to a second row, create a second
@@ -2659,8 +2795,8 @@ html[data-nc-hosted] .nc-step-editor[data-placement="sheet"] { bottom: var(--nc-
     pointer-events: none;
   }
   .nc-module-body[data-nc-layout="console"] > [data-nc-area="fx"][data-nc-paged] > .nc-ui-fx[data-nc-off-page][data-nc-off-page][data-nc-off-page][data-nc-folded] {
-    width: var(--nc-ui-fx-fold-width);
-    margin-inline-end: calc(var(--nc-ui-fx-fold-width) * -1);
+    width: var(--nc-fx-fold-w);
+    margin-inline-end: calc(var(--nc-fx-fold-w) * -1);
     padding-inline: 0;
   }
   /* A maximized card takes its page (its page-mates as fold columns beside it): the other pages stay out of it. */
@@ -2713,29 +2849,123 @@ html[data-nc-hosted] .nc-step-editor[data-placement="sheet"] { bottom: var(--nc-
   white-space: nowrap;
 }
 /* One channel strip: name, M and S, sends, then the fader with its scale and meter, then the readout. Every strip
-   (the master too, with empty M/S and send rows) keeps the same row heights, so faders and ticks line up. */
+   (the master too, with empty M/S and send rows) keeps the same row heights, so faders and ticks line up.
+   Every row is a named area and every child is placed by name (never by auto-placement), so a row taken out (the
+   sends, display: none) can't shift the rows after it, in any engine. Three columns: a control-gap gutter each side
+   of the content; only M and S span the gutters, so on touch two target-min boxes fit side by side inside the strip
+   (they overflowed it, and Safari drew S under the next strip; Peter, 2026-11-01). No negative margins. */
 .nc-strip {
+  /* The M/S row: the slider pitch; target-min on touch (the buttons' full boxes, so they never reach the pan row). */
+  --nc-strip-ms-row: var(--nc-ui-slider-pitch);
+  --nc-strip-knob-row: calc(var(--nc-ui-knob-size) + var(--nc-ui-control-gap) + var(--nc-ui-label-size) * var(--nc-ui-label-leading));
   position: relative;
   flex: none;
   width: var(--nc-ui-strip-width);
   display: grid;
+  grid-template-columns: var(--nc-ui-control-gap) minmax(0, 1fr) var(--nc-ui-control-gap);
   /* Name, Inserts, M/S, sends, pan, the fader body, the readout. */
-  grid-template-rows: auto var(--nc-ui-slider-pitch) var(--nc-ui-slider-pitch) calc(var(--nc-ui-knob-size) + var(--nc-ui-control-gap) + var(--nc-ui-label-size) * var(--nc-ui-label-leading)) calc(var(--nc-ui-knob-size) + var(--nc-ui-control-gap) + var(--nc-ui-label-size) * var(--nc-ui-label-leading)) auto auto;
+  grid-template-rows: auto var(--nc-ui-slider-pitch) var(--nc-strip-ms-row) var(--nc-strip-knob-row) var(--nc-strip-knob-row) auto auto;
+  grid-template-areas: ". hd ." ". hacks ." "ms ms ms" ". sends ." ". pan ." ". body ." ". db .";
   justify-items: center;
   row-gap: var(--nc-ui-module-gap);
   min-width: 0;
-  padding-inline: var(--nc-ui-control-gap);
+}
+.nc-strip > .nc-strip-hd { grid-area: hd; }
+.nc-strip > .nc-strip-hacks { grid-area: hacks; }
+.nc-strip > .nc-strip-ms { grid-area: ms; }
+.nc-strip > .nc-strip-sends { grid-area: sends; }
+.nc-strip > .nc-strip-pan { grid-area: pan; }
+.nc-strip > .nc-strip-body { grid-area: body; }
+.nc-strip > .nc-strip-db, .nc-strip > .nc-strip-db-input { grid-area: db; }
+@media (pointer: coarse) {
+  .nc-strip { --nc-strip-ms-row: var(--nc-ui-target-min); }
 }
 /* sendsHidden: no sends row (the host's "hide the sends"); give it to every strip so their rows still line up. */
 .nc-strip[data-nc-sends-hidden] {
-  grid-template-rows: auto var(--nc-ui-slider-pitch) var(--nc-ui-slider-pitch) calc(var(--nc-ui-knob-size) + var(--nc-ui-control-gap) + var(--nc-ui-label-size) * var(--nc-ui-label-leading)) auto auto;
+  grid-template-rows: auto var(--nc-ui-slider-pitch) var(--nc-strip-ms-row) var(--nc-strip-knob-row) auto auto;
+  grid-template-areas: ". hd ." ". hacks ." "ms ms ms" ". pan ." ". body ." ". db .";
 }
 .nc-strip[data-nc-sends-hidden] > .nc-strip-sends { display: none; }
 .nc-strip + .nc-strip { border-inline-start: var(--nc-ui-hairline) solid var(--nc-ui-divider); }
 /* Channel strips alternate light and dark grey, full height, so a row of identical strips reads apart (Peter,
    2026-10-30); the master keeps the module's shade. */
-.nc-strip:not([data-nc-master]) { background: var(--nc-ui-strip-bg); }
-.nc-strip:not([data-nc-master]):nth-child(even of .nc-strip:not([data-nc-master])) { background: var(--nc-ui-strip-alt-bg); }
+.nc-strip:not([data-nc-master]) { --nc-strip-ground: var(--nc-strip-shade, var(--nc-ui-strip-bg)); background: var(--nc-strip-ground); }
+.nc-strip:not([data-nc-master]):nth-child(even of .nc-strip:not([data-nc-master])) { --nc-strip-ground: var(--nc-strip-shade, var(--nc-ui-strip-alt-bg)); }
+/* A shade a player picked (shade, 1-8; Peter, 2026-11-04): one of eight neutral greys (strip-shade-1..8), in place of
+   the alternation. 1 and 2 are the alternation's own greys. On the darker four (5-8) the Inserts word at rest takes
+   text-sub, so it keeps its contrast (the lighter hacks grey falls to 2.2:1 there). */
+.nc-strip[data-nc-shade="1"] { --nc-strip-shade: var(--nc-ui-strip-shade-1); }
+.nc-strip[data-nc-shade="2"] { --nc-strip-shade: var(--nc-ui-strip-shade-2); }
+.nc-strip[data-nc-shade="3"] { --nc-strip-shade: var(--nc-ui-strip-shade-3); }
+.nc-strip[data-nc-shade="4"] { --nc-strip-shade: var(--nc-ui-strip-shade-4); }
+.nc-strip[data-nc-shade="5"] { --nc-strip-shade: var(--nc-ui-strip-shade-5); }
+.nc-strip[data-nc-shade="6"] { --nc-strip-shade: var(--nc-ui-strip-shade-6); }
+.nc-strip[data-nc-shade="7"] { --nc-strip-shade: var(--nc-ui-strip-shade-7); }
+.nc-strip[data-nc-shade="8"] { --nc-strip-shade: var(--nc-ui-strip-shade-8); }
+/* A compact knob's centre is the strip's own grey (--nc-strip-ground), not the page's, so it never shows as a dot. On
+   3-8 the M and S hairline is mixed from the strip's grey (strip-divider vanishes on the middle greys, and reads as a
+   light box on the darkest). */
+.nc-strip[data-nc-shade]:not([data-nc-shade="1"]):not([data-nc-shade="2"]):not([data-nc-master]) > .nc-strip-ms { --nc-ui-divider: color-mix(in oklab, var(--nc-ui-text-sub) 30%, var(--nc-strip-shade)); }
+/* …and the knob rings' and the meter's unlit track, which (div-0) vanishes on the middle light greys. */
+.nc-strip[data-nc-shade]:not([data-nc-shade="1"]):not([data-nc-shade="2"]):not([data-nc-master]) { --nc-ui-meter-track: color-mix(in oklab, var(--nc-ui-text-sub) 30%, var(--nc-strip-shade)); }
+.nc-strip:is([data-nc-shade="5"], [data-nc-shade="6"], [data-nc-shade="7"], [data-nc-shade="8"]) .nc-hacks:not([aria-pressed="true"]) { color: var(--nc-ui-text-sub); }
+.nc-strip:is([data-nc-shade="5"], [data-nc-shade="6"], [data-nc-shade="7"], [data-nc-shade="8"]) .nc-hacks:not([aria-pressed="true"]):hover { color: var(--nc-ui-text); }
+/* The strip menu (onShade): a small sheet under the grip, or where the name was right-clicked: "Shade", a row of Auto
+   and the eight swatches (the picked one ringed in ink), then Move left / Move right with their keys. Over the page,
+   so it never shifts the layout; page ground and a hairline (the kit draws no shadows). */
+.nc-strip-menu {
+  position: fixed;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  gap: var(--nc-ui-control-gap);
+  min-width: calc(var(--nc-ui-strip-width) * 2.5);
+  padding: calc(var(--nc-ui-control-gap) * 2) calc(var(--nc-ui-control-gap) * 2.5);
+  border: var(--nc-ui-hairline) solid var(--nc-ui-divider);
+  border-radius: var(--nc-ui-slot-radius);
+  background: var(--nc-ui-surface-page);
+  color: var(--nc-ui-text);
+  font-size: var(--nc-ui-label-size);
+}
+.nc-strip-menu-title { color: var(--nc-ui-text-sub); font-weight: var(--nc-ui-label-weight); letter-spacing: var(--nc-ui-label-tracking); text-transform: uppercase; }
+.nc-strip-menu-shades { display: flex; gap: var(--nc-ui-control-gap); margin-bottom: var(--nc-ui-control-gap); }
+.nc-strip-menu-shades > button {
+  flex: none;
+  min-width: calc(var(--nc-ui-control-gap) * 4.5);
+  height: calc(var(--nc-ui-control-gap) * 4.5);
+  margin: 0;
+  padding: 0 var(--nc-ui-hairline);
+  border: var(--nc-ui-hairline) solid var(--nc-ui-divider);
+  border-radius: var(--nc-ui-slot-radius);
+  background: var(--nc-swatch, transparent);
+  color: var(--nc-ui-text-sub);
+  font: inherit;
+  font-size: var(--nc-ui-scale-size);
+  cursor: pointer;
+}
+.nc-strip-menu-shades > button[aria-checked="true"] { outline: calc(var(--nc-ui-hairline) * 2) solid var(--nc-ui-text); outline-offset: var(--nc-ui-hairline); color: var(--nc-ui-text); }
+.nc-strip-menu-shades > button:focus-visible { outline: var(--nc-ui-focus-width) solid var(--nc-ui-focus-ring); outline-offset: var(--nc-ui-hairline); }
+.nc-strip-menu-item {
+  display: flex;
+  justify-content: space-between;
+  gap: calc(var(--nc-ui-control-gap) * 3);
+  margin: 0;
+  padding: var(--nc-ui-control-gap) 0;
+  border: 0;
+  border-top: var(--nc-ui-hairline) solid var(--nc-ui-divider);
+  background: transparent;
+  color: var(--nc-ui-text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.nc-strip-menu-item:disabled { color: var(--nc-ui-text-sub); cursor: default; }
+.nc-strip-menu-item > kbd { font: inherit; color: var(--nc-ui-text-sub); }
+.nc-strip-menu-item:focus-visible { outline: var(--nc-ui-focus-width) solid var(--nc-ui-focus-ring); outline-offset: calc(var(--nc-ui-focus-width) * -1); }
+@media (pointer: coarse) {
+  .nc-strip-menu-shades > button { min-width: calc(var(--nc-ui-target-min) * 0.7); height: calc(var(--nc-ui-target-min) * 0.7); }
+  .nc-strip-menu-item { min-height: var(--nc-ui-target-min); align-items: center; }
+}
 .nc-module-body[data-nc-layout="console"] > [data-nc-area="strips"] > .nc-strip {
   align-self: stretch;
   padding-block: var(--nc-ui-stack-card-pad-y) var(--nc-ui-module-pad);
@@ -2781,7 +3011,75 @@ html[data-nc-hosted] .nc-step-editor[data-placement="sheet"] { bottom: var(--nc-
 /* The triangle sits in the strip's top-left corner, above the name; folded, centred over the column. */
 .nc-strip > [data-nc-strip-hide] { position: absolute; top: var(--nc-ui-control-gap); left: var(--nc-ui-control-gap); z-index: 1; }
 .nc-strip[data-nc-folded] > [data-nc-strip-hide] { left: 50%; transform: translateX(-50%); }
-.nc-strip[data-nc-folded] { width: var(--nc-ui-strip-fold-width); padding-inline: 0; align-content: start; }
+/* Move (onMove): a grip of six dots in the top-right corner, across from the triangle, in text-sub (ink on hover), so a
+   strip says it can be dragged. touch-action none: a drag from the grip moves the strip at once on touch, never the
+   page. Not on a folded strip (its column is the handle there). */
+.nc-strip > [data-nc-strip-grip] {
+  position: absolute;
+  top: var(--nc-ui-control-gap);
+  right: var(--nc-ui-control-gap);
+  /* Over the next strip's fold triangle, whose touch target reaches back across the strips' edge. */
+  z-index: 2;
+  display: inline-flex;
+  margin: 0;
+  padding: var(--nc-ui-hairline);
+  border: 0;
+  background: transparent;
+  color: var(--nc-ui-text-sub);
+  line-height: 1;
+  cursor: grab;
+  touch-action: none;
+}
+.nc-strip > [data-nc-strip-grip]:hover { color: var(--nc-ui-text); }
+.nc-strip > [data-nc-strip-grip]:active { cursor: grabbing; }
+.nc-strip > [data-nc-strip-grip]:focus-visible { outline: var(--nc-ui-focus-width) solid var(--nc-ui-focus-ring); outline-offset: var(--nc-ui-hairline); }
+.nc-strip-grip-dots {
+  display: block;
+  width: calc(var(--nc-ui-control-gap) * 1.5);
+  height: calc(var(--nc-ui-control-gap) * 2.25);
+  background: radial-gradient(circle, currentColor var(--nc-ui-hairline), transparent calc(var(--nc-ui-hairline) * 1.5)) 0 0 / calc(var(--nc-ui-control-gap) * 0.75) calc(var(--nc-ui-control-gap) * 0.75);
+}
+.nc-strip[data-nc-folded] > [data-nc-strip-grip] { display: none; }
+@media (pointer: coarse) {
+  .nc-strip > [data-nc-strip-grip]::before {
+    content: "";
+    position: absolute;
+    right: calc(var(--nc-ui-control-gap) * -1);
+    top: calc(var(--nc-ui-control-gap) * -1);
+    width: calc(var(--nc-ui-target-min) / 2);
+    height: calc(var(--nc-ui-target-min) / 2);
+  }
+}
+/* Folded: no gutters, and M and S take the Inserts, M/S and sends rows (sends hidden: the pan row) as one area, so the
+   two fit stacked at full size with the rows unchanged. */
+.nc-strip[data-nc-folded] {
+  width: var(--nc-ui-strip-fold-width);
+  align-content: start;
+  grid-template-columns: 0 minmax(0, 1fr) 0;
+  grid-template-areas: ". hd ." "ms ms ms" "ms ms ms" "ms ms ms" ". pan ." ". body ." ". db .";
+}
+.nc-strip[data-nc-folded][data-nc-sends-hidden] {
+  grid-template-areas: ". hd ." "ms ms ms" "ms ms ms" "ms ms ms" ". body ." ". db .";
+}
+/* Trim (a strip's trim, or the master's trimRow): a knob row at the top, under the name, before the Inserts; every row
+   still named. trimHidden (the host's phones) takes the row out, the knob kept unseen. Folded, the trim row joins the
+   M and S area. */
+.nc-strip > .nc-strip-trim { grid-area: trim; display: flex; justify-content: center; align-items: flex-start; }
+.nc-strip:not([data-nc-trim]) > .nc-strip-trim, .nc-strip[data-nc-folded] > .nc-strip-trim { display: none; }
+.nc-strip[data-nc-trim] {
+  grid-template-rows: auto var(--nc-strip-knob-row) var(--nc-ui-slider-pitch) var(--nc-strip-ms-row) var(--nc-strip-knob-row) var(--nc-strip-knob-row) auto auto;
+  grid-template-areas: ". hd ." ". trim ." ". hacks ." "ms ms ms" ". sends ." ". pan ." ". body ." ". db .";
+}
+.nc-strip[data-nc-trim][data-nc-sends-hidden] {
+  grid-template-rows: auto var(--nc-strip-knob-row) var(--nc-ui-slider-pitch) var(--nc-strip-ms-row) var(--nc-strip-knob-row) auto auto;
+  grid-template-areas: ". hd ." ". trim ." ". hacks ." "ms ms ms" ". pan ." ". body ." ". db .";
+}
+.nc-strip[data-nc-folded][data-nc-trim] {
+  grid-template-areas: ". hd ." "ms ms ms" "ms ms ms" "ms ms ms" "ms ms ms" ". pan ." ". body ." ". db .";
+}
+.nc-strip[data-nc-folded][data-nc-trim][data-nc-sends-hidden] {
+  grid-template-areas: ". hd ." "ms ms ms" "ms ms ms" "ms ms ms" "ms ms ms" ". body ." ". db .";
+}
 .nc-strip[data-nc-folded] > .nc-strip-hd { justify-content: center; }
 /* The name stays in the row, unseen and zero wide, so the row keeps the open strips' height and the meters line up. */
 .nc-strip[data-nc-folded] > .nc-strip-hd > .nc-strip-name { visibility: hidden; width: 0; flex: 0 0 0; }
@@ -2793,18 +3091,23 @@ html[data-nc-hosted] .nc-step-editor[data-placement="sheet"] { bottom: var(--nc-
 .nc-strip[data-nc-folded] > .nc-strip-db-input,
 .nc-strip[data-nc-folded] .nc-strip-body > .nc-fader,
 .nc-strip[data-nc-folded] .nc-strip-body > .nc-scale { display: none; }
-.nc-strip[data-nc-folded] > .nc-strip-ms { grid-row: 2 / span 2; flex-direction: column; height: auto; gap: var(--nc-ui-module-gap); }
-.nc-strip[data-nc-folded] .nc-ms-wrap { width: var(--nc-ui-slider-pitch); }
-/* Touch: each folded M and S a full target-min box (after the rule above, so it wins). */
+.nc-strip[data-nc-folded] > .nc-strip-ms {
+  grid-auto-flow: row;
+  grid-template-rows: none;
+  grid-auto-columns: var(--nc-ui-slider-pitch);
+  grid-auto-rows: var(--nc-ui-slider-pitch);
+  gap: var(--nc-ui-module-gap);
+  align-self: start;
+  justify-self: center;
+}
+/* Touch: each folded M and S as wide as the column and target-min tall, touching (after the rule above, so it wins). */
 @media (pointer: coarse) {
-  .nc-strip[data-nc-folded] .nc-ms-wrap { width: var(--nc-ui-target-min); }
+  .nc-strip[data-nc-folded] > .nc-strip-ms { grid-auto-columns: minmax(0, 1fr); grid-auto-rows: var(--nc-ui-target-min); gap: 0; justify-self: stretch; }
 }
 .nc-strip[data-nc-folded] > .nc-strip-body {
-  grid-row: 6;
   grid-template-columns: auto auto;
   column-gap: var(--nc-ui-control-gap);
 }
-.nc-strip[data-nc-folded][data-nc-sends-hidden] > .nc-strip-body { grid-row: 5; }
 .nc-strip[data-nc-folded] .nc-strip-body > .nc-strip-fold { display: flex; grid-column: 1; grid-row: 1 / span 2; width: auto; }
 .nc-strip[data-nc-folded] .nc-strip-body > .nc-meter { grid-column: 2; }
 .nc-strip[data-nc-folded] .nc-meter-bar { width: var(--nc-ui-control-gap); }
@@ -2836,7 +3139,30 @@ html[data-nc-hosted] .nc-step-editor[data-placement="sheet"] { bottom: var(--nc-
   height: var(--nc-ui-control-gap);
   background: var(--nc-strip-cap, var(--nc-ui-fader-cap));
 }
-.nc-strip-ms { display: flex; gap: var(--nc-ui-control-gap); height: var(--nc-ui-slider-pitch); }
+/* M and S: an explicit two-column grid (never flex with overlapping margins), centred at the slider pitch; on touch
+   it fills the strip's full width (the gutters too), two target-min boxes side by side, touching, nothing past the
+   strip's edges. The kit's hit pads take any width short of target-min (the divider hairline) outward. */
+.nc-strip-ms {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: var(--nc-ui-slider-pitch);
+  grid-template-rows: var(--nc-ui-slider-pitch);
+  column-gap: var(--nc-ui-control-gap);
+  justify-self: center;
+  align-self: start;
+}
+.nc-strip > .nc-strip-ms > .nc-ms-wrap { margin: 0; width: auto; }
+/* The master's Sends button (onSendsView): Inserts' twin in the M/S row, the strip's width, the slider pitch tall. */
+.nc-strip > .nc-strip-ms:has(> .nc-sends-view-wrap) { grid-auto-columns: minmax(0, 1fr); justify-self: stretch; }
+.nc-strip > .nc-strip-ms > .nc-sends-view-wrap { grid-column: 1 / -1; height: var(--nc-ui-slider-pitch); }
+.nc-strip > .nc-strip-ms > .nc-sends-view-wrap > .nc-sends-view { inset-inline: var(--nc-ui-control-gap); width: auto; }
+@media (pointer: coarse) {
+  .nc-strip-ms { grid-auto-columns: minmax(0, 1fr); grid-template-rows: var(--nc-ui-target-min); column-gap: 0; justify-self: stretch; }
+}
+/* M and S on a channel strip: the kit's outlined squares, their hairline the one for the strip's own shade
+   (strip-divider). The console's body hands its stack-1 hairline down, a near match for the light strip (gone there)
+   but lighter than the alternate one (a light box there), so M and S showed boxes on every other strip only. */
+.nc-strip:not([data-nc-master]) > .nc-strip-ms { --nc-ui-divider: var(--nc-ui-strip-divider); }
 /* Hacks: a full-width toggle above M and S, in mixed case and a lighter grey (Peter); pressed while the console's fx area shows this strip's stack. */
 .nc-strip-hacks { display: flex; width: 100%; height: var(--nc-ui-slider-pitch); }
 .nc-hacks-wrap { position: relative; flex: 1 1 auto; height: var(--nc-ui-slider-pitch); }
@@ -2846,8 +3172,9 @@ html[data-nc-hosted] .nc-step-editor[data-placement="sheet"] { bottom: var(--nc-
   width: 100%;
   height: 100%;
   padding: 0;
-  /* A light outline at rest (Peter, 2026-10-31): the divider; text-sub on hover, so it still reads as a button. */
-  border: var(--nc-ui-hairline) solid var(--nc-ui-divider);
+  /* A light outline at rest, the same on every strip (Peter, 2026-11-01: the box only says the stack has effects):
+     text-sub at 50% over the strip hairline; text-sub on hover, so it still reads as a button. */
+  border: var(--nc-ui-hairline) solid color-mix(in oklab, var(--nc-ui-text-sub) 50%, var(--nc-ui-strip-divider));
   border-radius: var(--nc-ui-slot-radius);
   background: transparent;
   color: var(--nc-ui-strip-hacks-text);
@@ -2860,12 +3187,8 @@ html[data-nc-hosted] .nc-step-editor[data-placement="sheet"] { bottom: var(--nc-
   transition: none;
 }
 .nc-hacks:hover { color: var(--nc-ui-text); border-color: var(--nc-ui-text-sub); }
-/* On the darker alternate strips the divider outline nearly vanishes: text-sub at 50% there (still lighter than the
-   old outline); hover still takes it to text-sub. */
-.nc-strip:not([data-nc-master]):nth-child(even of .nc-strip:not([data-nc-master])) .nc-hacks:not([aria-pressed="true"]) {
-  border-color: color-mix(in oklab, var(--nc-ui-text-sub) 50%, var(--nc-ui-divider));
-}
-.nc-strip:not([data-nc-master]):nth-child(even of .nc-strip:not([data-nc-master])) .nc-hacks:not([aria-pressed="true"]):hover { border-color: var(--nc-ui-text-sub); }
+/* hacksEmpty (no effects in the stack): the plain word, no box, hover too; still a button with its focus ring. */
+.nc-hacks[data-nc-empty]:not([aria-pressed="true"]) { border-color: transparent; }
 .nc-hacks[aria-pressed="true"] {
   background: var(--nc-ui-fader-cap-master);
   border-color: var(--nc-ui-fader-cap-master);
@@ -2886,13 +3209,13 @@ html[data-nc-hosted] .nc-step-editor[data-placement="sheet"] { bottom: var(--nc-
 .nc-field[data-nc-compact] .nc-knob {
   border: 0;
   background:
-    radial-gradient(closest-side, var(--nc-ui-surface-page) 70%, transparent 72%),
+    radial-gradient(closest-side, var(--nc-strip-ground, var(--nc-ui-surface-page)) 70%, transparent 72%),
     conic-gradient(from 225deg, var(--nc-ui-meter-fill) calc(var(--knob-turn, 0) * 1deg), var(--nc-ui-meter-track) 0 270deg, transparent 0);
 }
 /* A bipolar knob (pan) fills from the top of its travel (the centre) to the value, either way. */
 .nc-field[data-nc-compact][data-nc-bipolar] .nc-knob {
   background:
-    radial-gradient(closest-side, var(--nc-ui-surface-page) 70%, transparent 72%),
+    radial-gradient(closest-side, var(--nc-strip-ground, var(--nc-ui-surface-page)) 70%, transparent 72%),
     conic-gradient(from 225deg, var(--nc-ui-meter-track) calc(var(--knob-from, 135) * 1deg), var(--nc-ui-meter-fill) 0 calc(var(--knob-to, 135) * 1deg), var(--nc-ui-meter-track) 0 270deg, transparent 0);
 }
 /* Its value ("C", "L 30") shows in the label's place while hovered, focused or dragged; no motion. */
@@ -3139,7 +3462,7 @@ html[data-nc-hosted] .nc-step-editor[data-placement="sheet"] { bottom: var(--nc-
   }
 }
 @media (max-width: 1023px) {
-  .nc-module-body[data-nc-layout="console"] > [data-nc-area="fx"] { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .nc-module-body[data-nc-layout="console"] > [data-nc-area="fx"] { grid-auto-flow: row; grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 /* Tablets (769-1023 px): the fx row is full width under the strips; with a card folded, the open ones share the rest. */
 @media (min-width: 769px) and (max-width: 1023px) {
