@@ -1,9 +1,14 @@
 /* NC Synth bdec585ac7d2
    Generated at build time. The cache name matches this build.
-   A newer worker precaches itself in the background and activates on the
-   next launch. It does not call skipWaiting or clients.claim, and the page
-   never asks the player to reload.
-   The app shell is stale-while-revalidate. Requests that leave the app
+   A newer worker precaches itself in the background and then takes over at
+   once (skipWaiting, no clients.claim): with the page network-first, a
+   waiting worker only kept serving an old page. The page never asks the
+   player to reload.
+   The page itself is network-first (revalidated past the HTTP cache), the
+   cached copy only when the network fails or takes over 4 s: a stale page
+   after a deploy loaded an old engine into a new Studio (Peter, 2026-11-06:
+   CALLIOPE's pads silent while stopped). The hashed assets it names stay
+   stale-while-revalidate. Requests that leave the app
    (live APIs, gathering sounds, sampler notes, sharing, map tiles) are
    network-only and are never written into the cache. */
 const VERSION = "bdec585ac7d2";
@@ -78,6 +83,7 @@ self.addEventListener('install', (event) => {
     }));
     const index = await cache.match(indexUrl());
     if (index) await cache.put(new URL('./', self.location).href, index.clone());
+    await self.skipWaiting();
   })());
 });
 
@@ -115,6 +121,29 @@ function respondShell(event, cacheKey) {
   })());
 }
 
+/** How long a page load waits for the network before it takes the cached page (ms). */
+const PAGE_WAIT_MS = 4000;
+
+function respondPage(event) {
+  const key = indexUrl();
+  const cachePromise = caches.open(CACHE);
+  const fresh = fetch(event.request, { cache: 'no-cache' }).then(async (response) => {
+    try {
+      if (storable(new URL(key), response)) await put(await cachePromise, key, response);
+    } catch { /* Keep the copy already in the cache. */ }
+    return response;
+  }).catch(() => null);
+  event.waitUntil(fresh.then(() => undefined));
+  event.respondWith((async () => {
+    const first = await Promise.race([fresh, new Promise((done) => setTimeout(() => done(undefined), PAGE_WAIT_MS))]);
+    if (first) return first;
+    const cached = await (await cachePromise).match(key);
+    if (cached) return cached;
+    const late = await fresh;
+    return late || plain('Offline.');
+  })());
+}
+
 async function networkOnly(request) {
   try {
     return await fetch(request);
@@ -135,9 +164,12 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(networkOnly(request));
     return;
   }
-  const cacheKey = request.mode === 'navigate' ? indexUrl() : url.href;
-  if (request.mode === 'navigate' || shellUrls.has(url.href)) {
-    respondShell(event, cacheKey);
+  if (request.mode === 'navigate') {
+    respondPage(event);
+    return;
+  }
+  if (shellUrls.has(url.href)) {
+    respondShell(event, url.href);
     return;
   }
   event.respondWith(networkOnly(request));
