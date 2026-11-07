@@ -1,0 +1,5 @@
+app: ARIA Situation
+repo: netcomposer-art/aria
+commit: 8a426108bd95dfeecf439a83208d8b8beab4233d
+built: 2026-11-07T07:40:26.999Z
+base: /aria/
