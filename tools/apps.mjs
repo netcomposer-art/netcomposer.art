@@ -26,7 +26,7 @@ export const APPS = {
     build: ["node", "scripts/build-site.mjs"],
     out: "dist",
     // The Studio loads the instruments in iframes from their own paths.
-    alsoLoads: ["/rhythm/", "/bass/", "/synth/", "/lucy/", "/nyx/", "/calliope/"],
+    alsoLoads: ["/rhythm/", "/bass/", "/synth/", "/lucy/", "/nyx/", "/calliope/", "/aria/"],
   },
   lucy: {
     name: "LUCY Audio",
@@ -44,6 +44,14 @@ export const APPS = {
   calliope: {
     name: "CALLIOPE Generator",
     repo: "netcomposer-art/calliope",
+    build: ["node", "scripts/build-site.mjs"],
+    out: "dist",
+  },
+  // The Studio's Situation module (no sound of its own): a live seismometer as the Ground wavetable and Energy for the
+  // instruments, over the Studio's situation bus (Peter, 2026-11-06).
+  aria: {
+    name: "ARIA Situation",
+    repo: "netcomposer-art/aria",
     build: ["node", "scripts/build-site.mjs"],
     out: "dist",
   },
