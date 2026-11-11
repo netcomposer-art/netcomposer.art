@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 // Copies a built app into this site: synth/ (ASTRID), rhythm/ (Rhythm), bass/ (Bass), studio/ (Studio), lucy/ (LUCY),
-// nyx/ (NYX), calliope/ (CALLIOPE, the Studio's note generator), aria/ (ARIA, the Studio's Situation module).
+// nyx/ (NYX), calliope/ (CALLIOPE, the Studio's note generator), aria/ (ARIA, the Studio's Situation module), looper/
+// (the Studio's Looper).
 //
-//   node tools/pull-app.mjs <synth|rhythm|bass|studio|lucy|nyx|calliope|aria> --from <path to a clone of the app repo>
+//   node tools/pull-app.mjs <synth|rhythm|bass|studio|lucy|nyx|calliope|aria|looper> --from <path to a clone of the app repo>
 //        [--no-build]   copy the clone's existing build output instead of building
 //
 // The clone must be checked out at the commit to ship (normally its main after the hosting PR
@@ -22,7 +23,7 @@ const app = APPS[key];
 const fromIdx = rest.indexOf("--from");
 const from = fromIdx >= 0 ? resolve(rest[fromIdx + 1] ?? "") : "";
 if (!app || !from) {
-  console.error("usage: node tools/pull-app.mjs <synth|rhythm|bass|studio|lucy|nyx|calliope|aria> --from <clone> [--no-build]");
+  console.error("usage: node tools/pull-app.mjs <synth|rhythm|bass|studio|lucy|nyx|calliope|aria|looper> --from <clone> [--no-build]");
   process.exit(2);
 }
 const git = (...args) => execFileSync("git", args, { cwd: from, encoding: "utf8" }).trim();

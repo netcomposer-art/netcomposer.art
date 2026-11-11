@@ -26,7 +26,7 @@ export const APPS = {
     build: ["node", "scripts/build-site.mjs"],
     out: "dist",
     // The Studio loads the instruments in iframes from their own paths.
-    alsoLoads: ["/rhythm/", "/bass/", "/synth/", "/lucy/", "/nyx/", "/calliope/", "/aria/"],
+    alsoLoads: ["/rhythm/", "/bass/", "/synth/", "/lucy/", "/nyx/", "/calliope/", "/aria/", "/looper/"],
   },
   lucy: {
     name: "LUCY Audio",
@@ -52,6 +52,14 @@ export const APPS = {
   aria: {
     name: "ARIA Situation",
     repo: "netcomposer-art/aria",
+    build: ["node", "scripts/build-site.mjs"],
+    out: "dist",
+  },
+  // The Studio's song looper (no sound of its own): records what's played on ASTRID and NYX in laps and plays it
+  // back over the Studio's notes bus (Peter, 2026-11-10). Only when the player adds it.
+  looper: {
+    name: "Looper",
+    repo: "netcomposer-art/looper",
     build: ["node", "scripts/build-site.mjs"],
     out: "dist",
   },
