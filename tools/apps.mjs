@@ -58,7 +58,7 @@ export const APPS = {
   // The Studio's song looper (no sound of its own): records what's played on ASTRID and NYX in laps and plays it
   // back over the Studio's notes bus (Peter, 2026-11-10). Only when the player adds it.
   looper: {
-    name: "Looper",
+    name: "LUPA Looper",
     repo: "netcomposer-art/looper",
     build: ["node", "scripts/build-site.mjs"],
     out: "dist",
