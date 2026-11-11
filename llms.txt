@@ -32,6 +32,7 @@ Four browser instruments, NetComposer elements, on the same origin as Create, so
 - [NYX Sampler](https://netcomposer.art/nyx/): an eight-pad sampler on the NetComposer clock: load, trim, slice and sequence samples (or LUCY's takes); samples stay in the browser.
 - [CALLIOPE Generator](https://netcomposer.art/calliope/): the Studio's note generator: chord pads, progressions, styles and arps played into the Studio's instruments (it makes no sound itself).
 - [ARIA Situation](https://netcomposer.art/aria/): the Studio's Situation module: a live seismometer (EarthScope) as the Ground wavetable and Energy for the Studio's instruments (it makes no sound itself).
+- [Looper](https://netcomposer.art/looper/): the Studio's looper: jam in laps on ASTRID and NYX; every lap you play into becomes a pass that plays back (it makes no sound itself; add it from the Studio's +).
 - [NetComposer Studio](https://netcomposer.art/studio/): the instruments (PETRA Rhythm, OLIVE Bass, ASTRID, LUCY, NYX) and CALLIOPE, the note generator, on one page, one audio clock and one mixer, with a master you can record.
 
 ## Now: one composition, two performances
