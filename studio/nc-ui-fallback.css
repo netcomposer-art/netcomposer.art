@@ -21,6 +21,7 @@
   --nc-ui-color-lucy-purple: #9B30FF;
   --nc-ui-color-calliope-pink: #FC409F;
   --nc-ui-color-aria-magma: #FF2A3D;
+  --nc-ui-color-looper-gray: #3F4448;
   --nc-ui-color-nyx-amber: #BF8001;
   --nc-ui-color-paper-bright: #FCFCFC;
   --nc-ui-color-accent-pad: #1A6193;
@@ -436,6 +437,7 @@
   --nc-ui-instrument-lucy: var(--nc-ui-color-lucy-purple);
   --nc-ui-instrument-nyx: var(--nc-ui-color-nyx-amber);
   --nc-ui-instrument-calliope: var(--nc-ui-color-calliope-pink);
+  --nc-ui-instrument-looper: var(--nc-ui-color-looper-gray);
   --nc-ui-instrument-aria: var(--nc-ui-color-aria-magma);
   --nc-ui-page-title-size: var(--nc-ui-font-size-xl);
   --nc-ui-page-title-tracking: var(--nc-ui-tracking-8);
@@ -494,6 +496,8 @@
   --nc-rhythm-velocity-max: var(--nc-ui-color-accent);
   --nc-rhythm-accent-mark: var(--nc-ui-on-accent);
   --nc-rhythm-accent-mark-size: var(--nc-ui-space-3);
+  --nc-rhythm-step-mark-size: var(--nc-ui-slot-font-size);
+  --nc-rhythm-step-mark-inset: var(--nc-ui-space-2);
   --nc-rhythm-bar-accent: var(--nc-ui-text);
   --nc-rhythm-lane-1: var(--nc-ui-color-ink);
   --nc-rhythm-lane-2: var(--nc-ui-color-accent);
@@ -530,6 +534,7 @@
   --nc-ui-color-olive-green: #9CA536;
   --nc-ui-color-lucy-purple: #B566FF;
   --nc-ui-color-calliope-pink: #FD7CBD;
+  --nc-ui-color-looper-gray: #A9AFB4;
   --nc-ui-color-nyx-amber: #FEAA02;
   --nc-ui-color-paper-bright: #1A1918;
   --nc-ui-color-accent-pad: #4B91C3;
@@ -618,6 +623,7 @@
     --nc-ui-color-olive-green: #9CA536;
     --nc-ui-color-lucy-purple: #B566FF;
     --nc-ui-color-calliope-pink: #FD7CBD;
+    --nc-ui-color-looper-gray: #A9AFB4;
     --nc-ui-color-nyx-amber: #FEAA02;
     --nc-ui-color-paper-bright: #1A1918;
     --nc-ui-color-accent-pad: #4B91C3;
@@ -1588,6 +1594,25 @@ button, input, select { font: inherit; color: inherit; }
   outline-offset: var(--nc-ui-playhead-offset);
 }
 .nc-step[data-bar="true"] { border-bottom-color: var(--nc-rhythm-bar-accent); }
+/* A step's mark (StepCell.mark, data-nc-mark): a short tag in the lower right corner, e.g. NYX's bar number on a step
+   that plays in one bar only. In the step's own ink: text-sub on an empty step, the accent mark's paper on a filled
+   one (tested on every fill of the velocity ramp); above the accent bar when the step is accented. */
+:is(.nc-step, .nc-pad)[data-nc-mark]::after {
+  content: attr(data-nc-mark);
+  position: absolute;
+  right: var(--nc-rhythm-step-mark-inset);
+  bottom: var(--nc-rhythm-step-mark-inset);
+  font-family: var(--nc-ui-font-readout);
+  font-size: var(--nc-rhythm-step-mark-size);
+  font-weight: var(--nc-ui-control-weight);
+  line-height: 1;
+  color: var(--nc-ui-text-sub);
+  pointer-events: none;
+}
+:is(.nc-step, .nc-pad)[aria-pressed="true"][data-nc-mark]::after { color: var(--nc-rhythm-accent-mark); }
+:is(.nc-step, .nc-pad)[aria-pressed="true"][data-accent="true"][data-nc-mark]::after {
+  bottom: calc(var(--nc-rhythm-step-mark-inset) + var(--nc-rhythm-accent-mark-size));
+}
 /* Chance below 100%: a dashed outline at the same width (style only, no opacity, since shade means velocity). The fill
    stops at the padding box, so the dashes are the step's own colour with the row showing between them. */
 .nc-step[data-dim="true"] { border-style: dashed; background-clip: padding-box; }
@@ -1792,6 +1817,9 @@ button.nc-pads-label[aria-pressed="true"] { color: var(--nc-ui-accent); }
   min-width: 0;
 }
 .nc-ui-fx-hd > .nc-ui-fx-name { margin: 0 auto 0 0; }
+/* A filter curve above the row it draws (Peter, 2026-11-07: "In Sampler, the filter slider belongs UNDER the
+   graphic"): its 20 Hz and 20 kHz sit on the canvas's bottom edge, so the next row keeps a gap's distance. */
+.nc-ui-fx > .nc-field:has(> .nc-canvas[data-nc-paint="filter"]) + .nc-field { margin-top: var(--nc-ui-module-gap); }
 /* Fold (onFold): a −/+ after the switch. Folded, the card keeps its header row only; in a console row from 769 px it
    is a narrow column instead (below). It folds and unfolds at once: no motion. */
 .nc-ui-fx-hd > [data-nc-fx-hide] { flex: none; }
