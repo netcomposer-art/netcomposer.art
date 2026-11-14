@@ -2,7 +2,7 @@
 //   PLAYWRIGHT_MODULE=<path to playwright-core/index.mjs or "playwright"> node tests/one-origin.e2e.mjs
 // Checks:
 // - each app's page and assets come from its own path;
-// - the service workers are scoped to /synth/ and /bass/ and leave the others' caches alone
+// - the one service worker is the site's (/sw.js, scope /: tools/offline.mjs) and leaves the others' caches alone
 //   (including Create's nc-clips);
 // - a BroadcastChannel message (NC Sync's transport) from one app's page reaches the others.
 import assert from "node:assert/strict";
@@ -74,13 +74,13 @@ try {
   const regs = await seed.evaluate(async () =>
     (await navigator.serviceWorker.getRegistrations()).map((r) => new URL(r.scope).pathname).sort(),
   );
-  for (const s of regs) assert.ok(["/synth/", "/bass/"].includes(s), `unexpected SW scope ${s}`);
+  for (const s of regs) assert.equal(s, "/", `unexpected SW scope ${s} (ASTRID's and Bass's own are retired)`);
   ok(`service worker scopes: ${regs.join(", ") || "(none yet)"}`);
   await seed.waitForTimeout(1500); // let activate clean up
   const names = await seed.evaluate(() => caches.keys());
   for (const n of ["nc-clips", "someone-else"]) assert.ok(names.includes(n), `${n} survived`);
   for (const n of names)
-    assert.ok(/^(nc-clips|someone-else|nc-synth-[0-9a-f]{12}|olive-bass-.*)$/.test(n), `cache ${n}`);
+    assert.ok(/^(nc-clips|someone-else|nc-site-[0-9a-f]{12})$/.test(n), `cache ${n}`);
   ok(`caches after all apps loaded: ${names.join(", ")}`);
   if (apps.length > 1) {
     const [first, ...others] = apps;

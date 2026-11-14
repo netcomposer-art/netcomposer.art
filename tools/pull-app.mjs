@@ -10,12 +10,14 @@
 // merged) with node_modules installed; it must have no uncommitted changes. The app's own
 // build:site script builds it for /<app>/ and writes BUILD.txt (repo, commit, date, base).
 // This script replaces <app>/ here with that output, after checking it (tools/apps.mjs).
-// Nothing is pushed: commit the folder in a PR; merging to main publishes it on GitHub Pages.
+// Then it rewrites sw.js and the pages' registration for offline (tools/offline.mjs).
+// Nothing is pushed: commit the folder (and sw.js) in a PR; merging to main publishes it on GitHub Pages.
 import { execFileSync } from "node:child_process";
 import { cpSync, existsSync, readFileSync, readdirSync, rmSync, statSync } from "node:fs";
 import { dirname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { APPS, checkAppFolder } from "./apps.mjs";
+import { describe, updateOffline } from "./offline.mjs";
 
 const site = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const [key, ...rest] = process.argv.slice(2);
@@ -55,3 +57,5 @@ const target = join(site, key);
 rmSync(target, { recursive: true, force: true });
 cpSync(out, target, { recursive: true });
 console.log(`${app.name} ${head.slice(0, 7)} -> ${key}/ (${files.length} files)`);
+// The site's service worker lists every file it saves for offline: a new build is a new list (tools/offline.mjs).
+console.log(`offline: ${describe(updateOffline().manifest)}`);

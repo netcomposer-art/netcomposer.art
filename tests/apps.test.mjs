@@ -7,6 +7,7 @@ import { dirname, join, relative, resolve } from "node:path";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
 import { APPS, UI_FILES, checkAppFolder } from "../tools/apps.mjs";
+import { OFFLINE_DIRS, SNIPPET, SNIPPET_PAGES, updateOffline, withSnippet } from "../tools/offline.mjs";
 
 const site = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const walk = (dir, top = dir) =>
@@ -63,9 +64,51 @@ test("nc-ui/ is published with every file the apps link, and says which commit",
 });
 
 test("the site root and /create/ don't claim the instruments' paths", () => {
-  // A stray synth.html or a service worker at the root would shadow or control /synth/ etc.
-  assert.equal(existsSync(join(site, "sw.js")), false, "no root service worker");
+  // A stray synth.html would shadow /synth/ etc. (The root's one service worker, sw.js, is the offline Studio's.)
   for (const key of Object.keys(APPS)) assert.equal(existsSync(join(site, `${key}.html`)), false);
+});
+
+test("offline: sw.js and the pages' registration are what tools/offline.mjs writes for these builds", () => {
+  const { manifest, stale } = updateOffline({ check: true });
+  assert.deepEqual(stale, [], "run node tools/offline.mjs");
+  // Every file of every app the Studio frames, and nc-ui, each with its sha256; not the retired workers.
+  for (const dir of OFFLINE_DIRS) {
+    if (!existsSync(join(site, dir))) continue;
+    for (const f of walk(join(site, dir))) {
+      const path = `/${dir}/${f}`;
+      if (f.endsWith("sw.js")) assert.equal(manifest.files[path], undefined, `${path} is not saved`);
+      else assert.ok(manifest.files[path], `${path} is saved for offline`);
+    }
+  }
+  // ARIA's 2010 recording (its offline fallback), the worklets and the fonts are in.
+  const paths = Object.keys(manifest.files);
+  assert.ok(paths.some((p) => /^\/aria\/.*2010.*\.mseed$/.test(p)), "ARIA's 2010 recording");
+  assert.ok(paths.some((p) => /\.woff2$/.test(p)), "fonts");
+  assert.ok(paths.some((p) => /processor|worklet/.test(p)), "worklets");
+  assert.ok(manifest.bytes < 20 * 1048576, `under 20 MB (${(manifest.bytes / 1048576).toFixed(2)} MB)`);
+  // Each instrument page registers it once; the Studio registers it from its own code.
+  for (const key of SNIPPET_PAGES) {
+    const html = readFileSync(join(site, key, "index.html"), "utf8");
+    assert.equal(html.split("data-nc-offline").length - 1, 1, `${key}/index.html registers /sw.js once`);
+    assert.ok(html.includes(SNIPPET));
+  }
+});
+
+test("offline: ASTRID's and Bass's own workers are retired (no fetch handler, they unregister)", () => {
+  for (const key of ["synth", "bass"]) {
+    const file = join(site, key, "sw.js");
+    if (!existsSync(file)) continue;
+    const src = readFileSync(file, "utf8");
+    assert.match(src, /unregister\(\)/, `${key}/sw.js unregisters`);
+    assert.doesNotMatch(src, /addEventListener\(["']fetch["']/, `${key}/sw.js answers no request`);
+  }
+});
+
+test("offline: withSnippet puts the registration in once, however often it runs", () => {
+  const once = withSnippet("<html><head><title>x</title></head><body></body></html>");
+  assert.equal(withSnippet(once), once);
+  assert.equal(once.split("data-nc-offline").length - 1, 1);
+  assert.match(once, /<\/script><\/head>/);
 });
 
 test("sitemap.xml and llms.txt list every instrument path", () => {

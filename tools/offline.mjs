@@ -1,0 +1,139 @@
+#!/usr/bin/env node
+// The Studio offline: writes /sw.js, netcomposer.art's one service worker (scope /), with this site build's
+// manifest (every file the Studio needs to boot with no connection, each with its sha256 and size), from
+// tools/offline-sw.js. And it adds the one-line registration to each instrument's own page, so a visit to a
+// standalone instrument saves the build too (the Studio registers the worker from its own code).
+//
+//   node tools/offline.mjs           write sw.js and the page registrations; print the size
+//   node tools/offline.mjs --check   exit 1 if sw.js or a page is not what this would write (tests/apps.test.mjs)
+//
+// tools/pull-app.mjs and tools/pull-ui.mjs run it after they copy a build, so it never goes stale. The files are
+// every file of the apps the Studio frames (APPS in tools/apps.mjs, the Studio itself included) and of /nc-ui/:
+// pages, BUILD.txt, scripts, styles, worklets, workers, fonts, icons, ARIA's 2010 recording. Not an app's sw.js
+// (the retired ASTRID and Bass workers).
+import { createHash } from "node:crypto";
+import { existsSync, readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
+import { dirname, join, relative, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+import { APPS } from "./apps.mjs";
+
+const site = resolve(dirname(fileURLToPath(import.meta.url)), "..");
+
+/** The folders saved for offline, in the order the manifest lists them. */
+export const OFFLINE_DIRS = [...Object.keys(APPS), "nc-ui"];
+/** The pages that register the worker with this snippet; the Studio does it from its own code (src/offline.ts). */
+export const SNIPPET_PAGES = Object.keys(APPS).filter((k) => k !== "studio");
+const SKIP = new Set(["sw.js", ".DS_Store"]);
+const HASHED = /^assets\/[^/]+-[\w-]{8,}\.[a-z0-9]+$/i;
+
+// Registers the site's worker once the page has loaded and settled, from the top page only (a Studio frame is
+// under the Studio's registration already). Never in the way: no worker, no error.
+export const SNIPPET =
+  '<script data-nc-offline>if("serviceWorker"in navigator&&self===top)addEventListener("load",function(){setTimeout(function(){navigator.serviceWorker.register("/sw.js",{scope:"/",updateViaCache:"none"}).catch(function(){})},2000)})</script>';
+const SNIPPET_RE = /<script data-nc-offline>[^<]*<\/script>/g;
+
+/** A page with the registration in it, once, at the end of <head>. */
+export function withSnippet(html) {
+  const bare = html.replace(SNIPPET_RE, "");
+  if (!bare.includes("</head>")) throw new Error("offline: a page without </head>");
+  return bare.replace("</head>", `${SNIPPET}</head>`);
+}
+
+const walk = (dir, top = dir) =>
+  readdirSync(dir).flatMap((n) => {
+    const p = join(dir, n);
+    return statSync(p).isDirectory() ? walk(p, top) : [relative(top, p).split("\\").join("/")];
+  });
+
+function kindOf(rel) {
+  if (rel === "index.html") return "page";
+  if (rel === "BUILD.txt") return "build";
+  return HASHED.test(rel) ? "immutable" : "fresh";
+}
+
+/** The commit a BUILD.txt names, shortened to 12 (as the Studio's frame URLs carry it: nc-studio instances.ts). */
+function commitOf(text) {
+  const m = /^commit: ([0-9a-f]{7,40})\b/m.exec(text);
+  return m ? m[1].slice(0, 12) : null;
+}
+
+/**
+ * What this site build saves for offline: { pages: {path: html with the snippet}, manifest }. Reads the site as it
+ * is on disk; the pages are the snippet's version.
+ */
+export function plan(root = site) {
+  const files = {};
+  const apps = {};
+  const pages = {};
+  let bytes = 0;
+  for (const dir of OFFLINE_DIRS) {
+    const abs = join(root, dir);
+    if (!existsSync(abs)) continue;
+    for (const rel of walk(abs).sort()) {
+      if (SKIP.has(rel.split("/").pop())) continue;
+      const path = `/${dir}/${rel}`;
+      let data = readFileSync(join(abs, rel));
+      if (rel === "index.html" && SNIPPET_PAGES.includes(dir)) {
+        const html = withSnippet(data.toString("utf8"));
+        pages[path] = html;
+        data = Buffer.from(html, "utf8");
+      }
+      if (rel === "BUILD.txt") apps[`/${dir}/`] = commitOf(data.toString("utf8"));
+      files[path] = [createHash("sha256").update(data).digest("hex"), data.length, kindOf(rel)];
+      bytes += data.length;
+    }
+  }
+  const lines = Object.entries(files).map(([p, [sha]]) => `${p} ${sha}`);
+  const version = createHash("sha256").update(lines.join("\n")).digest("hex").slice(0, 12);
+  // "built" orders saved builds (newest first); it follows the newest BUILD.txt so the output is reproducible.
+  const built = OFFLINE_DIRS.map((d) => join(root, d, "BUILD.txt"))
+    .filter((f) => existsSync(f))
+    .map((f) => /^(?:built|date): (\S+)/m.exec(readFileSync(f, "utf8"))?.[1] ?? "")
+    .sort()
+    .pop();
+  return { pages, manifest: { version, built, bytes, apps, files } };
+}
+
+export function workerSource(manifest, template = readFileSync(join(site, "tools/offline-sw.js"), "utf8")) {
+  return `// Generated by tools/offline.mjs from tools/offline-sw.js (do not edit): site build ${manifest.version}, ${
+    Object.keys(manifest.files).length
+  } files, ${manifest.bytes} bytes.\nconst MANIFEST = ${JSON.stringify(manifest)};\n${template}`;
+}
+
+export function mb(bytes) {
+  return `${(bytes / 1048576).toFixed(2)} MB`;
+}
+
+/** Writes sw.js and the pages (or, with check, lists what is stale). Returns { manifest, stale }. */
+export function updateOffline({ check = false, root = site } = {}) {
+  const { pages, manifest } = plan(root);
+  const sw = workerSource(manifest);
+  const stale = [];
+  for (const [path, html] of Object.entries(pages)) {
+    const file = join(root, path);
+    if (readFileSync(file, "utf8") !== html) {
+      stale.push(path);
+      if (!check) writeFileSync(file, html);
+    }
+  }
+  const swFile = join(root, "sw.js");
+  if (!existsSync(swFile) || readFileSync(swFile, "utf8") !== sw) {
+    stale.push("/sw.js");
+    if (!check) writeFileSync(swFile, sw);
+  }
+  return { manifest, stale };
+}
+
+export function describe(manifest) {
+  return `site build ${manifest.version}, ${Object.keys(manifest.files).length} files, ${mb(manifest.bytes)} saved for offline`;
+}
+
+if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  const check = process.argv.includes("--check");
+  const { manifest, stale } = updateOffline({ check });
+  if (check && stale.length) {
+    console.error(`offline: not up to date (run node tools/offline.mjs): ${stale.join(", ")}`);
+    process.exit(1);
+  }
+  console.log(`offline: ${describe(manifest)}`);
+}
