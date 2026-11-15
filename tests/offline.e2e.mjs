@@ -46,8 +46,10 @@ const TYPES = {
 
 // The served copy, and what goes wrong on purpose for the worker's own downloads (?nc-sw=): path -> "500" | "changed"
 // (other bytes than the manifest says: a deploy in between, or a stale CDN copy). The page itself gets the file.
-const state = { root: "", broken: new Map() };
+const state = { root: "", broken: new Map(), down: false };
 const server = createServer((req, res) => {
+  // Offline for everything: some Playwright versions leave a service worker's own fetches online under setOffline.
+  if (state.down) return req.socket.destroy();
   const url = new URL(req.url ?? "/", "http://x");
   const path = decodeURIComponent(url.pathname);
   const mode = url.searchParams.has("nc-sw") ? state.broken.get(path) : undefined;
@@ -88,6 +90,12 @@ function deploy(root, tag) {
     writeFileSync(build, readFileSync(build, "utf8").replace(/^commit: [0-9a-f]+/m, `commit: ${commit}`));
   }
   return updateOffline({ root }).manifest;
+}
+
+/** No connection: the context offline, and the server answering nothing. */
+async function offline(ctx, on) {
+  state.down = on;
+  await ctx.setOffline(on);
 }
 
 const browser = await chromium.launch({
@@ -197,6 +205,7 @@ try {
     roots.push(root);
     const manifest = deploy(root, "A");
     state.root = root;
+    state.down = false;
     const ctx = await browser.newContext();
     const { page, errors } = await studio(ctx);
     await open(page);
@@ -213,7 +222,7 @@ try {
     if (shots) await shoot(page, "offline-ready-light.png");
     await page.close();
 
-    await ctx.setOffline(true);
+    await offline(ctx, true);
     const { page: off, errors: offErrors } = await studio(ctx);
     await open(off);
     sameBuild(await builds(off), commitsOf(root), "A", "offline");
@@ -232,7 +241,7 @@ try {
     // The phone: the line is in the ☰ menu.
     if (shots) {
       const phone = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
-      await phone.setOffline(false);
+      await offline(phone, false);
       const p = await phone.newPage();
       await open(p);
       await offlineIs(p, "ready");
@@ -241,7 +250,7 @@ try {
       assert.equal(await p.isVisible(".menu-offline"), true, "phone: in the ☰ menu");
       assert.equal(await p.isVisible(".foot-offline"), false, "phone: not at the foot");
       await p.screenshot({ path: join(shots, "offline-ready-phone.png") });
-      await phone.setOffline(true);
+      await offline(phone, true);
       await p.reload();
       await p.waitForSelector("html[data-studio-ready]", { timeout: 30000 });
       await offlineIs(p, "offline", 15000);
@@ -261,11 +270,12 @@ try {
     const a = deploy(root, "A");
     const aCommits = commitsOf(root);
     state.root = root;
+    state.down = false;
     const ctx = await browser.newContext();
     const { page } = await studio(ctx);
     await open(page);
     await offlineIs(page, "ready");
-    await ctx.setOffline(true);
+    await offline(ctx, true);
     await page.reload();
     await page.waitForSelector("html[data-studio-ready]", { timeout: 30000 });
     await page.waitForSelector(".btn.play:not([disabled])", { timeout: 30000 });
@@ -275,7 +285,7 @@ try {
     const b = deploy(root, "B");
     const bCommits = commitsOf(root);
     assert.notEqual(a.version, b.version);
-    await ctx.setOffline(false);
+    await offline(ctx, false);
     // Back online, the Studio looks for a new build; B saves in the background while this page stays A.
     await offlineIs(page, "update", 60000);
     assert.match(await page.textContent(".foot-offline"), /^Update ready · Reload$/);
@@ -290,7 +300,7 @@ try {
     await offlineIs(page, "ready");
     const keys = await page.evaluate(async () => (await caches.keys()).filter((k) => k.startsWith("nc-site-")));
     assert.deepEqual(keys, [`nc-site-${b.version}`], "A's cache is gone once B is saved and loaded");
-    await ctx.setOffline(true);
+    await offline(ctx, true);
     await page.reload();
     await page.waitForSelector("html[data-studio-ready]", { timeout: 30000 });
     await page.waitForSelector(".btn.play:not([disabled])", { timeout: 30000 });
@@ -303,13 +313,14 @@ try {
       const p = await phone.newPage();
       deploy(root, "C");
       // A phone that has C saved and is then shown D: the update line in its ☰ menu.
+      await offline(phone, false);
       await open(p);
       await offlineIs(p, "ready");
-      await phone.setOffline(true);
+      await offline(phone, true);
       await p.reload();
       await p.waitForSelector("html[data-studio-ready]", { timeout: 30000 });
       deploy(root, "D");
-      await phone.setOffline(false);
+      await offline(phone, false);
       await offlineIs(p, "update", 60000);
       await p.click(".nc-page-menu-btn, [data-nc-page-menu], .scene > button[aria-haspopup]");
       await p.waitForSelector(".menu-offline:not([hidden])");
@@ -326,6 +337,7 @@ try {
     const a = deploy(root, "A");
     const aCommits = commitsOf(root);
     state.root = root;
+    state.down = false;
     // (a) The first save fails on one file: online the Studio works and says nothing; no worker takes over.
     const nyxScript = Object.keys(a.files).find((p) => /^\/nyx\/assets\/index-.*\.js$/.test(p));
     state.broken.set(nyxScript, "500");
@@ -366,7 +378,7 @@ try {
       [null, "none"].includes(line),
       `no update offered, no ready line for B (this page is B from the network; A is what is saved): ${line}`,
     );
-    await ctx.setOffline(true);
+    await offline(ctx, true);
     await page.reload();
     await page.waitForSelector("html[data-studio-ready]", { timeout: 30000 });
     await page.waitForSelector(".btn.play:not([disabled])", { timeout: 30000 });
@@ -375,7 +387,7 @@ try {
     assert.ok(offHeard.peak > 0.01, "A plays offline");
     ok("an update with a file changed mid-download: no update offered, A stays saved and plays offline, every frame A");
     state.broken.clear();
-    await ctx.setOffline(false);
+    await offline(ctx, false);
     await offlineIs(page, "update", 60000);
     ok("fixed: the update finishes on the next check (Update ready · Reload)");
     assert.deepEqual(errors, [], "no page errors");
