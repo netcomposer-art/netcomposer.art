@@ -20,6 +20,8 @@ jobs:
           node-version: "22"
       - name: apps.test
         run: node --test tests/apps.test.mjs
+      - name: offline worker (in a VM)
+        run: node --test tests/offline-sw.test.mjs
       - name: Playwright 1.56.1 + Chromium (outside the repo)
         run: |
           npm install --prefix "$RUNNER_TEMP/pw" --no-audit --no-fund playwright@1.56.1
@@ -30,5 +32,9 @@ jobs:
           PLAYWRIGHT_MODULE: ${{ runner.temp }}/pw/node_modules/playwright/index.mjs
       - name: 404 e2e
         run: node tests/404.e2e.mjs
+        env:
+          PLAYWRIGHT_MODULE: ${{ runner.temp }}/pw/node_modules/playwright/index.mjs
+      - name: offline e2e (cold visit then offline; deploy A then B; a failed save)
+        run: node tests/offline.e2e.mjs
         env:
           PLAYWRIGHT_MODULE: ${{ runner.temp }}/pw/node_modules/playwright/index.mjs

@@ -15,6 +15,7 @@ import { copyFileSync, existsSync, mkdirSync, rmSync, writeFileSync } from "node
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { UI_FILES } from "./apps.mjs";
+import { describe, updateOffline } from "./offline.mjs";
 
 const site = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const args = process.argv.slice(2);
@@ -46,3 +47,5 @@ writeFileSync(
   `repo: netcomposer-art/nc-ui\ncommit: ${head}\nbranch: ${git("rev-parse", "--abbrev-ref", "HEAD")}\nversion: ${version}\ndate: ${new Date().toISOString()}\nbase: /nc-ui/\n`,
 );
 console.log(`nc-ui ${version} ${head.slice(0, 7)} -> nc-ui/ (${UI_FILES.length} files)`);
+// The site's service worker lists nc-ui's files too: a new nc-ui is a new list (tools/offline.mjs).
+console.log(`offline: ${describe(updateOffline().manifest)}`);
