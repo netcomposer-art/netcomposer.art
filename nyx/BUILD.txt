@@ -1,5 +1,5 @@
 app: NYX Sampler
 repo: netcomposer-art/nyx
-commit: df469574d6621b46ffe795ae39a065fd07cf8632
-built: 2026-11-17T03:57:21.057Z
+commit: 4b357549d2dae8de70d6366bd413a375303e39c6
+built: 2026-11-17T19:41:46.049Z
 base: /nyx/
