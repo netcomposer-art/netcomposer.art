@@ -5,15 +5,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <title>NetComposer Studio</title>
     <meta name="description" content="NetComposer Studio: the NetComposer instruments on one transport and one mixer." />
-    <!-- The stored theme (System, Light or Dark; src/theme.ts) before first paint, so a dark Studio never flashes light. -->
+    <!-- The stored theme (System, Light or Dark; src/theme.ts) and look (skin, panels; src/look.ts) before first paint,
+         so a dark or skinned Studio never flashes the default. -->
     <script>
       try {
         var t = localStorage.getItem("netcomposer.studio.theme.v1");
         if (t === "light" || t === "dark") document.documentElement.setAttribute("data-nc-theme", t);
+        var k = localStorage.getItem("netcomposer.studio.skin.v1");
+        if (k && /^[a-z][a-z0-9-]{1,23}$/.test(k)) document.documentElement.setAttribute("data-nc-skin", k);
+        if (localStorage.getItem("netcomposer.studio.fill.v1") === "1") document.documentElement.setAttribute("data-nc-fill", "");
       } catch (e) {}
     </script>
-    <script type="module" crossorigin src="/studio/assets/index-hIgJK8S0.js"></script>
-    <link rel="stylesheet" crossorigin href="/studio/assets/index-Bmi-7CpZ.css">
+    <script type="module" crossorigin src="/studio/assets/index-Cg1_r1G-.js"></script>
+    <link rel="stylesheet" crossorigin href="/studio/assets/index-BXTK63Dz.css">
     <link rel="stylesheet" href="/nc-ui/nc-ui.css" data-nc-ui-live="" onerror="this.onerror=null;var l=document.createElement(&#39;link&#39;);l.rel=&#39;stylesheet&#39;;l.href=&#39;/studio/nc-ui-fallback.css&#39;;l.dataset.ncUiFallback=&#39;&#39;;document.head.appendChild(l)">
   </head>
   <body>
