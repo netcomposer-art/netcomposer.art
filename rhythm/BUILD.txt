@@ -1,6 +1,6 @@
 app: PETRA Rhythm
 repo: psemmelhack/ASTRID-Rhythm
-commit: d642bedb67986dd86797dd19b524bb6b6b30c9f4
-built: 2026-11-07T17:21:28.668Z
+commit: 5c6e8de70a2be941e042448924ba3225b32bca96
+built: 2026-11-20T06:58:40.972Z
 base: /rhythm/
 pages: main
