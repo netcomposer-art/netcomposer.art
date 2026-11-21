@@ -1,6 +1,6 @@
 app: PETRA Rhythm
-repo: psemmelhack/ASTRID-Rhythm
-commit: 5c6e8de70a2be941e042448924ba3225b32bca96
-built: 2026-11-20T06:58:40.972Z
+repo: netcomposer-art/petra
+commit: 70a03ef4cc4c8f00a0a494d1a27fa00f8c24dc55
+built: 2026-11-21T13:43:35.470Z
 base: /rhythm/
 pages: main
