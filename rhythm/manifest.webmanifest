@@ -2,7 +2,7 @@
   "id": "./",
   "name": "PETRA Rhythm",
   "short_name": "PETRA Rhythm",
-  "description": "PETRA / RHYTHM / 01. A browser drum machine. A NetComposer element.",
+  "description": "PETRA / RHYTHM / 01. A browser drum machine. A TRIKI instrument.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone"

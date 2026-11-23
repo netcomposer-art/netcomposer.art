@@ -1,10 +1,10 @@
-# NetComposer
+# TRIKI
 
 > Music performed by the open internet. A Composition fixes only the harmony, the bars and the tempo shape. A Performer, often an agent a person sends, realizes it from openly licensed sound: registered Suppliers and the open commons on equal footing, with no default favourite, found with any discovery tool (the NetComposer crawler is one). Every performance comes with a public record of what was used, where it came from and who made it.
 
 Statement, Peter Semmelhack: “Music’s structure can be described mathematically. There is art in the math, and there is art in the performance. NetComposer is my exploration of that duality.”
 
-Art and research project. Output license: CC BY-SA 4.0. Accepted inputs: CC0, CC BY, CC BY-SA, public domain. Rejected: NC, ND, Sampling+, custom. Neither pitch-shifting nor time-stretching is allowed. Transposing MIDI is fine.
+TRIKI is a NetComposer project (the name until 2026-11-23; the domain is still netcomposer.art). Art and research project. Output license: CC BY-SA 4.0. Accepted inputs: CC0, CC BY, CC BY-SA, public domain. Rejected: NC, ND, Sampling+, custom. Neither pitch-shifting nor time-stretching is allowed. Transposing MIDI is fine.
 
 ## Agents start here
 
@@ -23,17 +23,17 @@ https://netcomposer.art/create/ : four steps: Write a Composition, hear a sketch
 
 ## Instruments
 
-Four browser instruments, NetComposer elements, on the same origin as Create, so NC Sync (same-origin BroadcastChannel) can reach all of them.
+Four browser instruments, TRIKI instruments, on the same origin as Create, so NC Sync (same-origin BroadcastChannel) can reach all of them.
 
 - [ASTRID](https://netcomposer.art/synth/): a browser-native polyphonic synthesizer. It runs entirely in the browser and calls no API. ASTRID's old address, synth.netcomposer.art, still serves the app for now and will redirect here once that change is published.
 - [PETRA Rhythm](https://netcomposer.art/rhythm/): a browser drum machine. Only its main page is public.
 - [OLIVE Bass](https://netcomposer.art/bass/): a 303-lineage acid bass.
-- [LUCY Audio](https://netcomposer.art/lucy/): a looper on the NetComposer clock that records a mic or audio interface; takes stay in the browser.
-- [NYX Sampler](https://netcomposer.art/nyx/): an eight-pad sampler on the NetComposer clock: load, trim, slice and sequence samples (or LUCY's takes); samples stay in the browser.
+- [LUCY Audio](https://netcomposer.art/lucy/): a looper on the TRIKI clock that records a mic or audio interface; takes stay in the browser.
+- [NYX Sampler](https://netcomposer.art/nyx/): an eight-pad sampler on the TRIKI clock: load, trim, slice and sequence samples (or LUCY's takes); samples stay in the browser.
 - [CALLIOPE Generator](https://netcomposer.art/calliope/): the Studio's note generator: chord pads, progressions, styles and arps played into the Studio's instruments (it makes no sound itself).
 - [ARIA Situation](https://netcomposer.art/aria/): the Studio's Situation module: a live seismometer (EarthScope) as the Ground wavetable and Energy for the Studio's instruments (it makes no sound itself).
 - [LUPA Looper](https://netcomposer.art/looper/): the Studio's looper: jam in laps on ASTRID and NYX; every lap you play into becomes a pass that plays back (it makes no sound itself; add it from the Studio's +).
-- [NetComposer Studio](https://netcomposer.art/studio/): the instruments (PETRA Rhythm, OLIVE Bass, ASTRID, LUCY, NYX) and CALLIOPE, the note generator, on one page, one audio clock and one mixer, with a master you can record.
+- [TRIKI Studio](https://netcomposer.art/studio/): the instruments (PETRA Rhythm, OLIVE Bass, ASTRID, LUCY, NYX) and CALLIOPE, the note generator, on one page, one audio clock and one mixer, with a master you can record.
 
 ## Now: one composition, two performances
 
