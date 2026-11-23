@@ -1187,7 +1187,7 @@ function ncRender(chain, inL, inR, outL, outR) {
       if (outR && outR !== outL) outR[i] = tmp[1];
     }
   }
-function asIsMod(type) { return type === 'flanger' || type === 'chorus' || type === 'phaser' || type === 'juno'; }
+function asIsMod(type) { return type === 'flanger' || type === 'chorus' || type === 'phaser' || type === 'juno' || type === 'ensemble' || type === 'hall' || type === 'choir'; }
 function asClamp(v, d, lo, hi) {
     var x = v == null ? d : +v;
     if (x !== x) x = d;
@@ -1374,12 +1374,164 @@ function asJunoStep(st, io, out) {
     out[0] = dg * xL + wg * (st.lpL - st.hpL);
     out[1] = dg * xR + wg * (st.lpR - st.hpR);
   }
+function asEnsembleCreate(sr) {
+    var st = asModBase('ensemble', sr, 0, 0.35, 0.0018, 0, 0.4);
+    st.n = 4096; while (st.n < Math.ceil(0.02 * sr) + 4) st.n *= 2;
+    st.bufL = new Float32Array(st.n); st.bufR = new Float32Array(st.n); st.i = 0;
+    return st;
+  }
+function asEnsembleApply(st, p, snap) {
+    st.rateT = asClamp(p.rate_hz, st.rateT, 0.01, 5);
+    st.depthT = asClamp(p.depth_s, st.depthT, 0, 0.005);
+    st.mixT = asClamp(p.mix, st.mixT, 0, 1);
+    if (snap) { st.rateS = st.rateT; st.depthS = st.depthT; st.mixS = st.mixT; }
+  }
+function asEnsembleStep(st, io, out) {
+    var xL = io[0], xR = io[1];
+    var k = st.immediate ? 1 : st.kFast;
+    st.rateS += (st.rateT - st.rateS) * k;
+    st.depthS += (st.depthT - st.depthS) * k;
+    st.mixS += (st.mixT - st.mixS) * k;
+    if (Math.abs(st.mixT - st.mixS) < 1e-6) st.mixS = st.mixT;
+    var n = st.n, i = st.i, w = i % n, sr = st.sr;
+    st.bufL[w] = xL; st.bufR[w] = xR;
+    var sw = Math.sin(TWOPI * st.ph);
+    // Delays 7 ms ± depth; the left reads the right's line, the right the left's.
+    var pos = i - (0.007 + st.depthS * sw) * sr, i0 = Math.floor(pos), fr = pos - i0;
+    var a0 = ((i0 % n) + n) % n, a1 = (((i0 + 1) % n) + n) % n;
+    var tL = st.bufR[a0] * (1 - fr) + st.bufR[a1] * fr;
+    pos = i - (0.007 - st.depthS * sw) * sr; i0 = Math.floor(pos); fr = pos - i0;
+    a0 = ((i0 % n) + n) % n; a1 = (((i0 + 1) % n) + n) % n;
+    var tR = st.bufL[a0] * (1 - fr) + st.bufL[a1] * fr;
+    st.i = i + 1 >= 1073741824 ? 0 : i + 1; // 2^30 is a multiple of n (a power of two): the ring stays in step
+    asAdvance(st);
+    var m = st.mixS;
+    out[0] = xL * (1 - m) + tL * m;
+    out[1] = xR * (1 - m) + tR * m;
+  }
+function asHallCreate(sr) {
+    var paper = [1433, 1601, 1867, 2053, 2251, 2399, 2617, 2797], lens = new Int32Array(8), bufs = [], k;
+    for (k = 0; k < 8; k++) { lens[k] = Math.round(Math.round(paper[k] * 1.3) * sr / 48000); bufs.push(new Float32Array(lens[k] + 64)); }
+    var preN = Math.ceil(0.2 * sr) + 2;
+    var st = {
+      type: 'hall', sr: sr, lens: lens, bufs: bufs, idx: new Int32Array(8), lp: new Float64Array(8), g: new Float64Array(8),
+      preL: new Float32Array(preN), preR: new Float32Array(preN), preN: preN, pw: 0, pre: 1,
+      time: 3.2, damp: 6000, a: 0, mixS: 0.32, mixT: 0.32, preT: 0.025,
+      bypass: 1, bypassT: 1, kFast: ncCoef(0.02, sr), kSlow: ncCoef(0.08, sr), immediate: false
+    };
+    asHallTune(st);
+    return st;
+  }
+function asHallTune(st) {
+    for (var k = 0; k < 8; k++) st.g[k] = Math.pow(10, -3 * st.lens[k] / st.sr / st.time);
+    st.a = Math.exp(-2 * PI * st.damp / st.sr);
+    // The prototype's ring of floor(pre × rate) + 1 samples: its delay.
+    var d = Math.floor(st.preT * st.sr) + 1;
+    st.pre = d > st.preN - 1 ? st.preN - 1 : d;
+  }
+function asHallApply(st, p, snap) {
+    st.time = asClamp(p.time_s, st.time, 0.5, 12);
+    st.damp = asClamp(p.damping_hz, st.damp, 500, 20000);
+    st.preT = asClamp(p.predelay, st.preT, 0, 0.2);
+    st.mixT = asClamp(p.mix, st.mixT, 0, 1);
+    if (snap) st.mixS = st.mixT;
+    asHallTune(st);
+  }
+function asHallStep(st, io, out) {
+    var xL = io[0], xR = io[1];
+    var k = st.immediate ? 1 : st.kFast;
+    st.mixS += (st.mixT - st.mixS) * k;
+    if (Math.abs(st.mixT - st.mixS) < 1e-6) st.mixS = st.mixT;
+    var n = st.preN, r = st.pw - st.pre;
+    if (r < 0) r += n;
+    var inL = st.preL[r], inR = st.preR[r];
+    st.preL[st.pw] = xL; st.preR[st.pw] = xR;
+    st.pw = st.pw + 1 >= n ? 0 : st.pw + 1;
+    var bufs = st.bufs, idx = st.idx, lp = st.lp, g = st.g, lens = st.lens, a = st.a, b = 1 - a, i;
+    var y0 = bufs[0][idx[0]], y1 = bufs[1][idx[1]], y2 = bufs[2][idx[2]], y3 = bufs[3][idx[3]];
+    var y4 = bufs[4][idx[4]], y5 = bufs[5][idx[5]], y6 = bufs[6][idx[6]], y7 = bufs[7][idx[7]];
+    var s = y0; s += y1; s += y2; s += y3; s += y4; s += y5; s += y6; s += y7; s *= 2 / 8;
+    var wl = 0, wr = 0, y, v;
+    for (i = 0; i < 8; i++) {
+      y = i === 0 ? y0 : i === 1 ? y1 : i === 2 ? y2 : i === 3 ? y3 : i === 4 ? y4 : i === 5 ? y5 : i === 6 ? y6 : y7;
+      v = (y - s) * g[i];
+      v = v * b + lp[i] * a;
+      lp[i] = ncFlush(v);
+      bufs[i][idx[i]] = lp[i] + (i % 2 ? inR : inL) * 0.35;
+      idx[i] = (idx[i] + 1) % lens[i];
+      if (i % 2) wr += y; else wl += y;
+    }
+    var m = st.mixS;
+    out[0] = xL * (1 - m * 0.5) + wl * m * 0.5;
+    out[1] = xR * (1 - m * 0.5) + wr * m * 0.5;
+  }
+function asHallClear(st) {
+    for (var k = 0; k < 8; k++) { st.bufs[k].fill(0); st.idx[k] = 0; st.lp[k] = 0; }
+    st.preL.fill(0); st.preR.fill(0); st.pw = 0;
+  }
+function asVowel(v, j, what) {
+    if (what === 3) return v === 1 ? 0.335 : 0.237; // -9.5 dB, -12.5 dB
+    if (v === 2) return [[450, 6, 1], [800, 7, 0.5], [2600, 9, 0.15]][j][what];
+    if (v === 3) return [[330, 6, 1], [700, 7, 0.35], [2450, 9, 0.12]][j][what];
+    return [[650, 6, 1], [1080, 7, 0.55], [2650, 9, 0.25]][j][what];
+  }
+function asChoirCreate(sr) {
+    var st = { type: 'choir', sr: sr, vowel: 1, mixS: 1, mixT: 1, trim: 0.335,
+      c: new Float64Array(12), z: new Float64Array(12),
+      bypass: 1, bypassT: 1, kFast: ncCoef(0.02, sr), kSlow: ncCoef(0.08, sr), immediate: false };
+    asChoirTune(st);
+    return st;
+  }
+function asChoirTune(st) {
+    var j, fr, g, kk, a1;
+    for (j = 0; j < 3; j++) {
+      fr = asVowel(st.vowel, j, 0);
+      if (fr > st.sr * 0.45) fr = st.sr * 0.45;
+      g = Math.tan(PI * fr / st.sr); kk = 1 / asVowel(st.vowel, j, 1);
+      a1 = 1 / (1 + g * (g + kk));
+      st.c[4 * j] = a1; st.c[4 * j + 1] = g * a1; st.c[4 * j + 2] = g * (g * a1); st.c[4 * j + 3] = asVowel(st.vowel, j, 2);
+    }
+    st.trim = asVowel(st.vowel, 0, 3);
+  }
+function asChoirApply(st, p, snap) {
+    var v = p.vowel == null ? st.vowel : Math.round(+p.vowel);
+    var next = v === 2 || v === 3 ? v : 1;
+    if (next !== st.vowel) { st.vowel = next; asChoirTune(st); }
+    st.mixT = asClamp(p.mix, st.mixT, 0, 1);
+    if (snap) st.mixS = st.mixT;
+  }
+function asChoirStep(st, io, out) {
+    var xL = io[0], xR = io[1];
+    var k = st.immediate ? 1 : st.kFast;
+    st.mixS += (st.mixT - st.mixS) * k;
+    if (Math.abs(st.mixT - st.mixS) < 1e-6) st.mixS = st.mixT;
+    var c = st.c, z = st.z, sumL = 0, sumR = 0, j, o, a, b, v1, v2, v3, x, side;
+    for (side = 0; side < 2; side++) {
+      x = side === 0 ? xL : xR;
+      for (j = 0; j < 3; j++) {
+        o = 6 * side + 2 * j;
+        a = z[o]; b = z[o + 1];
+        v3 = x - b;
+        v1 = c[4 * j] * a + c[4 * j + 1] * v3;
+        v2 = b + c[4 * j + 1] * a + c[4 * j + 2] * v3;
+        z[o] = ncFlush(2 * v1 - a);
+        z[o + 1] = ncFlush(2 * v2 - b);
+        if (side === 0) sumL += v1 * c[4 * j + 3]; else sumR += v1 * c[4 * j + 3];
+      }
+    }
+    var m = st.mixS, t = st.trim * m;
+    out[0] = xL * (1 - m) + (0.35 * xL + 1.6 * sumL) * t;
+    out[1] = xR * (1 - m) + (0.35 * xR + 1.6 * sumR) * t;
+  }
 function ncWidgetCreate(type, sr) {
     var st;
     if (type === 'flanger') st = asFlangerCreate(sr);
     else if (type === 'chorus') st = asChorusCreate(sr);
     else if (type === 'phaser') st = asPhaserCreate(sr);
     else if (type === 'juno') st = asJunoCreate(sr);
+    else if (type === 'ensemble') st = asEnsembleCreate(sr);
+    else if (type === 'hall') st = asHallCreate(sr);
+    else if (type === 'choir') st = asChoirCreate(sr);
     else st = ncVendorWidgetCreate(type, sr);
     // Level taps (the Hacks cards' meters): mt 1 while the page meters this hack; pi / po its input and output
     // sample peaks since the processor last read them. Set here, so every state has them from the start.
@@ -1392,6 +1544,9 @@ function ncWidgetApply(st, p, snap, bypass, auto) {
     else if (st.type === 'chorus') asChorusApply(st, p, snap);
     else if (st.type === 'phaser') asPhaserApply(st, p, snap);
     else if (st.type === 'juno') asJunoApply(st, p, snap);
+    else if (st.type === 'ensemble') asEnsembleApply(st, p, snap);
+    else if (st.type === 'hall') asHallApply(st, p, snap);
+    else if (st.type === 'choir') asChoirApply(st, p, snap);
     ncVendorWidgetApply(st, p, snap, bypass, auto);
   }
 function ncClearState(st) {
@@ -1399,6 +1554,9 @@ function ncClearState(st) {
       if (st.bufL) { st.bufL.fill(0); st.bufR.fill(0); st.w = 0; }
       if (st.zL) { st.zL.fill(0); st.zR.fill(0); st.yL = 0; st.yR = 0; }
       if (st.type === 'juno') { st.lpL = 0; st.lpR = 0; st.hpL = 0; st.hpR = 0; st.env = 0; }
+      if (st.type === 'ensemble') st.i = 0;
+      if (st.type === 'hall') asHallClear(st);
+      if (st.type === 'choir') st.z.fill(0);
       return;
     }
     ncVendorClearState(st);
@@ -1412,6 +1570,9 @@ function ncWidgetStep(st, io, out) {
       if (st.type === 'flanger') (NC_IO[0] = xL, NC_IO[1] = xR, asFlangerStep(st, NC_IO, out));
       else if (st.type === 'chorus') (NC_IO[0] = xL, NC_IO[1] = xR, asChorusStep(st, NC_IO, out));
       else if (st.type === 'juno') (NC_IO[0] = xL, NC_IO[1] = xR, asJunoStep(st, NC_IO, out));
+      else if (st.type === 'ensemble') (NC_IO[0] = xL, NC_IO[1] = xR, asEnsembleStep(st, NC_IO, out));
+      else if (st.type === 'hall') (NC_IO[0] = xL, NC_IO[1] = xR, asHallStep(st, NC_IO, out));
+      else if (st.type === 'choir') (NC_IO[0] = xL, NC_IO[1] = xR, asChoirStep(st, NC_IO, out));
       else (NC_IO[0] = xL, NC_IO[1] = xR, asPhaserStep(st, NC_IO, out));
       var b = st.bypass;
       if (b < 0.999) {
