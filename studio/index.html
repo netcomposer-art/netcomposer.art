@@ -3,10 +3,13 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <title>NetComposer Studio</title>
-    <meta name="description" content="NetComposer Studio: the NetComposer instruments on one transport and one mixer." />
+    <title>TRIKI Studio</title>
+    <meta name="description" content="TRIKI Studio: the TRIKI instruments on one transport and one mixer." />
     <!-- The stored theme (System, Light or Dark; src/theme.ts) and look (skin, panels; src/look.ts) before first paint,
          so a dark or skinned Studio never flashes the default. -->
+    <!-- The name a phone gives the Studio on its home screen (Peter, 2026-11-23: TRIKI; no icon yet). -->
+    <link rel="manifest" href="/studio/manifest.webmanifest" />
+    <meta name="apple-mobile-web-app-title" content="TRIKI" />
     <script>
       try {
         var t = localStorage.getItem("netcomposer.studio.theme.v1");
@@ -16,16 +19,16 @@
         if (localStorage.getItem("netcomposer.studio.fill.v1") === "1") document.documentElement.setAttribute("data-nc-fill", "");
       } catch (e) {}
     </script>
-    <script type="module" crossorigin src="/studio/assets/index-C9SYGRKD.js"></script>
-    <link rel="stylesheet" crossorigin href="/studio/assets/index-BDPjwkIl.css">
+    <script type="module" crossorigin src="/studio/assets/index-B2oxi8Ri.js"></script>
+    <link rel="stylesheet" crossorigin href="/studio/assets/index-eAjKxC7Y.css">
     <link rel="stylesheet" href="/nc-ui/nc-ui.css" data-nc-ui-live="" onerror="this.onerror=null;var l=document.createElement(&#39;link&#39;);l.rel=&#39;stylesheet&#39;;l.href=&#39;/studio/nc-ui-fallback.css&#39;;l.dataset.ncUiFallback=&#39;&#39;;document.head.appendChild(l)">
   </head>
   <body>
     <!-- Painted before any script runs, so the page never sits blank: the title and the bar as the Studio draws them,
          Play waiting and the load's first words. boot() in src/main.ts replaces it (boot-status.ts). -->
     <div id="app">
-      <h1 class="brand" aria-label="NetComposer Studio">
-        <span aria-hidden="true">NetComposer<span class="brand-sep"> / </span>Studio</span>
+      <h1 class="brand" aria-label="TRIKI Studio">
+        <span aria-hidden="true"><span class="brand-name">TRIKI</span><span class="brand-sep"> / </span>Studio</span>
       </h1>
       <header class="top">
         <div class="transport"><button type="button" class="btn play" disabled>Play</button></div>

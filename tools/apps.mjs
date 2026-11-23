@@ -21,7 +21,7 @@ export const APPS = {
     out: "apps/bass/dist",
   },
   studio: {
-    name: "NetComposer Studio",
+    name: "TRIKI Studio",
     repo: "netcomposer-art/nc-studio",
     build: ["node", "scripts/build-site.mjs"],
     out: "dist",
