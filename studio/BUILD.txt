@@ -1,5 +1,5 @@
 app: NetComposer Studio
 repo: netcomposer-art/nc-studio
-commit: 86b52488be790cd19d98dec119e0f212f674ecac
-built: 2026-11-23T20:04:57.418Z
+commit: 8e3039dda35e27932e6661abbf704fe94ee55fe2
+built: 2026-11-23T22:19:31.636Z
 base: /studio/
