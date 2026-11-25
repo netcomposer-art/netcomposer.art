@@ -1,5 +1,5 @@
 app: LOOPER
 repo: netcomposer-art/looper
-commit: ac421226522ed2cf2cfb59547d5f22a45be6cd6f
-built: 2026-11-24T23:05:27.664Z
+commit: 986dfb2c9522241eee59365bdce0c34d4e6ab326
+built: 2026-11-25T20:26:26.013Z
 base: /looper/
