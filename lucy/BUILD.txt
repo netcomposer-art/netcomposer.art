@@ -1,5 +1,5 @@
 app: LUCY Recorder
 repo: netcomposer-art/lucy
-commit: 71071ce5d5e296509065ad6f2ebe8bd89ff0402f
-built: 2026-11-25T16:05:29.118Z
+commit: 29413e6f147110c89a1f3bae4474d0063d62fdd3
+built: 2026-11-25T17:41:48.643Z
 base: /lucy/
