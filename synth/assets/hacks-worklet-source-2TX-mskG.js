@@ -1535,7 +1535,7 @@ function ncWidgetCreate(type, sr) {
     else st = ncVendorWidgetCreate(type, sr);
     // Level taps (the Hacks cards' meters): mt 1 while the page meters this hack; pi / po its input and output
     // sample peaks since the processor last read them. Set here, so every state has them from the start.
-    if (st) { st.mt = 0; st.pi = 0; st.po = 0; }
+    if (st) { st.mt = 0; st.pi = 0; st.po = 0; st.pg = 0; }
     return st;
   }
 function ncWidgetApply(st, p, snap, bypass, auto) {
@@ -1593,6 +1593,8 @@ function ncWidgetStep(st, io, out) {
       a = out[0] < 0 ? -out[0] : out[0]; c = out[1] < 0 ? -out[1] : out[1];
       if (c > a) a = c;
       if (a > st.po) st.po = a;
+      // A compressor's gain reduction (dB) for its gauge (Peter, 2026-11-27), while it is switched on.
+      if (st.type === 'compressor' && st.bypass > 0.5 && st.gr > (st.pg || 0)) st.pg = st.gr;
     }
   }
 // One AudioWorklet for the whole hack stack. DSP functions are prepended by engine.js.
@@ -1626,7 +1628,7 @@ class NCHackProcessor extends AudioWorkletProcessor {
     this.mOn = false;
     this.mN = 0;
     this.mEvery = Math.max(128, Math.round(sampleRate / 30));
-    this.mBuf = new Float32Array(20);
+    this.mBuf = new Float32Array(30);
     this.mMsg = { lv: this.mBuf, ids: NC_NONE, n: 0 };
     this.mQuiet = false;
     var self = this;
@@ -1671,11 +1673,11 @@ class NCHackProcessor extends AudioWorkletProcessor {
     var order = this.chain.order, buf = this.mBuf, n = order.length < 10 ? order.length : 10, loud = false, m, st;
     for (m = 0; m < n; m++) {
       st = this.chain.box[order[m]];
-      if (!st) { buf[2 * m] = 0; buf[2 * m + 1] = 0; continue; }
+      if (!st) { buf[3 * m] = 0; buf[3 * m + 1] = 0; buf[3 * m + 2] = 0; continue; }
       if (st.mt !== 1) st.mt = 1;
-      buf[2 * m] = st.pi; buf[2 * m + 1] = st.po;
-      if (st.pi > 1e-5 || st.po > 1e-5) loud = true;
-      st.pi = 0; st.po = 0;
+      buf[3 * m] = st.pi; buf[3 * m + 1] = st.po; buf[3 * m + 2] = st.pg || 0;
+      if (st.pi > 1e-5 || st.po > 1e-5 || st.pg > 1e-5) loud = true;
+      st.pi = 0; st.po = 0; st.pg = 0;
     }
     this.mMsg.ids = order; this.mMsg.n = n;
     if (loud || !this.mQuiet) this.port.postMessage(this.mMsg);
